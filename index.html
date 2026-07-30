@@ -371,15 +371,29 @@
 </div>
 
 <script>
-/* ---------- storage helpers ---------- */
+/* ---------- storage helpers ----------
+   Uses window.storage when running as a Claude.ai artifact.
+   Falls back to localStorage when the file is opened standalone in a browser. */
+const hasClaudeStorage = (typeof window !== 'undefined' && !!window.storage);
+
 async function storeGet(key, fallback){
+  if(hasClaudeStorage){
+    try{
+      const r = await window.storage.get(key, true);
+      return r ? JSON.parse(r.value) : fallback;
+    }catch(e){ return fallback; }
+  }
   try{
-    const r = await window.storage.get(key, true);
-    return r ? JSON.parse(r.value) : fallback;
+    const raw = localStorage.getItem(key);
+    return raw !== null ? JSON.parse(raw) : fallback;
   }catch(e){ return fallback; }
 }
 async function storeSet(key, value){
-  try{ await window.storage.set(key, JSON.stringify(value), true); }catch(e){ console.error('storage error', e); }
+  if(hasClaudeStorage){
+    try{ await window.storage.set(key, JSON.stringify(value), true); }catch(e){ console.error('storage error', e); }
+    return;
+  }
+  try{ localStorage.setItem(key, JSON.stringify(value)); }catch(e){ console.error('storage error', e); }
 }
 
 const uid = () => Math.random().toString(36).slice(2,9);
