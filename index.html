@@ -60,14 +60,14 @@
   .topbar-right{display:flex;align-items:center;gap:14px;}
   .avatar{width:34px;height:34px;border-radius:50%;background:var(--steel-light);color:var(--steel);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;}
 
-  /* Sync widget (futuristic status indicator) */
-  .sync-widget{display:flex;align-items:center;gap:9px;padding:6px 14px 6px 8px;border-radius:30px;border:1px solid var(--border);background:linear-gradient(135deg,rgba(46,102,144,0.07),rgba(28,138,110,0.07));cursor:pointer;user-select:none;transition:border-color .15s,box-shadow .15s;position:relative;}
-  .sync-widget:hover{border-color:var(--steel);box-shadow:0 0 0 4px var(--steel-light);}
-  .sync-widget:active{transform:scale(.98);}
-  .sync-orb{position:relative;width:20px;height:20px;flex-shrink:0;}
-  .sync-orb .ring{position:absolute;inset:0;border-radius:50%;border:1.5px solid var(--teal);opacity:.55;animation:sync-pulse-ring 2.2s ease-out infinite;}
+  /* Sync widget (interactive orb icon, auto-animating) */
+  .sync-widget{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;border:1.5px solid var(--border);background:linear-gradient(135deg,rgba(46,102,144,0.08),rgba(28,138,110,0.06));cursor:pointer;user-select:none;transition:border-color .15s,box-shadow .15s,transform .2s;position:relative;}
+  .sync-widget:hover{border-color:var(--steel);box-shadow:0 0 0 6px var(--steel-light),0 0 12px rgba(46,102,144,0.15);transform:scale(1.05);}
+  .sync-widget:active{transform:scale(.95);}
+  .sync-orb{position:relative;width:24px;height:24px;flex-shrink:0;}
+  .sync-orb .ring{position:absolute;inset:0;border-radius:50%;border:1.8px solid var(--teal);opacity:.48;animation:sync-pulse-ring 2.2s ease-out infinite;}
   .sync-orb .ring2{animation-delay:1.1s;}
-  .sync-orb .core{position:absolute;inset:6px;border-radius:50%;background:var(--teal);box-shadow:0 0 9px 1px var(--teal);}
+  .sync-orb .core{position:absolute;inset:5px;border-radius:50%;background:var(--teal);box-shadow:0 0 12px 2px var(--teal);}
   .sync-orb.syncing .ring{border-color:var(--steel);border-top-color:transparent;border-right-color:transparent;opacity:1;animation:sync-spin .8s linear infinite;}
   .sync-orb.syncing .ring2{display:none;}
   .sync-orb.syncing .core{background:var(--steel);box-shadow:0 0 9px 1px var(--steel);animation:sync-core-blink 1s ease-in-out infinite;}
@@ -79,9 +79,6 @@
   @keyframes sync-pulse-ring{0%{transform:scale(.55);opacity:.65;}100%{transform:scale(1.7);opacity:0;}}
   @keyframes sync-spin{to{transform:rotate(360deg);}}
   @keyframes sync-core-blink{0%,100%{opacity:1;}50%{opacity:.4;}}
-  .sync-text{display:flex;flex-direction:column;line-height:1.28;}
-  .sync-text .label{font-size:11.5px;font-weight:600;font-family:var(--font-mono);color:var(--text);letter-spacing:.01em;}
-  .sync-text .time{font-size:9.5px;color:var(--text-muted);font-family:var(--font-mono);}
 
   /* Interactive row-action icon buttons */
   .row-actions{display:flex;gap:6px;justify-content:flex-end;}
@@ -197,7 +194,7 @@
       <div class="brand-mark">DSO</div>
       <div class="brand-text">
         <div class="t1">One-Stop Ops Hub</div>
-        <div class="t2">Site & DIFO portal</div>
+        <div class="t2">Digital Sustainability Operation</div>
       </div>
     </div>
 
@@ -220,13 +217,9 @@
         <div class="sub" id="page-sub">Ringkasan operasional site hari ini</div>
       </div>
       <div class="topbar-right">
-        <div class="sync-widget" id="sync-widget" title="Klik untuk sinkron ulang sekarang">
+        <div class="sync-widget" id="sync-widget" title="Klik untuk sinkron ulang. Status otomatis tersinkron ke Google Sheet.">
           <div class="sync-orb idle" id="sync-orb">
             <span class="ring"></span><span class="ring ring2"></span><span class="core"></span>
-          </div>
-          <div class="sync-text">
-            <span class="label" id="sync-label">Menghubungkan…</span>
-            <span class="time" id="sync-time">-</span>
           </div>
         </div>
         <div class="avatar">AD</div>
@@ -455,7 +448,7 @@
       siapa pun yang membuka file ini di browser/perangkat manapun akan otomatis
       tersambung ke spreadsheet yang sama -- tidak perlu setup ulang saat berganti browser.
    ========================================================================= */
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbweteozanetXGkcBfupEQNnL01ZVbxmf0N1eTS3ObqfBqem0fQ9gDdLMQBhNlNkoRQN/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzkq5kcprfGsiO4IRi3tV2urqfg8zB75e70Nnp2-yGyaITphWlptN0O9BJ-dspcCpwc/exec';
 const isConfigured = /^https:\/\/script\.google(usercontent)?\.com\//.test(APPS_SCRIPT_URL);
 
 const uid = () => Math.random().toString(36).slice(2,9);
@@ -525,24 +518,11 @@ let roster = [];
 /* ---------- sync status widget ---------- */
 const syncWidget = document.getElementById('sync-widget');
 const syncOrb = document.getElementById('sync-orb');
-const syncLabel = document.getElementById('sync-label');
-const syncTimeEl = document.getElementById('sync-time');
-function fmtTime(d){ return d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit',second:'2-digit'}); }
 function setSyncState(state, note){
   syncOrb.className = 'sync-orb ' + state;
   const banner = document.getElementById('roster-config-banner');
-  if(state==='syncing'){ syncLabel.textContent = 'Menyinkronkan…'; }
-  else if(state==='ok'){
-    syncLabel.textContent = isConfigured ? 'Tersinkron - Google Sheet' : 'Mode lokal (demo)';
-    syncTimeEl.textContent = 'Update ' + fmtTime(new Date());
-    banner.style.display = isConfigured ? 'none' : 'block';
-  } else if(state==='error'){
-    syncLabel.textContent = 'Gagal sinkron';
-    syncTimeEl.textContent = note || 'Klik untuk coba lagi';
-    banner.style.display = 'block';
-  } else {
-    syncLabel.textContent = 'Menghubungkan…';
-  }
+  if(state==='ok'){ banner.style.display = isConfigured ? 'none' : 'block'; }
+  else if(state==='error'){ banner.style.display = 'block'; }
 }
 async function syncAll(){
   setSyncState('syncing');
