@@ -38,11 +38,12 @@
   .app{display:flex;min-height:100vh;}
 
   /* Sidebar */
-  .sidebar{width:230px;flex-shrink:0;background:var(--navy);color:#DDE6EC;display:flex;flex-direction:column;padding:20px 14px;}
-  .brand{display:flex;align-items:center;gap:10px;padding:6px 8px 22px;}
-  .brand-mark{width:34px;height:34px;border-radius:8px;background:var(--steel);display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-weight:500;font-size:13px;color:#fff;}
-  .brand-text .t1{font-family:var(--font-display);font-weight:600;font-size:14px;line-height:1.2;color:#fff;}
-  .brand-text .t2{font-size:11px;color:#8FA3B3;letter-spacing:.03em;}
+  .sidebar{width:250px;flex-shrink:0;background:var(--navy);color:#DDE6EC;display:flex;flex-direction:column;padding:20px 14px;}
+  .brand{display:flex;align-items:center;gap:9px;padding:6px 8px 22px;}
+  .brand-mark{width:32px;height:32px;border-radius:8px;background:var(--steel);display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-weight:500;font-size:12px;color:#fff;flex-shrink:0;}
+  .brand-text{min-width:0;}
+  .brand-text .t1{font-family:var(--font-display);font-weight:600;font-size:14px;line-height:1.2;color:#fff;white-space:nowrap;}
+  .brand-text .t2{font-size:10px;color:#8FA3B3;letter-spacing:.01em;white-space:nowrap;}
 
   .nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;font-size:13.5px;color:#B7C6D0;cursor:pointer;margin-bottom:2px;transition:background .12s;}
   .nav-item i{font-size:17px;width:18px;text-align:center;}
@@ -50,7 +51,7 @@
   .nav-item.active{background:var(--steel);color:#fff;}
   .nav-section-label{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:#5E7385;padding:16px 12px 6px;}
 
-  .sidebar-foot{margin-top:auto;padding:12px;border-top:1px solid rgba(255,255,255,0.08);font-size:11px;color:#6E8494;}
+  .sidebar-foot{margin-top:auto;padding:12px;border-top:1px solid rgba(255,255,255,0.08);font-size:11px;color:#6E8494;white-space:nowrap;line-height:1.5;}
 
   /* Main */
   .main{flex:1;min-width:0;display:flex;flex-direction:column;}
@@ -193,7 +194,7 @@
     <div class="brand">
       <div class="brand-mark">DSO</div>
       <div class="brand-text">
-        <div class="t1">One-Stop Ops Hub</div>
+        <div class="t1">One-Stop Ops HUB</div>
         <div class="t2">Digital Sustainability Operation</div>
       </div>
     </div>
@@ -207,7 +208,7 @@
     <div class="nav-section-label">Data</div>
     <div class="nav-item" id="reset-data"><i class="ti ti-refresh"></i><span>Reset demo data</span></div>
 
-    <div class="sidebar-foot">DSO Operations Hub<br>v1.0 &middot; internal use</div>
+    <div class="sidebar-foot">DSO Operations Hub<br>v1.0</div>
   </div>
 
   <div class="main">
@@ -448,7 +449,7 @@
       siapa pun yang membuka file ini di browser/perangkat manapun akan otomatis
       tersambung ke spreadsheet yang sama -- tidak perlu setup ulang saat berganti browser.
    ========================================================================= */
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzkq5kcprfGsiO4IRi3tV2urqfg8zB75e70Nnp2-yGyaITphWlptN0O9BJ-dspcCpwc/exec';
+const APPS_SCRIPT_URL = 'PASTE_URL_WEB_APP_APPS_SCRIPT_DI_SINI';
 const isConfigured = /^https:\/\/script\.google(usercontent)?\.com\//.test(APPS_SCRIPT_URL);
 
 const uid = () => Math.random().toString(36).slice(2,9);
