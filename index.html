@@ -173,6 +173,12 @@
   .task-title .editable-label:focus{background:var(--hilite);box-shadow:0 0 0 1.5px var(--accent);}
   .task-del-btn{background:none;border:none;color:var(--red-fg);font-size:10.5px;font-weight:600;cursor:pointer;margin-left:8px;padding:2px 4px;}
   .task-del-btn:hover{text-decoration:underline;}
+  .subtab-bar{display:none;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+  .subtab-bar.show{display:flex;}
+  .tab.subtab{flex:none;display:inline-flex;padding:8px 16px;border-radius:20px;background:var(--surface);border:1px solid var(--border);color:var(--text);font-weight:500;}
+  .tab.subtab:hover:not(.active){background:var(--steel-light);color:var(--accent);}
+  .tab.subtab.active{background:var(--accent);color:#fff;}
+
   .row-actions{display:inline-flex;gap:6px;margin-left:8px;vertical-align:middle;justify-content:flex-end;}
   .icon-btn{display:inline-flex;align-items:center;justify-content:center;width:29px;height:29px;border-radius:8px;cursor:pointer;color:var(--text-muted);background:transparent;border:none;transition:transform .12s,background .12s,color .12s,box-shadow .12s;}
   .icon-btn i{font-size:15px;}
@@ -561,9 +567,7 @@
       <div class="tab active" data-view="overview" data-label="Overview"><i class="ti ti-layout-dashboard"></i><span>Overview</span></div>
       <div class="tab" data-view="assetplant" data-label="Stock Management"><i class="ti ti-package"></i><span>Stock Management</span></div>
       <div class="tab" data-view="pob" data-label="Personnel On Board"><i class="ti ti-user-check"></i><span>POB</span></div>
-      <div class="tab" data-view="harian" data-label="Checklist Harian"><i class="ti ti-checklist"></i><span>Checklist Harian</span></div>
-      <div class="tab" data-view="followup" data-label="Follow Up"><i class="ti ti-refresh"></i><span>Follow Up</span><span class="tab-badge" id="fuTabBadge" style="display:none;"></span></div>
-      <div class="tab" data-view="rekap" data-label="Rekap"><i class="ti ti-chart-bar"></i><span>Rekap</span></div>
+      <div class="tab" data-view="harian" data-label="Checklist &amp; Follow Up" id="sidebarGroupChecklist"><i class="ti ti-checklist"></i><span>Checklist &amp; Follow Up</span><span class="tab-badge" id="fuTabBadgeGroup" style="display:none;"></span></div>
       <div class="tab" data-view="roster" data-label="Roster"><i class="ti ti-users"></i><span>Roster</span></div>
       <div class="tab" data-view="tasklist" data-label="Task List"><i class="ti ti-clipboard-list"></i><span>Task List</span></div>
       <div class="tab" data-view="openpoint" data-label="Open Point"><i class="ti ti-alert-triangle"></i><span>Open Point</span></div>
@@ -648,6 +652,12 @@
   </div>
 
   <!-- ================= VIEW: HARIAN ================= -->
+  <div class="subtab-bar" id="checklistSubtabs">
+    <div class="tab subtab active" data-view="harian" data-label="Checklist Harian"><i class="ti ti-checklist"></i><span>Checklist Harian</span></div>
+    <div class="tab subtab" data-view="followup" data-label="Follow Up"><i class="ti ti-refresh"></i><span>Follow Up</span><span class="tab-badge" id="fuTabBadge" style="display:none;"></span></div>
+    <div class="tab subtab" data-view="rekap" data-label="Rekap"><i class="ti ti-chart-bar"></i><span>Rekap</span></div>
+  </div>
+
   <div class="view" id="view-harian">
     <div class="controls">
       <div>
@@ -1427,7 +1437,7 @@ function showToast(message, type){
 }
 
 /* ---------------- HEADER EDITABLE ---------------- */
-const HEADER_KEY = 'app:headerConfig';
+const HEADER_KEY = 'dso:headerConfig';
 const headerFields = {
   headerTitle: document.getElementById('headerTitle'),
   headerSubtitle: document.getElementById('headerSubtitle'),
@@ -2488,6 +2498,20 @@ setInterval(() => {
 loadRoster();
 
 /* ---------------- TAB SWITCHING ---------------- */
+function syncChecklistGroupUI(view){
+  const groupViews = ['harian','followup','rekap'];
+  const inGroup = groupViews.includes(view);
+  const groupEl = document.getElementById('sidebarGroupChecklist');
+  const subtabBar = document.getElementById('checklistSubtabs');
+  if(groupEl) groupEl.classList.toggle('active', inGroup);
+  if(subtabBar){
+    subtabBar.classList.toggle('show', inGroup);
+    if(inGroup){
+      subtabBar.querySelectorAll('.tab.subtab').forEach(st => st.classList.toggle('active', st.dataset.view === view));
+    }
+  }
+}
+
 document.querySelectorAll('.tab').forEach(tab => {
   tab.onclick = () => {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -2496,6 +2520,8 @@ document.querySelectorAll('.tab').forEach(tab => {
     document.getElementById('view-' + tab.dataset.view).classList.add('active');
     const pt = document.getElementById('pageTitle');
     if(pt) pt.textContent = tab.dataset.label || tab.textContent.trim();
+    syncChecklistGroupUI(tab.dataset.view);
+
     if(tab.dataset.view === 'rekap') renderRekap();
     if(tab.dataset.view === 'followup'){ renderFollowUp().then(clearOrderFormUnread); }
     if(tab.dataset.view === 'roster') loadRoster();
@@ -2549,6 +2575,236 @@ function dsoDefaults(){
         ],
         serial:[
           {nama:'Electron UHF Fixed Reader antenna 9dBi / 12dBi', merk:'Electron HW-VX6346KL V2', sn:'-', kondisi:'Bekas', lokasi:'Office VGT'}
+        ]},
+      {cat:'Baut Load Cell', real:11, dummy:0, status:'green', label:'Ready',
+        replacements:[
+          {tanggal:'2025-07-27', lane:'Lane 1', keterangan:'Pergantian baut Load Cell 2 dan 3 yang patah di Lane 1'},
+          {tanggal:'2025-07-31', lane:'Lane 1', keterangan:'Pergantian baut Load Cell 1 yang patah di Lane 1'},
+          {tanggal:'2025-08-02', lane:'Lane 1', keterangan:'Pergantian baut Load Cell 4 yang bengkok di Lane 1'},
+          {tanggal:'2025-12-02', lane:'Lane 1', keterangan:'Pergantian baut Load Cell 4 yang bengkok di Lane 1'},
+          {tanggal:'2026-01-14', lane:'Lane 3', keterangan:'Pergantian Load Cell 4 yang patah di Lane 3'},
+          {tanggal:'2026-03-18', lane:'Lane 1', keterangan:'Pergantian Load Cell 4 yang patah di Lane 3'},
+          {tanggal:'2026-05-22', lane:'Lane 3', keterangan:'Baut dipake untuk Loadcell 1 dan Loadcell 2'},
+          {tanggal:'2026-05-28', lane:'Lane 1', keterangan:'Baut dipake untuk masing-masing Loadcell menggunakan satu baut baru pada Lane 1'}
+        ],
+        serial:[]},
+      {cat:'Dudukan Load Cell', real:3, dummy:5, status:'green', label:'Ready',
+        replacements:[
+          {tanggal:'2025-02-02', lane:'Lane 3', keterangan:'Pergantian dudukan loadcell 4 dikarenakan baut patah didalam'},
+          {tanggal:'2025-12-19', lane:'Lane 1', keterangan:'Dudukan Loadcell diganti semua dikarenakan instalasi dengan frame baru'},
+          {tanggal:'2026-01-14', lane:'Lane 3', keterangan:'Pergantian Load Cell 4 yang patah di Lane 3'}
+        ],
+        serial:[
+          {nama:'INTERCOMP AX920 Loadcell Base', merk:'UL50-30', sn:'-', kondisi:'Aus'},
+          {nama:'INTERCOMP AX920 Loadcell Base', merk:'UL50-30', sn:'-', kondisi:'Aus'},
+          {nama:'INTERCOMP AX920 Loadcell Base', merk:'UL50-30', sn:'-', kondisi:'Aus'},
+          {nama:'INTERCOMP AX920 Loadcell Base', merk:'UL50-30', sn:'-', kondisi:'Aus'},
+          {nama:'INTERCOMP AX920 Loadcell Base', merk:'UL50-30', sn:'-', kondisi:'Baru'},
+          {nama:'INTERCOMP AX920 Loadcell Base', merk:'UL50-30', sn:'-', kondisi:'Baru'},
+          {nama:'INTERCOMP AX920 Loadcell Base', merk:'UL50-30', sn:'-', kondisi:'Baru'},
+          {nama:'INTERCOMP AX920 Loadcell Base', merk:'UL50-30', sn:'-', kondisi:'Rusak'},
+          {nama:'INTERCOMP AX920 Loadcell Base', merk:'UL50-30', sn:'-', kondisi:'Baru'},
+          {nama:'INTERCOMP AX920 Loadcell Base', merk:'UL50-30', sn:'-', kondisi:'Baru'}
+        ]},
+      {cat:'Bolt Adjuster Platform', real:8, dummy:0, status:'green', label:'Ready',
+        replacements:[],
+        serial:[]},
+      {cat:'Longrat Adjuster', real:4, dummy:0, status:'green', label:'Ready',
+        replacements:[
+          {tanggal:'2025-07-27', lane:'Lane 1', keterangan:'Pergantian adjuster sebelah kanan yang patah di Lane 1'},
+          {tanggal:'2025-07-31', lane:'Lane 1', keterangan:'Pergantian adjuster sebelah kiri yang patah di Lane 1'}
+        ],
+        serial:[]},
+      {cat:'Ring Adjuster', real:20, dummy:0, status:'green', label:'Ready',
+        replacements:[
+          {tanggal:'2025-07-27', lane:'Lane 1', keterangan:'Pergantian adjuster sebelah kanan yang patah di Lane 1'},
+          {tanggal:'2025-07-31', lane:'Lane 1', keterangan:'Pergantian adjuster sebelah kiri yang patah di Lane 1'}
+        ],
+        serial:[]},
+      {cat:'Rubber Adjuster', real:4, dummy:0, status:'green', label:'Ready',
+        replacements:[
+          {tanggal:'2025-07-27', lane:'Lane 1', keterangan:'Pergantian adjuster sebelah kanan yang patah di Lane 1'},
+          {tanggal:'2025-07-31', lane:'Lane 1', keterangan:'Pergantian adjuster sebelah kiri yang patah di Lane 1'}
+        ],
+        serial:[]},
+      {cat:'Mur Adjuster', real:2, dummy:0, status:'green', label:'Ready',
+        replacements:[
+          {tanggal:'2025-07-27', lane:'Lane 1', keterangan:'Pergantian adjuster sebelah kanan yang patah di Lane 1'},
+          {tanggal:'2025-07-31', lane:'Lane 1', keterangan:'Pergantian adjuster sebelah kiri yang patah di Lane 1'}
+        ],
+        serial:[]},
+      {cat:'Mounting Platform LS', real:8, dummy:4, status:'green', label:'Ready',
+        replacements:[],
+        serial:[
+          {nama:'INTERCOMP Mounting Platform Low Speed', merk:'UC50-30', sn:'-', kondisi:'Aus'},
+          {nama:'INTERCOMP Mounting Platform Low Speed', merk:'UC50-30', sn:'-', kondisi:'Aus'},
+          {nama:'INTERCOMP Mounting Platform Low Speed', merk:'UC50-30', sn:'-', kondisi:'Aus'},
+          {nama:'INTERCOMP Mounting Platform Low Speed', merk:'UC50-30', sn:'-', kondisi:'Aus'},
+          {nama:'INTERCOMP Mounting Platform Low Speed', merk:'UC50-30', sn:'-', kondisi:'Baru'},
+          {nama:'INTERCOMP Mounting Platform Low Speed', merk:'UC50-30', sn:'-', kondisi:'Baru'},
+          {nama:'INTERCOMP Mounting Platform Low Speed', merk:'UC50-30', sn:'-', kondisi:'Baru'},
+          {nama:'INTERCOMP Mounting Platform Low Speed', merk:'UC50-30', sn:'-', kondisi:'Baru'},
+          {nama:'INTERCOMP Mounting Platform Low Speed', merk:'UC50-30', sn:'-', kondisi:'Baru'},
+          {nama:'INTERCOMP Mounting Platform Low Speed', merk:'UC50-30', sn:'-', kondisi:'Baru'}
+        ]},
+      {cat:'Platform Low Speed', real:0, dummy:1, status:'red', label:'Out of Stock',
+        replacements:[],
+        serial:[
+          {nama:'LS-WIM AXLE SCALE INTERCOMP', merk:'LS-WIM AXLE SCALE SYSTEM 3.9 M PLATFORM / 125007', sn:'1112YH24001', kondisi:'Bekas'},
+          {nama:'LS-WIM AXLE SCALE INTERCOMP', merk:'LS-WIM AXLE SCALE SYSTEM 3.9 M PLATFORM / 125007', sn:'0217YH25001', kondisi:'Baru'},
+          {nama:'LS-WIM AXLE SCALE INTERCOMP', merk:'LS-WIM AXLE SCALE SYSTEM 3.9 M PLATFORM / 125007', sn:'0217YH25002', kondisi:'Baru'}
+        ]},
+      {cat:'Frame Low Speed', real:1, dummy:1, status:'green', label:'Ready',
+        replacements:[],
+        serial:[
+          {nama:'INTERCOMP Frame Low Speed', merk:'-', sn:'-', kondisi:'Bekas'},
+          {nama:'INTERCOMP Frame Low Speed', merk:'-', sn:'-', kondisi:'Baru'},
+          {nama:'Fabrikasi dari Jakarta', merk:'-', sn:'-', kondisi:'Baru'},
+          {nama:'INTERCOMP Frame Low Speed', merk:'-', sn:'-', kondisi:'Baru'}
+        ]},
+      {cat:'Junction Box', real:1, dummy:0, status:'green', label:'Ready',
+        replacements:[],
+        serial:[
+          {nama:'INTERCOMP Summing Box', merk:'-', sn:'-', kondisi:'Baru'},
+          {nama:'INTERCOMP Summing Box', merk:'-', sn:'-', kondisi:'Baru'},
+          {nama:'INTERCOMP Summing Box', merk:'-', sn:'-', kondisi:'Bekas'}
+        ]},
+      {cat:'CCTV', real:1, dummy:0, status:'green', label:'Ready',
+        replacements:[],
+        serial:[
+          {nama:'HIKVISION', merk:'HIKVISION Network Camera', sn:'-', kondisi:'Baru'},
+          {nama:'HIKVISION', merk:'HIKVISION Network Camera', sn:'-', kondisi:'Baru'},
+          {nama:'HIKVISION', merk:'HIKVISION Network Camera', sn:'-', kondisi:'Baru'},
+          {nama:'HIKVISION', merk:'HIKVISION Network Camera', sn:'-', kondisi:'Baru'},
+          {nama:'HIKVISION', merk:'HIKVISION Network Camera', sn:'-', kondisi:'Baru'},
+          {nama:'HIKVISION', merk:'HIKVISION Network Camera', sn:'AB7521332', kondisi:'Baru'}
+        ]},
+      {cat:'Strip Sensor High Speed', real:4, dummy:0, status:'green', label:'Ready',
+        replacements:[],
+        serial:[
+          {nama:'Sensor Strip High Speed INTERCOMP', merk:'2.0M STRAIN GAUGE STRIP SENSOR W/100M CABLE (3.0) / 153033 - 100', sn:'-', kondisi:'Baru'},
+          {nama:'Sensor Strip High Speed INTERCOMP', merk:'2.0M STRAIN GAUGE STRIP SENSOR W/100M CABLE (3.0) / 153033 - 100', sn:'-', kondisi:'Baru'},
+          {nama:'Sensor Strip High Speed INTERCOMP', merk:'2.0M STRAIN GAUGE STRIP SENSOR W/100M CABLE (3.0) / 153033 - 100', sn:'-', kondisi:'Baru'},
+          {nama:'Sensor Strip High Speed INTERCOMP', merk:'2.0M STRAIN GAUGE STRIP SENSOR W/100M CABLE (3.0) / 153033 - 100', sn:'-', kondisi:'Baru'},
+          {nama:'Sensor Strip High Speed INTERCOMP', merk:'2.0M STRAIN GAUGE STRIP SENSOR W/100M CABLE (3.0) / 153033 - 100', sn:'-', kondisi:'Baru'},
+          {nama:'Sensor Strip High Speed INTERCOMP', merk:'2.0M STRAIN GAUGE STRIP SENSOR W/100M CABLE (3.0) / 153033 - 100', sn:'-', kondisi:'Baru'},
+          {nama:'Sensor Strip High Speed INTERCOMP', merk:'2.0M STRAIN GAUGE STRIP SENSOR W/100M CABLE (3.0) / 153033 - 100', sn:'-', kondisi:'Baru'},
+          {nama:'Sensor Strip High Speed INTERCOMP', merk:'2.0M STRAIN GAUGE STRIP SENSOR W/100M CABLE (3.0) / 153033 - 100', sn:'-', kondisi:'Baru'},
+          {nama:'Sensor Strip High Speed INTERCOMP', merk:'2.0M STRAIN GAUGE STRIP SENSOR W/100M CABLE (3.0) / 153033 - 100', sn:'-', kondisi:'Baru'},
+          {nama:'Sensor Strip High Speed INTERCOMP', merk:'2.0M STRAIN GAUGE STRIP SENSOR W/100M CABLE (3.0) / 153033 - 100', sn:'-', kondisi:'Baru'}
+        ]},
+      {cat:'Switch', real:1, dummy:0, status:'green', label:'Ready',
+        replacements:[
+          {tanggal:'2025-10-22', lane:'Lane 3', keterangan:'Pergantian di Lane 3'}
+        ],
+        serial:[
+          {nama:'Tp-Link 16 Port Gigabit', merk:'TL-SG1016PE(UN)', sn:'-', kondisi:'Baru'},
+          {nama:'Tp-Link 16 Port Gigabit', merk:'TL-SG1016PE(UN)', sn:'-', kondisi:'Baru'},
+          {nama:'D-Link Un-Managed PoE Switch', merk:'DES-F1018P-E', sn:'RVBPEO5000126', kondisi:'Bekas'},
+          {nama:'Tp-Link 16 Port Gigabit', merk:'TL-SG1016PE(UN)', sn:'22524J2001742', kondisi:'Baru'},
+          {nama:'Tp-Link Omada 8 Port Gigabit', merk:'SG3210', sn:'225A0LB000437', kondisi:'Baru'}
+        ]},
+      {cat:'PLC', real:0, dummy:0, status:'red', label:'Out of Stock',
+        replacements:[],
+        serial:[
+          {nama:'MITSUBISI ELECTRIC', merk:'Misubisi Electric FX3u-16M', sn:'-', kondisi:'Baru'},
+          {nama:'MITSUBISI ELECTRIC', merk:'Misubisi Electric FX3u-16M', sn:'-', kondisi:'Rusak'},
+          {nama:'MITSUBISI ELECTRIC', merk:'Misubisi Electric FX3u-16M', sn:'-', kondisi:'Rusak'}
+        ]},
+      {cat:'Batterai Lithium', real:0, dummy:0, status:'red', label:'Out of Stock',
+        replacements:[
+          {tanggal:'2026-04-16', lane:'Lane 2', keterangan:'Pergantian di Lane 2 karena over discharging'},
+          {tanggal:'2026-06-28', lane:'Lane 3', keterangan:'Pergantian di Lane 3 karena over discharging'}
+        ],
+        serial:[
+          {nama:'SHOTO', merk:'SDA10-48100', sn:'-', kondisi:'Rusak'},
+          {nama:'SMT-POWER', merk:'LITHIUM BATTERY SL5210 51.2V 100AH', sn:'Y028151100A241209A81', kondisi:'Baru'},
+          {nama:'SHOTO', merk:'SDA10-48100', sn:'-', kondisi:'Rusak'},
+          {nama:'SMT-POWER', merk:'LITHIUM BATTERY SL5210 51.2V 100AH', sn:'Y028151100A240409B84', kondisi:'Baru'},
+          {nama:'SMT-POWER', merk:'LITHIUM BATTERY SL5210 51.2V 100AH', sn:'Y028151100A260327A01', kondisi:'Baru'}
+        ]},
+      {cat:'WIM Logix HS', real:0, dummy:0, status:'red', label:'Out of Stock',
+        replacements:[],
+        serial:[
+          {nama:'Weigh-In-Motion CPU Modules', merk:'WIMLOGIX I/O + CPU (Up to 8 Sensors) / 153037', sn:'0306YS24001', kondisi:'Baru'},
+          {nama:'Weigh-In-Motion CPU Modules', merk:'WIMLOGIX I/O + CPU (Up to 8 Sensors) / 153037', sn:'1024YS24001', kondisi:'Baru'},
+          {nama:'Weigh-In-Motion CPU Modules', merk:'WIMLOGIX I/O + CPU (Up to 8 Sensors) / 153037', sn:'0122YS25005', kondisi:'Baru'}
+        ]},
+      {cat:'WIM Logix LS', real:1, dummy:0, status:'green', label:'Ready',
+        replacements:[],
+        serial:[
+          {nama:'WIM LOGIX LS', merk:'WIM4 CPU WITH ETHERNET OUTPUT FOR LS WIM / 125001', sn:'1112YH24002', kondisi:'Baru'},
+          {nama:'WIM LOGIX LS', merk:'WIM4 CPU WITH ETHERNET OUTPUT FOR LS WIM / 125001', sn:'0217YH25003', kondisi:'Baru'},
+          {nama:'WIM LOGIX LS', merk:'WIM4 CPU WITH ETHERNET OUTPUT FOR LS WIM / 125001', sn:'0217YH25004', kondisi:'Baru'}
+        ]},
+      {cat:'Light Curtain', real:2, dummy:0, status:'green', label:'Ready',
+        replacements:[],
+        serial:[
+          {nama:'Receiver Light Curtain HS Lane 1', merk:'TYPE4/SIL3(IEC61496/IEC61508)', sn:'#C3420333', kondisi:'Baru'},
+          {nama:'Transmitter Light Curtain HS Lane 1', merk:'TYPE4/SIL3(IEC61496/IEC61508)', sn:'#C3420326', kondisi:'Baru'},
+          {nama:'Receiver Light Curtain LS Lane 1', merk:'TYPE4/SIL3(IEC61496/IEC61508)', sn:'#63420055', kondisi:'Baru'},
+          {nama:'Transmitter Light Curtain LS Lane 1', merk:'TYPE4/SIL3(IEC61496/IEC61508)', sn:'#63420102', kondisi:'Baru'},
+          {nama:'Receiver Light Curtain HS Lane 2', merk:'TYPE4/SIL3(IEC61496/IEC61508)', sn:'#23520133', kondisi:'Baru'},
+          {nama:'Transmitter Light Curtain HS Lane 2', merk:'TYPE4/SIL3(IEC61496/IEC61508)', sn:'#23520196', kondisi:'Baru'},
+          {nama:'Receiver Light Curtain HS Lane 3', merk:'TYPE4/SIL3(IEC61496/IEC61508)', sn:'#33520065', kondisi:'Baru'},
+          {nama:'Transmitter Light Curtain HS Lane 3', merk:'TYPE4/SIL3(IEC61496/IEC61508)', sn:'#33520057', kondisi:'Baru'},
+          {nama:'Receiver Light Curtain LS Lane 3', merk:'TYPE4/SIL3(IEC61496/IEC61508)', sn:'#23520209', kondisi:'Baru'},
+          {nama:'Transmitter Light Curtain LS Lane 3', merk:'TYPE4/SIL3(IEC61496/IEC61508)', sn:'-', kondisi:'Baru'}
+        ]},
+      {cat:'Mini PC', real:1, dummy:1, status:'green', label:'Ready',
+        replacements:[],
+        serial:[
+          {nama:'Mini PC Industrial', merk:'-', sn:'-', kondisi:'Baru'},
+          {nama:'Mini PC Industrial', merk:'-', sn:'-', kondisi:'Rusak'},
+          {nama:'Mini PC Industrial', merk:'-', sn:'-', kondisi:'Baru'},
+          {nama:'Mini PC Industrial', merk:'-', sn:'-', kondisi:'Baru'},
+          {nama:'Mini PC Industrial', merk:'-', sn:'-', kondisi:'Baru'},
+          {nama:'Mini PC Industrial', merk:'-', sn:'-', kondisi:'Baru'},
+          {nama:'Mini PC Industrial', merk:'-', sn:'-', kondisi:'Baru'},
+          {nama:'Mini PC Industrial', merk:'-', sn:'-', kondisi:'Baru'}
+        ]},
+      {cat:'Stabilizer', real:0, dummy:0, status:'red', label:'Out of Stock',
+        replacements:[],
+        serial:[
+          {nama:'SAMOTO', merk:'SAMOTO SVC-5000N', sn:'2404602900', kondisi:'Baru'},
+          {nama:'SAMOTO', merk:'SAMOTO SVC-5000N', sn:'2370600531', kondisi:'Baru'},
+          {nama:'-', merk:'-', sn:'C158225021300545', kondisi:'Baru'}
+        ]},
+      {cat:'Inverter', real:1, dummy:0, status:'green', label:'Ready',
+        replacements:[
+          {tanggal:'2026-01-15', lane:'Lane 1', keterangan:'Inverter rusak dari Lane 1 dan sudah dikirim ke Jakarta Tanggal 29/06/2026'},
+          {tanggal:'2026-03-02', lane:'Lane 1', keterangan:'Pergantian inverter lane 1 rusak dikarenakan kena rembesan air hujan'}
+        ],
+        serial:[
+          {nama:'ELEC Inverter', merk:'INVERTER CHARGER / SO 5500-48', sn:'92090211211039', kondisi:'Baru'},
+          {nama:'ELEC Inverter', merk:'INVERTER CHARGER / SO 5500-48', sn:'-', kondisi:'Rusak'},
+          {nama:'ELEC Inverter', merk:'INVERTER CHARGER / SO 5500-48', sn:'92090211211055', kondisi:'Baru'},
+          {nama:'ELEC Inverter', merk:'INVERTER CHARGER / SO 5500-48', sn:'92090211211074', kondisi:'Baru'},
+          {nama:'SAMOTO INVERTER', merk:'SAMOTO HYBRID SOLAR INVERTER / ILS6300', sn:'ILS63WY106369', kondisi:'Baru'}
+        ]},
+      {cat:'Loop Detector', real:2, dummy:0, status:'green', label:'Ready',
+        replacements:[],
+        serial:[
+          {nama:'Loop Detector', merk:'Schneider Electric / 542073030 20037010', sn:'-', kondisi:'Baru'},
+          {nama:'Loop Detector', merk:'Schneider Electric / 542073030 20037010', sn:'-', kondisi:'Baru'},
+          {nama:'Loop Detector', merk:'Schneider Electric / 542073030 20037010', sn:'-', kondisi:'Baru'},
+          {nama:'Loop Detector', merk:'Schneider Electric / 542073030 20037010', sn:'-', kondisi:'Baru'},
+          {nama:'Loop Detector', merk:'Schneider Electric / 542073030 20037010', sn:'-', kondisi:'Baru'},
+          {nama:'Loop Detector', merk:'Schneider Electric / 542073030 20037010', sn:'RF 427119 YE', kondisi:'Baru'},
+          {nama:'Loop Detector', merk:'Schneider Electric / 542073030 20037010', sn:'RF 418374 WH', kondisi:'Baru'}
+        ]},
+      {cat:'Resin Kit', real:0, dummy:0, status:'grey', label:'Belum ada data',
+        replacements:[],
+        serial:[
+          {nama:'Resin Epoxy', merk:'-', sn:'-', kondisi:'-'},
+          {nama:'Herdener Epoxy', merk:'-', sn:'-', kondisi:'-'},
+          {nama:'Pasir Silica', merk:'-', sn:'-', kondisi:'-'}
+        ]},
+      {cat:'PSU', real:0, dummy:0, status:'red', label:'Out of Stock',
+        replacements:[],
+        serial:[
+          {nama:'Power Supply', merk:'MW MEAN WELL Power Supply', sn:'SC62086314', kondisi:'Baru'},
+          {nama:'Power Supply', merk:'MW MEAN WELL Power Supply', sn:'SC62086312', kondisi:'Baru'}
         ]}
     ],
     pob: { employees: 1215, contractors: 627, musterSafe: true }
@@ -3341,6 +3597,7 @@ function openRekapStatusModal(status){
       document.querySelector('.tab[data-view="harian"]').classList.add('active');
       document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
       document.getElementById('view-harian').classList.add('active');
+      syncChecklistGroupUI('harian');
       document.getElementById('dateInput').value = d;
       if(sk && sk !== 'legacy') document.getElementById('shiftInput').value = shiftLabelFromSlug(sk);
       loadForDate(d, document.getElementById('shiftInput').value);
@@ -3437,6 +3694,7 @@ function attachDayRowClicks(container){
       document.querySelector('.tab[data-view="harian"]').classList.add('active');
       document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
       document.getElementById('view-harian').classList.add('active');
+      syncChecklistGroupUI('harian');
       document.getElementById('dateInput').value = d;
       if(sk && sk !== 'legacy') document.getElementById('shiftInput').value = shiftLabelFromSlug(sk);
       loadForDate(d, document.getElementById('shiftInput').value);
@@ -4547,7 +4805,7 @@ function countUnreadOrderForm(){
   return followUpItems.filter(i => i.source === 'orderform' && i.unread).length;
 }
 function updateFollowUpBadge(){
-  const badge = document.getElementById('fuTabBadge');
+  const badge = document.getElementById('fuTabBadgeGroup');
   if(!badge) return;
   const n = countUnreadOrderForm();
   if(n > 0){ badge.textContent = n; badge.style.display = 'inline-block'; }
