@@ -180,12 +180,12 @@
   .tab.subtab.active{background:var(--accent);color:#fff;}
 
   .row-actions{display:inline-flex;gap:6px;margin-left:8px;vertical-align:middle;justify-content:flex-end;}
-  .icon-btn{display:inline-flex;align-items:center;justify-content:center;width:29px;height:29px;border-radius:8px;cursor:pointer;color:var(--text-muted);background:transparent;border:none;transition:transform .12s,background .12s,color .12s,box-shadow .12s;}
-  .icon-btn i{font-size:15px;}
-  .icon-btn:hover{transform:translateY(-1px);}
-  .icon-btn.edit:hover{background:var(--steel-light);color:var(--accent);box-shadow:0 0 0 4px var(--steel-light);}
-  .icon-btn.danger:hover{background:var(--red-bg);color:var(--red-fg);box-shadow:0 0 0 4px var(--red-bg);}
-  .icon-btn:active{transform:translateY(0) scale(.92);}
+  .wim-icon-btn{display:inline-flex;align-items:center;justify-content:center;width:29px;height:29px;border-radius:8px;cursor:pointer;color:var(--text-muted);background:transparent;border:none;transition:transform .12s,background .12s,color .12s,box-shadow .12s;}
+  .wim-icon-btn i{font-size:15px;}
+  .wim-icon-btn:hover{transform:translateY(-1px);}
+  .wim-icon-btn.edit:hover{background:var(--steel-light);color:var(--accent);box-shadow:0 0 0 4px var(--steel-light);}
+  .wim-icon-btn.danger:hover{background:var(--red-bg);color:var(--red-fg);box-shadow:0 0 0 4px var(--red-bg);}
+  .wim-icon-btn:active{transform:translateY(0) scale(.92);}
   .row-actions button{border:none;border-radius:5px;font-size:10.5px;font-weight:600;cursor:pointer;padding:3px 7px;font-family:var(--font-body);}
   .row-edit-btn{background:var(--hilite);color:var(--navy);}
   .row-edit-btn:hover{background:#d4dfe3;}
@@ -2543,7 +2543,7 @@ function setSyncState(state){
 
 /* ================= DSO HUB: OVERVIEW / STOCK MANAGEMENT / POB ================= */
 const DSO_AVAIL_KEY = 'dso:availability';
-const DSO_ASSETS_KEY = 'dso:stock-wim';
+const DSO_ASSETS_KEY = 'dso:stock-wim-v2';
 const DSO_POB_KEY = 'dso:pob';
 
 function dsoDefaults(){
@@ -2911,8 +2911,8 @@ async function renderAssetPlant(){
       <td contenteditable="true" style="padding:6px 4px;">${a.dummy}</td>
       <td style="padding:6px 4px;"><span style="padding:3px 10px;border-radius:999px;font-size:10.5px;font-weight:bold;cursor:pointer;background:var(--${a.status}-bg);color:var(--${a.status}-fg);" data-idx="${i}" class="ap-chip">${a.label}</span></td>
       <td style="padding:6px 4px;text-align:right;">
-        <button data-idx="${i}" class="icon-btn edit ap-edit" title="Edit nama"><i class="ti ti-pencil"></i></button>
-        <button data-idx="${i}" class="icon-btn danger ap-del" title="Hapus"><i class="ti ti-trash"></i></button>
+        <button data-idx="${i}" class="wim-icon-btn edit ap-edit" title="Edit nama"><i class="ti ti-pencil"></i></button>
+        <button data-idx="${i}" class="wim-icon-btn danger ap-del" title="Hapus"><i class="ti ti-trash"></i></button>
       </td>`;
     body.appendChild(tr);
     tr.querySelectorAll('td[contenteditable]').forEach((td, ci) => {
