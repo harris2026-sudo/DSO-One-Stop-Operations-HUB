@@ -567,7 +567,7 @@
       <div class="tab active" data-view="overview" data-label="Overview"><i class="ti ti-layout-dashboard"></i><span>Overview</span></div>
       <div class="tab" data-view="assetplant" data-label="Stock Management"><i class="ti ti-package"></i><span>Stock Management</span></div>
       <div class="tab" data-view="pob" data-label="Personnel On Board"><i class="ti ti-user-check"></i><span>POB</span></div>
-      <div class="tab" data-view="harian" data-label="Checklist &amp; Follow Up" id="sidebarGroupChecklist"><i class="ti ti-checklist"></i><span>Checklist &amp; Follow Up</span><span class="tab-badge" id="fuTabBadgeGroup" style="display:none;"></span></div>
+      <div class="tab" data-view="harian" data-label="Inspection &amp; Control" id="sidebarGroupChecklist"><i class="ti ti-checklist"></i><span>Inspection &amp; Control</span><span class="tab-badge" id="fuTabBadgeGroup" style="display:none;"></span></div>
       <div class="tab" data-view="roster" data-label="Roster"><i class="ti ti-users"></i><span>Roster</span></div>
       <div class="tab" data-view="tasklist" data-label="Task List"><i class="ti ti-clipboard-list"></i><span>Task List</span></div>
       <div class="tab" data-view="openpoint" data-label="Open Point"><i class="ti ti-alert-triangle"></i><span>Open Point</span></div>
@@ -656,6 +656,7 @@
     <div class="tab subtab active" data-view="harian" data-label="Checklist Harian"><i class="ti ti-checklist"></i><span>Checklist Harian</span></div>
     <div class="tab subtab" data-view="followup" data-label="Follow Up"><i class="ti ti-refresh"></i><span>Follow Up</span><span class="tab-badge" id="fuTabBadge" style="display:none;"></span></div>
     <div class="tab subtab" data-view="rekap" data-label="Rekap"><i class="ti ti-chart-bar"></i><span>Rekap</span></div>
+    <div class="tab subtab" data-view="rfid" data-label="RFID Point Inspection"><i class="ti ti-scan"></i><span>RFID Point Inspection</span><span class="tab-badge" id="rfidTabBadge" style="display:none;"></span></div>
   </div>
 
   <div class="view" id="view-harian">
@@ -862,6 +863,96 @@
     <div style="margin-top:16px;display:none;">
       <button type="button" id="rekapFuDebugToggle" style="font-size:12px;color:#888;background:none;border:1px solid #ddd;border-radius:6px;padding:4px 10px;cursor:pointer;">🔍 Debug Sinkronisasi</button>
       <pre id="rekapFuDebugBox" style="display:none;margin-top:8px;padding:10px;background:#f7f7f7;border:1px solid #ddd;border-radius:6px;font-size:11px;white-space:pre-wrap;word-break:break-all;max-height:400px;overflow:auto;"></pre>
+    </div>
+  </div>
+
+  <!-- ================= VIEW: RFID POINT INSPECTION ================= -->
+  <div class="view" id="view-rfid">
+    <div class="summary" id="rfidSummaryCards" style="grid-template-columns:repeat(5,1fr);"></div>
+
+    <div class="controls">
+      <div class="grow">
+        <label>Cari No Lambung</label>
+        <input type="text" id="rfidSearchInput" placeholder="Contoh: RBT 4181">
+      </div>
+      <div>
+        <label>Status</label>
+        <select id="rfidStatusFilter">
+          <option value="">Semua</option>
+          <option value="queue">Queue</option>
+          <option value="checked">Checked</option>
+        </select>
+      </div>
+      <div>
+        <label>Lane</label>
+        <select id="rfidLaneFilter"><option value="">Semua</option></select>
+      </div>
+      <div>
+        <label>Shift</label>
+        <select id="rfidShiftFilter"><option value="">Semua</option></select>
+      </div>
+      <button type="button" class="btn btn-primary" id="rfidAddBtn" style="margin-left:auto;">+ Tambah Data</button>
+    </div>
+
+    <div class="category">
+      <div class="category-head"><span>Lane overview</span></div>
+      <div class="category-body" id="rfidLaneOverview" style="padding:12px 14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;"></div>
+    </div>
+
+    <div class="category">
+      <div class="category-head"><span>Data RFID Point Inspection</span></div>
+      <div class="category-body" style="padding:12px 14px;">
+        <table style="width:100%;border-collapse:collapse;font-size:12.5px;">
+          <thead><tr style="text-align:left;color:#667;font-size:10.5px;text-transform:uppercase;">
+            <th style="padding:6px 4px;">No Lambung</th>
+            <th style="padding:6px 4px;">Series</th>
+            <th style="padding:6px 4px;">Lane</th>
+            <th style="padding:6px 4px;">Shift</th>
+            <th style="padding:6px 4px;">Last Detect</th>
+            <th style="padding:6px 4px;">Status</th>
+            <th style="padding:6px 4px;">Deskripsi</th>
+            <th style="padding:6px 4px;text-align:right;">Aksi</th>
+          </tr></thead>
+          <tbody id="rfidTableBody"></tbody>
+        </table>
+        <div id="rfidEmptyState" style="display:none;padding:16px 0;text-align:center;font-size:12px;color:#889;">Tidak ada data yang cocok dengan filter.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="rfidModalOverlay">
+    <div class="modal-box" style="max-width:460px;">
+      <button type="button" class="modal-close-x" id="rfidModalCloseBtn" title="Tutup">✕</button>
+      <h3 id="rfidModalTitle">Tambah Data RFID</h3>
+      <div class="controls" style="flex-direction:column;align-items:stretch;background:none;border:none;padding:0;margin-bottom:0;">
+        <div class="grow"><label>No Lambung</label><input type="text" id="rfidFNoLambung" style="width:100%;"></div>
+        <div class="grow"><label>Series</label><input type="text" id="rfidFSeries" style="width:100%;"></div>
+        <div style="display:flex;gap:10px;">
+          <div class="grow"><label>Lane</label>
+            <select id="rfidFLane" style="width:100%;"><option>Lane 1</option><option>Lane 2</option><option>Lane 3</option></select>
+          </div>
+          <div class="grow"><label>Shift</label>
+            <select id="rfidFShift" style="width:100%;"><option>Shift 1</option><option>Shift 2</option></select>
+          </div>
+        </div>
+        <div class="grow"><label>RFID Master Data</label><input type="text" id="rfidFMaster" style="width:100%;"></div>
+        <div class="grow"><label>Double RFID Detect</label><input type="text" id="rfidFDouble" style="width:100%;"></div>
+        <div style="display:flex;gap:10px;">
+          <div class="grow"><label>Last Date Detect</label><input type="date" id="rfidFLastDate" style="width:100%;"></div>
+          <div class="grow"><label>Status</label>
+            <select id="rfidFStatus" style="width:100%;"><option value="queue">Queue</option><option value="checked">Checked</option></select>
+          </div>
+        </div>
+        <div class="grow"><label>Tanggal Pengecekan</label><input type="date" id="rfidFCheckDate" style="width:100%;"></div>
+        <div class="grow"><label>Deskripsi</label><textarea id="rfidFDesc" rows="2" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:13px;font-family:var(--font-body);"></textarea></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:14px;">
+        <button type="button" class="btn" id="rfidDeleteBtn" style="color:var(--red-fg);border-color:var(--red-fg);display:none;">Hapus</button>
+        <div style="display:flex;gap:8px;margin-left:auto;">
+          <button type="button" class="btn btn-ghost" id="rfidCancelBtn">Batal</button>
+          <button type="button" class="btn btn-primary" id="rfidSaveBtn">Simpan</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -2499,7 +2590,7 @@ loadRoster();
 
 /* ---------------- TAB SWITCHING ---------------- */
 function syncChecklistGroupUI(view){
-  const groupViews = ['harian','followup','rekap'];
+  const groupViews = ['harian','followup','rekap','rfid'];
   const inGroup = groupViews.includes(view);
   const groupEl = document.getElementById('sidebarGroupChecklist');
   const subtabBar = document.getElementById('checklistSubtabs');
@@ -2523,6 +2614,7 @@ document.querySelectorAll('.tab').forEach(tab => {
     syncChecklistGroupUI(tab.dataset.view);
 
     if(tab.dataset.view === 'rekap') renderRekap();
+    if(tab.dataset.view === 'rfid') renderRfid();
     if(tab.dataset.view === 'followup'){ renderFollowUp().then(clearOrderFormUnread); }
     if(tab.dataset.view === 'roster') loadRoster();
     if(tab.dataset.view === 'tasklist') renderTaskList();
@@ -2821,6 +2913,218 @@ async function dsoLoad(key, fallback){
 }
 async function dsoSave(key, val){
   try{ await store.set(key, JSON.stringify(val), true); }catch(e){ console.error('gagal simpan', key, e); }
+}
+
+/* ================= RFID POINT INSPECTION ================= */
+const DSO_RFID_KEY = 'dso:rfid-point-inspection';
+let rfidData = [];
+let rfidEditingId = null;
+let rfidListenersBound = false;
+
+function rfidSeedData(){
+  // Seed awal diambil dari sheet "List Problem RFID" (data referensi pertama kali dibuka).
+  // Setelah ini, semua perubahan (tambah/edit/mark checked) disimpan lewat backend DCVA,
+  // BUKAN lagi membaca langsung dari Google Sheet tersebut.
+  return [
+    {id:'rf1', noLambung:'RBT 4181', series:'FAW JH6', rfidMaster:'E2806995200040146D73A508', doubleRfid:'52363230303539342AED99EF', detectCount:1, shift:'Shift 2', lastDetect:'2026-07-31', lane:'Lane 1', checkDate:'', status:'queue', deskripsi:''},
+    {id:'rf2', noLambung:'GEC 9024', series:'EV XCMG XT490 - GEN#2', rfidMaster:'E28069952000400C7D210957', doubleRfid:'523933333830383738A126F2', detectCount:1, shift:'Shift 2', lastDetect:'2026-08-06', lane:'Lane 1', checkDate:'', status:'queue', deskripsi:'Double RFID Detected'},
+    {id:'rf3', noLambung:'BBS 6077', series:'FAW JH6', rfidMaster:'E280699520004012FBC5148B', doubleRfid:'5239333336373236392B53F4', detectCount:null, shift:'Shift 2', lastDetect:'2026-08-05', lane:'Lane 1', checkDate:'2026-08-06', status:'checked', deskripsi:'Aman, tidak ditemukan RFID Double'},
+    {id:'rf4', noLambung:'AEK 0172', series:'HOWO V7X DT', rfidMaster:'E2806995200040146D787D2E', doubleRfid:'', detectCount:null, shift:'Shift 2', lastDetect:'2026-08-07', lane:'Lane 3', checkDate:'', status:'queue', deskripsi:'RFID Not Detected'},
+    {id:'rf5', noLambung:'RAM 8200', series:'DONGFENG', rfidMaster:'E28068942000501DAC52A561', doubleRfid:'605052605270001000011617', detectCount:1, shift:'Shift 1', lastDetect:'2026-08-08', lane:'Lane 1', checkDate:'', status:'queue', deskripsi:'Double RFID Detected'},
+    {id:'rf6', noLambung:'KMB 5506', series:'SCANIA P460 XT', rfidMaster:'E2806995200050146D78F507', doubleRfid:'E2806995200050098B85EA2E', detectCount:null, shift:'Shift 2', lastDetect:'2026-08-05', lane:'Lane 1', checkDate:'2026-08-06', status:'checked', deskripsi:'RFID melemah, terdeteksi hanya sampai < 1M'}
+  ];
+}
+
+async function rfidLoad(){
+  rfidData = await dsoLoad(DSO_RFID_KEY, rfidSeedData());
+  return rfidData;
+}
+async function rfidSave(){
+  await dsoSave(DSO_RFID_KEY, rfidData);
+}
+
+function rfidStatusBadge(status){
+  if(status === 'checked') return `<span style="padding:2px 9px;border-radius:999px;font-size:10.5px;font-weight:bold;background:var(--green-bg);color:var(--green-fg);">Checked</span>`;
+  return `<span style="padding:2px 9px;border-radius:999px;font-size:10.5px;font-weight:bold;background:var(--yellow-bg);color:var(--yellow-fg);">Queue</span>`;
+}
+function rfidDescBadge(desc){
+  if(!desc) return '<span style="color:var(--text-muted);">-</span>';
+  const bermasalah = /double|not detect|melemah/i.test(desc);
+  const style = bermasalah
+    ? 'background:var(--red-bg);color:var(--red-fg);'
+    : 'background:var(--green-bg);color:var(--green-fg);';
+  return `<span style="padding:2px 9px;border-radius:999px;font-size:10.5px;font-weight:bold;${style}">${desc}</span>`;
+}
+function rfidFmtDate(iso){
+  if(!iso) return '-';
+  const d = new Date(iso + 'T00:00:00');
+  if(isNaN(d)) return iso;
+  return String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0') + '/' + d.getFullYear();
+}
+
+function rfidFilteredList(){
+  const q = (document.getElementById('rfidSearchInput').value || '').trim().toLowerCase();
+  const st = document.getElementById('rfidStatusFilter').value;
+  const ln = document.getElementById('rfidLaneFilter').value;
+  const sh = document.getElementById('rfidShiftFilter').value;
+  return rfidData.filter(r => {
+    if(q && !(r.noLambung||'').toLowerCase().includes(q)) return false;
+    if(st && r.status !== st) return false;
+    if(ln && r.lane !== ln) return false;
+    if(sh && r.shift !== sh) return false;
+    return true;
+  });
+}
+
+function rfidPopulateFilterOptions(){
+  const laneSel = document.getElementById('rfidLaneFilter');
+  const shiftSel = document.getElementById('rfidShiftFilter');
+  const lanes = [...new Set(rfidData.map(r => r.lane).filter(Boolean))].sort();
+  const shifts = [...new Set(rfidData.map(r => r.shift).filter(Boolean))].sort();
+  const curLane = laneSel.value, curShift = shiftSel.value;
+  laneSel.innerHTML = '<option value="">Semua</option>' + lanes.map(l => `<option value="${l}">${l}</option>`).join('');
+  shiftSel.innerHTML = '<option value="">Semua</option>' + shifts.map(s => `<option value="${s}">${s}</option>`).join('');
+  laneSel.value = curLane; shiftSel.value = curShift;
+}
+
+function rfidRenderSummary(){
+  const total = rfidData.length;
+  const queue = rfidData.filter(r => r.status === 'queue').length;
+  const checked = rfidData.filter(r => r.status === 'checked').length;
+  const doubleCount = rfidData.filter(r => /double/i.test(r.deskripsi||'')).length;
+  const notDetected = rfidData.filter(r => /not detect/i.test(r.deskripsi||'')).length;
+  const cards = [
+    {num: total, lab: 'Total unit', color: 'var(--text)'},
+    {num: queue, lab: 'Queue', color: 'var(--yellow-fg)'},
+    {num: checked, lab: 'Checked', color: 'var(--green-fg)'},
+    {num: doubleCount, lab: 'Double RFID', color: 'var(--red-fg)'},
+    {num: notDetected, lab: 'Not detected', color: 'var(--red-fg)'}
+  ];
+  document.getElementById('rfidSummaryCards').innerHTML = cards.map(c =>
+    `<div class="card"><div class="num" style="color:${c.color};">${c.num}</div><div class="lab">${c.lab}</div></div>`
+  ).join('');
+}
+
+function rfidRenderLaneOverview(){
+  const lanes = [...new Set(rfidData.map(r => r.lane).filter(Boolean))].sort();
+  const el = document.getElementById('rfidLaneOverview');
+  if(!lanes.length){ el.innerHTML = '<p style="font-size:12px;color:#667;">Belum ada data lane.</p>'; return; }
+  el.innerHTML = lanes.map(lane => {
+    const q = rfidData.filter(r => r.lane === lane && r.status === 'queue').length;
+    return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-size:12.5px;color:var(--text);">${lane}</span>
+      <span style="padding:2px 9px;border-radius:999px;font-size:10.5px;font-weight:bold;background:var(--yellow-bg);color:var(--yellow-fg);">${q} queue</span>
+    </div>`;
+  }).join('');
+}
+
+function rfidRenderTable(){
+  const list = rfidFilteredList();
+  const body = document.getElementById('rfidTableBody');
+  const empty = document.getElementById('rfidEmptyState');
+  if(!list.length){
+    body.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  body.innerHTML = list.map((r, i) => `
+    <tr style="${i % 2 === 1 ? 'background:var(--zebra);' : ''}">
+      <td style="padding:7px 4px;font-family:var(--font-mono);">${r.noLambung||'-'}</td>
+      <td style="padding:7px 4px;color:var(--text-secondary);">${r.series||'-'}</td>
+      <td style="padding:7px 4px;color:var(--text-secondary);">${r.lane||'-'}</td>
+      <td style="padding:7px 4px;color:var(--text-secondary);">${r.shift||'-'}</td>
+      <td style="padding:7px 4px;color:var(--text-secondary);">${rfidFmtDate(r.lastDetect)}</td>
+      <td style="padding:7px 4px;">${rfidStatusBadge(r.status)}</td>
+      <td style="padding:7px 4px;">${rfidDescBadge(r.deskripsi)}</td>
+      <td style="padding:7px 4px;text-align:right;white-space:nowrap;">
+        <i class="ti ti-square-check rfid-row-check" data-id="${r.id}" title="Tandai checked" style="font-size:16px;color:var(--accent);cursor:pointer;margin-right:8px;"></i>
+        <i class="ti ti-edit rfid-row-edit" data-id="${r.id}" title="Edit" style="font-size:16px;color:var(--text-secondary);cursor:pointer;"></i>
+      </td>
+    </tr>`).join('');
+  body.querySelectorAll('.rfid-row-check').forEach(el => el.onclick = () => rfidOpenModal(el.dataset.id, true));
+  body.querySelectorAll('.rfid-row-edit').forEach(el => el.onclick = () => rfidOpenModal(el.dataset.id, false));
+}
+
+function rfidOpenModal(id, markChecked){
+  rfidEditingId = id || null;
+  const rec = id ? rfidData.find(r => r.id === id) : null;
+  document.getElementById('rfidModalTitle').textContent = rec ? 'Edit Data RFID' : 'Tambah Data RFID';
+  document.getElementById('rfidFNoLambung').value = rec ? rec.noLambung||'' : '';
+  document.getElementById('rfidFSeries').value = rec ? rec.series||'' : '';
+  document.getElementById('rfidFLane').value = rec ? rec.lane||'Lane 1' : 'Lane 1';
+  document.getElementById('rfidFShift').value = rec ? rec.shift||'Shift 1' : 'Shift 1';
+  document.getElementById('rfidFMaster').value = rec ? rec.rfidMaster||'' : '';
+  document.getElementById('rfidFDouble').value = rec ? rec.doubleRfid||'' : '';
+  document.getElementById('rfidFLastDate').value = rec ? rec.lastDetect||'' : '';
+  document.getElementById('rfidFStatus').value = markChecked ? 'checked' : (rec ? rec.status||'queue' : 'queue');
+  document.getElementById('rfidFCheckDate').value = markChecked ? new Date().toISOString().slice(0,10) : (rec ? rec.checkDate||'' : '');
+  document.getElementById('rfidFDesc').value = rec ? rec.deskripsi||'' : '';
+  document.getElementById('rfidDeleteBtn').style.display = rec ? 'inline-block' : 'none';
+  document.getElementById('rfidModalOverlay').classList.add('active');
+}
+
+async function rfidSaveModal(){
+  const rec = {
+    id: rfidEditingId || ('rf' + Date.now()),
+    noLambung: document.getElementById('rfidFNoLambung').value.trim(),
+    series: document.getElementById('rfidFSeries').value.trim(),
+    lane: document.getElementById('rfidFLane').value,
+    shift: document.getElementById('rfidFShift').value,
+    rfidMaster: document.getElementById('rfidFMaster').value.trim(),
+    doubleRfid: document.getElementById('rfidFDouble').value.trim(),
+    detectCount: null,
+    lastDetect: document.getElementById('rfidFLastDate').value,
+    status: document.getElementById('rfidFStatus').value,
+    checkDate: document.getElementById('rfidFCheckDate').value,
+    deskripsi: document.getElementById('rfidFDesc').value.trim()
+  };
+  if(!rec.noLambung){ showToast('⚠️ No Lambung wajib diisi', 'error'); return; }
+  const idx = rfidData.findIndex(r => r.id === rec.id);
+  if(idx >= 0) rfidData[idx] = rec; else rfidData.push(rec);
+  await rfidSave();
+  document.getElementById('rfidModalOverlay').classList.remove('active');
+  rfidPopulateFilterOptions();
+  rfidRenderSummary();
+  rfidRenderLaneOverview();
+  rfidRenderTable();
+  showToast('✓ Data RFID tersimpan', 'success');
+}
+
+async function rfidDeleteCurrent(){
+  if(!rfidEditingId) return;
+  rfidData = rfidData.filter(r => r.id !== rfidEditingId);
+  await rfidSave();
+  document.getElementById('rfidModalOverlay').classList.remove('active');
+  rfidPopulateFilterOptions();
+  rfidRenderSummary();
+  rfidRenderLaneOverview();
+  rfidRenderTable();
+  showToast('✓ Data RFID dihapus', 'success');
+}
+
+function rfidBindListenersOnce(){
+  if(rfidListenersBound) return;
+  rfidListenersBound = true;
+  document.getElementById('rfidAddBtn').onclick = () => rfidOpenModal(null, false);
+  document.getElementById('rfidModalCloseBtn').onclick = () => document.getElementById('rfidModalOverlay').classList.remove('active');
+  document.getElementById('rfidCancelBtn').onclick = () => document.getElementById('rfidModalOverlay').classList.remove('active');
+  document.getElementById('rfidModalOverlay').onclick = (e) => { if(e.target.id === 'rfidModalOverlay') e.currentTarget.classList.remove('active'); };
+  document.getElementById('rfidSaveBtn').onclick = rfidSaveModal;
+  document.getElementById('rfidDeleteBtn').onclick = rfidDeleteCurrent;
+  document.getElementById('rfidSearchInput').oninput = rfidRenderTable;
+  document.getElementById('rfidStatusFilter').onchange = rfidRenderTable;
+  document.getElementById('rfidLaneFilter').onchange = rfidRenderTable;
+  document.getElementById('rfidShiftFilter').onchange = rfidRenderTable;
+}
+
+async function renderRfid(){
+  rfidBindListenersOnce();
+  await rfidLoad();
+  rfidPopulateFilterOptions();
+  rfidRenderSummary();
+  rfidRenderLaneOverview();
+  rfidRenderTable();
 }
 
 async function renderOverview(){
