@@ -963,7 +963,7 @@
 
     <div class="controls">
       <div class="grow">
-        <label>Cari No Lambung / No Rangka</label>
+        <label>Cari No Lambung</label>
         <input type="text" id="aebsSearchInput" placeholder="Contoh: RBT 4166">
       </div>
       <div>
@@ -980,19 +980,20 @@
     <div class="category">
       <div class="category-head"><span>Rekonsil Unit Terpasang AEBS — Status Non-Aktif</span></div>
       <div class="category-body" style="padding:12px 14px;">
-        <table style="width:100%;border-collapse:collapse;font-size:12.5px;">
+        <table style="width:100%;border-collapse:collapse;font-size:12.5px;table-layout:fixed;">
+          <colgroup>
+            <col style="width:6%"><col style="width:20%"><col style="width:14%"><col style="width:11%"><col style="width:10%"><col style="width:9%"><col style="width:12%"><col style="width:12%"><col style="width:6%">
+          </colgroup>
           <thead><tr style="text-align:left;color:#667;font-size:11px;font-weight:600;">
-            <th style="padding:6px 4px;">No</th>
-            <th style="padding:6px 4px;">Nama Mitra</th>
-            <th style="padding:6px 4px;">Merk / Model</th>
-            <th style="padding:6px 4px;">Nomor Rangka</th>
-            <th style="padding:6px 4px;">Nomor Lambung</th>
-            <th style="padding:6px 4px;">Tgl Pemasangan</th>
-            <th style="padding:6px 4px;">Lokasi Pemasangan</th>
-            <th style="padding:6px 4px;">Status AEBS</th>
-            <th style="padding:6px 4px;">Alasan OFF</th>
-            <th style="padding:6px 4px;">Catatan Non-Aktif</th>
-            <th style="padding:6px 4px;text-align:right;">Aksi</th>
+            <th style="padding:8px 6px;white-space:nowrap;">No</th>
+            <th style="padding:8px 6px;">Nama Mitra</th>
+            <th style="padding:8px 6px;">Merk / Model</th>
+            <th style="padding:8px 6px;white-space:nowrap;">Nomor Lambung</th>
+            <th style="padding:8px 6px;white-space:nowrap;">Tgl Pemasangan</th>
+            <th style="padding:8px 6px;white-space:nowrap;">Status AEBS</th>
+            <th style="padding:8px 6px;">Alasan OFF</th>
+            <th style="padding:8px 6px;">Catatan Non-Aktif</th>
+            <th style="padding:8px 6px;text-align:right;">Aksi</th>
           </tr></thead>
           <tbody id="aebsTableBody"></tbody>
         </table>
@@ -1012,12 +1013,10 @@
           <div class="grow"><label>Merk Unit</label><input type="text" id="aebsFMerk" style="width:100%;"></div>
           <div class="grow"><label>Model</label><input type="text" id="aebsFModel" style="width:100%;"></div>
         </div>
-        <div class="grow"><label>Nomor Rangka</label><input type="text" id="aebsFRangka" style="width:100%;"></div>
         <div style="display:flex;gap:10px;">
           <div class="grow"><label>Nomor Lambung</label><input type="text" id="aebsFLambung" style="width:100%;"></div>
           <div class="grow"><label>Tanggal Pemasangan</label><input type="date" id="aebsFTglPasang" style="width:100%;"></div>
         </div>
-        <div class="grow"><label>Lokasi Pemasangan</label><input type="text" id="aebsFLokasi" style="width:100%;"></div>
         <div style="display:flex;gap:10px;">
           <div class="grow"><label>Status AEBS</label>
             <select id="aebsFStatus" style="width:100%;"><option value="Aktif">Aktif</option><option value="Non-Aktif">Non-Aktif</option></select>
@@ -3338,7 +3337,7 @@ function aebsFilteredList(){
   const mitra = document.getElementById('aebsMitraFilter').value;
   const alasan = document.getElementById('aebsAlasanFilter').value;
   return aebsData.filter(r => {
-    if(q && !((r.lambung||'').toLowerCase().includes(q) || (r.rangka||'').toLowerCase().includes(q))) return false;
+    if(q && !(r.lambung||'').toLowerCase().includes(q)) return false;
     if(mitra && r.mitra !== mitra) return false;
     if(alasan && r.alasan !== alasan) return false;
     return true;
@@ -3384,17 +3383,15 @@ function aebsRenderTable(){
   empty.style.display = 'none';
   body.innerHTML = list.map((r, i) => `
     <tr style="${i % 2 === 1 ? 'background:var(--zebra);' : ''}">
-      <td style="padding:7px 4px;color:var(--text-secondary);">${r.no||'-'}</td>
-      <td style="padding:7px 4px;">${r.mitra||'-'}</td>
-      <td style="padding:7px 4px;color:var(--text-secondary);">${r.merk||'-'}${r.model ? ' / ' + r.model : ''}</td>
-      <td style="padding:7px 4px;font-family:var(--font-mono);font-size:11px;">${r.rangka||'-'}</td>
-      <td style="padding:7px 4px;font-family:var(--font-mono);">${r.lambung||'-'}</td>
-      <td style="padding:7px 4px;color:var(--text-secondary);">${aebsFmtDate(r.tglPasang)}</td>
-      <td style="padding:7px 4px;color:var(--text-secondary);">${r.lokasi||'-'}</td>
-      <td style="padding:7px 4px;">${aebsStatusBadge(r.status)}</td>
-      <td style="padding:7px 4px;">${aebsAlasanBadge(r.alasan)}</td>
-      <td style="padding:7px 4px;color:var(--text-secondary);">${r.catatan||'-'}</td>
-      <td style="padding:7px 4px;text-align:right;white-space:nowrap;">
+      <td style="padding:8px 6px;color:var(--text-secondary);vertical-align:top;white-space:nowrap;">${r.no||'-'}</td>
+      <td style="padding:8px 6px;vertical-align:top;line-height:1.4;">${r.mitra||'-'}</td>
+      <td style="padding:8px 6px;color:var(--text-secondary);vertical-align:top;line-height:1.4;">${r.merk||'-'}${r.model ? ' / ' + r.model : ''}</td>
+      <td style="padding:8px 6px;font-family:var(--font-mono);vertical-align:top;white-space:nowrap;">${r.lambung||'-'}</td>
+      <td style="padding:8px 6px;color:var(--text-secondary);vertical-align:top;white-space:nowrap;">${aebsFmtDate(r.tglPasang)}</td>
+      <td style="padding:8px 6px;vertical-align:top;white-space:nowrap;">${aebsStatusBadge(r.status)}</td>
+      <td style="padding:8px 6px;vertical-align:top;white-space:nowrap;">${aebsAlasanBadge(r.alasan)}</td>
+      <td style="padding:8px 6px;color:var(--text-secondary);vertical-align:top;line-height:1.4;">${r.catatan||'-'}</td>
+      <td style="padding:8px 6px;text-align:right;white-space:nowrap;vertical-align:top;">
         <i class="ti ti-edit aebs-row-edit" data-id="${r.id}" title="Edit" style="font-size:16px;color:var(--text-secondary);cursor:pointer;"></i>
       </td>
     </tr>`).join('');
@@ -3409,10 +3406,8 @@ function aebsOpenModal(id){
   document.getElementById('aebsFMitra').value = rec ? rec.mitra||'' : '';
   document.getElementById('aebsFMerk').value = rec ? rec.merk||'' : '';
   document.getElementById('aebsFModel').value = rec ? rec.model||'' : '';
-  document.getElementById('aebsFRangka').value = rec ? rec.rangka||'' : '';
   document.getElementById('aebsFLambung').value = rec ? rec.lambung||'' : '';
   document.getElementById('aebsFTglPasang').value = rec ? rec.tglPasang||'' : '';
-  document.getElementById('aebsFLokasi').value = rec ? rec.lokasi||'' : '';
   document.getElementById('aebsFStatus').value = rec ? rec.status||'Non-Aktif' : 'Non-Aktif';
   document.getElementById('aebsFAlasan').value = rec ? rec.alasan||'' : '';
   document.getElementById('aebsFCatatan').value = rec ? rec.catatan||'' : '';
@@ -3421,16 +3416,17 @@ function aebsOpenModal(id){
 }
 
 async function aebsSaveModal(){
+  const prevRec = aebsData.find(r => r.id === aebsEditingId) || {};
   const rec = {
     id: aebsEditingId || ('ab' + Date.now()),
     no: document.getElementById('aebsFNo').value.trim(),
     mitra: document.getElementById('aebsFMitra').value.trim(),
     merk: document.getElementById('aebsFMerk').value.trim(),
     model: document.getElementById('aebsFModel').value.trim(),
-    rangka: document.getElementById('aebsFRangka').value.trim(),
+    rangka: prevRec.rangka || '',
     lambung: document.getElementById('aebsFLambung').value.trim(),
     tglPasang: document.getElementById('aebsFTglPasang').value,
-    lokasi: document.getElementById('aebsFLokasi').value.trim(),
+    lokasi: prevRec.lokasi || '',
     status: document.getElementById('aebsFStatus').value,
     alasan: document.getElementById('aebsFAlasan').value,
     catatan: document.getElementById('aebsFCatatan').value.trim()
