@@ -145,6 +145,20 @@
   .summary .card.clickable{cursor:pointer;transition:border-color .12s ease;border:1px solid var(--border);}
   .summary .card.clickable:hover{border-color:var(--accent);}
   .summary .card.clickable:active{transform:scale(.98);}
+  .summary .card .ov-sub{font-size:11px;color:var(--text-muted);margin-top:4px;font-weight:600;}
+  .summary .card .ov-sub.warn{color:var(--red-fg);}
+  .summary .card .ov-sub.ok{color:var(--green-fg);}
+  .sync-orb.listening .ring{border-color:var(--accent);opacity:.65;}
+  .sync-orb.listening .ring2{opacity:.4;}
+  .sync-orb.listening .core{background:var(--accent);box-shadow:0 0 10px 2px var(--accent);animation:sync-core-blink 1.4s ease-in-out infinite;}
+  .sync-orb.speaking .ring{border-color:var(--green);opacity:.8;animation:sync-spin 1s linear infinite;}
+  .sync-orb.speaking .ring2{display:none;}
+  .sync-orb.speaking .core{background:var(--green);box-shadow:0 0 12px 2px var(--green);}
+  .sync-orb.denied .ring,.sync-orb.denied .ring2{animation:none;opacity:.25;}
+  .sync-orb.denied .core{background:var(--red-fg);box-shadow:none;}
+  .wima-voice-toast{position:absolute;top:52px;right:0;max-width:280px;background:var(--navy);color:#fff;font-size:12px;line-height:1.5;padding:10px 14px;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.18);opacity:0;transform:translateY(-6px);pointer-events:none;transition:opacity .2s ease,transform .2s ease;z-index:40;}
+  .wima-voice-toast.show{opacity:1;transform:translateY(0);}
+  .wima-mic-widget{position:relative;}
   /* Modal detail status rekap (klik card ringkasan) */
   .rekap-status-list{display:flex;flex-direction:column;gap:8px;max-height:52vh;overflow-y:auto;}
   .rekap-status-item{background:var(--zebra);border-left:4px solid var(--accent);border-radius:8px;padding:8px 10px;cursor:pointer;transition:background .12s;}
@@ -585,6 +599,14 @@
         <div class="sub" id="pageSub">Ringkasan operasional site hari ini</div>
       </div>
       <div class="topbar-right">
+        <div class="wima-mic-widget">
+          <div class="sync-widget" id="wimaMicWidget" title="WIMA selalu mendengarkan — ucapkan &quot;WIMA wake up&quot; untuk ringkasan suara">
+            <div class="sync-orb idle" id="wimaMicOrb">
+              <span class="ring"></span><span class="ring ring2"></span><span class="core"></span>
+            </div>
+          </div>
+          <div class="wima-voice-toast" id="wimaVoiceToast"></div>
+        </div>
         <div class="sync-widget" id="syncWidget" title="Status koneksi ke backend penyimpanan">
           <div class="sync-orb idle" id="syncOrb">
             <span class="ring"></span><span class="ring ring2"></span><span class="core"></span>
@@ -597,11 +619,37 @@
 
   <!-- ================= VIEW: OVERVIEW (DSO Hub) ================= -->
   <div class="view active" id="view-overview">
-    <div class="summary" style="grid-template-columns:repeat(4,1fr);">
-      <div class="card clickable" id="ovCardUptime"><div class="num" id="ovUptimeNum">--%</div><div class="lab">System Uptime</div></div>
-      <div class="card clickable" id="ovCardFleet"><div class="num" id="ovFleetNum">--</div><div class="lab">Kategori Stock</div></div>
-      <div class="card clickable" id="ovCardChecklist"><div class="num" id="ovChecklistNum">--</div><div class="lab">Checklist Hari Ini</div></div>
-      <div class="card clickable" id="ovCardOpenpoint"><div class="num" id="ovOpenpointNum">--</div><div class="lab">Open Point Aktif</div></div>
+    <div class="summary" style="grid-template-columns:repeat(3,1fr);">
+      <div class="card clickable" id="ovCardStock">
+        <div class="num" id="ovStockNum">--</div>
+        <div class="lab">Stock Management</div>
+        <div class="ov-sub" id="ovStockSub">--</div>
+      </div>
+      <div class="card clickable" id="ovCardPob">
+        <div class="num" id="ovPobNum">--</div>
+        <div class="lab">Personnel On Board</div>
+        <div class="ov-sub" id="ovPobSub">--</div>
+      </div>
+      <div class="card clickable" id="ovCardInspection">
+        <div class="num" id="ovInspectionNum">--</div>
+        <div class="lab">Inspection &amp; Control</div>
+        <div class="ov-sub" id="ovInspectionSub">--</div>
+      </div>
+      <div class="card clickable" id="ovCardRoster">
+        <div class="num" id="ovRosterNum">--</div>
+        <div class="lab">Roster</div>
+        <div class="ov-sub" id="ovRosterSub">--</div>
+      </div>
+      <div class="card clickable" id="ovCardTasklist">
+        <div class="num" id="ovTasklistNum">--</div>
+        <div class="lab">Task List</div>
+        <div class="ov-sub" id="ovTasklistSub">--</div>
+      </div>
+      <div class="card clickable" id="ovCardOpenpoint">
+        <div class="num" id="ovOpenpointNum">--</div>
+        <div class="lab">Open Point</div>
+        <div class="ov-sub" id="ovOpenpointSub">--</div>
+      </div>
     </div>
     <div class="progress-wrap">
       <div class="top"><span>System Availability</span><span id="ovUptimeLabel">--%</span></div>
@@ -657,7 +705,6 @@
     <div class="tab subtab" data-view="followup" data-label="Follow Up"><i class="ti ti-refresh"></i><span>Follow Up</span><span class="tab-badge" id="fuTabBadge" style="display:none;"></span></div>
     <div class="tab subtab" data-view="rekap" data-label="Rekap"><i class="ti ti-chart-bar"></i><span>Rekap</span></div>
     <div class="tab subtab" data-view="rfid" data-label="RFID Point Inspection"><i class="ti ti-scan"></i><span>RFID Point Inspection</span><span class="tab-badge" id="rfidTabBadge" style="display:none;"></span></div>
-    <div class="tab subtab" data-view="aebs" data-label="AEBS Offline"><i class="ti ti-shield-off"></i><span>AEBS Offline</span><span class="tab-badge" id="aebsTabBadge" style="display:none;"></span></div>
   </div>
 
   <div class="view" id="view-harian">
@@ -952,86 +999,6 @@
         <div style="display:flex;gap:8px;margin-left:auto;">
           <button type="button" class="btn btn-ghost" id="rfidCancelBtn">Batal</button>
           <button type="button" class="btn btn-primary" id="rfidSaveBtn">Simpan</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ================= VIEW: AEBS OFFLINE ================= -->
-  <div class="view" id="view-aebs">
-    <div class="summary" id="aebsSummaryCards" style="grid-template-columns:repeat(4,1fr);"></div>
-
-    <div class="controls">
-      <div class="grow">
-        <label>Cari No Lambung</label>
-        <input type="text" id="aebsSearchInput" placeholder="Contoh: RBT 4166">
-      </div>
-      <div>
-        <label>Nama Mitra</label>
-        <select id="aebsMitraFilter"><option value="">Semua</option></select>
-      </div>
-      <div>
-        <label>Alasan OFF</label>
-        <select id="aebsAlasanFilter"><option value="">Semua</option></select>
-      </div>
-      <button type="button" class="btn btn-primary" id="aebsAddBtn" style="margin-left:auto;">+ Tambah Data</button>
-    </div>
-
-    <div class="category">
-      <div class="category-head"><span>Rekonsil Unit Terpasang AEBS — Status Non-Aktif</span></div>
-      <div class="category-body" style="padding:12px 14px;">
-        <table style="width:100%;border-collapse:collapse;font-size:12.5px;table-layout:fixed;">
-          <colgroup>
-            <col style="width:6%"><col style="width:20%"><col style="width:14%"><col style="width:11%"><col style="width:10%"><col style="width:9%"><col style="width:12%"><col style="width:12%"><col style="width:6%">
-          </colgroup>
-          <thead><tr style="text-align:left;color:#667;font-size:11px;font-weight:600;">
-            <th style="padding:8px 6px;white-space:nowrap;">No</th>
-            <th style="padding:8px 6px;">Nama Mitra</th>
-            <th style="padding:8px 6px;">Merk / Model</th>
-            <th style="padding:8px 6px;white-space:nowrap;">Nomor Lambung</th>
-            <th style="padding:8px 6px;white-space:nowrap;">Tgl Pemasangan</th>
-            <th style="padding:8px 6px;white-space:nowrap;">Status AEBS</th>
-            <th style="padding:8px 6px;">Alasan OFF</th>
-            <th style="padding:8px 6px;">Catatan Non-Aktif</th>
-            <th style="padding:8px 6px;text-align:right;">Aksi</th>
-          </tr></thead>
-          <tbody id="aebsTableBody"></tbody>
-        </table>
-        <div id="aebsEmptyState" style="display:none;padding:16px 0;text-align:center;font-size:12px;color:#889;">Tidak ada data yang cocok dengan filter.</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="modal-overlay" id="aebsModalOverlay">
-    <div class="modal-box" style="max-width:480px;">
-      <button type="button" class="modal-close-x" id="aebsModalCloseBtn" title="Tutup">✕</button>
-      <h3 id="aebsModalTitle">Tambah Data AEBS</h3>
-      <div class="controls" style="flex-direction:column;align-items:stretch;background:none;border:none;padding:0;margin-bottom:0;">
-        <div class="grow"><label>No (Nomor Urut)</label><input type="text" id="aebsFNo" style="width:100%;"></div>
-        <div class="grow"><label>Nama Mitra</label><input type="text" id="aebsFMitra" style="width:100%;"></div>
-        <div style="display:flex;gap:10px;">
-          <div class="grow"><label>Merk Unit</label><input type="text" id="aebsFMerk" style="width:100%;"></div>
-          <div class="grow"><label>Model</label><input type="text" id="aebsFModel" style="width:100%;"></div>
-        </div>
-        <div style="display:flex;gap:10px;">
-          <div class="grow"><label>Nomor Lambung</label><input type="text" id="aebsFLambung" style="width:100%;"></div>
-          <div class="grow"><label>Tanggal Pemasangan</label><input type="date" id="aebsFTglPasang" style="width:100%;"></div>
-        </div>
-        <div style="display:flex;gap:10px;">
-          <div class="grow"><label>Status AEBS</label>
-            <select id="aebsFStatus" style="width:100%;"><option value="Aktif">Aktif</option><option value="Non-Aktif">Non-Aktif</option></select>
-          </div>
-          <div class="grow"><label>Alasan OFF</label>
-            <select id="aebsFAlasan" style="width:100%;"><option value="">-</option><option value="ISSUE UNIT">ISSUE UNIT</option><option value="BELUM POC">BELUM POC</option><option value="Trouble Unit">Trouble Unit</option></select>
-          </div>
-        </div>
-        <div class="grow"><label>Catatan Non-Aktif</label><textarea id="aebsFCatatan" rows="2" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:13px;font-family:var(--font-body);"></textarea></div>
-      </div>
-      <div style="display:flex;justify-content:space-between;margin-top:14px;">
-        <button type="button" class="btn" id="aebsDeleteBtn" style="color:var(--red-fg);border-color:var(--red-fg);display:none;">Hapus</button>
-        <div style="display:flex;gap:8px;margin-left:auto;">
-          <button type="button" class="btn btn-ghost" id="aebsCancelBtn">Batal</button>
-          <button type="button" class="btn btn-primary" id="aebsSaveBtn">Simpan</button>
         </div>
       </div>
     </div>
@@ -2671,7 +2638,7 @@ loadRoster();
 
 /* ---------------- TAB SWITCHING ---------------- */
 function syncChecklistGroupUI(view){
-  const groupViews = ['harian','followup','rekap','rfid','aebs'];
+  const groupViews = ['harian','followup','rekap','rfid'];
   const inGroup = groupViews.includes(view);
   const groupEl = document.getElementById('sidebarGroupChecklist');
   const subtabBar = document.getElementById('checklistSubtabs');
@@ -2696,7 +2663,6 @@ document.querySelectorAll('.tab').forEach(tab => {
 
     if(tab.dataset.view === 'rekap') renderRekap();
     if(tab.dataset.view === 'rfid') renderRfid();
-    if(tab.dataset.view === 'aebs') renderAebs();
     if(tab.dataset.view === 'followup'){ renderFollowUp().then(clearOrderFormUnread); }
     if(tab.dataset.view === 'roster') loadRoster();
     if(tab.dataset.view === 'tasklist') renderTaskList();
@@ -3261,246 +3227,89 @@ async function renderRfid(){
   rfidRenderTable();
 }
 
-/* ================= AEBS OFFLINE ================= */
-const DSO_AEBS_KEY = 'dso:aebs-offline';
-let aebsData = [];
-let aebsEditingId = null;
-let aebsListenersBound = false;
+/* ================= WIMA: pengumpul data ringkasan (dipakai Overview & ringkasan suara) ================= */
+async function wimaGatherOverviewData(){
+  const avail = await dsoLoad(DSO_AVAIL_KEY, dsoDefaults().availability);
+  const assets = await dsoLoad(DSO_ASSETS_KEY, dsoDefaults().assets);
+  const pob = await dsoLoad(DSO_POB_KEY, dsoDefaults().pob);
 
-function aebsSeedDataFull(){
-  // Seed awal diambil dari file "Rekonsil Unit Terpasang AEBS di Site BIB" (data non-aktif, 29 unit).
-  return [
-    {id:'ab1', no:'140', mitra:'PT Rezki Batulicin Transport', merk:'FAW', model:'JH6 420HP', rangka:'LFNMVXRX2RAB02818', lambung:'RBT 4166', tglPasang:'2024-12-03', lokasi:'Workshop BMT', status:'Non-Aktif', alasan:'ISSUE UNIT', catatan:'SPEED SENSOR'},
-    {id:'ab2', no:'555', mitra:'PT Anugrah Energi Kalimantan', merk:'SANY', model:'SYZ380C', rangka:'LFCDKG6P6N1006672', lambung:'AEK 0076', tglPasang:'2025-09-15', lokasi:'Workshop AEK TERAS', status:'Non-Aktif', alasan:'ISSUE UNIT', catatan:'BD'},
-    {id:'ab3', no:'556', mitra:'PT Anugrah Energi Kalimantan', merk:'SANY', model:'SYZ380C', rangka:'LFCDKG6P7N1006583', lambung:'AEK 0099', tglPasang:'2025-09-15', lokasi:'Workshop AEK BBB', status:'Non-Aktif', alasan:'ISSUE UNIT', catatan:'AKI TEKOR'},
-    {id:'ab4', no:'561', mitra:'PT Anugrah Energi Kalimantan', merk:'SANY', model:'SYZ380C', rangka:'LFCDKG6P5N1006601', lambung:'AEK 0048', tglPasang:'2025-09-18', lokasi:'Workshop AEK BJM', status:'Non-Aktif', alasan:'ISSUE UNIT', catatan:'BD'},
-    {id:'ab5', no:'565', mitra:'PT Rezki Batulicin Transport', merk:'VOLVO', model:'FMX 440', rangka:'YV2XS02G9NA888273', lambung:'RBT 4057', tglPasang:'2025-09-19', lokasi:'Workshop RBT INDUK', status:'Non-Aktif', alasan:'BELUM POC', catatan:''},
-    {id:'ab6', no:'577', mitra:'PT Rezki Batulicin Transport', merk:'VOLVO', model:'FMX 440', rangka:'YV2XS02G9NA893733', lambung:'RBT 4000', tglPasang:'2025-10-05', lokasi:'Workshop RBT INDUK', status:'Non-Aktif', alasan:'BELUM POC', catatan:''},
-    {id:'ab7', no:'578', mitra:'PT Rezki Batulicin Transport', merk:'VOLVO', model:'FMX 440', rangka:'YV2XS02G6PA314295', lambung:'RBT 4001', tglPasang:'2025-10-05', lokasi:'Workshop RBT INDUK', status:'Non-Aktif', alasan:'BELUM POC', catatan:''},
-    {id:'ab8', no:'579', mitra:'PT Rezki Batulicin Transport', merk:'VOLVO', model:'FMX 440', rangka:'YN2XS02G5PA314708', lambung:'RBT 4003', tglPasang:'2025-10-05', lokasi:'Workshop RBT INDUK', status:'Non-Aktif', alasan:'BELUM POC', catatan:''},
-    {id:'ab9', no:'580', mitra:'PT Rezki Batulicin Transport', merk:'VOLVO', model:'FMX 440', rangka:'YV2XS02G5PA314286', lambung:'RBT 4004', tglPasang:'2025-10-05', lokasi:'Workshop RBT INDUK', status:'Non-Aktif', alasan:'BELUM POC', catatan:''},
-    {id:'ab10', no:'581', mitra:'PT Rezki Batulicin Transport', merk:'VOLVO', model:'FMX 440', rangka:'YV2X50252NA890074', lambung:'RBT 4063', tglPasang:'2025-10-05', lokasi:'Workshop RBT INDUK', status:'Non-Aktif', alasan:'BELUM POC', catatan:''},
-    {id:'ab11', no:'582', mitra:'PT Rezki Batulicin Transport', merk:'VOLVO', model:'FMX 440', rangka:'YV2XS02G7NA888529', lambung:'RBT 4061', tglPasang:'2025-10-06', lokasi:'Workshop RBT INDUK', status:'Non-Aktif', alasan:'BELUM POC', catatan:''},
-    {id:'ab12', no:'583', mitra:'PT Rezki Batulicin Transport', merk:'VOLVO', model:'FMX 440', rangka:'YV2XS02GXNA895135', lambung:'RBT 4011', tglPasang:'2025-10-06', lokasi:'Workshop RBT INDUK', status:'Non-Aktif', alasan:'BELUM POC', catatan:''},
-    {id:'ab13', no:'584', mitra:'PT Rezki Batulicin Transport', merk:'VOLVO', model:'FMX 440', rangka:'YV2XS02G6PA315317', lambung:'RBT 4006', tglPasang:'2025-10-06', lokasi:'Workshop RBT INDUK', status:'Non-Aktif', alasan:'BELUM POC', catatan:''},
-    {id:'ab14', no:'585', mitra:'PT Rezki Batulicin Transport', merk:'VOLVO', model:'FMX 440', rangka:'YV2XS02GXNA895202', lambung:'RBT 4010', tglPasang:'2025-10-06', lokasi:'Workshop RBT INDUK', status:'Non-Aktif', alasan:'BELUM POC', catatan:''},
-    {id:'ab15', no:'586', mitra:'PT Rezki Batulicin Transport', merk:'VOLVO', model:'FMX 440', rangka:'YV2XS02G9NA314260', lambung:'RBT 4007', tglPasang:'2025-10-06', lokasi:'Workshop RBT INDUK', status:'Non-Aktif', alasan:'BELUM POC', catatan:''},
-    {id:'ab16', no:'587', mitra:'PT Rezki Batulicin Transport', merk:'VOLVO', model:'FMX 440', rangka:'YV2XS02G6PA318539', lambung:'RBT 4013', tglPasang:'2025-10-07', lokasi:'Workshop RBT INDUK', status:'Non-Aktif', alasan:'BELUM POC', catatan:''},
-    {id:'ab17', no:'588', mitra:'PT Rezki Batulicin Transport', merk:'VOLVO', model:'FMX 440', rangka:'YV2XS02G4PA318370', lambung:'RBT 4014', tglPasang:'2025-10-07', lokasi:'Workshop RBT INDUK', status:'Non-Aktif', alasan:'BELUM POC', catatan:''},
-    {id:'ab18', no:'589', mitra:'PT Rezki Batulicin Transport', merk:'VOLVO', model:'FMX 440', rangka:'YV2XS02G9PA319068', lambung:'RBT 4015', tglPasang:'2025-10-07', lokasi:'Workshop RBT INDUK', status:'Non-Aktif', alasan:'BELUM POC', catatan:''},
-    {id:'ab19', no:'590', mitra:'PT Rezki Batulicin Transport', merk:'VOLVO', model:'FMX 440', rangka:'YV2XS02G0PA319024', lambung:'RBT 4016', tglPasang:'2025-10-07', lokasi:'Workshop RBT INDUK', status:'Non-Aktif', alasan:'BELUM POC', catatan:''},
-    {id:'ab20', no:'591', mitra:'PT Rezki Batulicin Transport', merk:'VOLVO', model:'FMX 440', rangka:'YV2XS02G0NA893846', lambung:'RBT 4017', tglPasang:'2025-10-07', lokasi:'Workshop RBT INDUK', status:'Non-Aktif', alasan:'BELUM POC', catatan:''},
-    {id:'ab21', no:'592', mitra:'PT Rezki Batulicin Transport', merk:'VOLVO', model:'FMX 440', rangka:'YV2XS02G2PA318339', lambung:'RBT 4018', tglPasang:'2025-10-07', lokasi:'Workshop RBT INDUK', status:'Non-Aktif', alasan:'BELUM POC', catatan:''},
-    {id:'ab22', no:'593', mitra:'PT Rezki Batulicin Transport', merk:'VOLVO', model:'FMX 440', rangka:'YV2XS0ZG0NA895175', lambung:'RBT 4019', tglPasang:'2025-10-08', lokasi:'Workshop RBT INDUK', status:'Non-Aktif', alasan:'BELUM POC', catatan:''},
-    {id:'ab23', no:'594', mitra:'PT Rezki Batulicin Transport', merk:'VOLVO', model:'FMX 440', rangka:'YV2XS02G0NA890008', lambung:'RBT 4060', tglPasang:'2025-10-08', lokasi:'Workshop RBT INDUK', status:'Non-Aktif', alasan:'BELUM POC', catatan:''},
-    {id:'ab24', no:'595', mitra:'PT Rezki Batulicin Transport', merk:'VOLVO', model:'FMX 440', rangka:'YV2XS02GXNA890419', lambung:'RBT 4055', tglPasang:'2025-10-08', lokasi:'Workshop RBT INDUK', status:'Non-Aktif', alasan:'BELUM POC', catatan:''},
-    {id:'ab25', no:'596', mitra:'PT Rezki Batulicin Transport', merk:'VOLVO', model:'FMX 440', rangka:'YV2XS02G3NA889982', lambung:'RBT 4056', tglPasang:'2025-10-08', lokasi:'Workshop RBT INDUK', status:'Non-Aktif', alasan:'BELUM POC', catatan:''},
-    {id:'ab26', no:'597', mitra:'PT Rezki Batulicin Transport', merk:'VOLVO', model:'FMX 440', rangka:'YV2XS02G3NA889998', lambung:'RBT 4054', tglPasang:'2025-10-08', lokasi:'Workshop RBT INDUK', status:'Non-Aktif', alasan:'BELUM POC', catatan:''},
-    {id:'ab27', no:'598', mitra:'PT Rezki Batulicin Transport', merk:'VOLVO', model:'FMX 440', rangka:'YV2XS02G5NA888576', lambung:'RBT 4058', tglPasang:'2025-10-08', lokasi:'Workshop RBT INDUK', status:'Non-Aktif', alasan:'BELUM POC', catatan:''},
-    {id:'ab28', no:'599', mitra:'PT Rezki Batulicin Transport', merk:'VOLVO', model:'FMX 440', rangka:'YV2XS02G8NA889026', lambung:'RBT 4059', tglPasang:'2025-10-08', lokasi:'Workshop RBT INDUK', status:'Non-Aktif', alasan:'BELUM POC', catatan:''},
-    {id:'ab29', no:'750', mitra:'PT Goden Energi Cemerlang Lestari', merk:'HANVAN', model:'EV', rangka:'LC1HNYBK9S0074233', lambung:'GEC 9133', tglPasang:'2026-02-11', lokasi:'WS GMM BARU', status:'Non-Aktif', alasan:'Trouble Unit', catatan:''}
-  ];
-}
-function aebsSeedData(){
-  return aebsSeedDataFull();
-}
+  await loadFollowUp();
+  await loadTaskList();
+  await loadOpenPoint();
 
-async function aebsLoad(){
-  aebsData = await dsoLoad(DSO_AEBS_KEY, aebsSeedData());
-  return aebsData;
-}
-async function aebsSave(){
-  await dsoSave(DSO_AEBS_KEY, aebsData);
-}
+  const stockOut = assets.filter(a => a.status === 'red').length;
+  const pobTotal = Number(pob.employees||0) + Number(pob.contractors||0);
 
-function aebsFmtDate(iso){
-  if(!iso) return '-';
-  const d = new Date(iso + 'T00:00:00');
-  if(isNaN(d)) return iso;
-  return String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0') + '/' + d.getFullYear();
-}
-function aebsStatusBadge(status){
-  if(status === 'Aktif') return `<span style="padding:2px 9px;border-radius:999px;font-size:10.5px;font-weight:bold;background:var(--green-bg);color:var(--green-fg);">Aktif</span>`;
-  return `<span style="padding:2px 9px;border-radius:999px;font-size:10.5px;font-weight:bold;background:var(--red-bg);color:var(--red-fg);">Non-Aktif</span>`;
-}
-function aebsAlasanBadge(alasan){
-  if(!alasan) return '<span style="color:var(--text-muted);">-</span>';
-  const style = alasan === 'ISSUE UNIT' ? 'background:var(--red-bg);color:var(--red-fg);'
-    : alasan === 'BELUM POC' ? 'background:var(--yellow-bg);color:var(--yellow-fg);'
-    : alasan === 'Trouble Unit' ? 'background:var(--blue-bg);color:var(--blue-fg);'
-    : 'background:var(--grey-bg);color:var(--grey-fg);';
-  return `<span style="padding:2px 9px;border-radius:999px;font-size:10.5px;font-weight:bold;${style}">${alasan}</span>`;
-}
+  const inspectionActive = followUpItems.filter(it => it.status === 'Open' || it.status === 'Onprogress').length;
+  const inspectionTotal = followUpItems.length;
 
-function aebsFilteredList(){
-  const q = (document.getElementById('aebsSearchInput').value || '').trim().toLowerCase();
-  const mitra = document.getElementById('aebsMitraFilter').value;
-  const alasan = document.getElementById('aebsAlasanFilter').value;
-  return aebsData.filter(r => {
-    if(q && !(r.lambung||'').toLowerCase().includes(q)) return false;
-    if(mitra && r.mitra !== mitra) return false;
-    if(alasan && r.alasan !== alasan) return false;
-    return true;
-  });
-}
+  const taskCounts = { BelumMulai:0, Proses:0, Selesai:0, Overdue:0 };
+  taskListItems.forEach(it => { taskCounts[tlEffectiveStatus(it)]++; });
+  const taskActive = taskCounts.BelumMulai + taskCounts.Proses + taskCounts.Overdue;
 
-function aebsPopulateFilterOptions(){
-  const mitraSel = document.getElementById('aebsMitraFilter');
-  const alasanSel = document.getElementById('aebsAlasanFilter');
-  const mitras = [...new Set(aebsData.map(r => r.mitra).filter(Boolean))].sort();
-  const alasans = [...new Set(aebsData.map(r => r.alasan).filter(Boolean))].sort();
-  const curMitra = mitraSel.value, curAlasan = alasanSel.value;
-  mitraSel.innerHTML = '<option value="">Semua</option>' + mitras.map(m => `<option value="${m}">${m}</option>`).join('');
-  alasanSel.innerHTML = '<option value="">Semua</option>' + alasans.map(a => `<option value="${a}">${a}</option>`).join('');
-  mitraSel.value = curMitra; alasanSel.value = curAlasan;
-}
+  const opCounts = { Kritis:0, MenungguVendor:0, Normal:0, Closed:0 };
+  openPointItems.forEach(it => { if(opCounts[it.status] !== undefined) opCounts[it.status]++; });
+  const opActive = opCounts.Kritis + opCounts.MenungguVendor + opCounts.Normal;
 
-function aebsRenderSummary(){
-  const total = aebsData.filter(r => r.status === 'Non-Aktif').length;
-  const issue = aebsData.filter(r => r.alasan === 'ISSUE UNIT').length;
-  const belumPoc = aebsData.filter(r => r.alasan === 'BELUM POC').length;
-  const trouble = aebsData.filter(r => r.alasan === 'Trouble Unit').length;
-  const cards = [
-    {num: total, lab: 'Total Non-Aktif', color: 'var(--text)'},
-    {num: issue, lab: 'Issue Unit', color: 'var(--red-fg)'},
-    {num: belumPoc, lab: 'Belum POC', color: 'var(--yellow-fg)'},
-    {num: trouble, lab: 'Trouble Unit', color: 'var(--blue-fg)'}
-  ];
-  document.getElementById('aebsSummaryCards').innerHTML = cards.map(c =>
-    `<div class="card"><div class="num" style="color:${c.color};">${c.num}</div><div class="lab">${c.lab}</div></div>`
-  ).join('');
-}
+  let rosterOnDuty = [];
+  try{
+    if(rosterLoaded && Array.isArray(rosterDays)){
+      const today = new Date(); today.setHours(0,0,0,0);
+      const rec = rosterDays.find(d => sameDay(d.date, today));
+      const now = new Date();
+      if(rec){
+        ROSTER_SHIFT_DEFS.forEach(def => {
+          const code = rec[def.key];
+          if(code && code !== '-' && isShiftActiveNow(def.key, now)) rosterOnDuty.push(rosterPersonName(code));
+        });
+      }
+    }
+  }catch(e){ rosterOnDuty = []; }
 
-function aebsRenderTable(){
-  const list = aebsFilteredList();
-  const body = document.getElementById('aebsTableBody');
-  const empty = document.getElementById('aebsEmptyState');
-  if(!list.length){
-    body.innerHTML = '';
-    empty.style.display = 'block';
-    return;
-  }
-  empty.style.display = 'none';
-  body.innerHTML = list.map((r, i) => `
-    <tr style="${i % 2 === 1 ? 'background:var(--zebra);' : ''}">
-      <td style="padding:8px 6px;color:var(--text-secondary);vertical-align:top;white-space:nowrap;">${r.no||'-'}</td>
-      <td style="padding:8px 6px;vertical-align:top;line-height:1.4;">${r.mitra||'-'}</td>
-      <td style="padding:8px 6px;color:var(--text-secondary);vertical-align:top;line-height:1.4;">${r.merk||'-'}${r.model ? ' / ' + r.model : ''}</td>
-      <td style="padding:8px 6px;font-family:var(--font-mono);vertical-align:top;white-space:nowrap;">${r.lambung||'-'}</td>
-      <td style="padding:8px 6px;color:var(--text-secondary);vertical-align:top;white-space:nowrap;">${aebsFmtDate(r.tglPasang)}</td>
-      <td style="padding:8px 6px;vertical-align:top;white-space:nowrap;">${aebsStatusBadge(r.status)}</td>
-      <td style="padding:8px 6px;vertical-align:top;white-space:nowrap;">${aebsAlasanBadge(r.alasan)}</td>
-      <td style="padding:8px 6px;color:var(--text-secondary);vertical-align:top;line-height:1.4;">${r.catatan||'-'}</td>
-      <td style="padding:8px 6px;text-align:right;white-space:nowrap;vertical-align:top;">
-        <i class="ti ti-edit aebs-row-edit" data-id="${r.id}" title="Edit" style="font-size:16px;color:var(--text-secondary);cursor:pointer;"></i>
-      </td>
-    </tr>`).join('');
-  body.querySelectorAll('.aebs-row-edit').forEach(el => el.onclick = () => aebsOpenModal(el.dataset.id));
-}
-
-function aebsOpenModal(id){
-  aebsEditingId = id || null;
-  const rec = id ? aebsData.find(r => r.id === id) : null;
-  document.getElementById('aebsModalTitle').textContent = rec ? 'Edit Data AEBS' : 'Tambah Data AEBS';
-  document.getElementById('aebsFNo').value = rec ? rec.no||'' : '';
-  document.getElementById('aebsFMitra').value = rec ? rec.mitra||'' : '';
-  document.getElementById('aebsFMerk').value = rec ? rec.merk||'' : '';
-  document.getElementById('aebsFModel').value = rec ? rec.model||'' : '';
-  document.getElementById('aebsFLambung').value = rec ? rec.lambung||'' : '';
-  document.getElementById('aebsFTglPasang').value = rec ? rec.tglPasang||'' : '';
-  document.getElementById('aebsFStatus').value = rec ? rec.status||'Non-Aktif' : 'Non-Aktif';
-  document.getElementById('aebsFAlasan').value = rec ? rec.alasan||'' : '';
-  document.getElementById('aebsFCatatan').value = rec ? rec.catatan||'' : '';
-  document.getElementById('aebsDeleteBtn').style.display = rec ? 'inline-block' : 'none';
-  document.getElementById('aebsModalOverlay').classList.add('active');
-}
-
-async function aebsSaveModal(){
-  const prevRec = aebsData.find(r => r.id === aebsEditingId) || {};
-  const rec = {
-    id: aebsEditingId || ('ab' + Date.now()),
-    no: document.getElementById('aebsFNo').value.trim(),
-    mitra: document.getElementById('aebsFMitra').value.trim(),
-    merk: document.getElementById('aebsFMerk').value.trim(),
-    model: document.getElementById('aebsFModel').value.trim(),
-    rangka: prevRec.rangka || '',
-    lambung: document.getElementById('aebsFLambung').value.trim(),
-    tglPasang: document.getElementById('aebsFTglPasang').value,
-    lokasi: prevRec.lokasi || '',
-    status: document.getElementById('aebsFStatus').value,
-    alasan: document.getElementById('aebsFAlasan').value,
-    catatan: document.getElementById('aebsFCatatan').value.trim()
+  return {
+    avail, assets, pob, stockOut, pobTotal,
+    inspectionActive, inspectionTotal,
+    taskActive, taskOverdue: taskCounts.Overdue, taskTotal: taskListItems.length,
+    opActive, opKritis: opCounts.Kritis, opTotal: openPointItems.length,
+    rosterOnDuty
   };
-  if(!rec.lambung){ showToast('⚠️ Nomor Lambung wajib diisi', 'error'); return; }
-  const idx = aebsData.findIndex(r => r.id === rec.id);
-  if(idx >= 0) aebsData[idx] = rec; else aebsData.push(rec);
-  await aebsSave();
-  document.getElementById('aebsModalOverlay').classList.remove('active');
-  aebsPopulateFilterOptions();
-  aebsRenderSummary();
-  aebsRenderTable();
-  showToast('✓ Data AEBS tersimpan', 'success');
-}
-
-async function aebsDeleteCurrent(){
-  if(!aebsEditingId) return;
-  aebsData = aebsData.filter(r => r.id !== aebsEditingId);
-  await aebsSave();
-  document.getElementById('aebsModalOverlay').classList.remove('active');
-  aebsPopulateFilterOptions();
-  aebsRenderSummary();
-  aebsRenderTable();
-  showToast('✓ Data AEBS dihapus', 'success');
-}
-
-function aebsBindListenersOnce(){
-  if(aebsListenersBound) return;
-  aebsListenersBound = true;
-  document.getElementById('aebsAddBtn').onclick = () => aebsOpenModal(null);
-  document.getElementById('aebsModalCloseBtn').onclick = () => document.getElementById('aebsModalOverlay').classList.remove('active');
-  document.getElementById('aebsCancelBtn').onclick = () => document.getElementById('aebsModalOverlay').classList.remove('active');
-  document.getElementById('aebsModalOverlay').onclick = (e) => { if(e.target.id === 'aebsModalOverlay') e.currentTarget.classList.remove('active'); };
-  document.getElementById('aebsSaveBtn').onclick = aebsSaveModal;
-  document.getElementById('aebsDeleteBtn').onclick = aebsDeleteCurrent;
-  document.getElementById('aebsSearchInput').oninput = aebsRenderTable;
-  document.getElementById('aebsMitraFilter').onchange = aebsRenderTable;
-  document.getElementById('aebsAlasanFilter').onchange = aebsRenderTable;
-}
-
-async function renderAebs(){
-  aebsBindListenersOnce();
-  await aebsLoad();
-  aebsPopulateFilterOptions();
-  aebsRenderSummary();
-  aebsRenderTable();
 }
 
 async function renderOverview(){
-  const avail = await dsoLoad(DSO_AVAIL_KEY, dsoDefaults().availability);
-  const assets = await dsoLoad(DSO_ASSETS_KEY, dsoDefaults().assets);
-  document.getElementById('ovUptimeNum').textContent = avail.uptime + '%';
-  document.getElementById('ovUptimeLabel').textContent = avail.uptime + '%';
-  document.getElementById('ovUptimeBar').style.width = avail.uptime + '%';
-  document.getElementById('ovFleetNum').textContent = assets.length;
+  const d = await wimaGatherOverviewData();
 
-  try{
-    const items = document.querySelectorAll('#dailyList .task-item');
-    const done = document.querySelectorAll('#dailyList .task-item.done');
-    document.getElementById('ovChecklistNum').textContent = (done.length||0) + '/' + (items.length||0);
-  }catch(e){ document.getElementById('ovChecklistNum').textContent = '-'; }
+  document.getElementById('ovUptimeLabel').textContent = d.avail.uptime + '%';
+  document.getElementById('ovUptimeBar').style.width = d.avail.uptime + '%';
 
-  try{
-    if(typeof openPointData !== 'undefined' && Array.isArray(openPointData)){
-      const aktif = openPointData.filter(o => o.status !== 'Selesai' && o.status !== 'Closed').length;
-      document.getElementById('ovOpenpointNum').textContent = aktif;
-    }else{
-      document.getElementById('ovOpenpointNum').textContent = '-';
-    }
-  }catch(e){ document.getElementById('ovOpenpointNum').textContent = '-'; }
+  document.getElementById('ovStockNum').textContent = d.assets.length;
+  document.getElementById('ovStockSub').textContent = d.stockOut > 0 ? d.stockOut + ' kategori habis' : 'Semua tersedia';
+  document.getElementById('ovStockSub').className = 'ov-sub ' + (d.stockOut > 0 ? 'warn' : 'ok');
 
-  document.getElementById('ovCardChecklist').onclick = () => document.querySelector('.tab[data-view="harian"]').click();
+  document.getElementById('ovPobNum').textContent = d.pobTotal.toLocaleString('id-ID');
+  document.getElementById('ovPobSub').textContent = d.pob.musterSafe ? 'Muster aman' : 'Perlu perhatian';
+  document.getElementById('ovPobSub').className = 'ov-sub ' + (d.pob.musterSafe ? 'ok' : 'warn');
+
+  document.getElementById('ovInspectionNum').textContent = d.inspectionActive + '/' + d.inspectionTotal;
+  document.getElementById('ovInspectionSub').textContent = d.inspectionActive > 0 ? d.inspectionActive + ' masih berjalan' : 'Semua selesai';
+  document.getElementById('ovInspectionSub').className = 'ov-sub ' + (d.inspectionActive > 0 ? 'warn' : 'ok');
+
+  document.getElementById('ovRosterNum').textContent = d.rosterOnDuty.length ? d.rosterOnDuty.join(', ') : '--';
+  document.getElementById('ovRosterSub').textContent = d.rosterOnDuty.length ? 'Bertugas sekarang' : 'Belum ada data shift aktif';
+
+  document.getElementById('ovTasklistNum').textContent = d.taskActive + ' aktif';
+  document.getElementById('ovTasklistSub').textContent = d.taskOverdue > 0 ? d.taskOverdue + ' overdue' : 'Tidak ada overdue';
+  document.getElementById('ovTasklistSub').className = 'ov-sub ' + (d.taskOverdue > 0 ? 'warn' : 'ok');
+
+  document.getElementById('ovOpenpointNum').textContent = d.opActive;
+  document.getElementById('ovOpenpointSub').textContent = d.opKritis > 0 ? d.opKritis + ' kritis' : 'Tidak ada yang kritis';
+  document.getElementById('ovOpenpointSub').className = 'ov-sub ' + (d.opKritis > 0 ? 'warn' : 'ok');
+
+  document.getElementById('ovCardStock').onclick = () => document.querySelector('.tab[data-view="assetplant"]').click();
+  document.getElementById('ovCardPob').onclick = () => document.querySelector('.tab[data-view="pob"]').click();
+  document.getElementById('ovCardInspection').onclick = () => document.querySelector('.tab[data-view="harian"]').click();
+  document.getElementById('ovCardRoster').onclick = () => document.querySelector('.tab[data-view="roster"]').click();
+  document.getElementById('ovCardTasklist').onclick = () => document.querySelector('.tab[data-view="tasklist"]').click();
   document.getElementById('ovCardOpenpoint').onclick = () => document.querySelector('.tab[data-view="openpoint"]').click();
-  document.getElementById('ovCardFleet').onclick = () => document.querySelector('.tab[data-view="assetplant"]').click();
 }
 
 const chipCycleDso = ['green','yellow','blue','red','grey','gold'];
@@ -5527,6 +5336,163 @@ document.getElementById('dateInput').value = todayStr();
   syncOrderForm({ silent: true });
   setInterval(() => syncOrderForm({ silent: true }), ORDERFORM_POLL_MS);
 })();
+
+/* ================= WIMA VOICE: wake word "WIMA wake up" + ringkasan suara ================= */
+const wimaMicOrb = document.getElementById('wimaMicOrb');
+const wimaMicWidget = document.getElementById('wimaMicWidget');
+const wimaVoiceToast = document.getElementById('wimaVoiceToast');
+const WIMA_TOAST_MS = 6000;
+
+function wimaSetOrb(state){
+  wimaMicOrb.className = 'sync-orb ' + state;
+}
+function wimaShowToast(text){
+  wimaVoiceToast.textContent = text;
+  wimaVoiceToast.classList.add('show');
+  clearTimeout(wimaShowToast._t);
+  wimaShowToast._t = setTimeout(() => wimaVoiceToast.classList.remove('show'), WIMA_TOAST_MS);
+}
+
+/* Bangun kalimat ringkasan dari data yang sama dipakai kartu Overview,
+   supaya apa yang diucapkan WIMA selalu konsisten dengan apa yang tampil di layar. */
+async function wimaBuildSpokenSummary(){
+  const d = await wimaGatherOverviewData();
+  const parts = [];
+  parts.push(d.stockOut > 0
+    ? `Stock management, ${d.stockOut} dari ${d.assets.length} kategori part habis stok.`
+    : `Stock management aman, semua ${d.assets.length} kategori tersedia.`);
+  parts.push(`Personnel on board, total ${d.pobTotal} orang, status muster ${d.pob.musterSafe ? 'aman' : 'perlu perhatian'}.`);
+  parts.push(d.inspectionActive > 0
+    ? `Inspection dan control, ${d.inspectionActive} item masih berjalan dari ${d.inspectionTotal} total.`
+    : `Inspection dan control, semua item sudah selesai.`);
+  parts.push(d.rosterOnDuty.length
+    ? `Roster hari ini, yang bertugas sekarang adalah ${d.rosterOnDuty.join(' dan ')}.`
+    : `Roster hari ini, belum ada data shift yang sedang aktif.`);
+  parts.push(d.taskOverdue > 0
+    ? `Task list, ${d.taskActive} task aktif, dan ${d.taskOverdue} di antaranya overdue.`
+    : `Task list, ${d.taskActive} task aktif, tidak ada yang overdue.`);
+  parts.push(d.opKritis > 0
+    ? `Open point, ${d.opActive} isu aktif, ${d.opKritis} berstatus kritis.`
+    : `Open point, ${d.opActive} isu aktif, tidak ada yang kritis.`);
+  return 'Selamat, ini ringkasan operasional hari ini. ' + parts.join(' ');
+}
+
+let wimaVoicesReady = [];
+function wimaLoadVoices(){ wimaVoicesReady = window.speechSynthesis ? window.speechSynthesis.getVoices() : []; }
+if(window.speechSynthesis){
+  wimaLoadVoices();
+  window.speechSynthesis.onvoiceschanged = wimaLoadVoices;
+}
+function wimaPickIndonesianVoice(){
+  return wimaVoicesReady.find(v => v.lang && v.lang.toLowerCase().startsWith('id')) || null;
+}
+
+function wimaSpeak(text){
+  return new Promise(resolve => {
+    if(!window.speechSynthesis){ resolve(); return; }
+    window.speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(text);
+    const voice = wimaPickIndonesianVoice();
+    if(voice) utter.voice = voice;
+    utter.lang = voice ? voice.lang : 'id-ID';
+    utter.rate = 1;
+    utter.onstart = () => wimaSetOrb('speaking');
+    utter.onend = () => { wimaSetOrb(wimaListening ? 'listening' : 'idle'); resolve(); };
+    utter.onerror = () => { wimaSetOrb(wimaListening ? 'listening' : 'idle'); resolve(); };
+    window.speechSynthesis.speak(utter);
+  });
+}
+
+async function wimaHandleWake(){
+  wimaShowToast('WIMA mendengar panggilan — menyiapkan ringkasan...');
+  try{
+    const summary = await wimaBuildSpokenSummary();
+    await wimaSpeak(summary);
+  }catch(e){
+    console.error('WIMA gagal menyusun ringkasan suara', e);
+    await wimaSpeak('Maaf, WIMA belum bisa menyusun ringkasan sekarang.');
+  }
+}
+
+/* Deteksi wake phrase secara longgar: mencakup ucapan Inggris asli "WIMA wake up"
+   maupun variasi Indonesia, supaya tetap terdeteksi walau hasil speech-to-text meleset sedikit. */
+function wimaIsWakePhrase(transcript){
+  const t = transcript.toLowerCase();
+  if(!t.includes('wima')) return false;
+  return /wake\s*up|bangun|ringkasan|summary/.test(t);
+}
+
+const WimaSpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+let wimaRecognition = null;
+let wimaListening = false;
+let wimaSpeakingLock = false;
+let wimaLastWakeAt = 0;
+
+function wimaInitRecognition(){
+  if(!WimaSpeechRecognition){
+    wimaSetOrb('denied');
+    wimaMicWidget.title = 'Browser ini tidak mendukung pengenalan suara. Coba pakai Chrome desktop.';
+    return null;
+  }
+  const rec = new WimaSpeechRecognition();
+  rec.continuous = true;
+  rec.interimResults = true;
+  rec.lang = 'id-ID';
+
+  rec.onresult = (evt) => {
+    for(let i = evt.resultIndex; i < evt.results.length; i++){
+      const transcript = evt.results[i][0].transcript || '';
+      if(wimaIsWakePhrase(transcript)){
+        const now = Date.now();
+        if(now - wimaLastWakeAt < 4000) continue;
+        wimaLastWakeAt = now;
+        wimaHandleWake();
+      }
+    }
+  };
+  rec.onerror = (evt) => {
+    if(evt.error === 'not-allowed' || evt.error === 'service-not-allowed'){
+      wimaListening = false;
+      wimaSetOrb('denied');
+      wimaMicWidget.title = 'Akses mikrofon ditolak — klik untuk mengaktifkan kembali.';
+    }
+  };
+  rec.onend = () => {
+    if(wimaListening){
+      setTimeout(() => { try{ rec.start(); }catch(e){} }, 300);
+    }else{
+      wimaSetOrb('idle');
+    }
+  };
+  return rec;
+}
+
+function wimaStartListening(){
+  if(!wimaRecognition) wimaRecognition = wimaInitRecognition();
+  if(!wimaRecognition) return;
+  wimaListening = true;
+  try{
+    wimaRecognition.start();
+    wimaSetOrb('listening');
+    wimaMicWidget.title = 'WIMA selalu mendengarkan — ucapkan "WIMA wake up" untuk ringkasan suara';
+  }catch(e){}
+}
+function wimaStopListening(){
+  wimaListening = false;
+  if(wimaRecognition){ try{ wimaRecognition.stop(); }catch(e){} }
+  wimaSetOrb('idle');
+  wimaMicWidget.title = 'Mic WIMA nonaktif — klik untuk mengaktifkan';
+}
+
+wimaMicWidget.onclick = () => {
+  if(wimaListening){ wimaStopListening(); }
+  else{ wimaStartListening(); }
+};
+
+/* Nyala otomatis begitu app dibuka, sesuai permintaan Harris supaya WIMA
+   selalu siap dipanggil tanpa perlu klik manual tiap kali buka halaman.
+   Browser tetap butuh 1x izin mikrofon dari user di kunjungan pertama. */
+wimaStartListening();
 </script>
 </body>
 </html>
