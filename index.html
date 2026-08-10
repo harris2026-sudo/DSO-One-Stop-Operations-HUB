@@ -615,7 +615,7 @@
       <div class="category-head"><span>📦 Stock Management — Part WIM (uji coba)</span></div>
       <div class="category-body" style="padding:12px 14px;">
         <table style="width:100%;border-collapse:collapse;font-size:12.5px;">
-          <thead><tr style="text-align:left;color:#667;font-size:10.5px;text-transform:uppercase;">
+          <thead><tr style="text-align:left;color:#667;font-size:11px;font-weight:600;">
             <th style="padding:6px 4px;">Kategori</th><th>Real</th><th>Dummy</th><th>Status</th><th style="text-align:right;">Aksi</th>
           </tr></thead>
           <tbody id="apBody"></tbody>
@@ -903,14 +903,13 @@
       <div class="category-head"><span>Data RFID Point Inspection</span></div>
       <div class="category-body" style="padding:12px 14px;">
         <table style="width:100%;border-collapse:collapse;font-size:12.5px;">
-          <thead><tr style="text-align:left;color:#667;font-size:10.5px;text-transform:uppercase;">
+          <thead><tr style="text-align:left;color:#667;font-size:11px;font-weight:600;">
             <th style="padding:6px 4px;">No Lambung</th>
-            <th style="padding:6px 4px;">Series</th>
-            <th style="padding:6px 4px;">Lane</th>
-            <th style="padding:6px 4px;">Shift</th>
-            <th style="padding:6px 4px;">Last Detect</th>
+            <th style="padding:6px 4px;">Lane / Shift</th>
+            <th style="padding:6px 4px;">Tanggal Pengecheckan</th>
+            <th style="padding:6px 4px;">Deskripsi Temuan</th>
+            <th style="padding:6px 4px;">Catatan Pengecheckan</th>
             <th style="padding:6px 4px;">Status</th>
-            <th style="padding:6px 4px;">Deskripsi</th>
             <th style="padding:6px 4px;text-align:right;">Aksi</th>
           </tr></thead>
           <tbody id="rfidTableBody"></tbody>
@@ -943,8 +942,9 @@
             <select id="rfidFStatus" style="width:100%;"><option value="queue">Queue</option><option value="checked">Checked</option></select>
           </div>
         </div>
-        <div class="grow"><label>Tanggal Pengecekan</label><input type="date" id="rfidFCheckDate" style="width:100%;"></div>
-        <div class="grow"><label>Deskripsi</label><textarea id="rfidFDesc" rows="2" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:13px;font-family:var(--font-body);"></textarea></div>
+        <div class="grow"><label>Tanggal Pengecheckan</label><input type="date" id="rfidFCheckDate" style="width:100%;"></div>
+        <div class="grow"><label>Deskripsi Temuan</label><textarea id="rfidFDesc" rows="2" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:13px;font-family:var(--font-body);"></textarea></div>
+        <div class="grow"><label>Catatan Pengecheckan</label><textarea id="rfidFCatatan" rows="2" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:13px;font-family:var(--font-body);"></textarea></div>
       </div>
       <div style="display:flex;justify-content:space-between;margin-top:14px;">
         <button type="button" class="btn" id="rfidDeleteBtn" style="color:var(--red-fg);border-color:var(--red-fg);display:none;">Hapus</button>
@@ -2921,18 +2921,57 @@ let rfidData = [];
 let rfidEditingId = null;
 let rfidListenersBound = false;
 
+function rfidSeedDataFull(){
+  return [
+    {id:'rf1', noLambung:'RBT 4181', series:'FAW JH6', rfidMaster:'E2806995200040146D73A508', doubleRfid:'52363230303539342AED99EF', detectCount:1, shift:'Shift 2', lastDetect:'2026-07-31', lane:'Lane 1', checkDate:'2026-08-09', status:'checked', deskripsi:'', catatan:'Aman, tidak ditemukan RFID Double'},
+    {id:'rf2', noLambung:'GEC 9008', series:'DONGFENG', rfidMaster:'E2806995200050146D715508', doubleRfid:'523933343036363138A156A4', detectCount:1, shift:'Shift 2', lastDetect:'2026-07-31', lane:'Lane 1', checkDate:'2026-08-09', status:'checked', deskripsi:'', catatan:'Aman, tidak ditemukan RFID Double'},
+    {id:'rf3', noLambung:'GEC 9110', series:'FAW JH6', rfidMaster:'E280699520004012FBC78CBE', doubleRfid:'523933343036353838A156A3', detectCount:1, shift:'Shift 2', lastDetect:'2026-07-31', lane:'Lane 1', checkDate:'2026-08-09', status:'checked', deskripsi:'', catatan:'Aman, tidak ditemukan RFID Double'},
+    {id:'rf4', noLambung:'RBT 4261', series:'HOWO NX400', rfidMaster:'E28068942000501DAC5558CD', doubleRfid:'53303731323137344073175A', detectCount:1, shift:'Shift 2', lastDetect:'2026-07-30', lane:'Lane 1', checkDate:'2026-08-09', status:'checked', deskripsi:'', catatan:'Terdapat kode tag RFID di box sparepart'},
+    {id:'rf5', noLambung:'AEK 0084', series:'SHACMAN F3000', rfidMaster:'E280699520005012FBC55C8C', doubleRfid:'52363230303130392AED94A8', detectCount:1, shift:'Shift 2', lastDetect:'2026-07-30', lane:'Lane 1', checkDate:'', status:'queue', deskripsi:'', catatan:''},
+    {id:'rf6', noLambung:'AEK 0186', series:'SDT XT 490', rfidMaster:'E280699520004012FBC23C8A', doubleRfid:'52363139383731352AED8E0C', detectCount:1, shift:'Shift 2', lastDetect:'2026-07-29', lane:'Lane 1', checkDate:'', status:'queue', deskripsi:'', catatan:''},
+    {id:'rf7', noLambung:'KMB 5048', series:'DONGFENG', rfidMaster:'E28069952000500C7D21EE4E', doubleRfid:'52363230303530342AED9B80', detectCount:1, shift:'Shift 2', lastDetect:'2026-07-29', lane:'Lane 1', checkDate:'2026-08-09', status:'checked', deskripsi:'', catatan:'Aman, tidak ditemukan RFID Double'},
+    {id:'rf8', noLambung:'AEK 0201', series:'DONGFENG', rfidMaster:'E2806995200050146D735909', doubleRfid:'523933333436343738A15268', detectCount:1, shift:'Shift 2', lastDetect:'2026-07-28', lane:'Lane 1', checkDate:'', status:'queue', deskripsi:'', catatan:''},
+    {id:'rf9', noLambung:'RBT 4310', series:'SHACMAN F3000', rfidMaster:'E280699520004012FBC734BE', doubleRfid:'5238323132373230338CD841', detectCount:1, shift:'Shift 2', lastDetect:'2026-07-27', lane:'Lane 1', checkDate:'', status:'queue', deskripsi:'', catatan:''},
+    {id:'rf10', noLambung:'AEK 0181', series:'HOWO V-7', rfidMaster:'E2806995200040146D752108', doubleRfid:'523933343036363038A1569A', detectCount:1, shift:'Shift 2', lastDetect:'2026-07-27', lane:'Lane 1', checkDate:'', status:'queue', deskripsi:'', catatan:''},
+    {id:'rf11', noLambung:'GEC 9100', series:'SHACMAN F3000', rfidMaster:'E28069952000500C7D268157', doubleRfid:'533034333036343739F2187E', detectCount:1, shift:'Shift 2', lastDetect:'2026-07-27', lane:'Lane 1', checkDate:'2026-08-09', status:'checked', deskripsi:'', catatan:'Aman, tidak ditemukan RFID Double'},
+    {id:'rf12', noLambung:'RBT 4109', series:'FAW JH6', rfidMaster:'E28068942000501DAC577D64', doubleRfid:'E28068942000401DAC546162', detectCount:4, shift:'Shift 2', lastDetect:'2026-07-28', lane:'Lane 1', checkDate:'2026-08-03', status:'checked', deskripsi:'', catatan:''},
+    {id:'rf13', noLambung:'GEC 9129', series:'EV XCMG XT490 - GEN#2', rfidMaster:'E28069952000500C7D258956', doubleRfid:'000000002000000000000000', detectCount:1, shift:'Shift 2', lastDetect:'2026-07-27', lane:'Lane 1', checkDate:'2026-08-03', status:'checked', deskripsi:'', catatan:''},
+    {id:'rf14', noLambung:'BBS 6027', series:'FAW JH6', rfidMaster:'E280699520004012FBC5E88E', doubleRfid:'E2806995200040098B868E2E', detectCount:1, shift:'Shift 2', lastDetect:'2026-07-27', lane:'Lane 1', checkDate:'2026-08-03', status:'checked', deskripsi:'', catatan:''},
+    {id:'rf15', noLambung:'BBS 6077', series:'FAW JH6', rfidMaster:'E280699520004012FBC5148B', doubleRfid:'5239333336373236392B53F4', detectCount:null, shift:'Shift 2', lastDetect:'2026-08-05', lane:'Lane 1', checkDate:'2026-08-06', status:'checked', deskripsi:'Aman, tidak ditemukan RFID Double', catatan:''},
+    {id:'rf16', noLambung:'BKA 1390', series:'SHACMAN F3000', rfidMaster:'E28068942000401DAC51E4D4', doubleRfid:'5239333339333432392B09A2', detectCount:null, shift:'Shift 2', lastDetect:'2026-08-05', lane:'Lane 1', checkDate:'2026-08-06', status:'checked', deskripsi:'Aman, tidak ditemukan RFID Double', catatan:''},
+    {id:'rf17', noLambung:'BMT 3070', series:'FAW JH6', rfidMaster:'E280699520005012FBC61CBE', doubleRfid:'52363139383038392AED87D2', detectCount:null, shift:'Shift 2', lastDetect:'2026-08-05', lane:'Lane 1', checkDate:'2026-08-06', status:'checked', deskripsi:'Aman, tidak ditemukan RFID Double', catatan:''},
+    {id:'rf18', noLambung:'KMB 5506', series:'SCANIA P460 XT', rfidMaster:'E2806995200050146D78F507', doubleRfid:'E2806995200050098B85EA2E', detectCount:null, shift:'Shift 2', lastDetect:'2026-08-05', lane:'Lane 1', checkDate:'2026-08-06', status:'checked', deskripsi:'RFID melemah, terdeteksi hanya sampai < 1M', catatan:''},
+    {id:'rf19', noLambung:'RBT 4250', series:'EV XCMG XT490 - GEN#2', rfidMaster:'E2806995200050146D77AD2D', doubleRfid:'523933343036353738A15697', detectCount:null, shift:'Shift 2', lastDetect:'2026-08-03', lane:'Lane 1', checkDate:'2026-08-04', status:'checked', deskripsi:'Aman, tidak ditemukan RFID Double', catatan:''},
+    {id:'rf20', noLambung:'RBT 4072', series:'FAW JH6', rfidMaster:'E280699520004012FBC3C0BE', doubleRfid:'523933333436343938A15283', detectCount:null, shift:'Shift 2', lastDetect:'2026-08-03', lane:'Lane 1', checkDate:'2026-08-04', status:'checked', deskripsi:'Aman, tidak ditemukan RFID Double', catatan:''},
+    {id:'rf21', noLambung:'BBS 6086', series:'FAW JH6', rfidMaster:'E28069952000500C7D26CD5C', doubleRfid:'E28069950000400C7D251241', detectCount:null, shift:'Shift 2', lastDetect:'2026-08-03', lane:'Lane 1', checkDate:'2026-08-04', status:'checked', deskripsi:'Aman, tidak ditemukan RFID Double', catatan:''},
+    {id:'rf22', noLambung:'GEC 9024', series:'EV XCMG XT490 - GEN#2', rfidMaster:'E28069952000400C7D210957', doubleRfid:'523933333830383738A126F2', detectCount:1, shift:'Shift 2', lastDetect:'2026-08-06', lane:'Lane 1', checkDate:'', status:'queue', deskripsi:'Double RFID Detected', catatan:''},
+    {id:'rf23', noLambung:'MMS 2530', series:'EV XCMG XT490 - GEN#2', rfidMaster:'E280699520005012FAF634F4', doubleRfid:'523933333830383738A126F2', detectCount:1, shift:'Shift 2', lastDetect:'2026-08-06', lane:'Lane 1', checkDate:'2026-08-09', status:'checked', deskripsi:'Double RFID Detected', catatan:'Aman, tidak ditemukan RFID Double'},
+    {id:'rf24', noLambung:'GEC 9149', series:'DONGFENG', rfidMaster:'E28068942000401DAC513965', doubleRfid:'523933343039353938948DBF', detectCount:1, shift:'Shift 2', lastDetect:'2026-08-06', lane:'Lane 1', checkDate:'2026-08-09', status:'checked', deskripsi:'Double RFID Detected', catatan:'Aman, tidak ditemukan RFID Double'},
+    {id:'rf25', noLambung:'RAM 8260', series:'DONGFENG', rfidMaster:'E28068942000501DAC576561', doubleRfid:'523933343036363138A156A4', detectCount:1, shift:'Shift 2', lastDetect:'2026-08-06', lane:'Lane 1', checkDate:'', status:'queue', deskripsi:'Double RFID Detected', catatan:''},
+    {id:'rf26', noLambung:'MMS 2390', series:'DONGFENG', rfidMaster:'E280699520004012FBC64C8F', doubleRfid:'E2806995200050098B85EA2E', detectCount:1, shift:'Shift 2', lastDetect:'2026-08-06', lane:'Lane 1', checkDate:'2026-08-09', status:'checked', deskripsi:'Double RFID Detected', catatan:'Aman, tidak ditemukan RFID Double'},
+    {id:'rf27', noLambung:'MMS 2060', series:'DONGFENG', rfidMaster:'E280699520005012FBC3588B', doubleRfid:'52363230303130392AED94A8', detectCount:1, shift:'Shift 2', lastDetect:'2026-08-06', lane:'Lane 1', checkDate:'2026-08-09', status:'checked', deskripsi:'Double RFID Detected', catatan:'Aman, tidak ditemukan RFID Double'},
+    {id:'rf28', noLambung:'RBT 4326', series:'EV XCMG XT490 - GEN#2', rfidMaster:'', doubleRfid:'RFID Not Detected', detectCount:2, shift:'Shift 2', lastDetect:'2026-08-06', lane:'Lane 1', checkDate:'2026-08-09', status:'checked', deskripsi:'RFID Not Detected (2x dalam 1 Shift)', catatan:'Terdapat double RFID'},
+    {id:'rf29', noLambung:'BKA 1420', series:'SHACMAN F3000', rfidMaster:'', doubleRfid:'RFID Not Detected', detectCount:null, shift:'', lastDetect:'', lane:'', checkDate:'2026-08-09', status:'checked', deskripsi:'', catatan:'RFID lemah, Ganti RFID'},
+    {id:'rf30', noLambung:'RAM 8200', series:'DONGFENG', rfidMaster:'E28068942000501DAC52A561', doubleRfid:'605052605270001000011617', detectCount:2, shift:'Shift 2', lastDetect:'2026-08-07', lane:'Lane 1', checkDate:'2026-08-09', status:'checked', deskripsi:'Double RFID Detected (2x dalam 1 shift)', catatan:'Terdapat kode tag RFID di box sparepart'},
+    {id:'rf31', noLambung:'AEK 0114', series:'SHACMAN F3000', rfidMaster:'E28069952000500C7D2466A3', doubleRfid:'E2806995200040098B868E2E', detectCount:null, shift:'Shift 2', lastDetect:'2026-08-07', lane:'Lane 1', checkDate:'2026-08-09', status:'checked', deskripsi:'Double RFID Detected', catatan:'Aman, tidak ditemukan RFID Double'},
+    {id:'rf32', noLambung:'KMB 5043', series:'SHACMAN X3000', rfidMaster:'E28069952000500C7D244A9D', doubleRfid:'E2806995200050098B85EA2E', detectCount:null, shift:'Shift 2', lastDetect:'2026-08-07', lane:'Lane 1', checkDate:'2026-08-09', status:'checked', deskripsi:'Double RFID Detected', catatan:'Aman, tidak ditemukan RFID Double'},
+    {id:'rf33', noLambung:'BMT 3125', series:'FAW JH6', rfidMaster:'E2806995200040146D756908', doubleRfid:'52363230303933362AED998E', detectCount:null, shift:'Shift 2', lastDetect:'2026-08-07', lane:'Lane 1', checkDate:'2026-08-09', status:'checked', deskripsi:'Double RFID Detected', catatan:'Aman, tidak ditemukan RFID Double'},
+    {id:'rf34', noLambung:'AEK 0172', series:'HOWO V7X DT', rfidMaster:'E2806995200040146D787D2E', doubleRfid:'', detectCount:null, shift:'Shift 2', lastDetect:'2026-08-07', lane:'Lane 3', checkDate:'2026-08-09', status:'checked', deskripsi:'RFID Not Detected', catatan:'Aman, tidak ditemukan RFID Double'},
+    {id:'rf35', noLambung:'AEK 0084', series:'SHACMAN F3000', rfidMaster:'E280699520005012FBC55C8C', doubleRfid:'', detectCount:null, shift:'Shift 2', lastDetect:'2026-08-07', lane:'Lane 3', checkDate:'', status:'queue', deskripsi:'RFID Not Detected', catatan:''},
+    {id:'rf36', noLambung:'RAM 8200', series:'DONGFENG', rfidMaster:'E28068942000501DAC52A561', doubleRfid:'605052605270001000011617', detectCount:1, shift:'Shift 1', lastDetect:'2026-08-08', lane:'Lane 1', checkDate:'2026-08-09', status:'checked', deskripsi:'Double RFID Detected', catatan:'Terdapat kode tag RFID di box sparepart'},
+    {id:'rf37', noLambung:'RAM 8430', series:'MERCY ACTROS 4048S', rfidMaster:'E2806995200050146D767508', doubleRfid:'523933343036363038A1569A', detectCount:1, shift:'Shift 2', lastDetect:'2026-08-08', lane:'Lane 1', checkDate:'', status:'queue', deskripsi:'Double RFID Detected', catatan:''},
+    {id:'rf38', noLambung:'KMB 5050', series:'DONGFENG', rfidMaster:'E2806995200040146D78C107', doubleRfid:'5239333430393532389E6C4C', detectCount:1, shift:'Shift 2', lastDetect:'2026-08-08', lane:'Lane 1', checkDate:'', status:'queue', deskripsi:'Double RFID Detected', catatan:''},
+    {id:'rf39', noLambung:'RAM 8200', series:'DONGFENG', rfidMaster:'E28068942000501DAC52A561', doubleRfid:'605052605270001000011617', detectCount:3, shift:'Shift 2', lastDetect:'2026-08-08', lane:'Lane 1', checkDate:'', status:'queue', deskripsi:'RFID Not Detected', catatan:''},
+    {id:'rf40', noLambung:'BBS 6076', series:'FAW JH6', rfidMaster:'E280699520004012FBC55C8B', doubleRfid:'5330363036303937407332D6', detectCount:null, shift:'Shift 3', lastDetect:'2026-08-09', lane:'Lane 2', checkDate:'', status:'queue', deskripsi:'Double RFID Detected', catatan:''},
+    {id:'rf41', noLambung:'RAM 8430', series:'', rfidMaster:'E2806995200050146D767508', doubleRfid:'E2806995000050098B85EA2E', detectCount:null, shift:'Shift 4', lastDetect:'2026-08-09', lane:'Lane 3', checkDate:'', status:'queue', deskripsi:'Double RFID Detected', catatan:''},
+    {id:'rf42', noLambung:'BKA 1150', series:'SHACMAN F3000', rfidMaster:'E280699520005012FBC3EC8B', doubleRfid:'3035D0D0C421380000989BEF', detectCount:null, shift:'Shift 5', lastDetect:'2026-08-09', lane:'Lane 4', checkDate:'', status:'queue', deskripsi:'Double RFID Detected', catatan:''}
+  ];
+}
 function rfidSeedData(){
-  // Seed awal diambil dari sheet "List Problem RFID" (data referensi pertama kali dibuka).
+  // Seed awal diambil dari sheet "List Problem RFID" (di-refresh mengikuti update sheet terbaru, 42 unit).
   // Setelah ini, semua perubahan (tambah/edit/mark checked) disimpan lewat backend DCVA,
   // BUKAN lagi membaca langsung dari Google Sheet tersebut.
-  return [
-    {id:'rf1', noLambung:'RBT 4181', series:'FAW JH6', rfidMaster:'E2806995200040146D73A508', doubleRfid:'52363230303539342AED99EF', detectCount:1, shift:'Shift 2', lastDetect:'2026-07-31', lane:'Lane 1', checkDate:'', status:'queue', deskripsi:''},
-    {id:'rf2', noLambung:'GEC 9024', series:'EV XCMG XT490 - GEN#2', rfidMaster:'E28069952000400C7D210957', doubleRfid:'523933333830383738A126F2', detectCount:1, shift:'Shift 2', lastDetect:'2026-08-06', lane:'Lane 1', checkDate:'', status:'queue', deskripsi:'Double RFID Detected'},
-    {id:'rf3', noLambung:'BBS 6077', series:'FAW JH6', rfidMaster:'E280699520004012FBC5148B', doubleRfid:'5239333336373236392B53F4', detectCount:null, shift:'Shift 2', lastDetect:'2026-08-05', lane:'Lane 1', checkDate:'2026-08-06', status:'checked', deskripsi:'Aman, tidak ditemukan RFID Double'},
-    {id:'rf4', noLambung:'AEK 0172', series:'HOWO V7X DT', rfidMaster:'E2806995200040146D787D2E', doubleRfid:'', detectCount:null, shift:'Shift 2', lastDetect:'2026-08-07', lane:'Lane 3', checkDate:'', status:'queue', deskripsi:'RFID Not Detected'},
-    {id:'rf5', noLambung:'RAM 8200', series:'DONGFENG', rfidMaster:'E28068942000501DAC52A561', doubleRfid:'605052605270001000011617', detectCount:1, shift:'Shift 1', lastDetect:'2026-08-08', lane:'Lane 1', checkDate:'', status:'queue', deskripsi:'Double RFID Detected'},
-    {id:'rf6', noLambung:'KMB 5506', series:'SCANIA P460 XT', rfidMaster:'E2806995200050146D78F507', doubleRfid:'E2806995200050098B85EA2E', detectCount:null, shift:'Shift 2', lastDetect:'2026-08-05', lane:'Lane 1', checkDate:'2026-08-06', status:'checked', deskripsi:'RFID melemah, terdeteksi hanya sampai < 1M'}
-  ];
+  return rfidSeedDataFull();
 }
 
 async function rfidLoad(){
@@ -2947,13 +2986,25 @@ function rfidStatusBadge(status){
   if(status === 'checked') return `<span style="padding:2px 9px;border-radius:999px;font-size:10.5px;font-weight:bold;background:var(--green-bg);color:var(--green-fg);">Checked</span>`;
   return `<span style="padding:2px 9px;border-radius:999px;font-size:10.5px;font-weight:bold;background:var(--yellow-bg);color:var(--yellow-fg);">Queue</span>`;
 }
-function rfidDescBadge(desc){
+function rfidDescBadge(desc, detectCount){
   if(!desc) return '<span style="color:var(--text-muted);">-</span>';
   const bermasalah = /double|not detect|melemah/i.test(desc);
   const style = bermasalah
     ? 'background:var(--red-bg);color:var(--red-fg);'
     : 'background:var(--green-bg);color:var(--green-fg);';
-  return `<span style="padding:2px 9px;border-radius:999px;font-size:10.5px;font-weight:bold;${style}">${desc}</span>`;
+  const suffix = (detectCount && detectCount > 1) ? ` ×${detectCount}` : '';
+  return `<span style="padding:2px 9px;border-radius:999px;font-size:10.5px;font-weight:bold;${style}">${desc}${suffix}</span>`;
+}
+function rfidCatatanBadge(catatan, status){
+  if(!catatan){
+    if(status === 'queue') return '<span style="color:var(--text-muted);">Menunggu pengecheckan</span>';
+    return '<span style="color:var(--text-muted);">-</span>';
+  }
+  const bermasalah = /double|lemah|ganti|not detect/i.test(catatan);
+  const style = bermasalah
+    ? 'background:var(--red-bg);color:var(--red-fg);'
+    : 'background:var(--green-bg);color:var(--green-fg);';
+  return `<span style="padding:2px 9px;border-radius:999px;font-size:10.5px;font-weight:bold;${style}">${catatan}</span>`;
 }
 function rfidFmtDate(iso){
   if(!iso) return '-';
@@ -2991,8 +3042,8 @@ function rfidRenderSummary(){
   const total = rfidData.length;
   const queue = rfidData.filter(r => r.status === 'queue').length;
   const checked = rfidData.filter(r => r.status === 'checked').length;
-  const doubleCount = rfidData.filter(r => /double/i.test(r.deskripsi||'')).length;
-  const notDetected = rfidData.filter(r => /not detect/i.test(r.deskripsi||'')).length;
+  const doubleCount = rfidData.filter(r => /double/i.test((r.deskripsi||'') + ' ' + (r.catatan||''))).length;
+  const notDetected = rfidData.filter(r => /not detect/i.test((r.deskripsi||'') + ' ' + (r.catatan||''))).length;
   const cards = [
     {num: total, lab: 'Total unit', color: 'var(--text)'},
     {num: queue, lab: 'Queue', color: 'var(--yellow-fg)'},
@@ -3031,12 +3082,11 @@ function rfidRenderTable(){
   body.innerHTML = list.map((r, i) => `
     <tr style="${i % 2 === 1 ? 'background:var(--zebra);' : ''}">
       <td style="padding:7px 4px;font-family:var(--font-mono);">${r.noLambung||'-'}</td>
-      <td style="padding:7px 4px;color:var(--text-secondary);">${r.series||'-'}</td>
-      <td style="padding:7px 4px;color:var(--text-secondary);">${r.lane||'-'}</td>
-      <td style="padding:7px 4px;color:var(--text-secondary);">${r.shift||'-'}</td>
-      <td style="padding:7px 4px;color:var(--text-secondary);">${rfidFmtDate(r.lastDetect)}</td>
+      <td style="padding:7px 4px;color:var(--text-secondary);">${r.lane||'-'}${r.shift ? ' / ' + r.shift : ''}</td>
+      <td style="padding:7px 4px;color:var(--text-secondary);">${rfidFmtDate(r.checkDate)}</td>
+      <td style="padding:7px 4px;">${rfidDescBadge(r.deskripsi, r.detectCount)}</td>
+      <td style="padding:7px 4px;">${rfidCatatanBadge(r.catatan, r.status)}</td>
       <td style="padding:7px 4px;">${rfidStatusBadge(r.status)}</td>
-      <td style="padding:7px 4px;">${rfidDescBadge(r.deskripsi)}</td>
       <td style="padding:7px 4px;text-align:right;white-space:nowrap;">
         <i class="ti ti-square-check rfid-row-check" data-id="${r.id}" title="Tandai checked" style="font-size:16px;color:var(--accent);cursor:pointer;margin-right:8px;"></i>
         <i class="ti ti-edit rfid-row-edit" data-id="${r.id}" title="Edit" style="font-size:16px;color:var(--text-secondary);cursor:pointer;"></i>
@@ -3060,6 +3110,7 @@ function rfidOpenModal(id, markChecked){
   document.getElementById('rfidFStatus').value = markChecked ? 'checked' : (rec ? rec.status||'queue' : 'queue');
   document.getElementById('rfidFCheckDate').value = markChecked ? new Date().toISOString().slice(0,10) : (rec ? rec.checkDate||'' : '');
   document.getElementById('rfidFDesc').value = rec ? rec.deskripsi||'' : '';
+  document.getElementById('rfidFCatatan').value = rec ? rec.catatan||'' : '';
   document.getElementById('rfidDeleteBtn').style.display = rec ? 'inline-block' : 'none';
   document.getElementById('rfidModalOverlay').classList.add('active');
 }
@@ -3073,11 +3124,12 @@ async function rfidSaveModal(){
     shift: document.getElementById('rfidFShift').value,
     rfidMaster: document.getElementById('rfidFMaster').value.trim(),
     doubleRfid: document.getElementById('rfidFDouble').value.trim(),
-    detectCount: null,
+    detectCount: (rfidData.find(r => r.id === rfidEditingId) || {}).detectCount ?? null,
     lastDetect: document.getElementById('rfidFLastDate').value,
     status: document.getElementById('rfidFStatus').value,
     checkDate: document.getElementById('rfidFCheckDate').value,
-    deskripsi: document.getElementById('rfidFDesc').value.trim()
+    deskripsi: document.getElementById('rfidFDesc').value.trim(),
+    catatan: document.getElementById('rfidFCatatan').value.trim()
   };
   if(!rec.noLambung){ showToast('⚠️ No Lambung wajib diisi', 'error'); return; }
   const idx = rfidData.findIndex(r => r.id === rec.id);
@@ -3176,7 +3228,7 @@ function openStockModal(assets, idx){
     serialEl.innerHTML = '<p style="font-size:12px;color:#667;">Belum ada data serial number tercatat.</p>';
   }else{
     serialEl.innerHTML = '<table style="width:100%;border-collapse:collapse;font-size:11.5px;">' +
-      '<thead><tr style="text-align:left;color:#667;font-size:10px;text-transform:uppercase;"><th style="padding:4px 2px;">Nama</th><th>Merk/Model</th><th>SN</th><th>Kondisi</th></tr></thead><tbody>' +
+      '<thead><tr style="text-align:left;color:#667;font-size:10.5px;font-weight:600;"><th style="padding:4px 2px;">Nama</th><th>Merk/Model</th><th>SN</th><th>Kondisi</th></tr></thead><tbody>' +
       item.serial.map(s => `<tr><td style="padding:4px 2px;">${s.nama}</td><td>${s.merk}</td><td>${s.sn}</td><td>${s.kondisi}</td></tr>`).join('') +
       '</tbody></table>';
   }
