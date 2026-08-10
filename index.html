@@ -600,7 +600,7 @@
       </div>
       <div class="topbar-right">
         <div class="wima-mic-widget">
-          <div class="sync-widget" id="wimaMicWidget" title="WIMA selalu mendengarkan — ucapkan &quot;WIMA wake up&quot; untuk ringkasan suara">
+          <div class="sync-widget" id="wimaMicWidget" title="WIMA is always listening — say &quot;WIMA wake up&quot; to talk to her">
             <div class="sync-orb idle" id="wimaMicOrb">
               <span class="ring"></span><span class="ring ring2"></span><span class="core"></span>
             </div>
@@ -5337,11 +5337,12 @@ document.getElementById('dateInput').value = todayStr();
   setInterval(() => syncOrderForm({ silent: true }), ORDERFORM_POLL_MS);
 })();
 
-/* ================= WIMA VOICE: wake word "WIMA wake up" + ringkasan suara ================= */
+/* ================= WIMA VOICE: JARVIS-style wake word "WIMA wake up" ================= */
 const wimaMicOrb = document.getElementById('wimaMicOrb');
 const wimaMicWidget = document.getElementById('wimaMicWidget');
 const wimaVoiceToast = document.getElementById('wimaVoiceToast');
 const WIMA_TOAST_MS = 6000;
+const WIMA_AWAIT_COMMAND_MS = 12000;
 
 function wimaSetOrb(state){
   wimaMicOrb.className = 'sync-orb ' + state;
@@ -5353,28 +5354,42 @@ function wimaShowToast(text){
   wimaShowToast._t = setTimeout(() => wimaVoiceToast.classList.remove('show'), WIMA_TOAST_MS);
 }
 
+/* Sapaan alami ala JARVIS saat wake word terdeteksi -- TIDAK langsung membacakan
+   ringkasan. WIMA hanya menyapa dan menunggu perintah lanjutan dari user. */
+function wimaGreeting(){
+  const hour = new Date().getHours();
+  const timeOfDay = hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening';
+  const greetings = [
+    `Good ${timeOfDay}, sir. WIMA online. What can I do for you?`,
+    `At your service. Systems nominal. How can I help, sir?`,
+    `Good ${timeOfDay}. I'm listening — what do you need?`
+  ];
+  return greetings[Math.floor(Math.random() * greetings.length)];
+}
+
 /* Bangun kalimat ringkasan dari data yang sama dipakai kartu Overview,
-   supaya apa yang diucapkan WIMA selalu konsisten dengan apa yang tampil di layar. */
+   supaya apa yang diucapkan WIMA selalu konsisten dengan apa yang tampil di layar.
+   Hanya dipanggil kalau user secara eksplisit meminta ringkasan. */
 async function wimaBuildSpokenSummary(){
   const d = await wimaGatherOverviewData();
   const parts = [];
   parts.push(d.stockOut > 0
-    ? `Stock management, ${d.stockOut} dari ${d.assets.length} kategori part habis stok.`
-    : `Stock management aman, semua ${d.assets.length} kategori tersedia.`);
-  parts.push(`Personnel on board, total ${d.pobTotal} orang, status muster ${d.pob.musterSafe ? 'aman' : 'perlu perhatian'}.`);
+    ? `Stock management: ${d.stockOut} out of ${d.assets.length} part categories are out of stock.`
+    : `Stock management is in good shape, all ${d.assets.length} categories are available.`);
+  parts.push(`Personnel on board: ${d.pobTotal} in total, muster status is ${d.pob.musterSafe ? 'safe' : 'flagged for attention'}.`);
   parts.push(d.inspectionActive > 0
-    ? `Inspection dan control, ${d.inspectionActive} item masih berjalan dari ${d.inspectionTotal} total.`
-    : `Inspection dan control, semua item sudah selesai.`);
+    ? `Inspection and control: ${d.inspectionActive} item${d.inspectionActive === 1 ? '' : 's'} still in progress out of ${d.inspectionTotal}.`
+    : `Inspection and control: everything is complete.`);
   parts.push(d.rosterOnDuty.length
-    ? `Roster hari ini, yang bertugas sekarang adalah ${d.rosterOnDuty.join(' dan ')}.`
-    : `Roster hari ini, belum ada data shift yang sedang aktif.`);
+    ? `Roster: currently on duty is ${d.rosterOnDuty.join(' and ')}.`
+    : `Roster: no active shift data found for right now.`);
   parts.push(d.taskOverdue > 0
-    ? `Task list, ${d.taskActive} task aktif, dan ${d.taskOverdue} di antaranya overdue.`
-    : `Task list, ${d.taskActive} task aktif, tidak ada yang overdue.`);
+    ? `Task list: ${d.taskActive} active, and ${d.taskOverdue} of those are overdue.`
+    : `Task list: ${d.taskActive} active, none overdue.`);
   parts.push(d.opKritis > 0
-    ? `Open point, ${d.opActive} isu aktif, ${d.opKritis} berstatus kritis.`
-    : `Open point, ${d.opActive} isu aktif, tidak ada yang kritis.`);
-  return 'Selamat, ini ringkasan operasional hari ini. ' + parts.join(' ');
+    ? `Open points: ${d.opActive} active, ${d.opKritis} marked critical.`
+    : `Open points: ${d.opActive} active, none critical.`);
+  return `Here's today's operational summary, sir. ${parts.join(' ')} That's everything on my end.`;
 }
 
 let wimaVoicesReady = [];
@@ -5383,8 +5398,22 @@ if(window.speechSynthesis){
   wimaLoadVoices();
   window.speechSynthesis.onvoiceschanged = wimaLoadVoices;
 }
-function wimaPickIndonesianVoice(){
-  return wimaVoicesReady.find(v => v.lang && v.lang.toLowerCase().startsWith('id')) || null;
+/* Browser TTS tidak bisa meniru suara karakter berhak cipta secara literal --
+   jadi kita pilih suara pria Inggris paling formal/berwibawa yang tersedia,
+   lalu kalibrasi rate & pitch supaya terdengar tenang dan presisi ala JARVIS. */
+const WIMA_JARVIS_VOICE_PRIORITY = [
+  /daniel/i, /george/i, /arthur/i, /ryan/i, /oliver/i,
+  /uk english male/i, /british.*male/i, /english.*male/i, /male/i
+];
+function wimaPickJarvisVoice(){
+  const englishVoices = wimaVoicesReady.filter(v => v.lang && v.lang.toLowerCase().startsWith('en'));
+  for(const pattern of WIMA_JARVIS_VOICE_PRIORITY){
+    const match = englishVoices.find(v => pattern.test(v.name));
+    if(match) return match;
+  }
+  const gb = englishVoices.find(v => v.lang.toLowerCase() === 'en-gb');
+  if(gb) return gb;
+  return englishVoices[0] || null;
 }
 
 function wimaSpeak(text){
@@ -5392,10 +5421,11 @@ function wimaSpeak(text){
     if(!window.speechSynthesis){ resolve(); return; }
     window.speechSynthesis.cancel();
     const utter = new SpeechSynthesisUtterance(text);
-    const voice = wimaPickIndonesianVoice();
+    const voice = wimaPickJarvisVoice();
     if(voice) utter.voice = voice;
-    utter.lang = voice ? voice.lang : 'id-ID';
-    utter.rate = 1;
+    utter.lang = voice ? voice.lang : 'en-GB';
+    utter.rate = 0.95;
+    utter.pitch = 0.85;
     utter.onstart = () => wimaSetOrb('speaking');
     utter.onend = () => { wimaSetOrb(wimaListening ? 'listening' : 'idle'); resolve(); };
     utter.onerror = () => { wimaSetOrb(wimaListening ? 'listening' : 'idle'); resolve(); };
@@ -5403,45 +5433,70 @@ function wimaSpeak(text){
   });
 }
 
+let wimaAwaitingCommand = false;
+let wimaAwaitTimer = null;
+
+function wimaEnterAwaitingCommand(){
+  wimaAwaitingCommand = true;
+  clearTimeout(wimaAwaitTimer);
+  wimaAwaitTimer = setTimeout(() => { wimaAwaitingCommand = false; }, WIMA_AWAIT_COMMAND_MS);
+}
+
 async function wimaHandleWake(){
-  wimaShowToast('WIMA mendengar panggilan — menyiapkan ringkasan...');
+  wimaShowToast('WIMA heard the wake call — standing by for your command.');
+  await wimaSpeak(wimaGreeting());
+  wimaEnterAwaitingCommand();
+}
+
+async function wimaHandleSummaryCommand(){
+  clearTimeout(wimaAwaitTimer);
+  wimaAwaitingCommand = false;
+  wimaShowToast('Compiling today\'s summary...');
   try{
     const summary = await wimaBuildSpokenSummary();
     await wimaSpeak(summary);
   }catch(e){
-    console.error('WIMA gagal menyusun ringkasan suara', e);
-    await wimaSpeak('Maaf, WIMA belum bisa menyusun ringkasan sekarang.');
+    console.error('WIMA failed to build the spoken summary', e);
+    await wimaSpeak('My apologies, sir. I ran into an issue compiling the summary just now.');
   }
 }
 
-/* Deteksi wake phrase secara longgar: mencakup ucapan Inggris asli "WIMA wake up"
-   maupun variasi Indonesia, supaya tetap terdeteksi walau hasil speech-to-text meleset sedikit. */
 function wimaIsWakePhrase(transcript){
   const t = transcript.toLowerCase();
   if(!t.includes('wima')) return false;
-  return /wake\s*up|bangun|ringkasan|summary/.test(t);
+  return /wake\s*up/.test(t);
+}
+/* Perintah lanjutan yang memicu ringkasan -- HANYA dipicu kalau WIMA sedang
+   dalam mode "awaiting command" setelah wake word, bukan otomatis. */
+function wimaIsSummaryCommand(transcript){
+  const t = transcript.toLowerCase();
+  return /summary|rundown|status report|sitrep|run me through|give me the rundown|what.?s the situation|brief me/.test(t);
 }
 
 const WimaSpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 let wimaRecognition = null;
 let wimaListening = false;
-let wimaSpeakingLock = false;
 let wimaLastWakeAt = 0;
 
 function wimaInitRecognition(){
   if(!WimaSpeechRecognition){
     wimaSetOrb('denied');
-    wimaMicWidget.title = 'Browser ini tidak mendukung pengenalan suara. Coba pakai Chrome desktop.';
+    wimaMicWidget.title = 'This browser does not support speech recognition. Try Chrome on desktop.';
     return null;
   }
   const rec = new WimaSpeechRecognition();
   rec.continuous = true;
   rec.interimResults = true;
-  rec.lang = 'id-ID';
+  rec.lang = 'en-US';
 
   rec.onresult = (evt) => {
     for(let i = evt.resultIndex; i < evt.results.length; i++){
       const transcript = evt.results[i][0].transcript || '';
+
+      if(wimaAwaitingCommand && wimaIsSummaryCommand(transcript)){
+        wimaHandleSummaryCommand();
+        continue;
+      }
       if(wimaIsWakePhrase(transcript)){
         const now = Date.now();
         if(now - wimaLastWakeAt < 4000) continue;
@@ -5454,7 +5509,7 @@ function wimaInitRecognition(){
     if(evt.error === 'not-allowed' || evt.error === 'service-not-allowed'){
       wimaListening = false;
       wimaSetOrb('denied');
-      wimaMicWidget.title = 'Akses mikrofon ditolak — klik untuk mengaktifkan kembali.';
+      wimaMicWidget.title = 'Microphone access denied — click to try again.';
     }
   };
   rec.onend = () => {
@@ -5474,14 +5529,16 @@ function wimaStartListening(){
   try{
     wimaRecognition.start();
     wimaSetOrb('listening');
-    wimaMicWidget.title = 'WIMA selalu mendengarkan — ucapkan "WIMA wake up" untuk ringkasan suara';
+    wimaMicWidget.title = 'WIMA is always listening — say "WIMA wake up" to talk to her';
   }catch(e){}
 }
 function wimaStopListening(){
   wimaListening = false;
+  clearTimeout(wimaAwaitTimer);
+  wimaAwaitingCommand = false;
   if(wimaRecognition){ try{ wimaRecognition.stop(); }catch(e){} }
   wimaSetOrb('idle');
-  wimaMicWidget.title = 'Mic WIMA nonaktif — klik untuk mengaktifkan';
+  wimaMicWidget.title = 'WIMA mic is off — click to activate';
 }
 
 wimaMicWidget.onclick = () => {
