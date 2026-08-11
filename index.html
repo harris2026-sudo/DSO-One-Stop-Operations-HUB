@@ -3575,6 +3575,19 @@ async function ppFetchLive(silent){
   const cfg = await ppLoadConfig();
   document.getElementById('ppStatusText').textContent = 'Menghubungkan ke jaringan BIB...';
   ppSetConnBadge('checking');
+
+  // Deteksi mixed-content: halaman ini HTTPS tapi endpoint PingPulse HTTP -> browser PASTI memblokir,
+  // tidak perlu dicoba fetch sama sekali, langsung kasih pesan yang jelas.
+  if(location.protocol === 'https:' && cfg.apiUrl.toLowerCase().startsWith('http://')){
+    const cfg2 = cfg; cfg2.lastStatus = 'error';
+    await ppSaveConfig(cfg2);
+    document.getElementById('ppStatusText').textContent = 'Diblokir browser (mixed content) — bukan masalah jaringan';
+    ppSetBanner('error', '🔒 Diblokir browser (Mixed Content): halaman HTTPS ini tidak boleh memanggil PingPulse yang masih HTTP (' + cfg.apiUrl + '). Perbaikan: klik ikon gembok di address bar → Site settings → ubah "Insecure content" jadi Allow → reload halaman ini.');
+    ppSetConnBadge('bad');
+    if(!silent) showToast('Diblokir browser: halaman HTTPS tidak boleh memanggil HTTP (mixed content).', 'error');
+    return;
+  }
+
   if(!silent) ppSetBanner('warn', 'Sedang mencoba menarik data dari ' + cfg.apiUrl + ' ...');
   try{
     // NOTE: endpoint pasti (dan apakah perlu login/token) belum diketahui —
