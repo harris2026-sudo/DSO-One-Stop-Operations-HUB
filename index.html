@@ -691,11 +691,15 @@
   <!-- ================= VIEW: STOCK MANAGEMENT ================= -->
   <div class="view" id="view-assetplant">
     <div class="category">
-      <div class="category-head"><span>📦 Stock Management — Part WIM (uji coba)</span></div>
+      <div class="category-head"><span>📦 Stock Management — Part WIM</span></div>
       <div class="category-body" style="padding:12px 14px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
+          <span style="font-size:10.5px;color:#889;" id="apSyncInfo">Belum pernah sync dari Google Sheet.</span>
+          <button type="button" class="btn btn-ghost" id="apSyncBtn" style="font-size:11.5px;padding:6px 12px;">🔄 Sync dari Sheet</button>
+        </div>
         <table style="width:100%;border-collapse:collapse;font-size:12.5px;">
           <thead><tr style="text-align:left;color:#667;font-size:11px;font-weight:600;">
-            <th style="padding:6px 4px;">Kategori</th><th>Real</th><th>Dummy</th><th>Status</th><th style="text-align:right;">Aksi</th>
+            <th style="padding:6px 4px;">Nama Barang</th><th>Severity</th><th>Stok Baru</th><th>Rusak/Aus/Dummy</th><th>Jenis</th><th>Status</th><th style="text-align:right;">Aksi</th>
           </tr></thead>
           <tbody id="apBody"></tbody>
         </table>
@@ -2789,6 +2793,9 @@ function setSyncState(state){
 const DSO_AVAIL_KEY = 'dso:availability';
 const DSO_ASSETS_KEY = 'dso:stock-wim-v2';
 const DSO_POB_KEY = 'dso:pob';
+const STOCK_SHEET_ID = '1w3rlXybBify-dOTs26n83WrlO5FzlWvQUbLq21pp4n4';
+const STOCK_SHEET_NAME = 'Summary Stok';
+const DSO_STOCK_LASTSYNC_KEY = 'dso:stock-lastsync';
 
 function dsoDefaults(){
   return {
@@ -3065,6 +3072,113 @@ async function dsoLoad(key, fallback){
 }
 async function dsoSave(key, val){
   try{ await store.set(key, JSON.stringify(val), true); }catch(e){ console.error('gagal simpan', key, e); }
+}
+
+/* ================= STOCK MANAGEMENT: SYNC DARI GOOGLE SHEET ================= */
+/* Sumber: sheet "Summary Stok" pada spreadsheet List Asset Management.
+   Menggunakan pola gviz yang sama seperti modul Roster (google.visualization.Query)
+   supaya tidak kena CORS meski file di-hosting terpisah dari Google Sheets. */
+function apNormalizeName(s){
+  return String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+}
+async function fetchStockSheetData(){
+  await loadGoogleChartsOnce();
+  const url = `https://docs.google.com/spreadsheets/d/${STOCK_SHEET_ID}/gviz/tq?sheet=${encodeURIComponent(STOCK_SHEET_NAME)}`;
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    const timer = setTimeout(() => {
+      if(settled) return;
+      settled = true;
+      reject(new Error('timeout memuat data Stock Management dari Sheet'));
+    }, 15000);
+    try{
+      const query = new google.visualization.Query(url);
+      query.send(response => {
+        if(settled) return;
+        settled = true;
+        clearTimeout(timer);
+        if(response.isError()){
+          reject(new Error('tab "Summary Stok" tidak ditemukan (' + response.getMessage() + ')'));
+          return;
+        }
+        const dt = response.getDataTable();
+        const numRows = dt.getNumberOfRows();
+        const rows = [];
+        for(let r=0;r<numRows;r++){
+          const nama = (dt.getFormattedValue(r,1)||'').trim();
+          if(!nama) continue;
+          rows.push({
+            nama,
+            severity: (dt.getFormattedValue(r,2)||'').trim(),
+            source: (dt.getFormattedValue(r,3)||'').trim(),
+            stokBaru: Number(dt.getFormattedValue(r,4))||0,
+            satuan: (dt.getFormattedValue(r,5)||'').trim(),
+            stokRusak: Number(dt.getFormattedValue(r,6))||0,
+            jenis: (dt.getFormattedValue(r,7)||'').trim()
+          });
+        }
+        resolve(rows);
+      });
+    }catch(err){
+      if(settled) return;
+      settled = true;
+      clearTimeout(timer);
+      reject(err);
+    }
+  });
+}
+/* Menggabungkan data dari Sheet ke daftar asset yang sudah ada di localStorage/backend:
+   - item yang namanya cocok (dicocokkan longgar, tanpa spasi/simbol) -> field ringkasan
+     (severity, source, satuan, jenis, real, dummy) di-refresh dari Sheet, TAPI riwayat
+     pergantian & data serial number yang sudah dicatat manual TETAP DIPERTAHANKAN.
+   - item baru di Sheet yang belum ada di daftar -> ditambahkan sebagai kategori baru
+     (status default 'grey' / Belum diatur, riwayat & serial kosong, bisa dilengkapi manual). */
+function apMergeSheetData(existingAssets, sheetRows){
+  const merged = existingAssets.map(a => ({...a}));
+  const indexByName = new Map();
+  merged.forEach((a,i) => indexByName.set(apNormalizeName(a.cat), i));
+  sheetRows.forEach(row => {
+    const key = apNormalizeName(row.nama);
+    if(indexByName.has(key)){
+      const i = indexByName.get(key);
+      merged[i].real = row.stokBaru;
+      merged[i].dummy = row.stokRusak;
+      merged[i].severity = row.severity;
+      merged[i].source = row.source;
+      merged[i].satuan = row.satuan;
+      merged[i].jenis = row.jenis;
+    }else{
+      merged.push({
+        cat: row.nama, real: row.stokBaru, dummy: row.stokRusak,
+        severity: row.severity, source: row.source, satuan: row.satuan, jenis: row.jenis,
+        status: 'grey', label: 'Belum diatur', replacements: [], serial: []
+      });
+      indexByName.set(key, merged.length-1);
+    }
+  });
+  return merged;
+}
+async function syncStockFromSheet(showAlert){
+  const infoEl = document.getElementById('apSyncInfo');
+  const btnEl = document.getElementById('apSyncBtn');
+  if(btnEl){ btnEl.disabled = true; btnEl.textContent = '⏳ Sinkronisasi...'; }
+  if(infoEl) infoEl.textContent = 'Sedang mengambil data dari Google Sheet...';
+  try{
+    const rows = await fetchStockSheetData();
+    const current = await dsoLoad(DSO_ASSETS_KEY, dsoDefaults().assets);
+    const merged = apMergeSheetData(current, rows);
+    await dsoSave(DSO_ASSETS_KEY, merged);
+    const now = new Date();
+    await dsoSave(DSO_STOCK_LASTSYNC_KEY, now.toISOString());
+    if(infoEl) infoEl.textContent = 'Sync terakhir: ' + now.toLocaleString('id-ID') + ' (' + rows.length + ' item dari Sheet)';
+    await renderAssetPlant(false);
+  }catch(e){
+    console.error('gagal sync Stock Management', e);
+    if(infoEl) infoEl.textContent = 'Gagal sync: ' + e.message;
+    if(showAlert) alert('Gagal sync data Stock Management: ' + e.message);
+  }finally{
+    if(btnEl){ btnEl.disabled = false; btnEl.textContent = '🔄 Sync dari Sheet'; }
+  }
 }
 
 /* ================= RFID POINT INSPECTION ================= */
@@ -3464,16 +3578,25 @@ document.querySelectorAll('.stock-subtab').forEach(btn => {
 document.getElementById('stockModalCloseBtn').onclick = () => document.getElementById('stockModalOverlay').classList.remove('active');
 document.getElementById('stockModalOverlay').onclick = (e) => { if(e.target.id === 'stockModalOverlay') e.currentTarget.classList.remove('active'); };
 
-async function renderAssetPlant(){
+async function renderAssetPlant(autoSync){
   const assets = await dsoLoad(DSO_ASSETS_KEY, dsoDefaults().assets);
   const body = document.getElementById('apBody');
+  const sevBadge = (sev) => {
+    if(!sev) return '<span style="color:#aab;">-</span>';
+    const key = sev.toLowerCase();
+    const map = { critical:'red', high:'red', medium:'yellow', low:'blue' };
+    const c = map[key] || 'grey';
+    return `<span style="padding:2px 8px;border-radius:999px;font-size:10px;font-weight:bold;background:var(--${c}-bg);color:var(--${c}-fg);">${sev}</span>`;
+  };
   body.innerHTML = '';
   assets.forEach((a,i)=>{
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td style="padding:6px 4px;cursor:pointer;color:var(--navy);font-weight:bold;" class="ap-open" data-idx="${i}">${a.cat}</td>
+      <td style="padding:6px 4px;">${sevBadge(a.severity)}</td>
       <td contenteditable="true" style="padding:6px 4px;">${a.real}</td>
       <td contenteditable="true" style="padding:6px 4px;">${a.dummy}</td>
+      <td style="padding:6px 4px;">${a.jenis || '<span style="color:#aab;">-</span>'}</td>
       <td style="padding:6px 4px;"><span style="padding:3px 10px;border-radius:999px;font-size:10.5px;font-weight:bold;cursor:pointer;background:var(--${a.status}-bg);color:var(--${a.status}-fg);" data-idx="${i}" class="ap-chip">${a.label}</span></td>
       <td style="padding:6px 4px;text-align:right;">
         <button data-idx="${i}" class="wim-icon-btn edit ap-edit" title="Edit nama"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4Z"/></svg></button>
@@ -3526,6 +3649,22 @@ async function renderAssetPlant(){
     await dsoSave(DSO_ASSETS_KEY, assets);
     renderAssetPlant();
   };
+  const syncBtn = document.getElementById('apSyncBtn');
+  if(syncBtn && !syncBtn.dataset.bound){
+    syncBtn.dataset.bound = '1';
+    syncBtn.onclick = () => syncStockFromSheet(true);
+  }
+  const infoEl = document.getElementById('apSyncInfo');
+  if(infoEl && !infoEl.dataset.loaded){
+    infoEl.dataset.loaded = '1';
+    dsoLoad(DSO_STOCK_LASTSYNC_KEY, null).then(iso => {
+      if(iso) infoEl.textContent = 'Sync terakhir: ' + new Date(iso).toLocaleString('id-ID');
+    });
+  }
+  if(autoSync !== false && !renderAssetPlant._autoSynced){
+    renderAssetPlant._autoSynced = true;
+    syncStockFromSheet(false);
+  }
 }
 
 async function renderPob(){
