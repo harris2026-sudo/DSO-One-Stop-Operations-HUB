@@ -117,6 +117,11 @@
   .view{display:none;}
   .view.active{display:block;}
 
+  .harian-role-tabs{display:flex;gap:6px;margin-bottom:12px;}
+  .harian-role-tab{flex:1;text-align:center;padding:10px 12px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface);color:var(--text-secondary);font-size:12.5px;font-weight:600;cursor:pointer;transition:background .15s,color .15s,border-color .15s;}
+  .harian-role-tab:hover:not(.active){background:var(--hilite);}
+  .harian-role-tab.active{background:var(--hilite);color:var(--navy);border-color:var(--accent);}
+  .harian-role-tab:active{transform:scale(.98);}
   .controls{display:flex;flex-wrap:wrap;gap:10px;background:var(--surface);padding:12px;border-radius:var(--radius);margin-bottom:14px;border:1px solid var(--border);align-items:center;}
   .controls label{font-size:11px;font-weight:600;color:var(--text);display:block;margin-bottom:3px;}
   .controls input[type=date], .controls input[type=text], .controls input[type=month], .controls input[type=number], .controls select{
@@ -158,7 +163,7 @@
   .sync-orb.denied .core{background:var(--red-fg);box-shadow:none;}
   .wima-voice-toast{position:absolute;top:52px;right:0;max-width:280px;background:var(--navy);color:#fff;font-size:12px;line-height:1.5;padding:10px 14px;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.18);opacity:0;transform:translateY(-6px);pointer-events:none;transition:opacity .2s ease,transform .2s ease;z-index:40;}
   .wima-voice-toast.show{opacity:1;transform:translateY(0);}
-  .wima-mic-widget{position:relative;}
+  .wima-mic-widget{position:relative;display:none;} /* WIMA disembunyikan & dinonaktifkan sementara — hapus 'display:none' untuk mengaktifkan lagi */
   .wima-hud-overlay{position:fixed;inset:0;background:rgba(2,10,9,.82);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;z-index:900;opacity:0;pointer-events:none;transition:opacity .35s ease;}
   .wima-hud-overlay.show{opacity:1;pointer-events:auto;}
   .wima-hud-bracket{position:absolute;width:26px;height:26px;border-color:#5DCAA5;opacity:.8;}
@@ -734,6 +739,10 @@
   </div>
 
   <div class="view" id="view-harian">
+    <div class="harian-role-tabs" id="harianRoleTabs">
+      <div class="harian-role-tab active" data-role="dfe">Digitech Field Engineer</div>
+      <div class="harian-role-tab" data-role="mfs">Monitoring Field Support</div>
+    </div>
     <div class="controls">
       <div>
         <label>Tanggal</label>
@@ -1675,7 +1684,7 @@ document.addEventListener('keydown', (e) => {
 /* ---------------- STRUCTURE ---------------- */
 const STATUS_OPTIONS = ["Checked","Follow up","Continue","Not yet","Information","n/a"];
 
-const STRUCTURE = [
+const STRUCTURE_DFE = [
   { name: "Daily Report", tasks: [
     "Upload data report tonase Under/Over ke WAG DSO",
     "Mengupload data report Redzone dari shift sebelumnya ke WAG DSO",
@@ -1730,6 +1739,61 @@ const STRUCTURE = [
   ]},
 ];
 
+const STRUCTURE_MFS = [
+  { name: "Informasi & Sosialisasi WAG", tasks: [
+    "Menginformasikan WAG saat ada Housekeeping / P2H (Pembersihan Area Sensor High Speed dan Low Speed)",
+  ]},
+  { name: "Barikade", tasks: [
+    "Setting Barikade",
+    "Pengecekan kondisi barikade",
+  ]},
+  { name: "Pemantauan & Sosialisasi Radio", tasks: [
+    "Pemantauan di luar office berikut sosialisasi via radio untuk stabil saat melintas baik kiri, lurus, kanan saat melintas",
+    "Reminder checker agar aktif sosialisasi melalui radio untuk kecepatan saat melintas 7-10 km/jam",
+  ]},
+  { name: "Standby WIM", tasks: [
+    "Accept transaksi pending di aplikasi WIM",
+  ]},
+  { name: "Log Book WIM", tasks: [
+    "Pelaporan jalan entrance masuk dan keluar yang rusak, P2H dan aktivitas lainnya ke dalam log book WIM",
+  ]},
+  { name: "Kebersihan Area WIM", tasks: [
+    "Pembersihan area paritan & pavement WIM",
+  ]},
+  { name: "Monitoring WIM & UCan", tasks: [
+    "Monitoring WIM dan UCan. Ketika transaksi tidak update segera menginformasikan ke WAG",
+  ]},
+];
+
+/* ---------------- CHECKLIST HARIAN: ROLE (Digitech Field Engineer / Monitoring Field Support) ----------------
+   Data untuk kedua role dipisah TOTAL: checklist tersimpan, riwayat, kategori/tugas custom, kategori/tugas
+   yang disembunyikan, dan label custom -- masing-masing punya key penyimpanan sendiri (lihat roleSuffix()).
+   Key untuk 'dfe' TIDAK diberi suffix supaya data lama (sebelum fitur ini ada) tetap terbaca. */
+let harianRole = 'dfe'; // 'dfe' | 'mfs'
+let STRUCTURE = STRUCTURE_DFE;
+function roleSuffix(){ return harianRole === 'mfs' ? '_mfs' : ''; }
+
+/* ---------------- PIC & SHIFT: OPSI PER ROLE ---------------- */
+const PIC_OPTIONS_BY_ROLE = {
+  dfe: ["Harris", "Nico Fahryan Sandy", "Lukman Gunawan", "Taufik Wirayudha", "Adhe Setiawan"],
+  mfs: ["Ferdy", "Wahyu", "Muhammad Rizki Alamsyah"],
+};
+const SHIFT_OPTIONS_BY_ROLE = {
+  dfe: ["Shift 1", "Shift 2", "Shift 3", "Non Shift"],
+  mfs: ["Shift 1", "Shift 2"],
+};
+function defaultPicForRole(role){ return PIC_OPTIONS_BY_ROLE[role][0]; }
+function renderHarianControlOptions(){
+  const shiftSel = document.getElementById('shiftInput');
+  const picSel = document.getElementById('picInput');
+  const prevShift = shiftSel.value;
+  const prevPic = picSel.value;
+  shiftSel.innerHTML = SHIFT_OPTIONS_BY_ROLE[harianRole].map(s => `<option>${s}</option>`).join('');
+  picSel.innerHTML = PIC_OPTIONS_BY_ROLE[harianRole].map(p => `<option>${p}</option>`).join('');
+  shiftSel.value = SHIFT_OPTIONS_BY_ROLE[harianRole].includes(prevShift) ? prevShift : SHIFT_OPTIONS_BY_ROLE[harianRole][0];
+  picSel.value = PIC_OPTIONS_BY_ROLE[harianRole].includes(prevPic) ? prevPic : defaultPicForRole(harianRole);
+}
+
 let taskIds = [];
 let taskTextMap = {};
 function rebuildTaskIndex(){
@@ -1763,17 +1827,17 @@ function rebuildTaskIndex(){
 }
 
 /* ---------------- EDITABLE STRUCTURE LABELS ---------------- */
-const STRUCT_LABELS_KEY = 'app:structureLabels';
+function structLabelsKey(){ return 'app:structureLabels' + roleSuffix(); }
 let structureLabels = { categories: {}, tasks: {} };
 let structLabelSaveTimer = null;
 function scheduleStructLabelSave(){ clearTimeout(structLabelSaveTimer); structLabelSaveTimer = setTimeout(saveStructureLabels, 500); }
 async function saveStructureLabels(){
-  try{ await store.set(STRUCT_LABELS_KEY, JSON.stringify(structureLabels)); }
+  try{ await store.set(structLabelsKey(), JSON.stringify(structureLabels)); }
   catch(e){ console.error('Gagal menyimpan label menu', e); }
 }
 async function loadStructureLabels(){
   try{
-    const res = await store.get(STRUCT_LABELS_KEY);
+    const res = await store.get(structLabelsKey());
     if(res && res.value) structureLabels = JSON.parse(res.value);
   }catch(e){ /* belum ada, gunakan default */ }
   if(!structureLabels.categories) structureLabels.categories = {};
@@ -1781,16 +1845,16 @@ async function loadStructureLabels(){
 }
 
 /* ---------------- CUSTOM (USER-ADDED) CHECKLIST ITEMS ---------------- */
-const CUSTOM_TASKS_KEY = 'app:customTasks';
+function customTasksKey(){ return 'app:customTasks' + roleSuffix(); }
 let customTasks = {}; // { [categoryIndex]: [{text}, ...] }
 async function loadCustomTasks(){
   try{
-    const res = await store.get(CUSTOM_TASKS_KEY);
+    const res = await store.get(customTasksKey());
     customTasks = (res && res.value) ? JSON.parse(res.value) : {};
   }catch(e){ customTasks = {}; }
 }
 async function saveCustomTasks(){
-  try{ await store.set(CUSTOM_TASKS_KEY, JSON.stringify(customTasks)); }
+  try{ await store.set(customTasksKey(), JSON.stringify(customTasks)); }
   catch(e){ console.error('Gagal menyimpan checklist baru', e); }
 }
 async function addCustomTask(ci, text){
@@ -1812,16 +1876,16 @@ async function deleteCustomTask(ci, xi){
 }
 
 /* ---------------- HIDE/HAPUS DEFAULT TASKS ---------------- */
-const HIDDEN_TASKS_KEY = 'app:hiddenTasks';
+function hiddenTasksKey(){ return 'app:hiddenTasks' + roleSuffix(); }
 let hiddenTasks = {};   // { taskId: true }
 async function loadHiddenState(){
   try{
-    const res = await store.get(HIDDEN_TASKS_KEY);
+    const res = await store.get(hiddenTasksKey());
     hiddenTasks = (res && res.value) ? JSON.parse(res.value) : {};
   }catch(e){ hiddenTasks = {}; }
 }
 async function saveHiddenTasks(){
-  try{ await store.set(HIDDEN_TASKS_KEY, JSON.stringify(hiddenTasks)); }
+  try{ await store.set(hiddenTasksKey(), JSON.stringify(hiddenTasks)); }
   catch(e){ console.error('Gagal menyimpan status hapus checklist', e); }
 }
 async function hideDefaultTask(id){
@@ -1838,16 +1902,16 @@ async function restoreCategoryHiddenTasks(ci){
 }
 
 /* ---------------- CUSTOM (USER-ADDED) CATEGORIES ---------------- */
-const CUSTOM_CATEGORIES_KEY = 'app:customCategories';
+function customCategoriesKey(){ return 'app:customCategories' + roleSuffix(); }
 let customCategories = []; // [{id, name}]
 async function loadCustomCategories(){
   try{
-    const res = await store.get(CUSTOM_CATEGORIES_KEY);
+    const res = await store.get(customCategoriesKey());
     customCategories = (res && res.value) ? JSON.parse(res.value) : [];
   }catch(e){ customCategories = []; }
 }
 async function saveCustomCategories(){
-  try{ await store.set(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories)); }
+  try{ await store.set(customCategoriesKey(), JSON.stringify(customCategories)); }
   catch(e){ console.error('Gagal menyimpan kategori baru', e); }
 }
 async function addCustomCategory(name){
@@ -1872,16 +1936,16 @@ async function deleteCustomCategory(id){
 }
 
 /* ---------------- HIDE/HAPUS DEFAULT CATEGORIES ---------------- */
-const HIDDEN_CATEGORIES_KEY = 'app:hiddenCategories';
+function hiddenCategoriesKey(){ return 'app:hiddenCategories' + roleSuffix(); }
 let hiddenCategories = {}; // { ci: true }
 async function loadHiddenCategories(){
   try{
-    const res = await store.get(HIDDEN_CATEGORIES_KEY);
+    const res = await store.get(hiddenCategoriesKey());
     hiddenCategories = (res && res.value) ? JSON.parse(res.value) : {};
   }catch(e){ hiddenCategories = {}; }
 }
 async function saveHiddenCategories(){
-  try{ await store.set(HIDDEN_CATEGORIES_KEY, JSON.stringify(hiddenCategories)); }
+  try{ await store.set(hiddenCategoriesKey(), JSON.stringify(hiddenCategories)); }
   catch(e){ console.error('Gagal menyimpan status hapus kategori', e); }
 }
 async function hideDefaultCategory(ci){
@@ -1901,7 +1965,7 @@ async function restoreHiddenCategories(){
 
 rebuildTaskIndex();
 
-let currentData = { status: {}, notes: {}, shift: "Shift 1", pic: "Harris" };
+let currentData = { status: {}, notes: {}, shift: "Shift 1", pic: defaultPicForRole(harianRole) };
 let saveTimer = null;
 let loadRequestSeq = 0; // guard: cegah response fetch tanggal lama menimpa tampilan tanggal baru
 
@@ -1923,7 +1987,7 @@ function shiftSlug(label){
   return 'nonshift';
 }
 function shiftLabelFromSlug(slug){ return SHIFT_LABEL_BY_SLUG[slug] || slug; }
-function keyFor(dateStr, shiftLabel){ return `checklist:${dateStr}:${shiftSlug(shiftLabel)}`; }
+function keyFor(dateStr, shiftLabel){ return `checklist:${dateStr}:${shiftSlug(shiftLabel)}${roleSuffix()}`; }
 
 function computeDayStats(data){
   const counts = {}; STATUS_OPTIONS.forEach(s => counts[s] = 0);
@@ -3725,20 +3789,20 @@ async function loadForDate(dateStr, shiftLabel){
   const mySeq = ++loadRequestSeq;
   // Langsung kosongkan tampilan dulu (jangan biarkan checklist tanggal/shift lama masih terlihat
   // selagi menunggu fetch tanggal+shift baru selesai) supaya tidak kelihatan seperti "history kebawa".
-  currentData = { status:{}, notes:{}, shift: shift, pic: currentData.pic || "Harris" };
+  currentData = { status:{}, notes:{}, shift: shift, pic: currentData.pic || defaultPicForRole(harianRole) };
   refreshStatusButtons(); refreshNotes(); refreshSummary();
   document.getElementById('saveStatus').textContent = 'Memuat data...';
   document.getElementById('saveStatus').classList.remove('saved','error');
   try{
     const res = await store.get(keyFor(dateStr, shift));
     if(mySeq !== loadRequestSeq) return; // ada request tanggal/shift lain yang lebih baru, abaikan hasil ini
-    currentData = (res && res.value) ? JSON.parse(res.value) : { status:{}, notes:{}, shift:shift, pic:"Harris" };
+    currentData = (res && res.value) ? JSON.parse(res.value) : { status:{}, notes:{}, shift:shift, pic:defaultPicForRole(harianRole) };
   }catch(e){
     if(mySeq !== loadRequestSeq) return;
-    currentData = { status:{}, notes:{}, shift:shift, pic:"Harris" };
+    currentData = { status:{}, notes:{}, shift:shift, pic:defaultPicForRole(harianRole) };
   }
   document.getElementById('shiftInput').value = currentData.shift || shift;
-  document.getElementById('picInput').value = currentData.pic || "Harris";
+  document.getElementById('picInput').value = currentData.pic || defaultPicForRole(harianRole);
   refreshStatusButtons(); refreshNotes(); refreshSummary();
   document.getElementById('saveStatus').textContent = 'Data dimuat';
   document.getElementById('saveStatus').classList.remove('saved','error');
@@ -3751,10 +3815,17 @@ async function loadHistory(){
       list.innerHTML = '<span style="font-size:11px;color:#999;">Belum ada riwayat tersimpan.</span>';
       return;
     }
+    // Filter key sesuai role aktif: key role 'mfs' selalu berakhiran '_mfs', key role 'dfe'
+    // TIDAK berakhiran '_mfs' (termasuk key lama sebelum fitur role ada — tetap DFE by default).
+    const roleKeys = res.keys.filter(k => harianRole === 'mfs' ? k.endsWith('_mfs') : !k.endsWith('_mfs'));
+    if(roleKeys.length === 0){
+      list.innerHTML = '<span style="font-size:11px;color:#999;">Belum ada riwayat tersimpan.</span>';
+      return;
+    }
     // Kelompokkan key per tanggal (satu tanggal bisa punya beberapa key shift sekaligus).
     const byDate = {};
-    res.keys.forEach(k => {
-      const rest = k.replace('checklist:','');
+    roleKeys.forEach(k => {
+      const rest = k.replace('checklist:','').replace(/_mfs$/,'');
       const parts = rest.split(':');
       const d = parts[0];
       const sk = parts[1] || 'legacy';
@@ -3803,6 +3874,27 @@ document.getElementById('saveBtn').onclick = async () => {
     showToast('✗ Gagal menyimpan checklist', 'error');
   }
 };
+/* ---------------- CHECKLIST HARIAN: GANTI ROLE (Digitech Field Engineer / Monitoring Field Support) ---------------- */
+async function switchHarianRole(role){
+  if(role === harianRole) return;
+  harianRole = role;
+  STRUCTURE = role === 'mfs' ? STRUCTURE_MFS : STRUCTURE_DFE;
+  document.querySelectorAll('.harian-role-tab').forEach(t => t.classList.toggle('active', t.dataset.role === role));
+  renderHarianControlOptions();
+  await loadStructureLabels();
+  await loadCustomTasks();
+  await loadHiddenState();
+  await loadCustomCategories();
+  await loadHiddenCategories();
+  rebuildTaskIndex();
+  buildUI();
+  await loadForDate(document.getElementById('dateInput').value || todayStr(), document.getElementById('shiftInput').value);
+  loadHistory();
+}
+document.querySelectorAll('.harian-role-tab').forEach(t => {
+  t.onclick = () => switchHarianRole(t.dataset.role);
+});
+
 document.getElementById('dateInput').onchange = (e) => loadForDate(e.target.value, document.getElementById('shiftInput').value);
 // PENTING: ganti Shift TIDAK boleh langsung menimpa (scheduleSave) data shift lain di tanggal yang
 // sama. Ganti shift = muat ulang data checklist milik shift tsb (bisa kosong kalau belum pernah diisi).
@@ -5668,11 +5760,15 @@ wimaMicWidget.onclick = () => {
   else{ wimaStartListening(); }
 };
 
-/* Nyala otomatis begitu app dibuka, sesuai permintaan Harris supaya WIMA
-   selalu siap dipanggil tanpa perlu klik manual tiap kali buka halaman.
-   Browser tetap butuh 1x izin mikrofon dari user di kunjungan pertama. */
-wimaStartListening();
+/* ================= WIMA DINONAKTIFKAN SEMENTARA (permintaan Harris) =================
+   Mic tidak lagi auto-start dan widget-nya disembunyikan lewat CSS (.wima-mic-widget{display:none;}).
+   Semua fungsi WIMA (wake word, HUD, ringkasan suara) masih utuh di file ini —
+   untuk mengaktifkan kembali: hapus baris "display:none" di CSS .wima-mic-widget
+   dan un-comment baris wimaStartListening() di bawah ini.
+// wimaStartListening();
+*/
 </script>
+
   <div class="wima-hud-overlay" id="wimaHudOverlay">
     <div class="wima-hud-bracket tl"></div>
     <div class="wima-hud-bracket tr"></div>
