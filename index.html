@@ -159,6 +159,32 @@
   .wima-voice-toast{position:absolute;top:52px;right:0;max-width:280px;background:var(--navy);color:#fff;font-size:12px;line-height:1.5;padding:10px 14px;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.18);opacity:0;transform:translateY(-6px);pointer-events:none;transition:opacity .2s ease,transform .2s ease;z-index:40;}
   .wima-voice-toast.show{opacity:1;transform:translateY(0);}
   .wima-mic-widget{position:relative;}
+  .wima-hud-overlay{position:fixed;inset:0;background:rgba(2,10,9,.82);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;z-index:900;opacity:0;pointer-events:none;transition:opacity .35s ease;}
+  .wima-hud-overlay.show{opacity:1;pointer-events:auto;}
+  .wima-hud-bracket{position:absolute;width:26px;height:26px;border-color:#5DCAA5;opacity:.8;}
+  .wima-hud-bracket.tl{top:28px;left:28px;border-top:2px solid;border-left:2px solid;}
+  .wima-hud-bracket.tr{top:28px;right:28px;border-top:2px solid;border-right:2px solid;}
+  .wima-hud-bracket.bl{bottom:28px;left:28px;border-bottom:2px solid;border-left:2px solid;}
+  .wima-hud-bracket.br{bottom:28px;right:28px;border-bottom:2px solid;border-right:2px solid;}
+  .wima-hud-caption{color:#5DCAA5;font-size:11px;letter-spacing:2px;text-transform:uppercase;font-family:var(--font-mono,monospace);opacity:.75;}
+  .wima-hud-ring{width:320px;height:320px;position:relative;}
+  .wima-hud-ring svg{width:100%;height:100%;filter:drop-shadow(0 0 10px rgba(29,158,117,.55));}
+  .wima-hud-ring .ring-outer{animation:wima-spin 14s linear infinite;}
+  .wima-hud-ring .ring-mid{animation:wima-spin-rev 9s linear infinite;}
+  .wima-hud-overlay.speaking .ring-outer{animation-duration:4s;}
+  .wima-hud-overlay.speaking .ring-mid{animation-duration:2.5s;}
+  .wima-hud-overlay.speaking .wima-hud-core{animation:wima-pulse-fast 1s ease-in-out infinite;}
+  .wima-hud-overlay.listening .wima-hud-core{animation:wima-pulse 2s ease-in-out infinite;}
+  .wima-hud-node{transition:stroke .3s ease;}
+  .wima-hud-node.warn{stroke:#D85A30 !important;}
+  @keyframes wima-spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+  @keyframes wima-spin-rev{from{transform:rotate(360deg);}to{transform:rotate(0deg);}}
+  @keyframes wima-pulse{0%,100%{opacity:.85;}50%{opacity:1;transform:scale(1.03);}}
+  @keyframes wima-pulse-fast{0%,100%{opacity:.85;}50%{opacity:1;transform:scale(1.08);}}
+  .wima-hud-status{color:#9FE1CB;font-size:13px;letter-spacing:2px;text-transform:uppercase;font-family:var(--font-mono,monospace);opacity:.85;}
+  .wima-hud-wave{display:flex;align-items:flex-end;justify-content:center;gap:4px;height:36px;}
+  .wima-hud-wave span{width:4px;background:#5DCAA5;border-radius:2px;transition:height .08s ease;height:6px;}
+  .wima-hud-ticker{color:#5DCAA5;font-size:10px;letter-spacing:1.5px;font-family:var(--font-mono,monospace);opacity:.8;min-height:14px;}
   /* Modal detail status rekap (klik card ringkasan) */
   .rekap-status-list{display:flex;flex-direction:column;gap:8px;max-height:52vh;overflow-y:auto;}
   .rekap-status-item{background:var(--zebra);border-left:4px solid var(--accent);border-radius:8px;padding:8px 10px;cursor:pointer;transition:background .12s;}
@@ -5344,9 +5370,95 @@ const wimaVoiceToast = document.getElementById('wimaVoiceToast');
 const WIMA_TOAST_MS = 6000;
 const WIMA_AWAIT_COMMAND_MS = 12000;
 
+const wimaHudOverlay = document.getElementById('wimaHudOverlay');
+const wimaHudStatus = document.getElementById('wimaHudStatus');
+const wimaHudTicker = document.getElementById('wimaHudTicker');
+const wimaHudWaveBars = document.querySelectorAll('#wimaHudWave span');
+
+const WIMA_TICKER_LISTENING = ['> awaiting your command', '> voice channel open', '> systems nominal'];
+const WIMA_TICKER_SPEAKING = ['> analyzing voice output', '> transmitting response', '> audio stream active'];
+let wimaTickerTimer = null;
+function wimaStartTicker(phrases){
+  clearInterval(wimaTickerTimer);
+  let i = 0;
+  wimaHudTicker.textContent = phrases[0];
+  wimaTickerTimer = setInterval(() => { i = (i + 1) % phrases.length; wimaHudTicker.textContent = phrases[i]; }, 2200);
+}
+function wimaStopTicker(){ clearInterval(wimaTickerTimer); }
+
+async function wimaRefreshHudPanels(){
+  try{
+    const d = await wimaGatherOverviewData();
+    document.getElementById('hudStock').textContent = d.assets.length;
+    document.getElementById('hudPob').textContent = d.pobTotal;
+    document.getElementById('hudTask').textContent = d.taskActive;
+    document.getElementById('hudOpenpoint').textContent = d.opActive;
+    document.getElementById('hudRoster').textContent = d.rosterOnDuty.length || 0;
+    document.getElementById('hudInspection').textContent = d.inspectionActive + '/' + d.inspectionTotal;
+    document.querySelectorAll('.wima-hud-node').forEach(n => n.classList.remove('warn'));
+    const nodes = document.querySelectorAll('.wima-hud-node');
+    if(d.stockOut > 0) nodes[0].classList.add('warn');
+    if(!d.pob.musterSafe) nodes[1].classList.add('warn');
+    if(d.taskOverdue > 0) nodes[2].classList.add('warn');
+    if(d.opKritis > 0) nodes[3].classList.add('warn');
+  }catch(e){ console.error('WIMA gagal memuat panel HUD', e); }
+}
+
+let wimaAudioCtx = null, wimaAnalyser = null, wimaAudioData = null, wimaWaveRaf = null;
+async function wimaEnsureAudioAnalyser(){
+  if(wimaAnalyser) return true;
+  try{
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    wimaAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const source = wimaAudioCtx.createMediaStreamSource(stream);
+    wimaAnalyser = wimaAudioCtx.createAnalyser();
+    wimaAnalyser.fftSize = 64;
+    wimaAudioData = new Uint8Array(wimaAnalyser.frequencyBinCount);
+    source.connect(wimaAnalyser);
+    return true;
+  }catch(e){ console.warn('WIMA: mic analyser tidak tersedia, waveform pakai animasi statis', e); return false; }
+}
+function wimaWaveLoop(){
+  if(wimaAnalyser){
+    wimaAnalyser.getByteFrequencyData(wimaAudioData);
+    const step = Math.floor(wimaAudioData.length / wimaHudWaveBars.length);
+    wimaHudWaveBars.forEach((bar, i) => {
+      const v = wimaAudioData[i * step] || 0;
+      bar.style.height = Math.max(6, (v / 255) * 34) + 'px';
+    });
+  }
+  wimaWaveRaf = requestAnimationFrame(wimaWaveLoop);
+}
+async function wimaStartWave(){
+  await wimaEnsureAudioAnalyser();
+  cancelAnimationFrame(wimaWaveRaf);
+  wimaWaveLoop();
+}
+function wimaStopWave(){
+  cancelAnimationFrame(wimaWaveRaf);
+  wimaHudWaveBars.forEach(bar => { bar.style.height = '6px'; });
+}
+
 function wimaSetOrb(state){
   wimaMicOrb.className = 'sync-orb ' + state;
+  if(state === 'speaking'){
+    wimaHudOverlay.className = 'wima-hud-overlay show speaking';
+    wimaHudStatus.textContent = 'speaking';
+    wimaStartTicker(WIMA_TICKER_SPEAKING);
+    wimaStartWave();
+  }else if(state === 'listening' && wimaHudAwake){
+    wimaHudOverlay.className = 'wima-hud-overlay show listening';
+    wimaHudStatus.textContent = 'awaiting command';
+    wimaRefreshHudPanels();
+    wimaStartTicker(WIMA_TICKER_LISTENING);
+    wimaStartWave();
+  }else{
+    wimaHudOverlay.className = 'wima-hud-overlay';
+    wimaStopTicker();
+    wimaStopWave();
+  }
 }
+let wimaHudAwake = false;
 function wimaShowToast(text){
   wimaVoiceToast.textContent = text;
   wimaVoiceToast.classList.add('show');
@@ -5438,11 +5550,18 @@ let wimaAwaitTimer = null;
 
 function wimaEnterAwaitingCommand(){
   wimaAwaitingCommand = true;
+  wimaHudAwake = true;
+  wimaSetOrb('listening');
   clearTimeout(wimaAwaitTimer);
-  wimaAwaitTimer = setTimeout(() => { wimaAwaitingCommand = false; }, WIMA_AWAIT_COMMAND_MS);
+  wimaAwaitTimer = setTimeout(() => {
+    wimaAwaitingCommand = false;
+    wimaHudAwake = false;
+    wimaSetOrb(wimaListening ? 'listening' : 'idle');
+  }, WIMA_AWAIT_COMMAND_MS);
 }
 
 async function wimaHandleWake(){
+  wimaHudAwake = true;
   wimaShowToast('WIMA heard the wake call — standing by for your command.');
   await wimaSpeak(wimaGreeting());
   wimaEnterAwaitingCommand();
@@ -5459,6 +5578,8 @@ async function wimaHandleSummaryCommand(){
     console.error('WIMA failed to build the spoken summary', e);
     await wimaSpeak('My apologies, sir. I ran into an issue compiling the summary just now.');
   }
+  wimaHudAwake = false;
+  wimaSetOrb(wimaListening ? 'listening' : 'idle');
 }
 
 function wimaIsWakePhrase(transcript){
@@ -5536,6 +5657,7 @@ function wimaStopListening(){
   wimaListening = false;
   clearTimeout(wimaAwaitTimer);
   wimaAwaitingCommand = false;
+  wimaHudAwake = false;
   if(wimaRecognition){ try{ wimaRecognition.stop(); }catch(e){} }
   wimaSetOrb('idle');
   wimaMicWidget.title = 'WIMA mic is off — click to activate';
@@ -5551,5 +5673,51 @@ wimaMicWidget.onclick = () => {
    Browser tetap butuh 1x izin mikrofon dari user di kunjungan pertama. */
 wimaStartListening();
 </script>
+  <div class="wima-hud-overlay" id="wimaHudOverlay">
+    <div class="wima-hud-bracket tl"></div>
+    <div class="wima-hud-bracket tr"></div>
+    <div class="wima-hud-bracket bl"></div>
+    <div class="wima-hud-bracket br"></div>
+    <div class="wima-hud-caption">System status — live feed</div>
+    <div class="wima-hud-ring">
+      <svg viewBox="0 0 320 320">
+        <circle class="ring-outer" cx="160" cy="160" r="145" fill="none" stroke="#0F6E56" stroke-width="1" stroke-dasharray="2 6" opacity="0.5"/>
+        <circle class="ring-mid" cx="160" cy="160" r="118" fill="none" stroke="#1D9E75" stroke-width="1.5" stroke-dasharray="8 5" opacity="0.6"/>
+        <circle class="wima-hud-core" cx="160" cy="160" r="58" fill="#04342C" stroke="#1D9E75" stroke-width="1.5"/>
+        <text x="160" y="165" text-anchor="middle" font-family="var(--font-mono)" font-size="13" letter-spacing="2" fill="#9FE1CB">W.I.M.A</text>
+
+        <g font-family="var(--font-mono)" font-size="9" fill="#9FE1CB">
+          <circle class="wima-hud-node" cx="160" cy="27" r="27" fill="#04342C" stroke="#5DCAA5" stroke-width="1"/>
+          <text x="160" y="24" text-anchor="middle">STOCK</text>
+          <text id="hudStock" x="160" y="35" text-anchor="middle" font-size="11" fill="#5DCAA5">--</text>
+
+          <circle class="wima-hud-node" cx="270" cy="97" r="27" fill="#04342C" stroke="#5DCAA5" stroke-width="1"/>
+          <text x="270" y="94" text-anchor="middle">POB</text>
+          <text id="hudPob" x="270" y="105" text-anchor="middle" font-size="11" fill="#5DCAA5">--</text>
+
+          <circle class="wima-hud-node" cx="270" cy="223" r="27" fill="#04342C" stroke="#5DCAA5" stroke-width="1"/>
+          <text x="270" y="220" text-anchor="middle">TASK</text>
+          <text id="hudTask" x="270" y="231" text-anchor="middle" font-size="11" fill="#5DCAA5">--</text>
+
+          <circle class="wima-hud-node" cx="160" cy="293" r="27" fill="#04342C" stroke="#5DCAA5" stroke-width="1"/>
+          <text x="160" y="290" text-anchor="middle">OPEN PT</text>
+          <text id="hudOpenpoint" x="160" y="301" text-anchor="middle" font-size="11" fill="#5DCAA5">--</text>
+
+          <circle class="wima-hud-node" cx="50" cy="223" r="27" fill="#04342C" stroke="#5DCAA5" stroke-width="1"/>
+          <text x="50" y="220" text-anchor="middle">ROSTER</text>
+          <text id="hudRoster" x="50" y="231" text-anchor="middle" font-size="11" fill="#5DCAA5">--</text>
+
+          <circle class="wima-hud-node" cx="50" cy="97" r="27" fill="#04342C" stroke="#5DCAA5" stroke-width="1"/>
+          <text x="50" y="94" text-anchor="middle">INSPECT</text>
+          <text id="hudInspection" x="50" y="105" text-anchor="middle" font-size="11" fill="#5DCAA5">--</text>
+        </g>
+      </svg>
+    </div>
+    <div class="wima-hud-wave" id="wimaHudWave">
+      <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+    </div>
+    <div class="wima-hud-status" id="wimaHudStatus">listening</div>
+    <div class="wima-hud-ticker" id="wimaHudTicker">&gt; standing by</div>
+  </div>
 </body>
 </html>
