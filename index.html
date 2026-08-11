@@ -35,6 +35,8 @@
     --grey-fg:#5B6B70;
     --gold-bg:#FAEFDA;
     --gold-fg:#DE9A34;
+    --purple-bg:#EFE9F7;
+    --purple-fg:#6C4FA0;
     --black-bg:#0F1B2C;
     --black-fg:#fff;
     --radius:10px;
@@ -697,16 +699,29 @@
           <span style="font-size:10.5px;color:#889;" id="apSyncInfo">Belum pernah sync dari Google Sheet.</span>
           <button type="button" class="btn btn-ghost" id="apSyncBtn" style="font-size:11.5px;padding:6px 12px;">🔄 Sync dari Sheet</button>
         </div>
-        <table style="width:100%;border-collapse:collapse;font-size:12.5px;">
-          <thead><tr style="text-align:left;color:#667;font-size:11px;font-weight:600;">
-            <th style="padding:6px 4px;">Nama Barang</th><th>Severity</th><th>Stok Baru</th><th>Rusak/Aus/Dummy</th><th>Jenis</th><th>Status</th><th style="text-align:right;">Aksi</th>
+        <div style="overflow-x:auto;border:1px solid #d8dfe6;border-radius:8px;">
+        <table style="width:100%;border-collapse:collapse;font-size:12px;min-width:900px;">
+          <thead><tr style="text-align:left;background:#2f5b4a;color:#fff;">
+            <th style="padding:8px 6px;font-weight:600;">No</th>
+            <th style="padding:8px 6px;font-weight:600;">Description</th>
+            <th style="padding:8px 6px;font-weight:600;">Category</th>
+            <th style="padding:8px 6px;font-weight:600;">Source</th>
+            <th style="padding:8px 6px;font-weight:600;">New Stock Spare</th>
+            <th style="padding:8px 6px;font-weight:600;">Ex / Second</th>
+            <th style="padding:8px 6px;font-weight:600;">Unit</th>
+            <th style="padding:8px 6px;font-weight:600;">Broken</th>
+            <th style="padding:8px 6px;font-weight:600;">Jenis</th>
+            <th style="padding:8px 6px;font-weight:600;">Desc</th>
+            <th style="padding:8px 6px;font-weight:600;text-align:right;">Aksi</th>
           </tr></thead>
           <tbody id="apBody"></tbody>
         </table>
-        <div class="add-task-wrap" style="padding:10px 0 0;"><button class="add-task-btn" id="apAddBtn">+ Tambah kategori part</button></div>
+        </div>
+        <div class="add-task-wrap" style="padding:10px 0 0;"><button class="add-task-btn" id="apAddBtn">+ Tambah item part</button></div>
       </div>
     </div>
   </div>
+
 
   <div class="modal-overlay" id="stockModalOverlay">
     <div class="modal-box" style="max-width:480px;">
@@ -3081,6 +3096,24 @@ async function dsoSave(key, val){
 function apNormalizeName(s){
   return String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
 }
+const STOCK_HEADER_ALIASES = {
+  description: ['description','nama barang','nama'],
+  category: ['category','category severity','severity'],
+  source: ['source'],
+  newStock: ['new stock spare','sisa stok baru','stok baru','new stock'],
+  exSecond: ['ex / second','ex/second','ex second','ex-second'],
+  unit: ['unit','satuan'],
+  broken: ['broken','stok rusak/aus/dummy','rusak'],
+  jenis: ['jenis'],
+  desc: ['desc','deskripsi','keterangan']
+};
+function apMatchHeader(headerText){
+  const norm = String(headerText||'').toLowerCase().trim();
+  for(const field in STOCK_HEADER_ALIASES){
+    if(STOCK_HEADER_ALIASES[field].includes(norm)) return field;
+  }
+  return null;
+}
 async function fetchStockSheetData(){
   await loadGoogleChartsOnce();
   const url = `https://docs.google.com/spreadsheets/d/${STOCK_SHEET_ID}/gviz/tq?sheet=${encodeURIComponent(STOCK_SHEET_NAME)}`;
@@ -3103,19 +3136,33 @@ async function fetchStockSheetData(){
         }
         const dt = response.getDataTable();
         const numRows = dt.getNumberOfRows();
+        const numCols = dt.getNumberOfColumns();
+        const colField = [];
+        for(let c=0;c<numCols;c++){
+          colField.push(apMatchHeader(dt.getColumnLabel(c)));
+        }
+        let headerRowIdx = -1;
+        if(colField.every(f => f===null)){
+          for(let r=0;r<Math.min(numRows,5);r++){
+            const test = [];
+            for(let c=0;c<numCols;c++) test.push(apMatchHeader(dt.getFormattedValue(r,c)));
+            if(test.some(f => f==='description')){ headerRowIdx = r; colField.splice(0, colField.length, ...test); break; }
+          }
+        }
         const rows = [];
-        for(let r=0;r<numRows;r++){
-          const nama = (dt.getFormattedValue(r,1)||'').trim();
-          if(!nama) continue;
-          rows.push({
-            nama,
-            severity: (dt.getFormattedValue(r,2)||'').trim(),
-            source: (dt.getFormattedValue(r,3)||'').trim(),
-            stokBaru: Number(dt.getFormattedValue(r,4))||0,
-            satuan: (dt.getFormattedValue(r,5)||'').trim(),
-            stokRusak: Number(dt.getFormattedValue(r,6))||0,
-            jenis: (dt.getFormattedValue(r,7)||'').trim()
-          });
+        for(let r=headerRowIdx+1;r<numRows;r++){
+          const rec = {};
+          for(let c=0;c<numCols;c++){
+            const field = colField[c];
+            if(!field) continue;
+            const val = dt.getFormattedValue(r,c);
+            rec[field] = val ? val.trim() : '';
+          }
+          if(!rec.description) continue;
+          rec.newStock = Number(rec.newStock)||0;
+          rec.exSecond = Number(rec.exSecond)||0;
+          rec.broken = Number(rec.broken)||0;
+          rows.push(rec);
         }
         resolve(rows);
       });
@@ -3127,31 +3174,51 @@ async function fetchStockSheetData(){
     }
   });
 }
-/* Menggabungkan data dari Sheet ke daftar asset yang sudah ada di localStorage/backend:
-   - item yang namanya cocok (dicocokkan longgar, tanpa spasi/simbol) -> field ringkasan
-     (severity, source, satuan, jenis, real, dummy) di-refresh dari Sheet, TAPI riwayat
-     pergantian & data serial number yang sudah dicatat manual TETAP DIPERTAHANKAN.
-   - item baru di Sheet yang belum ada di daftar -> ditambahkan sebagai kategori baru
-     (status default 'grey' / Belum diatur, riwayat & serial kosong, bisa dilengkapi manual). */
+/* Migrasi struktur lama (cat/real/dummy/status/label) ke struktur baru
+   (description/category/source/newStock/exSecond/unit/broken/jenis/desc)
+   supaya data lama tidak hilang saat pertama kali membuka tampilan baru ini.
+   Riwayat pergantian & serial number (replacements/serial) TETAP dipertahankan apa adanya. */
+function apMigrateAsset(a){
+  if(a.description !== undefined) return a;
+  return {
+    description: a.cat || '',
+    category: '',
+    source: '',
+    newStock: a.real || 0,
+    exSecond: 0,
+    unit: 'Pcs',
+    broken: a.dummy || 0,
+    jenis: a.jenis || '',
+    desc: '',
+    replacements: a.replacements || [],
+    serial: a.serial || []
+  };
+}
+function apMigrateAll(assets){
+  return assets.map(apMigrateAsset);
+}
 function apMergeSheetData(existingAssets, sheetRows){
-  const merged = existingAssets.map(a => ({...a}));
+  const merged = apMigrateAll(existingAssets).map(a => ({...a}));
   const indexByName = new Map();
-  merged.forEach((a,i) => indexByName.set(apNormalizeName(a.cat), i));
+  merged.forEach((a,i) => indexByName.set(apNormalizeName(a.description), i));
   sheetRows.forEach(row => {
-    const key = apNormalizeName(row.nama);
+    const key = apNormalizeName(row.description);
     if(indexByName.has(key)){
       const i = indexByName.get(key);
-      merged[i].real = row.stokBaru;
-      merged[i].dummy = row.stokRusak;
-      merged[i].severity = row.severity;
-      merged[i].source = row.source;
-      merged[i].satuan = row.satuan;
-      merged[i].jenis = row.jenis;
+      merged[i].category = row.category || merged[i].category;
+      merged[i].source = row.source || merged[i].source;
+      merged[i].newStock = row.newStock;
+      merged[i].exSecond = row.exSecond;
+      merged[i].unit = row.unit || merged[i].unit;
+      merged[i].broken = row.broken;
+      merged[i].jenis = row.jenis || merged[i].jenis;
+      merged[i].desc = row.desc || merged[i].desc;
     }else{
       merged.push({
-        cat: row.nama, real: row.stokBaru, dummy: row.stokRusak,
-        severity: row.severity, source: row.source, satuan: row.satuan, jenis: row.jenis,
-        status: 'grey', label: 'Belum diatur', replacements: [], serial: []
+        description: row.description, category: row.category, source: row.source,
+        newStock: row.newStock, exSecond: row.exSecond, unit: row.unit,
+        broken: row.broken, jenis: row.jenis, desc: row.desc,
+        replacements: [], serial: []
       });
       indexByName.set(key, merged.length-1);
     }
@@ -3455,7 +3522,7 @@ async function wimaGatherOverviewData(){
   await loadTaskList();
   await loadOpenPoint();
 
-  const stockOut = assets.filter(a => a.status === 'red').length;
+  const stockOut = apMigrateAll(assets).filter(a => (Number(a.newStock)||0) + (Number(a.exSecond)||0) === 0).length;
   const pobTotal = Number(pob.employees||0) + Number(pob.contractors||0);
 
   const inspectionActive = followUpItems.filter(it => it.status === 'Open' || it.status === 'Onprogress').length;
@@ -3534,7 +3601,7 @@ const chipCycleDso = ['green','yellow','blue','red','grey','gold'];
 
 function openStockModal(assets, idx){
   const item = assets[idx];
-  document.getElementById('stockModalTitle').textContent = item.cat;
+  document.getElementById('stockModalTitle').textContent = item.description;
   const riwayatEl = document.getElementById('stockSubRiwayat');
   const serialEl = document.getElementById('stockSubSerial');
   if(!item.replacements || !item.replacements.length){
@@ -3578,76 +3645,82 @@ document.querySelectorAll('.stock-subtab').forEach(btn => {
 document.getElementById('stockModalCloseBtn').onclick = () => document.getElementById('stockModalOverlay').classList.remove('active');
 document.getElementById('stockModalOverlay').onclick = (e) => { if(e.target.id === 'stockModalOverlay') e.currentTarget.classList.remove('active'); };
 
+const AP_CATEGORY_CYCLE = ['Low','Medium','Critical'];
+const AP_SOURCE_CYCLE = ['Impor','Local'];
+const AP_JENIS_CYCLE = ['Bekas','Rusak','Aus','Dummy'];
+const AP_CATEGORY_COLOR = { Low:'blue', Medium:'green', Critical:'red' };
+const AP_SOURCE_COLOR = { Impor:'blue', Local:'purple' };
+const AP_JENIS_COLOR = { Bekas:'gold', Rusak:'red', Aus:'yellow', Dummy:'grey' };
+function apBadge(val, colorMap, cls){
+  if(!val) return `<span class="${cls}" data-empty="1" style="cursor:pointer;color:#aab;font-size:11px;">— pilih</span>`;
+  const c = colorMap[val] || 'grey';
+  return `<span class="${cls}" style="cursor:pointer;padding:2px 10px;border-radius:999px;font-size:11px;font-weight:bold;display:inline-block;background:var(--${c}-bg);color:var(--${c}-fg);">${val}</span>`;
+}
 async function renderAssetPlant(autoSync){
-  const assets = await dsoLoad(DSO_ASSETS_KEY, dsoDefaults().assets);
+  let assets = await dsoLoad(DSO_ASSETS_KEY, dsoDefaults().assets);
+  assets = apMigrateAll(assets);
   const body = document.getElementById('apBody');
-  const sevBadge = (sev) => {
-    if(!sev) return '<span style="color:#aab;">-</span>';
-    const key = sev.toLowerCase();
-    const map = { critical:'red', high:'red', medium:'yellow', low:'blue' };
-    const c = map[key] || 'grey';
-    return `<span style="padding:2px 8px;border-radius:999px;font-size:10px;font-weight:bold;background:var(--${c}-bg);color:var(--${c}-fg);">${sev}</span>`;
-  };
   body.innerHTML = '';
   assets.forEach((a,i)=>{
     const tr = document.createElement('tr');
+    tr.style.background = i%2 ? '#f7f9f8' : '#fff';
     tr.innerHTML = `
-      <td style="padding:6px 4px;cursor:pointer;color:var(--navy);font-weight:bold;" class="ap-open" data-idx="${i}">${a.cat}</td>
-      <td style="padding:6px 4px;">${sevBadge(a.severity)}</td>
-      <td contenteditable="true" style="padding:6px 4px;">${a.real}</td>
-      <td contenteditable="true" style="padding:6px 4px;">${a.dummy}</td>
-      <td style="padding:6px 4px;">${a.jenis || '<span style="color:#aab;">-</span>'}</td>
-      <td style="padding:6px 4px;"><span style="padding:3px 10px;border-radius:999px;font-size:10.5px;font-weight:bold;cursor:pointer;background:var(--${a.status}-bg);color:var(--${a.status}-fg);" data-idx="${i}" class="ap-chip">${a.label}</span></td>
-      <td style="padding:6px 4px;text-align:right;">
-        <button data-idx="${i}" class="wim-icon-btn edit ap-edit" title="Edit nama"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4Z"/></svg></button>
+      <td style="padding:6px;color:#889;">${i+1}</td>
+      <td contenteditable="true" class="ap-f" data-field="description" style="padding:6px;font-weight:bold;color:var(--navy);cursor:text;">${a.description}</td>
+      <td style="padding:6px;">${apBadge(a.category, AP_CATEGORY_COLOR, 'ap-category')}</td>
+      <td style="padding:6px;">${apBadge(a.source, AP_SOURCE_COLOR, 'ap-source')}</td>
+      <td contenteditable="true" class="ap-f" data-field="newStock" style="padding:6px;">${a.newStock}</td>
+      <td contenteditable="true" class="ap-f" data-field="exSecond" style="padding:6px;">${a.exSecond||''}</td>
+      <td contenteditable="true" class="ap-f" data-field="unit" style="padding:6px;">${a.unit||''}</td>
+      <td contenteditable="true" class="ap-f" data-field="broken" style="padding:6px;">${a.broken}</td>
+      <td style="padding:6px;">${apBadge(a.jenis, AP_JENIS_COLOR, 'ap-jenis')}</td>
+      <td contenteditable="true" class="ap-f" data-field="desc" style="padding:6px;color:#556;">${a.desc||''}</td>
+      <td style="padding:6px;text-align:right;white-space:nowrap;">
+        <button data-idx="${i}" class="wim-icon-btn ap-hist" title="Riwayat & serial number"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></button>
         <button data-idx="${i}" class="wim-icon-btn danger ap-del" title="Hapus"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>
       </td>`;
     body.appendChild(tr);
-    tr.querySelectorAll('td[contenteditable]').forEach((td, ci) => {
+    tr.dataset.idx = i;
+    tr.querySelectorAll('.ap-f').forEach(td => {
       td.onblur = async () => {
-        const keys = ['real','dummy'];
-        const k = keys[ci];
-        assets[i][k] = Number(td.textContent)||0;
+        const field = td.dataset.field;
+        const isNum = field === 'newStock' || field === 'exSecond' || field === 'broken';
+        a[field] = isNum ? (Number(td.textContent)||0) : td.textContent.trim();
         await dsoSave(DSO_ASSETS_KEY, assets);
       };
     });
-  });
-  body.querySelectorAll('.ap-open').forEach(el => { el.onclick = () => openStockModal(assets, Number(el.dataset.idx)); });
-  body.querySelectorAll('.ap-chip').forEach(chip => {
-    chip.onclick = async () => {
-      const i = Number(chip.dataset.idx);
-      let ci = chipCycleDso.indexOf(assets[i].status);
-      ci = (ci+1) % chipCycleDso.length;
-      assets[i].status = chipCycleDso[ci];
+    tr.querySelector('.ap-category').onclick = async () => {
+      const ci = AP_CATEGORY_CYCLE.indexOf(a.category);
+      a.category = AP_CATEGORY_CYCLE[(ci+1) % AP_CATEGORY_CYCLE.length];
       await dsoSave(DSO_ASSETS_KEY, assets);
-      renderAssetPlant();
+      renderAssetPlant(false);
     };
-  });
-  body.querySelectorAll('.ap-edit').forEach(btn => {
-    btn.onclick = async () => {
-      const i = Number(btn.dataset.idx);
-      const namaBaru = prompt('Ubah nama kategori:', assets[i].cat);
-      if(namaBaru && namaBaru.trim()){
-        assets[i].cat = namaBaru.trim();
-        await dsoSave(DSO_ASSETS_KEY, assets);
-        renderAssetPlant();
-      }
-    };
-  });
-  body.querySelectorAll('.ap-del').forEach(btn => {
-    btn.onclick = async () => {
-      if(!confirm('Hapus kategori "' + assets[Number(btn.dataset.idx)].cat + '"?')) return;
-      assets.splice(Number(btn.dataset.idx),1);
+    tr.querySelector('.ap-source').onclick = async () => {
+      const ci = AP_SOURCE_CYCLE.indexOf(a.source);
+      a.source = AP_SOURCE_CYCLE[(ci+1) % AP_SOURCE_CYCLE.length];
       await dsoSave(DSO_ASSETS_KEY, assets);
-      renderAssetPlant();
+      renderAssetPlant(false);
+    };
+    tr.querySelector('.ap-jenis').onclick = async () => {
+      const ci = AP_JENIS_CYCLE.indexOf(a.jenis);
+      a.jenis = AP_JENIS_CYCLE[(ci+1) % AP_JENIS_CYCLE.length];
+      await dsoSave(DSO_ASSETS_KEY, assets);
+      renderAssetPlant(false);
+    };
+    tr.querySelector('.ap-hist').onclick = () => openStockModal(assets, i);
+    tr.querySelector('.ap-del').onclick = async () => {
+      if(!confirm('Hapus item "' + a.description + '"?')) return;
+      assets.splice(i,1);
+      await dsoSave(DSO_ASSETS_KEY, assets);
+      renderAssetPlant(false);
     };
   });
   document.getElementById('apAddBtn').onclick = async () => {
-    const nama = prompt('Nama kategori part baru:');
+    const nama = prompt('Nama/Description item part baru:');
     if(!nama || !nama.trim()) return;
-    assets.push({cat:nama.trim(), real:0, dummy:0, status:'grey', label:'Belum diatur', replacements:[], serial:[]});
+    assets.push({description:nama.trim(), category:'', source:'', newStock:0, exSecond:0, unit:'Pcs', broken:0, jenis:'', desc:'', replacements:[], serial:[]});
     await dsoSave(DSO_ASSETS_KEY, assets);
-    renderAssetPlant();
+    renderAssetPlant(false);
   };
   const syncBtn = document.getElementById('apSyncBtn');
   if(syncBtn && !syncBtn.dataset.bound){
