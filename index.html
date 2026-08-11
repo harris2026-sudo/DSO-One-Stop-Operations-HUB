@@ -921,6 +921,10 @@
   </div>
   <!-- ================= VIEW: REKAP ================= -->
   <div class="view" id="view-rekap">
+    <div class="harian-role-tabs" id="rekapRoleTabs">
+      <div class="harian-role-tab active" data-role="dfe">Digitech Field Engineer</div>
+      <div class="harian-role-tab" data-role="mfs">Monitoring Field Support</div>
+    </div>
     <div class="rekap-modeselect">
       <button data-mode="week" class="active">Mingguan</button>
       <button data-mode="month">Bulanan</button>
@@ -1999,12 +2003,22 @@ function computeDayStats(data){
 }
 
 const SHIFT_SLUG_ORDER = ['shift1','shift2','shift3','nonshift','legacy'];
-/* dateEntries: { shiftSlug: dataChecklist } — satu tanggal bisa berisi beberapa entri shift sekaligus */
+/* dateEntries: { shiftSlug: dataChecklist } — satu tanggal bisa berisi beberapa entri shift sekaligus.
+   PENTING: key checklist untuk role 'mfs' punya suffix '_mfs' (mis. 'shift1_mfs'), jadi di sini kita
+   cocokkan slug dasar + suffix role aktif supaya data role MFS ikut ketemu (sebelumnya slug 'shift1_mfs'
+   tidak pernah cocok dengan daftar SHIFT_SLUG_ORDER sehingga data MFS "hilang" dari Rekap). 'legacy' (key
+   lama sebelum fitur role ada, tanpa info shift) sengaja TIDAK diberi suffix -- otomatis hanya terhitung
+   di role 'dfe', karena memang key itu dibuat sebelum konsep role/MFS ada. */
 function dayShiftEntries(dateEntries){
   if(!dateEntries) return [];
-  return SHIFT_SLUG_ORDER.filter(sk => dateEntries[sk]).map(sk => ({
-    shiftKey: sk, label: shiftLabelFromSlug(sk), data: dateEntries[sk]
-  }));
+  const suffix = roleSuffix();
+  return SHIFT_SLUG_ORDER.filter(sk => {
+    const key = (suffix && sk !== 'legacy') ? sk + suffix : sk;
+    return dateEntries[key];
+  }).map(sk => {
+    const key = (suffix && sk !== 'legacy') ? sk + suffix : sk;
+    return { shiftKey: key, baseSlug: sk, label: shiftLabelFromSlug(sk), data: dateEntries[key] };
+  });
 }
 function computeDayAggregateStats(dateEntries){
   const counts = {}; STATUS_OPTIONS.forEach(s => counts[s] = 0);
@@ -3890,6 +3904,11 @@ async function switchHarianRole(role){
   buildUI();
   await loadForDate(document.getElementById('dateInput').value || todayStr(), document.getElementById('shiftInput').value);
   loadHistory();
+  // Menu Rekap (Mingguan/Bulanan/Tahunan) berbagi role yang sama dengan Checklist Harian --
+  // kalau Rekap sedang tampil, refresh juga supaya angka & daftar Follow up-nya ikut role baru.
+  if(document.getElementById('view-rekap').classList.contains('active')){
+    renderRekap();
+  }
 }
 document.querySelectorAll('.harian-role-tab').forEach(t => {
   t.onclick = () => switchHarianRole(t.dataset.role);
@@ -4148,11 +4167,11 @@ function openRekapStatusModal(status){
     periodDates.forEach(d => {
       const dateEntries = allEntriesCache[d];
       if(!dateEntries) return;
-      dayShiftEntries(dateEntries).forEach(({shiftKey, label, data}) => {
+      dayShiftEntries(dateEntries).forEach(({baseSlug, label, data}) => {
         if(!data.status) return;
         taskIds.forEach(id => {
           if(data.status[id] === status){
-            items.push({ date: d, shiftKey, shiftLabel: label, task: taskTextMap[id] || id, note: (data.notes && data.notes[id]) || '' });
+            items.push({ date: d, shiftSlug: baseSlug, shiftLabel: label, task: taskTextMap[id] || id, note: (data.notes && data.notes[id]) || '' });
           }
         });
       });
@@ -4160,7 +4179,7 @@ function openRekapStatusModal(status){
     subEl.textContent = `${items.length} item dengan status "${status}" pada periode ini · klik untuk buka laporan harian`;
     listEl.innerHTML = items.length === 0
       ? '<div class="rekap-status-empty">Tidak ada item dengan status ini pada periode ini.</div>'
-      : items.map(it => `<div class="rekap-status-item" data-date="${it.date}" data-shift="${it.shiftKey}">
+      : items.map(it => `<div class="rekap-status-item" data-date="${it.date}" data-shift="${it.shiftSlug}">
           <div class="rsi-date">${dayLabel(it.date)} · ${it.date} · ${it.shiftLabel}</div>
           <div class="rsi-task">${it.task}</div>
           ${it.note ? `<div class="rsi-note">📝 ${it.note}</div>` : ''}
@@ -4218,9 +4237,9 @@ function formatDateID(dateStr){
 function shiftBadgesHtml(dateEntries){
   if(!dateEntries) return '';
   const shortLabel = { shift1:'S1', shift2:'S2', shift3:'S3', nonshift:'NS', legacy:'Lama' };
-  return dayShiftEntries(dateEntries).map(({shiftKey, label}) => {
-    const cls = shiftKey === 'legacy' ? 'day-shift-badge legacy' : 'day-shift-badge';
-    return `<span class="${cls}" title="${label}">${shortLabel[shiftKey] || shiftKey}</span>`;
+  return dayShiftEntries(dateEntries).map(({baseSlug, label}) => {
+    const cls = baseSlug === 'legacy' ? 'day-shift-badge legacy' : 'day-shift-badge';
+    return `<span class="${cls}" title="${label}">${shortLabel[baseSlug] || baseSlug}</span>`;
   }).join('');
 }
 
@@ -4240,9 +4259,9 @@ function renderDayRow(d, dateLabel){
       <div class="d-shiftbadges">${shiftBadgesHtml(dateEntries)}</div>
     </div>`;
   const detailHtml = `<div class="day-shift-detail" id="shiftdetail-${d}" style="display:none;">
-      ${shifts.map(({shiftKey, label, data}) => {
+      ${shifts.map(({baseSlug, label, data}) => {
         const { pct: spct } = computeDayStats(data);
-        return `<div class="day-shift-row" data-date="${d}" data-shift="${shiftKey}">
+        return `<div class="day-shift-row" data-date="${d}" data-shift="${baseSlug}">
           <span class="dsr-label">${label}${data.pic ? ' · ' + data.pic : ''}</span>
           <span class="dsr-pct">${spct}%</span>
         </div>`;
