@@ -153,6 +153,45 @@
   .summary .card .ov-sub{font-size:11px;color:var(--text-muted);margin-top:4px;font-weight:600;}
   .summary .card .ov-sub.warn{color:var(--red-fg);}
   .summary .card .ov-sub.ok{color:var(--green-fg);}
+
+  /* ---- Ping Pulse monitoring widget ---- */
+  .pp-widget{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:22px;}
+  .pp-widget-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 20px;
+    background:linear-gradient(120deg,var(--navy) 0%,var(--navy-light) 60%,var(--accent) 130%);color:#fff;flex-wrap:wrap;}
+  .pp-widget-title{display:flex;align-items:center;gap:12px;}
+  .pp-logo{width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+  .pp-title-main{font-family:var(--font-display);font-weight:600;font-size:14.5px;}
+  .pp-title-sub{font-size:11.5px;color:#C7D6E2;margin-top:2px;}
+  .pp-widget-actions{display:flex;align-items:center;gap:8px;}
+  .pp-conn-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:999px;font-size:11.5px;font-weight:600;cursor:pointer;
+    background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.28);color:#fff;transition:background .15s,transform .1s;white-space:nowrap;}
+  .pp-conn-badge:hover{background:rgba(255,255,255,.22);}
+  .pp-conn-badge:active{transform:scale(.96);}
+  .pp-conn-badge i{font-size:14px;}
+  .pp-conn-badge.pp-conn-ok{background:rgba(45,178,133,.25);border-color:#5FE3B4;}
+  .pp-conn-badge.pp-conn-ok i{color:#8FF0CB;animation:none;}
+  .pp-conn-badge.pp-conn-bad{background:rgba(207,81,56,.28);border-color:#F0977E;}
+  .pp-conn-badge.pp-conn-bad i{color:#FFC1AE;}
+  .pp-conn-badge.pp-conn-checking i{animation:pp-spin 1s linear infinite;}
+  @keyframes pp-spin{to{transform:rotate(360deg);}}
+  .pp-updated{font-size:10.5px;color:#C7D6E2;font-family:var(--font-mono);white-space:nowrap;}
+  .pp-widget-actions .btn{padding:7px 11px;font-size:12px;background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.25);color:#fff;}
+  .pp-widget-actions .btn:hover{background:rgba(255,255,255,.2);border-color:#fff;color:#fff;}
+  .pp-banner{padding:9px 20px;font-size:12px;font-weight:500;border-bottom:1px solid var(--border);}
+  .pp-banner-warn{background:var(--yellow-bg);color:var(--yellow-fg);}
+  .pp-banner-error{background:var(--red-bg);color:var(--red-fg);}
+  .pp-banner-ok{background:var(--green-bg);color:var(--green-fg);}
+  .pp-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:0;}
+  .pp-stat{display:flex;align-items:center;gap:12px;padding:16px 18px;border-right:1px solid var(--border);}
+  .pp-stat:last-child{border-right:none;}
+  .pp-stat-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+  .pp-stat-icon.pp-blue{background:var(--blue-bg);color:var(--blue-fg);}
+  .pp-stat-icon.pp-green{background:var(--green-bg);color:var(--green-fg);}
+  .pp-stat-icon.pp-red{background:var(--red-bg);color:var(--red-fg);}
+  .pp-stat-icon.pp-gold{background:var(--gold-bg);color:var(--gold-fg);}
+  .pp-stat-num{font-size:22px;font-weight:600;font-family:var(--font-mono);color:var(--text);line-height:1.1;}
+  .pp-stat-lab{font-size:11px;color:var(--text-secondary);margin-top:3px;}
+  @media(max-width:900px){.pp-stats{grid-template-columns:repeat(2,1fr);}.pp-stat{border-right:none;border-bottom:1px solid var(--border);}}
   .sync-orb.listening .ring{border-color:var(--accent);opacity:.65;}
   .sync-orb.listening .ring2{opacity:.4;}
   .sync-orb.listening .core{background:var(--accent);box-shadow:0 0 10px 2px var(--accent);animation:sync-core-blink 1.4s ease-in-out infinite;}
@@ -650,6 +689,41 @@
 
   <!-- ================= VIEW: OVERVIEW (DSO Hub) ================= -->
   <div class="view active" id="view-overview">
+
+    <!-- ==== Ping Pulse monitoring widget ==== -->
+    <div class="pp-widget" id="ppWidget">
+      <div class="pp-widget-head">
+        <div class="pp-widget-title">
+          <span class="pp-logo"><i class="ti ti-antenna-bars-5"></i></span>
+          <div>
+            <div class="pp-title-main">Ping Pulse — Network Monitoring</div>
+            <div class="pp-title-sub" id="ppStatusText">Memuat status...</div>
+          </div>
+        </div>
+        <div class="pp-widget-actions">
+          <span class="pp-conn-badge" id="ppConnBadge" title="Klik untuk coba sambungkan ulang">
+            <i class="ti ti-plug-connected" id="ppConnIcon"></i><span id="ppConnLabel">Memeriksa...</span>
+          </span>
+          <span class="pp-updated" id="ppUpdatedAt">--</span>
+          <button class="btn" id="ppRefreshBtn" title="Tarik data live dari PingPulse"><i class="ti ti-refresh"></i> Refresh</button>
+          <button class="btn" id="ppConfigBtn" title="Atur URL API PingPulse"><i class="ti ti-settings"></i></button>
+        </div>
+      </div>
+      <div class="pp-banner" id="ppBanner" style="display:none;"></div>
+      <div class="pp-stats">
+        <div class="pp-stat"><div class="pp-stat-icon pp-blue"><i class="ti ti-antenna-bars-5"></i></div>
+          <div><div class="pp-stat-num" id="ppTargets">--</div><div class="pp-stat-lab">Targets</div></div></div>
+        <div class="pp-stat"><div class="pp-stat-icon pp-blue"><i class="ti ti-search"></i></div>
+          <div><div class="pp-stat-num" id="ppActive">--</div><div class="pp-stat-lab">Active</div></div></div>
+        <div class="pp-stat"><div class="pp-stat-icon pp-green"><i class="ti ti-circle-check"></i></div>
+          <div><div class="pp-stat-num" id="ppUp">--</div><div class="pp-stat-lab">UP</div></div></div>
+        <div class="pp-stat"><div class="pp-stat-icon pp-red"><i class="ti ti-circle-x"></i></div>
+          <div><div class="pp-stat-num" id="ppDown">--</div><div class="pp-stat-lab">DOWN</div></div></div>
+        <div class="pp-stat"><div class="pp-stat-icon pp-gold"><i class="ti ti-clock"></i></div>
+          <div><div class="pp-stat-num" id="ppTimeout">--</div><div class="pp-stat-lab">TIMEOUT</div></div></div>
+      </div>
+    </div>
+
     <div class="summary" style="grid-template-columns:repeat(3,1fr);">
       <div class="card clickable" id="ovCardStock">
         <div class="num" id="ovStockNum">--</div>
@@ -3380,6 +3454,8 @@ async function wimaGatherOverviewData(){
 }
 
 async function renderOverview(){
+  await renderPingPulse();
+  ppFetchLive(true); // coba sambungkan otomatis & diam-diam tiap Overview dibuka; badge akan update sendiri
   const d = await wimaGatherOverviewData();
 
   document.getElementById('ovUptimeLabel').textContent = d.avail.uptime + '%';
@@ -3415,6 +3491,150 @@ async function renderOverview(){
   document.getElementById('ovCardTasklist').onclick = () => document.querySelector('.tab[data-view="tasklist"]').click();
   document.getElementById('ovCardOpenpoint').onclick = () => document.querySelector('.tab[data-view="openpoint"]').click();
 }
+
+/* ================= PING PULSE MONITORING WIDGET ================= */
+const DSO_PINGPULSE_KEY = 'dso:pingpulse-config';
+
+function ppDefaultConfig(){
+  return {
+    apiUrl: 'http://172.20.22.85:4001',   // dugaan awal dari Network tab (influx-targets, active?...) — sesuaikan setelah dicek
+    webUrl: 'http://172.20.22.85:3000',
+    username: 'admin',
+    password: 'admin123',
+    // data contoh (fallback) — diambil dari screenshot dashboard PingPulse Harris
+    lastData: { targets: 188, active: 182, up: 175, down: 3, timeout: 4 },
+    lastSync: null,
+    lastStatus: 'demo' // demo | ok | error
+  };
+}
+
+function ppSetConnBadge(state){
+  // state: 'checking' | 'ok' | 'bad'
+  const badge = document.getElementById('ppConnBadge');
+  const icon = document.getElementById('ppConnIcon');
+  const label = document.getElementById('ppConnLabel');
+  badge.classList.remove('pp-conn-ok','pp-conn-bad','pp-conn-checking');
+  if(state === 'ok'){
+    badge.classList.add('pp-conn-ok');
+    icon.className = 'ti ti-plug-connected';
+    label.textContent = 'Connected';
+  }else if(state === 'bad'){
+    badge.classList.add('pp-conn-bad');
+    icon.className = 'ti ti-plug-connected-x';
+    label.textContent = 'Not Connected';
+  }else{
+    badge.classList.add('pp-conn-checking');
+    icon.className = 'ti ti-loader-2';
+    label.textContent = 'Memeriksa...';
+  }
+}
+
+async function ppLoadConfig(){
+  return await dsoLoad(DSO_PINGPULSE_KEY, ppDefaultConfig());
+}
+async function ppSaveConfig(cfg){
+  await dsoSave(DSO_PINGPULSE_KEY, cfg);
+}
+
+function ppSetBanner(kind, text){
+  const banner = document.getElementById('ppBanner');
+  if(!kind){ banner.style.display = 'none'; return; }
+  banner.style.display = 'block';
+  banner.className = 'pp-banner pp-banner-' + kind;
+  banner.textContent = text;
+}
+
+async function renderPingPulse(){
+  const cfg = await ppLoadConfig();
+  const d = cfg.lastData || ppDefaultConfig().lastData;
+  document.getElementById('ppTargets').textContent = d.targets;
+  document.getElementById('ppActive').textContent = d.active;
+  document.getElementById('ppUp').textContent = d.up;
+  document.getElementById('ppDown').textContent = d.down;
+  document.getElementById('ppTimeout').textContent = d.timeout;
+  document.getElementById('ppUpdatedAt').textContent = cfg.lastSync
+    ? 'Update: ' + new Date(cfg.lastSync).toLocaleTimeString('id-ID')
+    : 'Belum sinkron';
+
+  if(cfg.lastStatus === 'ok'){
+    document.getElementById('ppStatusText').textContent = 'Terhubung — data live dari ' + cfg.apiUrl;
+    ppSetBanner(null);
+    ppSetConnBadge('ok');
+  }else if(cfg.lastStatus === 'error'){
+    document.getElementById('ppStatusText').textContent = 'Tidak terhubung ke jaringan BIB — menampilkan data terakhir/contoh';
+    ppSetBanner('error', '❌ Not Connected — perangkat ini belum berada di jaringan BIB (' + cfg.apiUrl + '). Sambungkan ke jaringan BIB lalu klik badge/Refresh untuk mencoba lagi.');
+    ppSetConnBadge('bad');
+  }else{
+    document.getElementById('ppStatusText').textContent = 'Mode demo — mencoba menyambungkan otomatis...';
+    ppSetBanner('warn', '⚠️ Ini masih tampilan contoh (mockup) mengikuti screenshot Anda. Sistem akan mencoba menyambungkan otomatis saat perangkat berada di jaringan BIB.');
+    ppSetConnBadge('checking');
+  }
+}
+
+async function ppFetchLive(silent){
+  const cfg = await ppLoadConfig();
+  document.getElementById('ppStatusText').textContent = 'Menghubungkan ke jaringan BIB...';
+  ppSetConnBadge('checking');
+  if(!silent) ppSetBanner('warn', 'Sedang mencoba menarik data dari ' + cfg.apiUrl + ' ...');
+  try{
+    // NOTE: endpoint pasti (dan apakah perlu login/token) belum diketahui —
+    // ini percobaan ke endpoint yang terlihat di Network tab screenshot Anda ("influx-targets").
+    // Kalau gagal/response beda, klik ⚙️ untuk ganti URL, atau kirim contoh response JSON-nya
+    // supaya mapping field di bawah ini bisa disesuaikan.
+    const res = await fetch(cfg.apiUrl.replace(/\/$/,'') + '/influx-targets', {
+      method: 'GET',
+      headers: { 'Accept': 'application/json' }
+    });
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const json = await res.json();
+
+    let up=0, down=0, timeout=0, active=0, total=0;
+    if(Array.isArray(json)){
+      total = json.length;
+      json.forEach(t => {
+        const s = String(t.status || t.state || '').toLowerCase();
+        const isActive = t.active !== false && t.enabled !== false;
+        if(isActive) active++;
+        if(s.includes('up')) up++;
+        else if(s.includes('down')) down++;
+        else if(s.includes('timeout')) timeout++;
+      });
+    }else if(json && typeof json === 'object'){
+      total   = json.targets ?? json.total ?? 0;
+      active  = json.active ?? 0;
+      up      = json.up ?? 0;
+      down    = json.down ?? 0;
+      timeout = json.timeout ?? 0;
+    }
+
+    cfg.lastData = { targets: total, active, up, down, timeout };
+    cfg.lastSync = Date.now();
+    cfg.lastStatus = 'ok';
+    await ppSaveConfig(cfg);
+    await renderPingPulse();
+    if(!silent) showToast('Data PingPulse berhasil diperbarui.', 'success');
+  }catch(e){
+    cfg.lastStatus = 'error';
+    await ppSaveConfig(cfg);
+    await renderPingPulse();
+    if(!silent) showToast('Belum terhubung ke jaringan BIB / PingPulse.', 'error');
+    console.warn('PingPulse fetch gagal:', e);
+  }
+}
+
+document.getElementById('ppRefreshBtn').onclick = () => ppFetchLive(false);
+document.getElementById('ppConnBadge').onclick = () => ppFetchLive(false);
+document.getElementById('ppConfigBtn').onclick = async () => {
+  const cfg = await ppLoadConfig();
+  const newUrl = prompt('URL API PingPulse (base URL, contoh: http://172.20.22.85:4001):', cfg.apiUrl);
+  if(newUrl === null) return;
+  if(newUrl.trim()){
+    cfg.apiUrl = newUrl.trim().replace(/\/$/,'');
+    await ppSaveConfig(cfg);
+    showToast('URL API PingPulse diperbarui. Klik Refresh untuk mencoba.', 'success');
+    await renderPingPulse();
+  }
+};
 
 const chipCycleDso = ['green','yellow','blue','red','grey','gold'];
 
