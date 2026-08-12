@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Checklist Harian — Monitoring Field Support</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F4F6F4;
+    --surface:#FFFFFF;
+    --surface-alt:#EEF1EE;
+    --border:#DCE1DD;
+    --text:#152029;
+    --text-secondary:#5B6B70;
+    --text-muted:#8C9A9E;
+    --navy:#0F1B2C;
+    --navy-light:#1B2F47;
+    --accent:#2E6690;
+    --hilite:#E6EEF4;
+    --zebra:#EEF1EE;
+    --green:#1C8A6E;
+    --green-bg:#E0F2EC;
+    --green-fg:#1C8A6E;
+    --yellow-bg:#FAEFDA;
+    --yellow-fg:#DE9A34;
+    --blue-bg:#E6EEF4;
+    --blue-fg:#2E6690;
+    --red-bg:#FAE6E1;
+    --red-fg:#CF5138;
+    --grey-bg:#EEF1EE;
+    --grey-fg:#5B6B70;
+    --radius:10px;
+    --font-display:'Space Grotesk',sans-serif;
+    --font-body:'Inter',Arial,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:var(--font-body);background:var(--bg);color:var(--text);padding-bottom:40px;}
+  .wrap{max-width:640px;margin:0 auto;padding:0 14px;}
+
+  header.top{background:var(--navy);color:#DDE6EC;padding:16px 14px 18px;}
+  header.top .inner{max-width:640px;margin:0 auto;}
+  .badge-role{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.08);border-radius:8px;padding:6px 10px;font-size:12px;font-weight:600;font-family:var(--font-display);}
+  .badge-role .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);}
+  h1{font-family:var(--font-display);font-size:16px;font-weight:600;margin:10px 0 2px;}
+  .sub{font-size:11.5px;color:#9FB0C2;}
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;margin-top:14px;}
+  .field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .field{display:flex;flex-direction:column;gap:4px;margin-bottom:10px;}
+  .field label{font-size:11px;color:var(--text-secondary);font-weight:600;}
+  .field select,.field input[type="date"]{border:1px solid var(--border);border-radius:8px;padding:8px 9px;font-size:13px;font-family:var(--font-body);background:#fff;color:var(--text);}
+
+  .progress-wrap{display:flex;justify-content:space-between;font-size:11.5px;color:var(--text-secondary);margin-bottom:5px;}
+  .progress-bar{height:8px;background:var(--zebra);border-radius:6px;overflow:hidden;}
+  .progress-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--navy));border-radius:6px;transition:width .5s ease;}
+
+  #saveStatus{font-size:11.5px;color:var(--text-muted);margin-top:8px;text-align:center;}
+  #saveStatus.saved{color:var(--green-fg);}
+  #saveStatus.error{color:var(--red-fg);}
+
+  .category{background:var(--surface);border-radius:12px;margin-top:12px;overflow:hidden;border:1px solid var(--border);}
+  .category-head{background:var(--accent);color:#fff;padding:10px 14px;font-size:13px;font-weight:600;font-family:var(--font-display);}
+  .task-row{padding:11px 14px;border-bottom:1px solid var(--border);}
+  .task-row:last-child{border-bottom:none;}
+  .task-text{font-size:12.5px;color:var(--text);margin-bottom:8px;line-height:1.4;}
+  .status-btns{display:flex;gap:6px;flex-wrap:wrap;}
+  .status-btn{border:1.5px solid #d3dbe6;background:#fff;color:#556;border-radius:14px;padding:5px 11px;font-size:11px;font-weight:bold;cursor:pointer;font-family:Arial;transition:transform .15s ease;}
+  .status-btn:active{transform:scale(.95);}
+  .status-btn[data-status="Checked"].active{background:var(--green-bg);border-color:var(--green);color:var(--green);}
+  .status-btn[data-status="Follow up"].active{background:var(--yellow-bg);border-color:#d8b400;color:var(--yellow-fg);}
+  .status-btn[data-status="Continue"].active{background:var(--blue-bg);border-color:#6a9bcf;color:var(--blue-fg);}
+  .status-btn[data-status="Not yet"].active{background:var(--red-bg);border-color:#d9848c;color:var(--red-fg);}
+  .status-btn[data-status="Information"].active{background:var(--grey-bg);border-color:#aaa;color:var(--grey-fg);}
+  .status-btn[data-status="n/a"].active{background:var(--grey-bg);border-color:#aaa;color:var(--grey-fg);}
+  .note-input{width:100%;margin-top:7px;border:1px solid var(--border);border-radius:7px;padding:6px 8px;font-size:12px;font-family:var(--font-body);resize:vertical;min-height:32px;}
+
+  .save-btn{position:sticky;bottom:12px;width:100%;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:13px;font-size:14px;font-weight:600;font-family:var(--font-display);margin-top:16px;cursor:pointer;box-shadow:0 6px 18px rgba(15,27,44,.25);}
+  .save-btn:active{transform:scale(.98);}
+
+  .sync-note{display:flex;align-items:flex-start;gap:7px;margin-top:12px;font-size:11px;color:var(--text-muted);line-height:1.5;padding:0 4px;}
+
+  .conn-banner{display:none;background:var(--red-bg);color:var(--red-fg);border:1px solid #e3b3a8;border-radius:9px;padding:9px 11px;font-size:11.5px;margin-top:12px;}
+  .conn-banner.show{display:block;}
+
+  .hist-title{font-size:12.5px;font-weight:600;color:var(--navy);font-family:var(--font-display);margin:18px 4px 8px;}
+  .hist-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;cursor:pointer;transition:border-color .15s ease;}
+  .hist-item:hover{border-color:var(--accent);}
+  .hist-item .h-left .h-date{font-size:12px;color:var(--text);font-weight:600;}
+  .hist-item .h-left .h-pic{font-size:10.5px;color:var(--text-secondary);margin-top:2px;}
+  .hist-item .h-right{text-align:right;}
+  .hist-item .h-pct{font-size:12px;font-weight:600;}
+  .hist-item .h-pct.full{color:var(--green-fg);}
+  .hist-item .h-pct.mid{color:var(--yellow-fg);}
+  .hist-item .h-pct.low{color:var(--red-fg);}
+  .hist-item .h-lab{font-size:9.5px;color:var(--text-muted);}
+  .hist-empty{font-size:11.5px;color:var(--text-muted);text-align:center;padding:10px;}
+  .hist-hint{font-size:10px;color:var(--text-muted);text-align:center;margin-top:2px;}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="inner">
+    <span class="badge-role"><span class="dot"></span> Monitoring Field Support</span>
+    <h1>Checklist Harian</h1>
+    <div class="sub">Halaman input khusus tim MFS — tersinkron otomatis ke DSO One-Stop Ops HUB</div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="card">
+    <div class="field-row">
+      <div class="field">
+        <label for="dateInput">Tanggal</label>
+        <input type="date" id="dateInput">
+      </div>
+      <div class="field">
+        <label for="shiftInput">Shift</label>
+        <select id="shiftInput"></select>
+      </div>
+    </div>
+    <div class="field">
+      <label for="picInput">PIC</label>
+      <select id="picInput"></select>
+    </div>
+
+    <div class="progress-wrap">
+      <span>Progress hari ini</span>
+      <span id="progressPct">0%</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    <div id="saveStatus">Memuat data...</div>
+    <div class="conn-banner" id="connBanner"></div>
+  </div>
+
+  <div id="categories"></div>
+
+  <div class="hist-title">Riwayat 7 hari terakhir</div>
+  <div id="historyList"><div class="hist-empty">Memuat riwayat...</div></div>
+  <div class="hist-hint">Tap kartu untuk memuat ulang checklist tanggal/shift tsb ke form di atas</div>
+
+  <button class="save-btn" id="saveBtn">💾 Simpan Checklist</button>
+
+  <div class="sync-note">
+    <span>🔄</span>
+    <span>Data tersimpan langsung ke backend yang sama dengan DSO One-Stop Ops HUB dan otomatis muncul di Rekap Mingguan / Bulanan / Tahunan (role Monitoring Field Support). Tidak perlu sinkronisasi tambahan.</span>
+  </div>
+
+</div>
+
+<script>
+/* ================= KONFIGURASI — HARUS SAMA PERSIS DENGAN HUB UTAMA ================= */
+const APPS_SCRIPT_URL = "https://dcva-backend.meharrisborneo.workers.dev";
+const STATUS_OPTIONS = ["Checked","Follow up","Continue","Not yet","Information","n/a"];
+
+/* Struktur checklist MFS — identik dengan STRUCTURE_MFS di HUB utama.
+   Kalau kategori/task di HUB utama diubah, salin ulang blok ini supaya taskId (c{ci}_t{ti}) tetap cocok. */
+const STRUCTURE_MFS = [
+  { name: "Informasi & Sosialisasi WAG", tasks: [
+    "Menginformasikan WAG saat ada Housekeeping / P2H (Pembersihan Area Sensor High Speed dan Low Speed)",
+  ]},
+  { name: "Barikade", tasks: [
+    "Setting Barikade",
+    "Pengecekan kondisi barikade",
+  ]},
+  { name: "Pemantauan & Sosialisasi Radio", tasks: [
+    "Pemantauan di luar office berikut sosialisasi via radio untuk stabil saat melintas baik kiri, lurus, kanan saat melintas",
+    "Reminder checker agar aktif sosialisasi melalui radio untuk kecepatan saat melintas 7-10 km/jam",
+  ]},
+  { name: "Standby WIM", tasks: [
+    "Accept transaksi pending di aplikasi WIM",
+  ]},
+  { name: "Log Book WIM", tasks: [
+    "Pelaporan jalan entrance masuk dan keluar yang rusak, P2H dan aktivitas lainnya ke dalam log book WIM",
+  ]},
+  { name: "Kebersihan Area WIM", tasks: [
+    "Pembersihan area paritan & pavement WIM",
+  ]},
+  { name: "Monitoring WIM & UCan", tasks: [
+    "Monitoring WIM dan UCan. Ketika transaksi tidak update segera menginformasikan ke WAG",
+  ]},
+];
+const PIC_OPTIONS = ["Ferdy", "Wahyu", "Muhammad Rizki Alamsyah"];
+const SHIFT_OPTIONS = ["Shift 1", "Shift 2"];
+const ROLE_SUFFIX = "_mfs"; // WAJIB sama dengan roleSuffix() saat harianRole === 'mfs' di HUB utama
+
+/* ================= BACKEND: sama persis dengan store.get/set di HUB utama (Cloudflare Worker) ================= */
+async function gsGet(key){
+  const res = await fetch(`${APPS_SCRIPT_URL}?action=get&key=${encodeURIComponent(key)}&_t=${Date.now()}`, { cache: 'no-store' });
+  if(!res.ok) throw new Error('HTTP ' + res.status);
+  const data = await res.json();
+  if(data.error === 'not_found') throw new Error('not found');
+  if(data.error) throw new Error(data.message || data.error);
+  return { key: data.key, value: data.value };
+}
+async function gsSet(key, value){
+  const url = `${APPS_SCRIPT_URL}?action=set&key=${encodeURIComponent(key)}&value=${encodeURIComponent(value)}&_t=${Date.now()}`;
+  const res = await fetch(url, { cache: 'no-store' });
+  if(!res.ok) throw new Error('HTTP ' + res.status);
+  const data = await res.json();
+  if(data.error) throw new Error(data.message || data.error);
+  return { key: data.key, value: data.value };
+}
+async function gsList(prefix){
+  const res = await fetch(`${APPS_SCRIPT_URL}?action=list&prefix=${encodeURIComponent(prefix)}&_t=${Date.now()}`, { cache: 'no-store' });
+  if(!res.ok) throw new Error('HTTP ' + res.status);
+  const data = await res.json();
+  if(data.error) throw new Error(data.message || data.error);
+  return { keys: data.keys || [] };
+}
+const store = { get: gsGet, set: gsSet, list: gsList };
+
+function showConnBanner(msg){
+  const el = document.getElementById('connBanner');
+  el.textContent = '⚠ Gagal terhubung ke server: ' + msg + ' — cek koneksi lalu coba simpan lagi. Data yang sudah tersimpan sebelumnya tidak hilang.';
+  el.classList.add('show');
+}
+function hideConnBanner(){ document.getElementById('connBanner').classList.remove('show'); }
+
+/* ================= STATE ================= */
+let taskIds = [];
+let taskTextMap = {};
+let currentData = { status:{}, notes:{}, shift:"Shift 1", pic:PIC_OPTIONS[0] };
+let saveTimer = null;
+let loadRequestSeq = 0;
+
+function rebuildTaskIndex(){
+  taskIds = []; taskTextMap = {};
+  STRUCTURE_MFS.forEach((cat, ci) => {
+    cat.tasks.forEach((t, ti) => {
+      const id = `c${ci}_t${ti}`;
+      taskIds.push(id);
+      taskTextMap[id] = t;
+    });
+  });
+}
+
+function todayStr(){
+  const d = new Date();
+  const tz = d.getTimezoneOffset() * 60000;
+  return new Date(d - tz).toISOString().slice(0,10);
+}
+function shiftSlug(label){
+  const s = (label||'').toLowerCase();
+  if(s.includes('1')) return 'shift1';
+  if(s.includes('2')) return 'shift2';
+  if(s.includes('3')) return 'shift3';
+  return 'nonshift';
+}
+/* Skema key IDENTIK dengan keyFor() di HUB utama: checklist:{tanggal}:{shiftSlug}_mfs */
+function keyFor(dateStr, shiftLabel){ return `checklist:${dateStr}:${shiftSlug(shiftLabel)}${ROLE_SUFFIX}`; }
+
+function computeDayStats(data){
+  const counts = {}; STATUS_OPTIONS.forEach(s => counts[s] = 0);
+  taskIds.forEach(id => { const s = data.status && data.status[id]; if(s) counts[s]++; });
+  const total = taskIds.length;
+  const applicable = total - counts["Information"] - counts["n/a"];
+  const pct = applicable > 0 ? Math.round((counts["Checked"] / applicable) * 100) : 0;
+  return { counts, total, pct };
+}
+
+/* ================= UI ================= */
+function buildUI(){
+  const container = document.getElementById('categories');
+  container.innerHTML = '';
+  STRUCTURE_MFS.forEach((cat, ci) => {
+    const catDiv = document.createElement('div');
+    catDiv.className = 'category';
+
+    const head = document.createElement('div');
+    head.className = 'category-head';
+    head.textContent = cat.name;
+    catDiv.appendChild(head);
+
+    cat.tasks.forEach((taskText, ti) => {
+      const id = `c${ci}_t${ti}`;
+      const row = document.createElement('div');
+      row.className = 'task-row';
+
+      const txt = document.createElement('div');
+      txt.className = 'task-text';
+      txt.textContent = taskText;
+      row.appendChild(txt);
+
+      const btnWrap = document.createElement('div');
+      btnWrap.className = 'status-btns';
+      STATUS_OPTIONS.forEach(status => {
+        const btn = document.createElement('button');
+        btn.className = 'status-btn';
+        btn.type = 'button';
+        btn.dataset.taskId = id;
+        btn.dataset.status = status;
+        btn.textContent = status;
+        btn.onclick = () => setStatus(id, status);
+        btnWrap.appendChild(btn);
+      });
+      row.appendChild(btnWrap);
+
+      const note = document.createElement('textarea');
+      note.className = 'note-input';
+      note.placeholder = 'Catatan (opsional)...';
+      note.dataset.taskId = id;
+      note.addEventListener('input', () => { currentData.notes[id] = note.value; scheduleSave(); });
+      row.appendChild(note);
+
+      catDiv.appendChild(row);
+    });
+
+    container.appendChild(catDiv);
+  });
+}
+
+function setStatus(id, status){
+  if(currentData.status[id] === status) delete currentData.status[id];
+  else currentData.status[id] = status;
+  refreshStatusButtons(); refreshSummary(); scheduleSave();
+}
+function refreshStatusButtons(){
+  document.querySelectorAll('.status-btn').forEach(btn => {
+    const id = btn.dataset.taskId;
+    btn.classList.toggle('active', currentData.status[id] === btn.dataset.status);
+  });
+}
+function refreshNotes(){
+  document.querySelectorAll('textarea[data-task-id]').forEach(ta => {
+    ta.value = currentData.notes[ta.dataset.taskId] || '';
+  });
+}
+function refreshSummary(){
+  const { pct } = computeDayStats(currentData);
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressPct').textContent = pct + '%';
+}
+
+function scheduleSave(){
+  const statusEl = document.getElementById('saveStatus');
+  statusEl.textContent = 'Menyimpan...';
+  statusEl.classList.remove('saved','error');
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveCurrent, 600);
+}
+async function saveCurrent(){
+  const dateStr = document.getElementById('dateInput').value || todayStr();
+  currentData.shift = document.getElementById('shiftInput').value;
+  currentData.pic = document.getElementById('picInput').value;
+  const statusEl = document.getElementById('saveStatus');
+  try{
+    await store.set(keyFor(dateStr, currentData.shift), JSON.stringify(currentData));
+    hideConnBanner();
+    statusEl.textContent = '✓ Tersimpan · ' + new Date().toLocaleTimeString('id-ID');
+    statusEl.classList.remove('error'); statusEl.classList.add('saved');
+    loadHistory();
+  }catch(e){
+    statusEl.textContent = 'Gagal menyimpan';
+    statusEl.classList.add('error'); statusEl.classList.remove('saved');
+    showConnBanner(e && e.message ? e.message : 'unknown error');
+  }
+}
+async function loadForDate(dateStr, shiftLabel){
+  const shift = shiftLabel || document.getElementById('shiftInput').value || SHIFT_OPTIONS[0];
+  const mySeq = ++loadRequestSeq;
+  currentData = { status:{}, notes:{}, shift: shift, pic: currentData.pic || PIC_OPTIONS[0] };
+  refreshStatusButtons(); refreshNotes(); refreshSummary();
+  document.getElementById('saveStatus').textContent = 'Memuat data...';
+  document.getElementById('saveStatus').classList.remove('saved','error');
+  try{
+    const res = await store.get(keyFor(dateStr, shift));
+    if(mySeq !== loadRequestSeq) return;
+    currentData = (res && res.value) ? JSON.parse(res.value) : { status:{}, notes:{}, shift:shift, pic:PIC_OPTIONS[0] };
+    hideConnBanner();
+  }catch(e){
+    if(mySeq !== loadRequestSeq) return;
+    currentData = { status:{}, notes:{}, shift:shift, pic:PIC_OPTIONS[0] };
+    if(e.message !== 'not found') showConnBanner(e.message || 'unknown error');
+  }
+  document.getElementById('shiftInput').value = currentData.shift || shift;
+  document.getElementById('picInput').value = currentData.pic || PIC_OPTIONS[0];
+  refreshStatusButtons(); refreshNotes(); refreshSummary();
+  const statusEl = document.getElementById('saveStatus');
+  if(!statusEl.classList.contains('error')){
+    statusEl.textContent = 'Data dimuat';
+    statusEl.classList.remove('saved','error');
+  }
+}
+
+/* ================= RIWAYAT 7 HARI TERAKHIR ================= */
+function pctClass(pct){ if(pct >= 90) return 'full'; if(pct >= 50) return 'mid'; return 'low'; }
+async function loadHistory(){
+  const listEl = document.getElementById('historyList');
+  try{
+    const res = await store.list('checklist:');
+    const keys = (res.keys || []).filter(k => k.endsWith(ROLE_SUFFIX));
+    const parsed = keys.map(k => {
+      const parts = k.split(':');
+      const dateStr = parts[1];
+      const slug = (parts[2] || '').replace(ROLE_SUFFIX, '');
+      return { key: k, dateStr, slug };
+    }).filter(p => p.dateStr).sort((a,b) => b.dateStr.localeCompare(a.dateStr) || b.slug.localeCompare(a.slug));
+
+    const recent = parsed.slice(0, 7);
+    if(recent.length === 0){
+      listEl.innerHTML = '<div class="hist-empty">Belum ada riwayat</div>';
+      return;
+    }
+    listEl.innerHTML = '<div class="hist-empty">Memuat riwayat...</div>';
+    const entries = await Promise.all(recent.map(async p => {
+      try{
+        const r = await store.get(p.key);
+        const data = r && r.value ? JSON.parse(r.value) : null;
+        return { ...p, data };
+      }catch(e){ return { ...p, data: null }; }
+    }));
+
+    listEl.innerHTML = '';
+    entries.forEach(e => {
+      if(!e.data) return;
+      const { pct } = computeDayStats(e.data);
+      const item = document.createElement('div');
+      item.className = 'hist-item';
+      const dLabel = new Date(e.dateStr + 'T00:00:00').toLocaleDateString('id-ID', { day:'2-digit', month:'short' });
+      item.innerHTML = `
+        <div class="h-left">
+          <div class="h-date">${dLabel} · ${e.data.shift || shiftLabelFromSlug(e.slug)}</div>
+          <div class="h-pic">${e.data.pic || ''}</div>
+        </div>
+        <div class="h-right">
+          <div class="h-pct ${pctClass(pct)}">${pct}%</div>
+          <div class="h-lab">${pct >= 90 ? 'selesai' : pct >= 50 ? 'sebagian' : 'perlu tindak lanjut'}</div>
+        </div>`;
+      item.onclick = () => {
+        document.getElementById('dateInput').value = e.dateStr;
+        document.getElementById('shiftInput').value = e.data.shift || shiftLabelFromSlug(e.slug);
+        loadForDate(e.dateStr, e.data.shift || shiftLabelFromSlug(e.slug));
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      };
+      listEl.appendChild(item);
+    });
+    if(listEl.children.length === 0){
+      listEl.innerHTML = '<div class="hist-empty">Belum ada riwayat</div>';
+    }
+  }catch(e){
+    listEl.innerHTML = '<div class="hist-empty">Gagal memuat riwayat</div>';
+  }
+}
+function shiftLabelFromSlug(slug){
+  if(slug === 'shift1') return 'Shift 1';
+  if(slug === 'shift2') return 'Shift 2';
+  if(slug === 'shift3') return 'Shift 3';
+  return 'Non Shift';
+}
+
+/* ================= INIT ================= */
+function init(){
+  rebuildTaskIndex();
+  buildUI();
+
+  const dateInput = document.getElementById('dateInput');
+  const shiftInput = document.getElementById('shiftInput');
+  const picInput = document.getElementById('picInput');
+
+  dateInput.value = todayStr();
+  shiftInput.innerHTML = SHIFT_OPTIONS.map(s => `<option>${s}</option>`).join('');
+  picInput.innerHTML = PIC_OPTIONS.map(p => `<option>${p}</option>`).join('');
+
+  dateInput.addEventListener('change', () => loadForDate(dateInput.value, shiftInput.value));
+  shiftInput.addEventListener('change', () => loadForDate(dateInput.value, shiftInput.value));
+  picInput.addEventListener('change', () => { currentData.pic = picInput.value; scheduleSave(); });
+
+  document.getElementById('saveBtn').addEventListener('click', saveCurrent);
+
+  loadForDate(dateInput.value, shiftInput.value);
+  loadHistory();
+}
+init();
+</script>
+</body>
+</html>
