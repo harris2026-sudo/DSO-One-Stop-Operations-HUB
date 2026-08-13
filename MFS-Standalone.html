@@ -192,6 +192,84 @@ const PIC_OPTIONS = ["Ferdy", "Wahyu", "Muhammad Rizki Alamsyah"];
 const SHIFT_OPTIONS = ["Shift 1", "Shift 2"];
 const ROLE_SUFFIX = "_mfs"; // WAJIB sama dengan roleSuffix() saat harianRole === 'mfs' di HUB utama
 
+/* ================= SINKRONISASI KATEGORI/CHECKLIST DENGAN HUB UTAMA =================
+   Kalau di HUB utama (menu Monitoring Field Support) ditambah kategori/checklist baru,
+   diedit labelnya, atau disembunyikan/dihapus, perubahan itu tersimpan di backend dengan
+   key di bawah ini. Halaman standalone ini HANYA MEMBACA (read-only) key-key tsb setiap kali
+   dibuka/refresh, lalu menggabungkannya ke STRUCTURE_MFS bawaan sebelum render form —
+   sehingga otomatis sinkron tanpa perlu upload ulang file HTML ini. */
+function customCategoriesKey(){ return 'app:customCategories' + ROLE_SUFFIX; }
+function customTasksKey(){ return 'app:customTasks' + ROLE_SUFFIX; }
+function hiddenCategoriesKey(){ return 'app:hiddenCategories' + ROLE_SUFFIX; }
+function hiddenTasksKey(){ return 'app:hiddenTasks' + ROLE_SUFFIX; }
+function structLabelsKey(){ return 'app:structureLabels' + ROLE_SUFFIX; }
+
+let customCategories = [];               // [{id, name}]
+let customTasks = {};                    // { [categoryKey]: [{text}, ...] }
+let hiddenCategories = {};               // { ci: true }
+let hiddenTasks = {};                    // { taskId: true }
+let structureLabels = { categories:{}, tasks:{} };
+
+async function loadCustomCategories(){
+  try{ const res = await store.get(customCategoriesKey()); customCategories = (res && res.value) ? JSON.parse(res.value) : []; }
+  catch(e){ customCategories = []; }
+}
+async function loadCustomTasks(){
+  try{ const res = await store.get(customTasksKey()); customTasks = (res && res.value) ? JSON.parse(res.value) : {}; }
+  catch(e){ customTasks = {}; }
+}
+async function loadHiddenCategories(){
+  try{ const res = await store.get(hiddenCategoriesKey()); hiddenCategories = (res && res.value) ? JSON.parse(res.value) : {}; }
+  catch(e){ hiddenCategories = {}; }
+}
+async function loadHiddenTasks(){
+  try{ const res = await store.get(hiddenTasksKey()); hiddenTasks = (res && res.value) ? JSON.parse(res.value) : {}; }
+  catch(e){ hiddenTasks = {}; }
+}
+async function loadStructureLabels(){
+  try{ const res = await store.get(structLabelsKey()); structureLabels = (res && res.value) ? JSON.parse(res.value) : { categories:{}, tasks:{} }; }
+  catch(e){ structureLabels = { categories:{}, tasks:{} }; }
+  if(!structureLabels.categories) structureLabels.categories = {};
+  if(!structureLabels.tasks) structureLabels.tasks = {};
+}
+async function loadSyncedStructureData(){
+  await Promise.all([
+    loadCustomCategories(), loadCustomTasks(), loadHiddenCategories(), loadHiddenTasks(), loadStructureLabels()
+  ]);
+}
+
+/* Gabungkan STRUCTURE_MFS bawaan + kategori/checklist custom dari HUB utama, dengan
+   kategori/checklist yang disembunyikan di HUB juga ikut disembunyikan di sini, dan
+   label yang sudah diedit di HUB ikut terpakai. Skema taskId (c{ci}_t{ti} / c{ci}_x{xi})
+   dibuat identik dengan HUB utama supaya data checklist yang tersimpan (per taskId) tetap
+   kompatibel dari kedua tampilan. */
+function getEffectiveStructure(){
+  const result = [];
+  STRUCTURE_MFS.forEach((cat, ci) => {
+    if(hiddenCategories[ci]) return;
+    const tasks = [];
+    cat.tasks.forEach((taskText, ti) => {
+      const id = `c${ci}_t${ti}`;
+      if(hiddenTasks[id]) return;
+      tasks.push({ id, text: structureLabels.tasks[id] || taskText });
+    });
+    (customTasks[ci] || []).forEach((t, xi) => {
+      const id = `c${ci}_x${xi}`;
+      tasks.push({ id, text: structureLabels.tasks[id] || t.text });
+    });
+    result.push({ key: ci, name: structureLabels.categories[ci] || cat.name, tasks });
+  });
+  customCategories.forEach(cat => {
+    const tasks = [];
+    (customTasks[cat.id] || []).forEach((t, xi) => {
+      const id = `c${cat.id}_x${xi}`;
+      tasks.push({ id, text: structureLabels.tasks[id] || t.text });
+    });
+    result.push({ key: cat.id, name: cat.name, tasks });
+  });
+  return result;
+}
+
 /* ================= BACKEND: sama persis dengan store.get/set di HUB utama (Cloudflare Worker) ================= */
 async function gsGet(key){
   const res = await fetch(`${APPS_SCRIPT_URL}?action=get&key=${encodeURIComponent(key)}&_t=${Date.now()}`, { cache: 'no-store' });
@@ -234,11 +312,10 @@ let loadRequestSeq = 0;
 
 function rebuildTaskIndex(){
   taskIds = []; taskTextMap = {};
-  STRUCTURE_MFS.forEach((cat, ci) => {
-    cat.tasks.forEach((t, ti) => {
-      const id = `c${ci}_t${ti}`;
-      taskIds.push(id);
-      taskTextMap[id] = t;
+  getEffectiveStructure().forEach(cat => {
+    cat.tasks.forEach(t => {
+      taskIds.push(t.id);
+      taskTextMap[t.id] = t.text;
     });
   });
 }
@@ -271,7 +348,7 @@ function computeDayStats(data){
 function buildUI(){
   const container = document.getElementById('categories');
   container.innerHTML = '';
-  STRUCTURE_MFS.forEach((cat, ci) => {
+  getEffectiveStructure().forEach(cat => {
     const catDiv = document.createElement('div');
     catDiv.className = 'category';
 
@@ -280,14 +357,14 @@ function buildUI(){
     head.textContent = cat.name;
     catDiv.appendChild(head);
 
-    cat.tasks.forEach((taskText, ti) => {
-      const id = `c${ci}_t${ti}`;
+    cat.tasks.forEach(t => {
+      const id = t.id;
       const row = document.createElement('div');
       row.className = 'task-row';
 
       const txt = document.createElement('div');
       txt.className = 'task-text';
-      txt.textContent = taskText;
+      txt.textContent = t.text;
       row.appendChild(txt);
 
       const btnWrap = document.createElement('div');
@@ -465,7 +542,8 @@ function shiftLabelFromSlug(slug){
 }
 
 /* ================= INIT ================= */
-function init(){
+async function init(){
+  await loadSyncedStructureData(); // ambil kategori/checklist custom, label, & item tersembunyi dari HUB utama
   rebuildTaskIndex();
   buildUI();
 
