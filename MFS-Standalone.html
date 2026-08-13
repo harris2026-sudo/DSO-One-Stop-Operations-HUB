@@ -109,7 +109,8 @@
   <div class="inner">
     <span class="badge-role"><span class="dot"></span> Monitoring Field Support</span>
     <h1>Checklist Harian</h1>
-    </div>
+    <div class="sub">Halaman input khusus tim MFS — tersinkron otomatis ke DSO One-Stop Ops HUB</div>
+  </div>
 </header>
 
 <div class="wrap">
@@ -135,7 +136,7 @@
       <span id="progressPct">0%</span>
     </div>
     <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
-    <div id="saveStatus">Memuat data...</div>
+    <div id="saveStatus"></div>
     <div class="conn-banner" id="connBanner"></div>
   </div>
 
@@ -143,11 +144,11 @@
 
   <div class="hist-title">Riwayat 7 hari terakhir</div>
   <div id="historyList"><div class="hist-empty">Memuat riwayat...</div></div>
-  <div class="hist-hint">Tap kartu untuk memuat ulang checklist tanggal/shift tsb ke form di atas</div>
+  <div class="hist-hint" style="display:none">Tap kartu untuk memuat ulang checklist tanggal/shift tsb ke form di atas</div>
 
-  <button class="save-btn" id="saveBtn" type="button">💾 Simpan </button>
+  <button class="save-btn" id="saveBtn" type="button">💾 Simpan Checklist</button>
 
-  <div class="sync-note">
+  <div class="sync-note" style="display:none">
     <span>🔄</span>
     <span>Data tersimpan langsung ke backend yang sama dengan DSO One-Stop Ops HUB dan otomatis muncul di Rekap Mingguan / Bulanan / Tahunan (role Monitoring Field Support). Tidak perlu sinkronisasi tambahan.</span>
   </div>
@@ -510,7 +511,7 @@ function initBlankForm(dateStr, shiftLabel){
   currentData = { status:{}, notes:{}, shift: shiftLabel, pic: PIC_OPTIONS[0] };
   refreshStatusButtons(); refreshNotes(); refreshSummary();
   const statusEl = document.getElementById('saveStatus');
-  statusEl.textContent = 'Form kosong · siap diisi';
+  statusEl.textContent = '';
   statusEl.classList.remove('saved','error');
   hideConnBanner();
 }
