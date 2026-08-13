@@ -510,7 +510,7 @@ function initBlankForm(dateStr, shiftLabel){
   currentData = { status:{}, notes:{}, shift: shiftLabel, pic: PIC_OPTIONS[0] };
   refreshStatusButtons(); refreshNotes(); refreshSummary();
   const statusEl = document.getElementById('saveStatus');
-  statusEl.textContent = 'Form kosong · siap diisi';
+  //statusEl.textContent = 'Form kosong · siap diisi';
   statusEl.classList.remove('saved','error');
   hideConnBanner();
 }
