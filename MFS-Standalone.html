@@ -41,9 +41,10 @@
 
   header.top{background:var(--navy);color:#DDE6EC;padding:16px 14px 18px;}
   header.top .inner{max-width:640px;margin:0 auto;}
-  .badge-role{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.08);border-radius:8px;padding:6px 10px;font-size:12px;font-weight:600;font-family:var(--font-display);}
+  .badge-role{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.08);border-radius:8px;padding:6px 10px;font-size:12px;font-weight:600;font-family:var(--font-display);margin:0 auto;}
+  header.top .inner{text-align:center;}
   .badge-role .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);}
-  h1{font-family:var(--font-display);font-size:16px;font-weight:600;margin:10px 0 2px;}
+  h1{font-family:var(--font-display);font-size:16px;font-weight:600;margin:10px 0 2px;text-align:center;}
   .sub{font-size:11.5px;color:#9FB0C2;}
 
   .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;margin-top:14px;}
@@ -109,6 +110,7 @@
   <div class="inner">
     <span class="badge-role"><span class="dot"></span> Monitoring Field Support</span>
     <h1>Checklist Harian</h1>
+    <div class="sub" style="display:none">Halaman input khusus tim MFS — tersinkron otomatis ke DSO One-Stop Ops HUB</div>
   </div>
 </header>
 
@@ -141,11 +143,11 @@
 
   <div id="categories"></div>
 
-  <div class="hist-title">Riwayat 7 hari terakhir</div>
-  <div id="historyList"><div class="hist-empty">Memuat riwayat...</div></div>
+  <div class="hist-title" style="display:none">Riwayat 7 hari terakhir</div>
+  <div id="historyList" style="display:none"><div class="hist-empty">Memuat riwayat...</div></div>
   <div class="hist-hint" style="display:none">Tap kartu untuk memuat ulang checklist tanggal/shift tsb ke form di atas</div>
 
-  <button class="save-btn" id="saveBtn" type="button">💾 Simpan </button>
+  <button class="save-btn" id="saveBtn" type="button">💾 Simpan</button>
 
   <div class="sync-note" style="display:none">
     <span>🔄</span>
