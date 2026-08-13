@@ -4033,6 +4033,21 @@ async function loadForDate(dateStr, shiftLabel){
   document.getElementById('saveStatus').textContent = 'Data dimuat';
   document.getElementById('saveStatus').classList.remove('saved','error');
 }
+/* Khusus menu Monitoring Field Support: form HARUS mulai kosong setiap kali dibuka
+   (baik saat pindah tab ke MFS maupun refresh halaman), TIDAK boleh otomatis fetch &
+   mengisi ulang checklist tersimpan sebelumnya. Data lama tetap aman di backend dan
+   tetap bisa dilihat/dimuat manual lewat kartu Riwayat, atau dengan mengganti
+   Tanggal/Shift secara manual (aksi eksplisit dari user, tetap pakai loadForDate). */
+function initBlankForm(dateStr, shiftLabel){
+  const shift = shiftLabel || document.getElementById('shiftInput').value || SHIFT_OPTIONS_BY_ROLE[harianRole][0];
+  ++loadRequestSeq; // batalkan request loadForDate lama (kalau ada) yang mungkin masih pending
+  currentData = { status:{}, notes:{}, shift: shift, pic: defaultPicForRole(harianRole) };
+  refreshStatusButtons(); refreshNotes(); refreshSummary();
+  document.getElementById('picInput').value = currentData.pic;
+  const statusEl = document.getElementById('saveStatus');
+  statusEl.textContent = 'Form kosong · siap diisi';
+  statusEl.classList.remove('saved','error');
+}
 async function loadHistory(){
   const list = document.getElementById('historyList');
   try{
@@ -4114,7 +4129,13 @@ async function switchHarianRole(role){
   await loadHiddenCategories();
   rebuildTaskIndex();
   buildUI();
-  await loadForDate(document.getElementById('dateInput').value || todayStr(), document.getElementById('shiftInput').value);
+  if(role === 'mfs'){
+    // Menu Monitoring Field Support: selalu mulai kosong saat tab ini dibuka, jangan
+    // auto-load checklist tersimpan sebelumnya (lihat catatan di initBlankForm()).
+    initBlankForm(document.getElementById('dateInput').value || todayStr(), document.getElementById('shiftInput').value);
+  } else {
+    await loadForDate(document.getElementById('dateInput').value || todayStr(), document.getElementById('shiftInput').value);
+  }
   loadHistory();
   // Menu Rekap (Mingguan/Bulanan/Tahunan) berbagi role yang sama dengan Checklist Harian --
   // kalau Rekap sedang tampil, refresh juga supaya angka & daftar Follow up-nya ikut role baru.
