@@ -701,7 +701,7 @@
         </div>
         <div style="overflow-x:auto;border:1px solid #d8dfe6;border-radius:8px;">
         <table style="width:100%;border-collapse:collapse;font-size:12px;min-width:900px;">
-          <thead><tr style="text-align:left;background:#2f5b4a;color:#fff;">
+          <thead><tr style="text-align:left;background:#0F1B2C;color:#fff;">
             <th style="padding:8px 6px;font-weight:600;">No</th>
             <th style="padding:8px 6px;font-weight:600;">Description</th>
             <th style="padding:8px 6px;font-weight:600;">Category</th>
@@ -755,6 +755,7 @@
     <div class="tab subtab" data-view="followup" data-label="Follow Up"><i class="ti ti-refresh"></i><span>Follow Up</span><span class="tab-badge" id="fuTabBadge" style="display:none;"></span></div>
     <div class="tab subtab" data-view="rekap" data-label="Rekap"><i class="ti ti-chart-bar"></i><span>Rekap</span></div>
     <div class="tab subtab" data-view="rfid" data-label="RFID Point Inspection"><i class="ti ti-scan"></i><span>RFID Point Inspection</span><span class="tab-badge" id="rfidTabBadge" style="display:none;"></span></div>
+    <div class="tab subtab" data-view="aebs" data-label="AEBS Offline"><i class="ti ti-car-off"></i><span>AEBS Offline</span><span class="tab-badge" id="aebsTabBadge" style="display:none;"></span></div>
   </div>
 
   <div class="view" id="view-harian">
@@ -1062,6 +1063,126 @@
     </div>
   </div>
 
+
+  <!-- ================= VIEW: AEBS OFFLINE ================= -->
+  <div class="view" id="view-aebs">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
+      <span style="font-size:11px;color:#889;" id="aebsSyncInfo">Belum pernah sync.</span>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <a href="https://mitrainformatikaid-my.sharepoint.com/:x:/g/personal/anggara_vixmo_ai/IQA-q34lGlXQQqKZ7eXpelqCAVLv52g9NeNns9iqmp0VK2o" target="_blank" rel="noopener" class="btn btn-ghost" style="font-size:11.5px;padding:6px 12px;text-decoration:none;display:inline-flex;align-items:center;gap:6px;"><i class="ti ti-external-link"></i>Buka Sumber Data</a>
+        <button type="button" class="btn btn-ghost" id="aebsSyncBtn" style="font-size:11.5px;padding:6px 12px;">🔄 Sync dari Sheet</button>
+      </div>
+    </div>
+
+    <div class="summary" id="aebsSummaryCards" style="grid-template-columns:repeat(5,1fr);"></div>
+
+    <div class="controls">
+      <div class="grow">
+        <label>Cari No Lambung / Mitra</label>
+        <input type="text" id="aebsSearchInput" placeholder="Contoh: RBT 4166 atau Rezki Batulicin">
+      </div>
+      <div>
+        <label>Alasan OFF</label>
+        <select id="aebsAlasanFilter"><option value="">Semua</option></select>
+      </div>
+      <div>
+        <label>Status Tindak Lanjut</label>
+        <select id="aebsStatusFilter">
+          <option value="">Semua</option>
+          <option value="offline">Offline</option>
+          <option value="progress">On Progress</option>
+          <option value="resolved">Resolved</option>
+        </select>
+      </div>
+      <button type="button" class="btn btn-primary" id="aebsAddBtn" style="margin-left:auto;">+ Tambah Data</button>
+    </div>
+
+    <div class="category">
+      <div class="category-head"><span>Data Unit AEBS Non-Aktif</span></div>
+      <div class="category-body" style="padding:12px 14px;">
+        <table style="width:100%;border-collapse:collapse;font-size:12px;">
+          <thead><tr style="text-align:left;background:#0F1B2C;color:#fff;">
+            <th style="padding:7px 6px;">No Lambung</th>
+            <th style="padding:7px 6px;">Nama Mitra</th>
+            <th style="padding:7px 6px;">Merk / Model</th>
+            <th style="padding:7px 6px;">Lokasi</th>
+            <th style="padding:7px 6px;">Alasan OFF</th>
+            <th style="padding:7px 6px;">Catatan Non-Aktif</th>
+            <th style="padding:7px 6px;">PIC</th>
+            <th style="padding:7px 6px;">Status Tindak Lanjut</th>
+            <th style="padding:7px 6px;text-align:right;">Aksi</th>
+          </tr></thead>
+          <tbody id="aebsTableBody"></tbody>
+        </table>
+        <div id="aebsEmptyState" style="display:none;padding:16px 0;text-align:center;font-size:12px;color:#889;">Tidak ada data yang cocok dengan filter.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="aebsModalOverlay">
+    <div class="modal-box" style="max-width:460px;">
+      <button type="button" class="modal-close-x" id="aebsModalCloseBtn" title="Tutup">✕</button>
+      <h3 id="aebsModalTitle">Tambah Data AEBS Offline</h3>
+      <div class="controls" style="flex-direction:column;align-items:stretch;background:none;border:none;padding:0;margin-bottom:0;">
+        <div class="grow"><label>No Lambung</label><input type="text" id="aebsFNoLambung" style="width:100%;"></div>
+        <div class="grow"><label>Nama Mitra</label><input type="text" id="aebsFMitra" style="width:100%;"></div>
+        <div style="display:flex;gap:10px;">
+          <div class="grow"><label>Merk Unit</label><input type="text" id="aebsFMerk" style="width:100%;"></div>
+          <div class="grow"><label>Model</label><input type="text" id="aebsFModel" style="width:100%;"></div>
+        </div>
+        <div class="grow"><label>Lokasi Pemasangan</label><input type="text" id="aebsFLokasi" style="width:100%;"></div>
+        <div class="grow"><label>Alasan OFF</label>
+          <select id="aebsFAlasan" style="width:100%;">
+            <option>Belum POC</option>
+            <option>Issue Unit</option>
+            <option>Menunggu Aktivasi</option>
+            <option>Trouble Unit</option>
+            <option>AEBS</option>
+            <option>Lainnya</option>
+          </select>
+        </div>
+        <div class="grow"><label>Catatan Non-Aktif</label><textarea id="aebsFCatatan" rows="2" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:13px;font-family:var(--font-body);"></textarea></div>
+        <div class="grow">
+          <label>PIC</label>
+          <div class="select-with-actions">
+            <select id="aebsFPic" style="width:100%;"><option value="">-</option></select>
+            <button type="button" class="icon-btn icon-btn-add" id="aebsPicManageBtn" title="Kelola daftar PIC (tambah/edit/hapus)">⚙️</button>
+          </div>
+        </div>
+        <div class="grow"><label>Status Tindak Lanjut</label>
+          <select id="aebsFStatus" style="width:100%;">
+            <option value="offline">Offline</option>
+            <option value="progress">On Progress</option>
+            <option value="resolved">Resolved</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:14px;">
+        <button type="button" class="btn" id="aebsDeleteBtn" style="color:var(--red-fg);border-color:var(--red-fg);display:none;">Hapus</button>
+        <div style="display:flex;gap:8px;margin-left:auto;">
+          <button type="button" class="btn btn-ghost" id="aebsCancelBtn">Batal</button>
+          <button type="button" class="btn btn-primary" id="aebsSaveBtn">Simpan</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL: KELOLA PIC AEBS ================= -->
+  <div class="modal-overlay" id="aebsPicModalOverlay">
+    <div class="modal-box">
+      <button type="button" class="modal-close-x" id="aebsPicModalCloseBtn" title="Tutup">✕</button>
+      <h3>👤 Kelola Daftar PIC AEBS</h3>
+      <div class="vendor-add-row">
+        <input type="text" id="aebsPicModalInput" placeholder="Nama PIC baru...">
+        <button type="button" class="btn btn-primary" id="aebsPicModalAddBtn">+ Tambah</button>
+      </div>
+      <div id="aebsPicModalMsg" style="display:none;font-size:11.5px;color:var(--red-fg);font-weight:bold;margin-bottom:8px;"></div>
+      <div class="vendor-item-list" id="aebsPicModalList"></div>
+      <div style="text-align:right;margin-top:14px;">
+        <button type="button" class="btn btn-ghost" id="aebsPicModalDoneBtn">Selesai</button>
+      </div>
+    </div>
+  </div>
   <!-- ================= VIEW: ROSTER ================= -->
   <div class="view" id="view-roster">
     <div class="roster-toolbar">
@@ -2761,7 +2882,7 @@ loadRoster();
 
 /* ---------------- TAB SWITCHING ---------------- */
 function syncChecklistGroupUI(view){
-  const groupViews = ['harian','followup','rekap','rfid'];
+  const groupViews = ['harian','followup','rekap','rfid','aebs'];
   const inGroup = groupViews.includes(view);
   const groupEl = document.getElementById('sidebarGroupChecklist');
   const subtabBar = document.getElementById('checklistSubtabs');
@@ -2786,6 +2907,7 @@ document.querySelectorAll('.tab').forEach(tab => {
 
     if(tab.dataset.view === 'rekap') renderRekap();
     if(tab.dataset.view === 'rfid') renderRfid();
+    if(tab.dataset.view === 'aebs') renderAebs();
     if(tab.dataset.view === 'followup'){ renderFollowUp().then(clearOrderFormUnread); }
     if(tab.dataset.view === 'roster') loadRoster();
     if(tab.dataset.view === 'tasklist') renderTaskList();
@@ -4768,7 +4890,7 @@ let followUpFilter = 'All';
 /* ---- Daftar terkelola (dropdown + modal tambah/hapus) untuk Vendor & PIC ---- */
 function createManagedList(opts){
   const { storageKey, defaults, selectId, manageBtnId, modalOverlayId, modalInputId, modalAddBtnId,
-          modalCloseBtnId, modalDoneBtnId, modalListId, modalMsgId, itemLabel } = opts;
+          modalCloseBtnId, modalDoneBtnId, modalListId, modalMsgId, itemLabel, onRename } = opts;
   let list = [...defaults];
 
   async function load(){
@@ -4804,10 +4926,48 @@ function createManagedList(opts){
     }
     el.innerHTML = list.map(v => `
       <div class="vendor-item" data-v="${v}">
-        <span>${v}</span>
-        <button type="button" class="vendor-item-del" data-v="${v}">Hapus</button>
+        <span class="vendor-item-label">${v}</span>
+        <div style="display:flex;gap:4px;flex-shrink:0;">
+          <button type="button" class="wim-icon-btn edit vendor-item-edit" data-v="${v}" title="Ubah nama"><i class="ti ti-edit"></i></button>
+          <button type="button" class="vendor-item-del" data-v="${v}">Hapus</button>
+        </div>
       </div>
     `).join('');
+    el.querySelectorAll('.vendor-item-edit').forEach(btn => {
+      btn.onclick = () => {
+        const item = btn.closest('.vendor-item');
+        const label = item.querySelector('.vendor-item-label');
+        const oldName = btn.dataset.v;
+        if(item.querySelector('.vendor-item-rename-input')) return;
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = oldName;
+        input.className = 'vendor-item-rename-input';
+        input.style.cssText = 'flex:1;font-size:13px;border:1px solid var(--accent);border-radius:6px;padding:4px 8px;';
+        label.replaceWith(input);
+        input.focus();
+        input.select();
+        const commit = async () => {
+          const newName = input.value.trim();
+          if(!newName || newName === oldName){ renderModalList(); return; }
+          if(list.some(v => v.toLowerCase() === newName.toLowerCase() && v !== oldName)){
+            showMsg(`${itemLabel.charAt(0).toUpperCase() + itemLabel.slice(1)} "${newName}" sudah ada di daftar.`);
+            renderModalList();
+            return;
+          }
+          list = list.map(v => v === oldName ? newName : v);
+          await save();
+          if(typeof onRename === 'function') await onRename(oldName, newName);
+          renderOptions(newName);
+          renderModalList();
+        };
+        input.addEventListener('keydown', (e) => {
+          if(e.key === 'Enter'){ e.preventDefault(); commit(); }
+          if(e.key === 'Escape'){ e.preventDefault(); renderModalList(); }
+        });
+        input.addEventListener('blur', commit);
+      };
+    });
     el.querySelectorAll('.vendor-item-del').forEach(btn => {
       btn.onclick = async () => {
         if(!btn.classList.contains('confirming')){
@@ -4904,6 +5064,390 @@ const picManager = createManagedList({
 });
 async function loadPicList(){ await picManager.load(); }
 function renderPicOptions(v){ picManager.renderOptions(v); }
+
+const aebsPicManager = createManagedList({
+  storageKey: 'aebs:pics',
+  defaults: ['Harris','Nico Fahryan Sandy','Lukman Gunawan','Taufik Wirayudha','Adhe Setiawan'],
+  selectId: 'aebsFPic',
+  manageBtnId: 'aebsPicManageBtn',
+  modalOverlayId: 'aebsPicModalOverlay',
+  modalInputId: 'aebsPicModalInput',
+  modalAddBtnId: 'aebsPicModalAddBtn',
+  modalCloseBtnId: 'aebsPicModalCloseBtn',
+  modalDoneBtnId: 'aebsPicModalDoneBtn',
+  modalListId: 'aebsPicModalList',
+  modalMsgId: 'aebsPicModalMsg',
+  itemLabel: 'PIC',
+  onRename: async (oldName, newName) => {
+    let changed = false;
+    aebsData.forEach(r => { if(r.pic === oldName){ r.pic = newName; changed = true; } });
+    if(changed){ await aebsSave(); aebsRenderTable(); }
+  }
+});
+async function loadAebsPicList(){ await aebsPicManager.load(); }
+function renderAebsPicOptions(v){ aebsPicManager.renderOptions(v); }
+
+/* ================= AEBS OFFLINE ENGINE ================= */
+const DSO_AEBS_KEY = 'dso:aebs-offline';
+const DSO_AEBS_LASTSYNC_KEY = 'dso:aebs-lastsync';
+/* TODO (Harris): isi AEBS_SHEET_ID dengan ID Google Sheet hasil mirror dari file SharePoint
+   "DSO X VIXMO - Dashboard Monitoring Unit Off". SharePoint tidak bisa disambungkan langsung
+   lewat gviz (butuh auth Microsoft & tidak CORS-friendly), jadi solusi paling stabil adalah:
+   1) Buat Google Sheet baru, lalu setup Power Automate flow "When a file is modified in
+      SharePoint -> update rows in Google Sheets" (atau update manual berkala jika belum ada
+      Power Automate), supaya Google Sheet ini selalu mengikuti isi file SharePoint.
+   2) Publish sheet tsb ("Anyone with link can view"), lalu isi ID-nya di bawah ini.
+   Setelah ID diisi, tombol "Sync dari Sheet" akan langsung berfungsi otomatis (pola sama
+   persis dengan Stock Management). Sebelum ID diisi, tombol akan menampilkan pesan info. */
+const AEBS_SHEET_ID = '';
+const AEBS_SHEET_NAME = 'Sheet1';
+
+function aebsSeedData(){
+  return [
+    {id:'ae150', noLambung:'RBT 4166', mitra:'PT Rezki Batulicin Transport', merk:'FAW', model:'JH6 420HP', lokasi:'Workshop BMT', alasanOff:'Issue Unit', catatanNonAktif:'SPEED SENSOR', pic:'', statusTL:'offline'},
+    {id:'ae565', noLambung:'AEK 0076', mitra:'PT Anugrah Energi Kalimantan', merk:'SANY', model:'SYZ380C', lokasi:'Workshop AEK TERAS', alasanOff:'Issue Unit', catatanNonAktif:'BD', pic:'', statusTL:'offline'},
+    {id:'ae566', noLambung:'AEK 0099', mitra:'PT Anugrah Energi Kalimantan', merk:'SANY', model:'SYZ380C', lokasi:'Workshop AEK BBB', alasanOff:'Issue Unit', catatanNonAktif:'AKI TEKOR', pic:'', statusTL:'offline'},
+    {id:'ae571', noLambung:'AEK 0048', mitra:'PT Anugrah Energi Kalimantan', merk:'SANY', model:'SYZ380C', lokasi:'Workshop AEK BJM', alasanOff:'Issue Unit', catatanNonAktif:'BD', pic:'', statusTL:'offline'},
+    {id:'ae575', noLambung:'RBT 4057', mitra:'PT Rezki Batulicin Transport', merk:'VOLVO', model:'FMX 440', lokasi:'Workshop RBT INDUK', alasanOff:'Belum POC', catatanNonAktif:'', pic:'', statusTL:'offline'},
+    {id:'ae577', noLambung:'RBT 4000', mitra:'PT Rezki Batulicin Transport', merk:'VOLVO', model:'FMX 440', lokasi:'Workshop RBT INDUK', alasanOff:'Belum POC', catatanNonAktif:'', pic:'', statusTL:'offline'},
+    {id:'ae578', noLambung:'RBT 4001', mitra:'PT Rezki Batulicin Transport', merk:'VOLVO', model:'FMX 440', lokasi:'Workshop RBT INDUK', alasanOff:'Belum POC', catatanNonAktif:'', pic:'', statusTL:'offline'},
+    {id:'ae579', noLambung:'RBT 4003', mitra:'PT Rezki Batulicin Transport', merk:'VOLVO', model:'FMX 440', lokasi:'Workshop RBT INDUK', alasanOff:'Belum POC', catatanNonAktif:'', pic:'', statusTL:'offline'},
+    {id:'ae580', noLambung:'RBT 4004', mitra:'PT Rezki Batulicin Transport', merk:'VOLVO', model:'FMX 440', lokasi:'Workshop RBT INDUK', alasanOff:'Belum POC', catatanNonAktif:'', pic:'', statusTL:'offline'},
+    {id:'ae581', noLambung:'RBT 4063', mitra:'PT Rezki Batulicin Transport', merk:'VOLVO', model:'FMX 440', lokasi:'Workshop RBT INDUK', alasanOff:'Belum POC', catatanNonAktif:'', pic:'', statusTL:'offline'},
+    {id:'ae582', noLambung:'RBT 4061', mitra:'PT Rezki Batulicin Transport', merk:'VOLVO', model:'FMX 440', lokasi:'Workshop RBT INDUK', alasanOff:'Belum POC', catatanNonAktif:'', pic:'', statusTL:'offline'},
+    {id:'ae583', noLambung:'RBT 4011', mitra:'PT Rezki Batulicin Transport', merk:'VOLVO', model:'FMX 440', lokasi:'Workshop RBT INDUK', alasanOff:'Belum POC', catatanNonAktif:'', pic:'', statusTL:'offline'},
+    {id:'ae584', noLambung:'RBT 4006', mitra:'PT Rezki Batulicin Transport', merk:'VOLVO', model:'FMX 440', lokasi:'Workshop RBT INDUK', alasanOff:'Belum POC', catatanNonAktif:'', pic:'', statusTL:'offline'},
+    {id:'ae585', noLambung:'RBT 4010', mitra:'PT Rezki Batulicin Transport', merk:'VOLVO', model:'FMX 440', lokasi:'Workshop RBT INDUK', alasanOff:'Belum POC', catatanNonAktif:'', pic:'', statusTL:'offline'},
+    {id:'ae586', noLambung:'RBT 4007', mitra:'PT Rezki Batulicin Transport', merk:'VOLVO', model:'FMX 440', lokasi:'Workshop RBT INDUK', alasanOff:'Belum POC', catatanNonAktif:'', pic:'', statusTL:'offline'},
+    {id:'ae587', noLambung:'RBT 4013', mitra:'PT Rezki Batulicin Transport', merk:'VOLVO', model:'FMX 440', lokasi:'Workshop RBT INDUK', alasanOff:'Belum POC', catatanNonAktif:'', pic:'', statusTL:'offline'},
+    {id:'ae588', noLambung:'RBT 4014', mitra:'PT Rezki Batulicin Transport', merk:'VOLVO', model:'FMX 440', lokasi:'Workshop RBT INDUK', alasanOff:'Belum POC', catatanNonAktif:'', pic:'', statusTL:'offline'},
+    {id:'ae589', noLambung:'RBT 4015', mitra:'PT Rezki Batulicin Transport', merk:'VOLVO', model:'FMX 440', lokasi:'Workshop RBT INDUK', alasanOff:'Belum POC', catatanNonAktif:'', pic:'', statusTL:'offline'},
+    {id:'ae590', noLambung:'RBT 4016', mitra:'PT Rezki Batulicin Transport', merk:'VOLVO', model:'FMX 440', lokasi:'Workshop RBT INDUK', alasanOff:'Belum POC', catatanNonAktif:'', pic:'', statusTL:'offline'},
+    {id:'ae591', noLambung:'RBT 4017', mitra:'PT Rezki Batulicin Transport', merk:'VOLVO', model:'FMX 440', lokasi:'Workshop RBT INDUK', alasanOff:'Belum POC', catatanNonAktif:'', pic:'', statusTL:'offline'},
+    {id:'ae592', noLambung:'RBT 4018', mitra:'PT Rezki Batulicin Transport', merk:'VOLVO', model:'FMX 440', lokasi:'Workshop RBT INDUK', alasanOff:'Belum POC', catatanNonAktif:'', pic:'', statusTL:'offline'},
+    {id:'ae593', noLambung:'RBT 4019', mitra:'PT Rezki Batulicin Transport', merk:'VOLVO', model:'FMX 440', lokasi:'Workshop RBT INDUK', alasanOff:'Belum POC', catatanNonAktif:'', pic:'', statusTL:'offline'},
+    {id:'ae594', noLambung:'RBT 4060', mitra:'PT Rezki Batulicin Transport', merk:'VOLVO', model:'FMX 440', lokasi:'Workshop RBT INDUK', alasanOff:'Belum POC', catatanNonAktif:'', pic:'', statusTL:'offline'},
+    {id:'ae595', noLambung:'RBT 4055', mitra:'PT Rezki Batulicin Transport', merk:'VOLVO', model:'FMX 440', lokasi:'Workshop RBT INDUK', alasanOff:'Belum POC', catatanNonAktif:'', pic:'', statusTL:'offline'},
+    {id:'ae596', noLambung:'RBT 4056', mitra:'PT Rezki Batulicin Transport', merk:'VOLVO', model:'FMX 440', lokasi:'Workshop RBT INDUK', alasanOff:'Belum POC', catatanNonAktif:'', pic:'', statusTL:'offline'},
+    {id:'ae597', noLambung:'RBT 4054', mitra:'PT Rezki Batulicin Transport', merk:'VOLVO', model:'FMX 440', lokasi:'Workshop RBT INDUK', alasanOff:'Belum POC', catatanNonAktif:'', pic:'', statusTL:'offline'},
+    {id:'ae598', noLambung:'RBT 4058', mitra:'PT Rezki Batulicin Transport', merk:'VOLVO', model:'FMX 440', lokasi:'Workshop RBT INDUK', alasanOff:'Belum POC', catatanNonAktif:'', pic:'', statusTL:'offline'},
+    {id:'ae599', noLambung:'RBT 4059', mitra:'PT Rezki Batulicin Transport', merk:'VOLVO', model:'FMX 440', lokasi:'Workshop RBT INDUK', alasanOff:'Belum POC', catatanNonAktif:'', pic:'', statusTL:'offline'},
+    {id:'ae760', noLambung:'GEC 9133', mitra:'PT Goden Energi Cemerlang Lestari', merk:'HANVAN', model:'EV', lokasi:'WS GMM BARU', alasanOff:'Trouble Unit', catatanNonAktif:'', pic:'', statusTL:'offline'}
+  ];
+}
+
+let aebsData = [];
+let aebsEditingId = null;
+let aebsListenersBound = false;
+
+async function aebsLoad(){
+  aebsData = await dsoLoad(DSO_AEBS_KEY, aebsSeedData());
+  return aebsData;
+}
+async function aebsSave(){
+  await dsoSave(DSO_AEBS_KEY, aebsData);
+}
+
+function aebsAlasanBadge(alasan){
+  const map = {
+    'Belum POC': 'background:var(--red-bg);color:var(--red-fg);',
+    'Issue Unit': 'background:var(--yellow-bg);color:var(--yellow-fg);',
+    'Menunggu Aktivasi': 'background:var(--purple-bg);color:var(--purple-fg);',
+    'Trouble Unit': 'background:var(--purple-bg);color:var(--purple-fg);',
+    'AEBS': 'background:var(--zebra);color:var(--text-secondary);'
+  };
+  const style = map[alasan] || 'background:var(--zebra);color:var(--text-secondary);';
+  if(!alasan) return '<span style="color:var(--text-muted);">-</span>';
+  return `<span style="padding:2px 9px;border-radius:999px;font-size:10.5px;font-weight:bold;${style}">${alasan}</span>`;
+}
+function aebsStatusBadge(status){
+  if(status === 'resolved') return `<span style="padding:2px 9px;border-radius:999px;font-size:10.5px;font-weight:bold;background:var(--green-bg);color:var(--green-fg);">Resolved</span>`;
+  if(status === 'progress') return `<span style="padding:2px 9px;border-radius:999px;font-size:10.5px;font-weight:bold;background:var(--yellow-bg);color:var(--yellow-fg);">On Progress</span>`;
+  return `<span style="padding:2px 9px;border-radius:999px;font-size:10.5px;font-weight:bold;background:var(--red-bg);color:var(--red-fg);">Offline</span>`;
+}
+
+function aebsFilteredList(){
+  const q = (document.getElementById('aebsSearchInput').value || '').trim().toLowerCase();
+  const alasan = document.getElementById('aebsAlasanFilter').value;
+  const status = document.getElementById('aebsStatusFilter').value;
+  return aebsData.filter(r => {
+    if(q && !((r.noLambung||'').toLowerCase().includes(q) || (r.mitra||'').toLowerCase().includes(q))) return false;
+    if(alasan && r.alasanOff !== alasan) return false;
+    if(status && r.statusTL !== status) return false;
+    return true;
+  });
+}
+
+function aebsPopulateFilterOptions(){
+  const sel = document.getElementById('aebsAlasanFilter');
+  const cur = sel.value;
+  const alasans = [...new Set(aebsData.map(r => r.alasanOff).filter(Boolean))].sort();
+  sel.innerHTML = '<option value="">Semua</option>' + alasans.map(a => `<option value="${a}">${a}</option>`).join('');
+  sel.value = cur;
+}
+
+function aebsRenderSummary(){
+  const total = aebsData.length;
+  const offline = aebsData.filter(r => r.statusTL === 'offline').length;
+  const progress = aebsData.filter(r => r.statusTL === 'progress').length;
+  const resolved = aebsData.filter(r => r.statusTL === 'resolved').length;
+  const belumPoc = aebsData.filter(r => r.alasanOff === 'Belum POC').length;
+  const cards = [
+    {num: total, lab: 'Total unit', color: 'var(--text)'},
+    {num: offline, lab: 'Offline', color: 'var(--red-fg)'},
+    {num: progress, lab: 'On progress', color: 'var(--yellow-fg)'},
+    {num: resolved, lab: 'Resolved', color: 'var(--green-fg)'},
+    {num: belumPoc, lab: 'Belum POC', color: 'var(--purple-fg)'}
+  ];
+  document.getElementById('aebsSummaryCards').innerHTML = cards.map(c =>
+    `<div class="card"><div class="num" style="color:${c.color};">${c.num}</div><div class="lab">${c.lab}</div></div>`
+  ).join('');
+}
+
+function aebsRenderTable(){
+  const list = aebsFilteredList();
+  const body = document.getElementById('aebsTableBody');
+  const empty = document.getElementById('aebsEmptyState');
+  if(!list.length){
+    body.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  body.innerHTML = list.map((r, i) => `
+    <tr style="${i % 2 === 1 ? 'background:var(--zebra);' : ''}">
+      <td style="padding:6px;font-family:var(--font-mono);font-weight:bold;">${r.noLambung||'-'}</td>
+      <td style="padding:6px;color:var(--text-secondary);">${r.mitra||'-'}</td>
+      <td style="padding:6px;color:var(--text-secondary);">${[r.merk,r.model].filter(Boolean).join(' ')||'-'}</td>
+      <td style="padding:6px;color:var(--text-secondary);">${r.lokasi||'-'}</td>
+      <td style="padding:6px;">${aebsAlasanBadge(r.alasanOff)}</td>
+      <td style="padding:6px;color:var(--text-secondary);">${r.catatanNonAktif||'-'}</td>
+      <td style="padding:6px;">${r.pic || '<span style="color:var(--text-muted);">- pilih</span>'}</td>
+      <td style="padding:6px;">${aebsStatusBadge(r.statusTL)}</td>
+      <td style="padding:6px;text-align:right;white-space:nowrap;">
+        <i class="ti ti-edit aebs-row-edit" data-id="${r.id}" title="Edit" style="font-size:16px;color:var(--text-secondary);cursor:pointer;"></i>
+      </td>
+    </tr>`).join('');
+  body.querySelectorAll('.aebs-row-edit').forEach(el => el.onclick = () => aebsOpenModal(el.dataset.id));
+}
+
+function aebsOpenModal(id){
+  aebsEditingId = id || null;
+  const rec = id ? aebsData.find(r => r.id === id) : null;
+  document.getElementById('aebsModalTitle').textContent = rec ? 'Edit Data AEBS Offline' : 'Tambah Data AEBS Offline';
+  document.getElementById('aebsFNoLambung').value = rec ? rec.noLambung||'' : '';
+  document.getElementById('aebsFMitra').value = rec ? rec.mitra||'' : '';
+  document.getElementById('aebsFMerk').value = rec ? rec.merk||'' : '';
+  document.getElementById('aebsFModel').value = rec ? rec.model||'' : '';
+  document.getElementById('aebsFLokasi').value = rec ? rec.lokasi||'' : '';
+  document.getElementById('aebsFAlasan').value = rec ? rec.alasanOff||'Belum POC' : 'Belum POC';
+  document.getElementById('aebsFCatatan').value = rec ? rec.catatanNonAktif||'' : '';
+  renderAebsPicOptions(rec ? rec.pic||'' : '');
+  document.getElementById('aebsFStatus').value = rec ? rec.statusTL||'offline' : 'offline';
+  document.getElementById('aebsDeleteBtn').style.display = rec ? 'inline-block' : 'none';
+  document.getElementById('aebsModalOverlay').classList.add('active');
+}
+
+async function aebsSaveModal(){
+  const rec = {
+    id: aebsEditingId || ('ae' + Date.now()),
+    noLambung: document.getElementById('aebsFNoLambung').value.trim(),
+    mitra: document.getElementById('aebsFMitra').value.trim(),
+    merk: document.getElementById('aebsFMerk').value.trim(),
+    model: document.getElementById('aebsFModel').value.trim(),
+    lokasi: document.getElementById('aebsFLokasi').value.trim(),
+    alasanOff: document.getElementById('aebsFAlasan').value,
+    catatanNonAktif: document.getElementById('aebsFCatatan').value.trim(),
+    pic: document.getElementById('aebsFPic').value,
+    statusTL: document.getElementById('aebsFStatus').value
+  };
+  if(!rec.noLambung){ showToast('⚠️ No Lambung wajib diisi', 'error'); return; }
+  const idx = aebsData.findIndex(r => r.id === rec.id);
+  if(idx >= 0) aebsData[idx] = rec; else aebsData.push(rec);
+  await aebsSave();
+  document.getElementById('aebsModalOverlay').classList.remove('active');
+  aebsPopulateFilterOptions();
+  aebsRenderSummary();
+  aebsRenderTable();
+  showToast('✓ Data AEBS Offline tersimpan', 'success');
+}
+
+async function aebsDeleteCurrent(){
+  if(!aebsEditingId) return;
+  aebsData = aebsData.filter(r => r.id !== aebsEditingId);
+  await aebsSave();
+  document.getElementById('aebsModalOverlay').classList.remove('active');
+  aebsPopulateFilterOptions();
+  aebsRenderSummary();
+  aebsRenderTable();
+  showToast('✓ Data AEBS Offline dihapus', 'success');
+}
+
+/* ---- Sync AEBS Offline dari Google Sheet (mirror dari SharePoint, lihat catatan AEBS_SHEET_ID di atas) ---- */
+const AEBS_HEADER_ALIASES = {
+  noLambung: ['nomor lambung','no lambung'],
+  mitra: ['nama mitra','mitra'],
+  merk: ['merk unit','merk'],
+  model: ['model'],
+  lokasi: ['lokasi pemasangan','lokasi'],
+  statusAebs: ['status aebs'],
+  alasanOff: ['alasan off','alasan'],
+  catatanNonAktif: ['catatan non-aktif','catatan non aktif','catatan']
+};
+function aebsMatchHeader(headerText){
+  const norm = String(headerText||'').toLowerCase().trim();
+  for(const field in AEBS_HEADER_ALIASES){
+    if(AEBS_HEADER_ALIASES[field].includes(norm)) return field;
+  }
+  return null;
+}
+async function fetchAebsSheetData(){
+  if(!AEBS_SHEET_ID){
+    throw new Error('AEBS_SHEET_ID belum diisi. Lihat catatan di kode (dekat konstanta AEBS_SHEET_ID) untuk cara menyambungkan Sheet mirror dari SharePoint.');
+  }
+  await loadGoogleChartsOnce();
+  const url = `https://docs.google.com/spreadsheets/d/${AEBS_SHEET_ID}/gviz/tq?sheet=${encodeURIComponent(AEBS_SHEET_NAME)}`;
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    const timer = setTimeout(() => {
+      if(settled) return;
+      settled = true;
+      reject(new Error('timeout memuat data AEBS Offline dari Sheet'));
+    }, 15000);
+    try{
+      const query = new google.visualization.Query(url);
+      query.send(response => {
+        if(settled) return;
+        settled = true;
+        clearTimeout(timer);
+        if(response.isError()){
+          reject(new Error('sheet AEBS tidak ditemukan (' + response.getMessage() + ')'));
+          return;
+        }
+        const dt = response.getDataTable();
+        const numRows = dt.getNumberOfRows();
+        const numCols = dt.getNumberOfColumns();
+        const colField = [];
+        for(let c=0;c<numCols;c++){
+          colField.push(aebsMatchHeader(dt.getColumnLabel(c)));
+        }
+        let headerRowIdx = -1;
+        if(colField.every(f => f===null)){
+          for(let r=0;r<Math.min(numRows,10);r++){
+            const test = [];
+            for(let c=0;c<numCols;c++) test.push(aebsMatchHeader(dt.getFormattedValue(r,c)));
+            if(test.some(f => f==='noLambung')){ headerRowIdx = r; colField.splice(0, colField.length, ...test); break; }
+          }
+        }
+        const rows = [];
+        for(let r=headerRowIdx+1;r<numRows;r++){
+          const rec = {};
+          for(let c=0;c<numCols;c++){
+            const field = colField[c];
+            if(!field) continue;
+            const val = dt.getFormattedValue(r,c);
+            rec[field] = val ? val.trim() : '';
+          }
+          if(!rec.noLambung) continue;
+          if(String(rec.statusAebs||'').toLowerCase() !== 'non-aktif') continue;
+          rows.push(rec);
+        }
+        resolve(rows);
+      });
+    }catch(err){
+      if(settled) return;
+      settled = true;
+      clearTimeout(timer);
+      reject(err);
+    }
+  });
+}
+function aebsMergeSheetData(existing, sheetRows){
+  const merged = existing.map(r => ({...r}));
+  const indexByLambung = new Map();
+  merged.forEach((r,i) => indexByLambung.set((r.noLambung||'').toLowerCase(), i));
+  sheetRows.forEach(row => {
+    const key = (row.noLambung||'').toLowerCase();
+    if(indexByLambung.has(key)){
+      const i = indexByLambung.get(key);
+      merged[i].mitra = row.mitra || merged[i].mitra;
+      merged[i].merk = row.merk || merged[i].merk;
+      merged[i].model = row.model || merged[i].model;
+      merged[i].lokasi = row.lokasi || merged[i].lokasi;
+      merged[i].alasanOff = row.alasanOff || merged[i].alasanOff;
+      merged[i].catatanNonAktif = row.catatanNonAktif || merged[i].catatanNonAktif;
+    }else{
+      merged.push({
+        id: 'ae' + Date.now() + Math.floor(Math.random()*1000),
+        noLambung: row.noLambung, mitra: row.mitra, merk: row.merk, model: row.model,
+        lokasi: row.lokasi, alasanOff: row.alasanOff, catatanNonAktif: row.catatanNonAktif,
+        pic: '', statusTL: 'offline'
+      });
+      indexByLambung.set(key, merged.length-1);
+    }
+  });
+  return merged;
+}
+async function syncAebsFromSheet(showAlert){
+  const infoEl = document.getElementById('aebsSyncInfo');
+  const btnEl = document.getElementById('aebsSyncBtn');
+  if(btnEl){ btnEl.disabled = true; btnEl.textContent = '⏳ Sinkronisasi...'; }
+  if(infoEl) infoEl.textContent = 'Sedang mengambil data dari Google Sheet...';
+  try{
+    const rows = await fetchAebsSheetData();
+    const merged = aebsMergeSheetData(aebsData, rows);
+    aebsData = merged;
+    await aebsSave();
+    const now = new Date();
+    await dsoSave(DSO_AEBS_LASTSYNC_KEY, now.toISOString());
+    if(infoEl) infoEl.textContent = 'Sync terakhir: ' + now.toLocaleString('id-ID') + ' (' + rows.length + ' unit Non-Aktif dari Sheet)';
+    aebsPopulateFilterOptions();
+    aebsRenderSummary();
+    aebsRenderTable();
+    showToast('✓ AEBS Offline sync berhasil', 'success');
+  }catch(e){
+    console.error('gagal sync AEBS Offline', e);
+    if(infoEl) infoEl.textContent = 'Belum sync: ' + e.message;
+    if(showAlert) alert('Gagal sync data AEBS Offline: ' + e.message);
+  }finally{
+    if(btnEl){ btnEl.disabled = false; btnEl.textContent = '🔄 Sync dari Sheet'; }
+  }
+}
+
+function aebsBindListenersOnce(){
+  if(aebsListenersBound) return;
+  aebsListenersBound = true;
+  document.getElementById('aebsAddBtn').onclick = () => aebsOpenModal(null);
+  document.getElementById('aebsModalCloseBtn').onclick = () => document.getElementById('aebsModalOverlay').classList.remove('active');
+  document.getElementById('aebsCancelBtn').onclick = () => document.getElementById('aebsModalOverlay').classList.remove('active');
+  document.getElementById('aebsModalOverlay').onclick = (e) => { if(e.target.id === 'aebsModalOverlay') e.currentTarget.classList.remove('active'); };
+  document.getElementById('aebsSaveBtn').onclick = aebsSaveModal;
+  document.getElementById('aebsDeleteBtn').onclick = aebsDeleteCurrent;
+  document.getElementById('aebsSearchInput').oninput = aebsRenderTable;
+  document.getElementById('aebsAlasanFilter').onchange = aebsRenderTable;
+  document.getElementById('aebsStatusFilter').onchange = aebsRenderTable;
+  document.getElementById('aebsSyncBtn').onclick = () => syncAebsFromSheet(true);
+}
+
+async function renderAebs(){
+  aebsBindListenersOnce();
+  await aebsLoad();
+  await loadAebsPicList();
+  renderAebsPicOptions('');
+  aebsPopulateFilterOptions();
+  aebsRenderSummary();
+  aebsRenderTable();
+  try{
+    const res = await store.get(DSO_AEBS_LASTSYNC_KEY);
+    const iso = res && res.value ? JSON.parse(res.value) : null;
+    const infoEl = document.getElementById('aebsSyncInfo');
+    if(infoEl){
+      infoEl.textContent = iso
+        ? 'Sync terakhir: ' + new Date(iso).toLocaleString('id-ID')
+        : (AEBS_SHEET_ID ? 'Belum pernah sync.' : 'Data dari seed lokal (CSV export SharePoint 13/8/2026). Sheet ID belum diisi untuk auto-sync — lihat "Buka Sumber Data" untuk cek manual.');
+    }
+  }catch(e){}
+}
 
 function fuId(){ return 'fu' + Date.now() + Math.floor(Math.random()*1000); }
 
