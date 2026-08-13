@@ -5190,8 +5190,38 @@ let aebsData = [];
 let aebsEditingId = null;
 let aebsListenersBound = false;
 
+function aebsKeyOf(r){
+  return [r.mitra, r.merk, r.model, r.lokasi].map(v => (v||'').toString().trim().toLowerCase()).join('|');
+}
+// Menambal data lama yang sudah tersimpan di KV (sebelum No Lambung dilengkapi) dengan
+// data terbaru dari aebsSeedData(), dicocokkan lewat id lalu lewat kombinasi
+// Mitra+Merk+Model+Lokasi. Hanya field yang masih kosong di data tersimpan yang ditimpa,
+// data yang sudah pernah diedit manual oleh user tidak akan tersentuh.
+function aebsBackfillFromSeed(data){
+  const seed = aebsSeedData();
+  const seedById = new Map(seed.map(s => [s.id, s]));
+  const seedByKey = new Map(seed.map(s => [aebsKeyOf(s), s]));
+  let changed = false;
+  const patched = data.map(r => {
+    const isEmpty = v => !v || !String(v).trim() || String(v).trim().toLowerCase() === 'unknown';
+    if(!isEmpty(r.noLambung)) return r;
+    const match = seedById.get(r.id) || seedByKey.get(aebsKeyOf(r));
+    if(!match) return r;
+    const next = {...r};
+    if(isEmpty(next.noLambung) && !isEmpty(match.noLambung)){ next.noLambung = match.noLambung; changed = true; }
+    if(isEmpty(next.alasanOff) && !isEmpty(match.alasanOff)){ next.alasanOff = match.alasanOff; changed = true; }
+    if(isEmpty(next.catatanNonAktif) && !isEmpty(match.catatanNonAktif)){ next.catatanNonAktif = match.catatanNonAktif; changed = true; }
+    return next;
+  });
+  return { patched, changed };
+}
 async function aebsLoad(){
   aebsData = await dsoLoad(DSO_AEBS_KEY, aebsSeedData());
+  const { patched, changed } = aebsBackfillFromSeed(aebsData);
+  if(changed){
+    aebsData = patched;
+    await aebsSave();
+  }
   return aebsData;
 }
 async function aebsSave(){
