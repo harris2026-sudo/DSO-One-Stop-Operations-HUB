@@ -872,13 +872,16 @@
           <div class="grow"><label>Broken</label><input type="number" id="apFBroken" style="width:100%;"></div>
         </div>
         <div class="grow"><label>Jenis</label>
-          <select id="apFJenis" style="width:100%;">
-            <option value="">-</option>
-            <option>Bekas</option>
-            <option>Rusak</option>
-            <option>Aus</option>
-            <option>Dummy</option>
-          </select>
+          <div class="select-with-actions">
+            <select id="apFJenis" style="width:100%;">
+              <option value="">-</option>
+              <option>Bekas</option>
+              <option>Rusak</option>
+              <option>Aus</option>
+              <option>Dummy</option>
+            </select>
+            <button type="button" class="icon-btn icon-btn-add" id="apJenisManageBtn" title="Kelola daftar jenis (tambah/ubah/hapus)">⚙️</button>
+          </div>
         </div>
         <div class="grow"><label>Desc</label><textarea id="apFDesc" rows="2" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:13px;font-family:var(--font-body);"></textarea></div>
       </div>
@@ -888,6 +891,23 @@
           <button type="button" class="btn btn-ghost" id="apCancelBtn">Batal</button>
           <button type="button" class="btn btn-primary" id="apSaveBtn">Simpan</button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL: KELOLA JENIS (Stock Management) ================= -->
+  <div class="modal-overlay" id="jenisModalOverlay">
+    <div class="modal-box">
+      <button type="button" class="modal-close-x" id="jenisModalCloseBtn" title="Tutup">✕</button>
+      <h3>🏷️ Kelola Daftar Jenis</h3>
+      <div class="vendor-add-row">
+        <input type="text" id="jenisModalInput" placeholder="Nama jenis baru...">
+        <button type="button" class="btn btn-primary" id="jenisModalAddBtn">+ Tambah</button>
+      </div>
+      <div id="jenisModalMsg" style="display:none;font-size:11.5px;color:var(--red-fg);font-weight:bold;margin-bottom:8px;"></div>
+      <div class="vendor-item-list" id="jenisModalList"></div>
+      <div style="text-align:right;margin-top:14px;">
+        <button type="button" class="btn btn-ghost" id="jenisModalDoneBtn">Selesai</button>
       </div>
     </div>
   </div>
@@ -4134,7 +4154,7 @@ function apOpenModal(idx){
   document.getElementById('apFExSecond').value = rec ? rec.exSecond||0 : 0;
   document.getElementById('apFUnit').value = rec ? rec.unit||'Pcs' : 'Pcs';
   document.getElementById('apFBroken').value = rec ? rec.broken||0 : 0;
-  document.getElementById('apFJenis').value = rec ? rec.jenis||'' : '';
+  renderJenisOptions(rec ? rec.jenis||'' : '');
   document.getElementById('apFDesc').value = rec ? rec.desc||'' : '';
   document.getElementById('apDeleteBtn').style.display = rec ? 'inline-block' : 'none';
   document.getElementById('apModalOverlay').classList.add('active');
@@ -5384,6 +5404,23 @@ const picManager = createManagedList({
 });
 async function loadPicList(){ await picManager.load(); }
 function renderPicOptions(v){ picManager.renderOptions(v); }
+
+const jenisManager = createManagedList({
+  storageKey: 'stock:jenis-list',
+  defaults: ['Bekas','Rusak','Aus','Dummy'],
+  selectId: 'apFJenis',
+  manageBtnId: 'apJenisManageBtn',
+  modalOverlayId: 'jenisModalOverlay',
+  modalInputId: 'jenisModalInput',
+  modalAddBtnId: 'jenisModalAddBtn',
+  modalCloseBtnId: 'jenisModalCloseBtn',
+  modalDoneBtnId: 'jenisModalDoneBtn',
+  modalListId: 'jenisModalList',
+  modalMsgId: 'jenisModalMsg',
+  itemLabel: 'jenis'
+});
+async function loadJenisList(){ await jenisManager.load(); }
+function renderJenisOptions(v){ jenisManager.renderOptions(v); }
 
 const aebsPicManager = createManagedList({
   storageKey: 'aebs:pics',
@@ -6642,6 +6679,7 @@ document.getElementById('dateInput').value = todayStr();
   renderVendorOptions('');
   await loadPicList();
   renderPicOptions('');
+  await loadJenisList();
   rebuildTaskIndex();
   buildUI();
   loadForDate(todayStr());
