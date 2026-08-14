@@ -216,6 +216,11 @@
   .editable-label{outline:none;border-radius:4px;padding:1px 3px;cursor:text;}
   .category-head .editable-label:hover{background:rgba(255,255,255,.15);}
   .category-head .editable-label:focus{background:rgba(255,255,255,.22);box-shadow:0 0 0 1.5px rgba(255,255,255,.5);cursor:text;}
+  .spreadsheet-link-badge{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+  .spreadsheet-link-pill{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.14);color:#fff;border-radius:999px;padding:6px 14px;font-size:11.5px;font-weight:600;text-decoration:none;white-space:nowrap;transition:background .15s ease;cursor:pointer;}
+  .spreadsheet-link-pill:hover{background:rgba(255,255,255,.24);}
+  .spreadsheet-link-edit{width:26px;height:26px;border-radius:50%;border:none;background:rgba(255,255,255,.14);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;flex-shrink:0;transition:background .15s ease;padding:0;}
+  .spreadsheet-link-edit:hover{background:rgba(255,255,255,.24);}
   .task-title .editable-label:hover{background:var(--hilite);}
   .task-title .editable-label:focus{background:var(--hilite);box-shadow:0 0 0 1.5px var(--accent);}
   .task-del-btn{background:none;border:none;color:var(--red-fg);font-size:10.5px;font-weight:600;cursor:pointer;margin-left:8px;padding:2px 4px;}
@@ -693,7 +698,13 @@
   <!-- ================= VIEW: STOCK MANAGEMENT ================= -->
   <div class="view" id="view-assetplant">
     <div class="category">
-      <div class="category-head"><span>📦 Stock Management — Part WIM</span></div>
+      <div class="category-head">
+        <span>📦 Stock Management — Part WIM</span>
+        <div class="spreadsheet-link-badge">
+          <a href="#" id="stockSheetLinkBtn" class="spreadsheet-link-pill" target="_blank" rel="noopener" title="Buka spreadsheet sumber data di tab baru">🔗 <span>Link Spreadsheet</span></a>
+          <button type="button" class="spreadsheet-link-edit" id="stockSheetEditBtn" title="Ubah link spreadsheet sumber data">✏️</button>
+        </div>
+      </div>
       <div class="category-body" style="padding:12px 14px;">
         <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
           <span style="font-size:10.5px;color:#889;" id="apSyncInfo">Belum pernah sync dari Google Sheet.</span>
@@ -2988,6 +2999,45 @@ const DSO_POB_KEY = 'dso:pob';
 const STOCK_SHEET_ID = '1w3rlXybBify-dOTs26n83WrlO5FzlWvQUbLq21pp4n4';
 const STOCK_SHEET_NAME = 'Summary Stok';
 const DSO_STOCK_LASTSYNC_KEY = 'dso:stock-lastsync';
+const DSO_STOCK_SHEETID_OVERRIDE_KEY = 'dso:stock-sheet-id-override';
+let stockSheetIdOverride = null; // null = belum dimuat dari storage; '' = sudah dimuat, tidak ada override
+
+async function apGetEffectiveSheetId(){
+  if(stockSheetIdOverride === null){
+    stockSheetIdOverride = await dsoLoad(DSO_STOCK_SHEETID_OVERRIDE_KEY, '');
+  }
+  return stockSheetIdOverride || STOCK_SHEET_ID;
+}
+
+async function apUpdateSheetBadge(){
+  const id = await apGetEffectiveSheetId();
+  const linkEl = document.getElementById('stockSheetLinkBtn');
+  if(linkEl) linkEl.href = `https://docs.google.com/spreadsheets/d/${id}/edit`;
+}
+
+async function apEditSheetLink(){
+  const current = await apGetEffectiveSheetId();
+  const currentUrl = `https://docs.google.com/spreadsheets/d/${current}/edit`;
+  const input = prompt(
+    `Tempel URL atau ID Google Sheet sumber data Stock Management.\nSheet harus punya tab bernama "${STOCK_SHEET_NAME}" dan akses "Anyone with link can view".`,
+    currentUrl
+  );
+  if(input === null) return;
+  const trimmed = input.trim();
+  if(!trimmed) return;
+  let newId = trimmed;
+  const m = trimmed.match(/\/d\/([a-zA-Z0-9-_]+)/);
+  if(m) newId = m[1];
+  if(!/^[a-zA-Z0-9-_]{15,}$/.test(newId)){
+    showToast('⚠️ Link/ID Google Sheet tidak valid', 'error');
+    return;
+  }
+  stockSheetIdOverride = newId;
+  await dsoSave(DSO_STOCK_SHEETID_OVERRIDE_KEY, newId);
+  await apUpdateSheetBadge();
+  showToast('✓ Link spreadsheet Stock Management diperbarui, menyinkron ulang...', 'success');
+  syncStockFromSheet(true);
+}
 
 function dsoDefaults(){
   return {
@@ -3293,7 +3343,8 @@ function apMatchHeader(headerText){
 }
 async function fetchStockSheetData(){
   await loadGoogleChartsOnce();
-  const url = `https://docs.google.com/spreadsheets/d/${STOCK_SHEET_ID}/gviz/tq?sheet=${encodeURIComponent(STOCK_SHEET_NAME)}`;
+  const sheetId = await apGetEffectiveSheetId();
+  const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?sheet=${encodeURIComponent(STOCK_SHEET_NAME)}`;
   return new Promise((resolve, reject) => {
     let settled = false;
     const timer = setTimeout(() => {
@@ -3863,6 +3914,17 @@ async function renderAssetPlant(autoSync){
     tr.querySelector('.ap-hist').onclick = () => openStockModal(assets, i);
   });
   document.getElementById('apAddBtn').onclick = () => apOpenModal(null);
+  const sheetEditBtn = document.getElementById('stockSheetEditBtn');
+  if(sheetEditBtn && !sheetEditBtn.dataset.bound){
+    sheetEditBtn.dataset.bound = '1';
+    sheetEditBtn.onclick = (e) => { e.stopPropagation(); apEditSheetLink(); };
+  }
+  const sheetLinkBtn = document.getElementById('stockSheetLinkBtn');
+  if(sheetLinkBtn && !sheetLinkBtn.dataset.bound){
+    sheetLinkBtn.dataset.bound = '1';
+    sheetLinkBtn.onclick = (e) => e.stopPropagation();
+  }
+  apUpdateSheetBadge();
   document.getElementById('apModalCloseBtn').onclick = () => document.getElementById('apModalOverlay').classList.remove('active');
   document.getElementById('apCancelBtn').onclick = () => document.getElementById('apModalOverlay').classList.remove('active');
   document.getElementById('apModalOverlay').onclick = (e) => { if(e.target.id === 'apModalOverlay') e.currentTarget.classList.remove('active'); };
