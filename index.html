@@ -736,6 +736,59 @@
     </div>
   </div>
 
+  <!-- ================= MODAL: EDIT ITEM STOCK PART WIM ================= -->
+  <div class="modal-overlay" id="apModalOverlay">
+    <div class="modal-box" style="max-width:460px;">
+      <button type="button" class="modal-close-x" id="apModalCloseBtn" title="Tutup">✕</button>
+      <h3 id="apModalTitle">Tambah Item Part</h3>
+      <div class="controls" style="flex-direction:column;align-items:stretch;background:none;border:none;padding:0;margin-bottom:0;">
+        <div class="grow"><label>Description</label><input type="text" id="apFDescription" style="width:100%;"></div>
+        <div style="display:flex;gap:10px;">
+          <div class="grow"><label>Category</label>
+            <select id="apFCategory" style="width:100%;">
+              <option value="">-</option>
+              <option>Low</option>
+              <option>Medium</option>
+              <option>Critical</option>
+            </select>
+          </div>
+          <div class="grow"><label>Source</label>
+            <select id="apFSource" style="width:100%;">
+              <option value="">-</option>
+              <option>Impor</option>
+              <option>Local</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;">
+          <div class="grow"><label>New Stock Spare</label><input type="number" id="apFNewStock" style="width:100%;"></div>
+          <div class="grow"><label>Ex / Second</label><input type="number" id="apFExSecond" style="width:100%;"></div>
+        </div>
+        <div style="display:flex;gap:10px;">
+          <div class="grow"><label>Unit</label><input type="text" id="apFUnit" style="width:100%;" placeholder="Pcs"></div>
+          <div class="grow"><label>Broken</label><input type="number" id="apFBroken" style="width:100%;"></div>
+        </div>
+        <div class="grow"><label>Jenis</label>
+          <select id="apFJenis" style="width:100%;">
+            <option value="">-</option>
+            <option>Bekas</option>
+            <option>Rusak</option>
+            <option>Aus</option>
+            <option>Dummy</option>
+          </select>
+        </div>
+        <div class="grow"><label>Desc</label><textarea id="apFDesc" rows="2" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:13px;font-family:var(--font-body);"></textarea></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:14px;">
+        <button type="button" class="btn" id="apDeleteBtn" style="color:var(--red-fg);border-color:var(--red-fg);display:none;">Hapus</button>
+        <div style="display:flex;gap:8px;margin-left:auto;">
+          <button type="button" class="btn btn-ghost" id="apCancelBtn">Batal</button>
+          <button type="button" class="btn btn-primary" id="apSaveBtn">Simpan</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ================= VIEW: POB ================= -->
   <div class="view" id="view-pob">
     <div class="summary" style="grid-template-columns:repeat(3,1fr);">
@@ -2929,6 +2982,8 @@ function setSyncState(state){
 /* ================= DSO HUB: OVERVIEW / STOCK MANAGEMENT / POB ================= */
 const DSO_AVAIL_KEY = 'dso:availability';
 const DSO_ASSETS_KEY = 'dso:stock-wim-v2';
+let apAssetsData = [];
+let apEditingIdx = null;
 const DSO_POB_KEY = 'dso:pob';
 const STOCK_SHEET_ID = '1w3rlXybBify-dOTs26n83WrlO5FzlWvQUbLq21pp4n4';
 const STOCK_SHEET_NAME = 'Summary Stok';
@@ -3779,8 +3834,9 @@ function apBadge(val, colorMap, cls){
   return `<span class="${cls}" style="cursor:pointer;padding:2px 10px;border-radius:999px;font-size:11px;font-weight:bold;display:inline-block;background:var(--${c}-bg);color:var(--${c}-fg);">${val}</span>`;
 }
 async function renderAssetPlant(autoSync){
-  let assets = await dsoLoad(DSO_ASSETS_KEY, dsoDefaults().assets);
-  assets = apMigrateAll(assets);
+  apAssetsData = await dsoLoad(DSO_ASSETS_KEY, dsoDefaults().assets);
+  apAssetsData = apMigrateAll(apAssetsData);
+  const assets = apAssetsData;
   const body = document.getElementById('apBody');
   body.innerHTML = '';
   assets.forEach((a,i)=>{
@@ -3788,62 +3844,30 @@ async function renderAssetPlant(autoSync){
     tr.style.background = i%2 ? '#f7f9f8' : '#fff';
     tr.innerHTML = `
       <td style="padding:6px;color:#889;">${i+1}</td>
-      <td contenteditable="true" class="ap-f" data-field="description" style="padding:6px;font-weight:bold;color:var(--navy);cursor:text;">${a.description}</td>
-      <td style="padding:6px;">${apBadge(a.category, AP_CATEGORY_COLOR, 'ap-category')}</td>
-      <td style="padding:6px;">${apBadge(a.source, AP_SOURCE_COLOR, 'ap-source')}</td>
-      <td contenteditable="true" class="ap-f" data-field="newStock" style="padding:6px;">${a.newStock}</td>
-      <td contenteditable="true" class="ap-f" data-field="exSecond" style="padding:6px;">${a.exSecond||''}</td>
-      <td contenteditable="true" class="ap-f" data-field="unit" style="padding:6px;">${a.unit||''}</td>
-      <td contenteditable="true" class="ap-f" data-field="broken" style="padding:6px;">${a.broken}</td>
-      <td style="padding:6px;">${apBadge(a.jenis, AP_JENIS_COLOR, 'ap-jenis')}</td>
-      <td contenteditable="true" class="ap-f" data-field="desc" style="padding:6px;color:#556;">${a.desc||''}</td>
+      <td style="padding:6px;font-weight:bold;color:var(--navy);">${a.description||'-'}</td>
+      <td style="padding:6px;">${apBadge(a.category, AP_CATEGORY_COLOR, '')}</td>
+      <td style="padding:6px;">${apBadge(a.source, AP_SOURCE_COLOR, '')}</td>
+      <td style="padding:6px;">${a.newStock}</td>
+      <td style="padding:6px;">${a.exSecond||0}</td>
+      <td style="padding:6px;">${a.unit||''}</td>
+      <td style="padding:6px;">${a.broken}</td>
+      <td style="padding:6px;">${apBadge(a.jenis, AP_JENIS_COLOR, '')}</td>
+      <td style="padding:6px;color:#556;">${a.desc||''}</td>
       <td style="padding:6px;text-align:right;white-space:nowrap;">
+        <i class="ti ti-edit ap-row-edit" data-idx="${i}" title="Edit" style="font-size:16px;color:var(--text-secondary);cursor:pointer;margin-right:6px;"></i>
         <button data-idx="${i}" class="wim-icon-btn ap-hist" title="Riwayat & serial number"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></button>
-        <button data-idx="${i}" class="wim-icon-btn danger ap-del" title="Hapus"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>
       </td>`;
     body.appendChild(tr);
     tr.dataset.idx = i;
-    tr.querySelectorAll('.ap-f').forEach(td => {
-      td.onblur = async () => {
-        const field = td.dataset.field;
-        const isNum = field === 'newStock' || field === 'exSecond' || field === 'broken';
-        a[field] = isNum ? (Number(td.textContent)||0) : td.textContent.trim();
-        await dsoSave(DSO_ASSETS_KEY, assets);
-      };
-    });
-    tr.querySelector('.ap-category').onclick = async () => {
-      const ci = AP_CATEGORY_CYCLE.indexOf(a.category);
-      a.category = AP_CATEGORY_CYCLE[(ci+1) % AP_CATEGORY_CYCLE.length];
-      await dsoSave(DSO_ASSETS_KEY, assets);
-      renderAssetPlant(false);
-    };
-    tr.querySelector('.ap-source').onclick = async () => {
-      const ci = AP_SOURCE_CYCLE.indexOf(a.source);
-      a.source = AP_SOURCE_CYCLE[(ci+1) % AP_SOURCE_CYCLE.length];
-      await dsoSave(DSO_ASSETS_KEY, assets);
-      renderAssetPlant(false);
-    };
-    tr.querySelector('.ap-jenis').onclick = async () => {
-      const ci = AP_JENIS_CYCLE.indexOf(a.jenis);
-      a.jenis = AP_JENIS_CYCLE[(ci+1) % AP_JENIS_CYCLE.length];
-      await dsoSave(DSO_ASSETS_KEY, assets);
-      renderAssetPlant(false);
-    };
+    tr.querySelector('.ap-row-edit').onclick = () => apOpenModal(i);
     tr.querySelector('.ap-hist').onclick = () => openStockModal(assets, i);
-    tr.querySelector('.ap-del').onclick = async () => {
-      if(!confirm('Hapus item "' + a.description + '"?')) return;
-      assets.splice(i,1);
-      await dsoSave(DSO_ASSETS_KEY, assets);
-      renderAssetPlant(false);
-    };
   });
-  document.getElementById('apAddBtn').onclick = async () => {
-    const nama = prompt('Nama/Description item part baru:');
-    if(!nama || !nama.trim()) return;
-    assets.push({description:nama.trim(), category:'', source:'', newStock:0, exSecond:0, unit:'Pcs', broken:0, jenis:'', desc:'', replacements:[], serial:[]});
-    await dsoSave(DSO_ASSETS_KEY, assets);
-    renderAssetPlant(false);
-  };
+  document.getElementById('apAddBtn').onclick = () => apOpenModal(null);
+  document.getElementById('apModalCloseBtn').onclick = () => document.getElementById('apModalOverlay').classList.remove('active');
+  document.getElementById('apCancelBtn').onclick = () => document.getElementById('apModalOverlay').classList.remove('active');
+  document.getElementById('apModalOverlay').onclick = (e) => { if(e.target.id === 'apModalOverlay') e.currentTarget.classList.remove('active'); };
+  document.getElementById('apSaveBtn').onclick = apSaveModal;
+  document.getElementById('apDeleteBtn').onclick = apDeleteCurrent;
   const syncBtn = document.getElementById('apSyncBtn');
   if(syncBtn && !syncBtn.dataset.bound){
     syncBtn.dataset.bound = '1';
@@ -3860,6 +3884,64 @@ async function renderAssetPlant(autoSync){
     renderAssetPlant._autoSynced = true;
     syncStockFromSheet(false);
   }
+}
+
+function apOpenModal(idx){
+  apEditingIdx = (idx === null || idx === undefined) ? null : idx;
+  const rec = apEditingIdx !== null ? apAssetsData[apEditingIdx] : null;
+  document.getElementById('apModalTitle').textContent = rec ? 'Edit Item Part' : 'Tambah Item Part';
+  document.getElementById('apFDescription').value = rec ? rec.description||'' : '';
+  document.getElementById('apFCategory').value = rec ? rec.category||'' : '';
+  document.getElementById('apFSource').value = rec ? rec.source||'' : '';
+  document.getElementById('apFNewStock').value = rec ? rec.newStock||0 : 0;
+  document.getElementById('apFExSecond').value = rec ? rec.exSecond||0 : 0;
+  document.getElementById('apFUnit').value = rec ? rec.unit||'Pcs' : 'Pcs';
+  document.getElementById('apFBroken').value = rec ? rec.broken||0 : 0;
+  document.getElementById('apFJenis').value = rec ? rec.jenis||'' : '';
+  document.getElementById('apFDesc').value = rec ? rec.desc||'' : '';
+  document.getElementById('apDeleteBtn').style.display = rec ? 'inline-block' : 'none';
+  document.getElementById('apModalOverlay').classList.add('active');
+}
+
+async function apSaveModal(){
+  const description = document.getElementById('apFDescription').value.trim();
+  if(!description){ showToast('⚠️ Description wajib diisi', 'error'); return; }
+  const rec = {
+    description,
+    category: document.getElementById('apFCategory').value,
+    source: document.getElementById('apFSource').value,
+    newStock: Number(document.getElementById('apFNewStock').value) || 0,
+    exSecond: Number(document.getElementById('apFExSecond').value) || 0,
+    unit: document.getElementById('apFUnit').value.trim() || 'Pcs',
+    broken: Number(document.getElementById('apFBroken').value) || 0,
+    jenis: document.getElementById('apFJenis').value,
+    desc: document.getElementById('apFDesc').value.trim()
+  };
+  if(apEditingIdx !== null && apAssetsData[apEditingIdx]){
+    const old = apAssetsData[apEditingIdx];
+    rec.replacements = old.replacements || [];
+    rec.serial = old.serial || [];
+    apAssetsData[apEditingIdx] = rec;
+  } else {
+    rec.replacements = [];
+    rec.serial = [];
+    apAssetsData.push(rec);
+  }
+  await dsoSave(DSO_ASSETS_KEY, apAssetsData);
+  document.getElementById('apModalOverlay').classList.remove('active');
+  renderAssetPlant(false);
+  showToast('✓ Item part tersimpan', 'success');
+}
+
+async function apDeleteCurrent(){
+  if(apEditingIdx === null || !apAssetsData[apEditingIdx]) return;
+  const nama = apAssetsData[apEditingIdx].description;
+  if(!confirm('Hapus item "' + nama + '"?')) return;
+  apAssetsData.splice(apEditingIdx, 1);
+  await dsoSave(DSO_ASSETS_KEY, apAssetsData);
+  document.getElementById('apModalOverlay').classList.remove('active');
+  renderAssetPlant(false);
+  showToast('✓ Item part dihapus', 'success');
 }
 
 async function renderPob(){
@@ -4906,6 +4988,7 @@ function createManagedList(opts){
   }
   function renderOptions(selectedValue){
     const sel = document.getElementById(selectId);
+    if(!sel) return;
     const current = selectedValue !== undefined ? selectedValue : sel.value;
     sel.innerHTML = '<option value="">-</option>' + list.map(v =>
       `<option ${v === current ? 'selected' : ''}>${v}</option>`
@@ -5028,7 +5111,7 @@ function createManagedList(opts){
     if(e.key === 'Escape' && document.getElementById(modalOverlayId).classList.contains('active')) closeModal();
   });
 
-  return { load, renderOptions };
+  return { load, renderOptions, getList: () => list };
 }
 
 const vendorManager = createManagedList({
@@ -5187,7 +5270,6 @@ function aebsSeedData(){
 }
 
 let aebsData = [];
-let aebsEditingId = null;
 let aebsListenersBound = false;
 
 function aebsKeyOf(r){
@@ -5310,6 +5392,8 @@ function aebsRenderTable(){
     </tr>`).join('');
   body.querySelectorAll('.aebs-row-edit').forEach(el => el.onclick = () => aebsOpenModal(el.dataset.id));
 }
+
+let aebsEditingId = null;
 
 function aebsOpenModal(id){
   aebsEditingId = id || null;
