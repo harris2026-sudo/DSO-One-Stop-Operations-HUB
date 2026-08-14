@@ -1094,7 +1094,8 @@
           <option value="resolved">Resolved</option>
         </select>
       </div>
-      <button type="button" class="btn btn-primary" id="aebsAddBtn" style="margin-left:auto;">+ Tambah Data</button>
+      <button type="button" class="btn btn-ghost" id="aebsPicManageBtn" style="margin-left:auto;" title="Kelola daftar PIC (tambah/edit/hapus)">⚙️ PIC</button>
+      <button type="button" class="btn btn-primary" id="aebsAddBtn">+ Tambah Data</button>
     </div>
 
     <div class="category">
@@ -1115,54 +1116,6 @@
           <tbody id="aebsTableBody"></tbody>
         </table>
         <div id="aebsEmptyState" style="display:none;padding:16px 0;text-align:center;font-size:12px;color:#889;">Tidak ada data yang cocok dengan filter.</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="modal-overlay" id="aebsModalOverlay">
-    <div class="modal-box" style="max-width:460px;">
-      <button type="button" class="modal-close-x" id="aebsModalCloseBtn" title="Tutup">✕</button>
-      <h3 id="aebsModalTitle">Tambah Data AEBS Offline</h3>
-      <div class="controls" style="flex-direction:column;align-items:stretch;background:none;border:none;padding:0;margin-bottom:0;">
-        <div class="grow"><label>No Lambung</label><input type="text" id="aebsFNoLambung" style="width:100%;"></div>
-        <div class="grow"><label>Nama Mitra</label><input type="text" id="aebsFMitra" style="width:100%;"></div>
-        <div style="display:flex;gap:10px;">
-          <div class="grow"><label>Merk Unit</label><input type="text" id="aebsFMerk" style="width:100%;"></div>
-          <div class="grow"><label>Model</label><input type="text" id="aebsFModel" style="width:100%;"></div>
-        </div>
-        <div class="grow"><label>Lokasi Pemasangan</label><input type="text" id="aebsFLokasi" style="width:100%;"></div>
-        <div class="grow"><label>Alasan OFF</label>
-          <select id="aebsFAlasan" style="width:100%;">
-            <option>Belum POC</option>
-            <option>Issue Unit</option>
-            <option>Menunggu Aktivasi</option>
-            <option>Trouble Unit</option>
-            <option>AEBS</option>
-            <option>Lainnya</option>
-          </select>
-        </div>
-        <div class="grow"><label>Catatan Non-Aktif</label><textarea id="aebsFCatatan" rows="2" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:13px;font-family:var(--font-body);"></textarea></div>
-        <div class="grow">
-          <label>PIC</label>
-          <div class="select-with-actions">
-            <select id="aebsFPic" style="width:100%;"><option value="">-</option></select>
-            <button type="button" class="icon-btn icon-btn-add" id="aebsPicManageBtn" title="Kelola daftar PIC (tambah/edit/hapus)">⚙️</button>
-          </div>
-        </div>
-        <div class="grow"><label>Status Tindak Lanjut</label>
-          <select id="aebsFStatus" style="width:100%;">
-            <option value="offline">Offline</option>
-            <option value="progress">On Progress</option>
-            <option value="resolved">Resolved</option>
-          </select>
-        </div>
-      </div>
-      <div style="display:flex;justify-content:space-between;margin-top:14px;">
-        <button type="button" class="btn" id="aebsDeleteBtn" style="color:var(--red-fg);border-color:var(--red-fg);display:none;">Hapus</button>
-        <div style="display:flex;gap:8px;margin-left:auto;">
-          <button type="button" class="btn btn-ghost" id="aebsCancelBtn">Batal</button>
-          <button type="button" class="btn btn-primary" id="aebsSaveBtn">Simpan</button>
-        </div>
       </div>
     </div>
   </div>
@@ -4906,6 +4859,7 @@ function createManagedList(opts){
   }
   function renderOptions(selectedValue){
     const sel = document.getElementById(selectId);
+    if(!sel) return;
     const current = selectedValue !== undefined ? selectedValue : sel.value;
     sel.innerHTML = '<option value="">-</option>' + list.map(v =>
       `<option ${v === current ? 'selected' : ''}>${v}</option>`
@@ -5028,7 +4982,7 @@ function createManagedList(opts){
     if(e.key === 'Escape' && document.getElementById(modalOverlayId).classList.contains('active')) closeModal();
   });
 
-  return { load, renderOptions };
+  return { load, renderOptions, getList: () => list };
 }
 
 const vendorManager = createManagedList({
@@ -5187,7 +5141,6 @@ function aebsSeedData(){
 }
 
 let aebsData = [];
-let aebsEditingId = null;
 let aebsListenersBound = false;
 
 function aebsKeyOf(r){
@@ -5284,6 +5237,9 @@ function aebsRenderSummary(){
   ).join('');
 }
 
+const AEBS_ALASAN_CYCLE = ['Belum POC','Issue Unit','Menunggu Aktivasi','Trouble Unit','AEBS'];
+const AEBS_STATUS_CYCLE = ['offline','progress','resolved'];
+
 function aebsRenderTable(){
   const list = aebsFilteredList();
   const body = document.getElementById('aebsTableBody');
@@ -5294,73 +5250,94 @@ function aebsRenderTable(){
     return;
   }
   empty.style.display = 'none';
-  body.innerHTML = list.map((r, i) => `
-    <tr style="${i % 2 === 1 ? 'background:var(--zebra);' : ''}">
-      <td style="padding:6px;font-family:var(--font-mono);font-weight:bold;">${r.noLambung||'-'}</td>
-      <td style="padding:6px;color:var(--text-secondary);">${r.mitra||'-'}</td>
-      <td style="padding:6px;color:var(--text-secondary);">${[r.merk,r.model].filter(Boolean).join(' ')||'-'}</td>
-      <td style="padding:6px;color:var(--text-secondary);">${r.lokasi||'-'}</td>
-      <td style="padding:6px;">${aebsAlasanBadge(r.alasanOff)}</td>
-      <td style="padding:6px;color:var(--text-secondary);">${r.catatanNonAktif||'-'}</td>
-      <td style="padding:6px;">${r.pic || '<span style="color:var(--text-muted);">- pilih</span>'}</td>
-      <td style="padding:6px;">${aebsStatusBadge(r.statusTL)}</td>
-      <td style="padding:6px;text-align:right;white-space:nowrap;">
-        <i class="ti ti-edit aebs-row-edit" data-id="${r.id}" title="Edit" style="font-size:16px;color:var(--text-secondary);cursor:pointer;"></i>
+  const picList = aebsPicManager.getList ? aebsPicManager.getList() : [];
+  body.innerHTML = '';
+  list.forEach((r, i) => {
+    const tr = document.createElement('tr');
+    tr.style.background = i % 2 === 1 ? 'var(--zebra)' : '';
+    tr.innerHTML = `
+      <td contenteditable="true" class="aebs-f" data-field="noLambung" style="padding:6px;font-family:var(--font-mono);font-weight:bold;cursor:text;">${r.noLambung||''}</td>
+      <td contenteditable="true" class="aebs-f" data-field="mitra" style="padding:6px;color:var(--text-secondary);cursor:text;">${r.mitra||''}</td>
+      <td style="padding:6px;color:var(--text-secondary);white-space:nowrap;">
+        <span contenteditable="true" class="aebs-f" data-field="merk" style="cursor:text;">${r.merk||''}</span>
+        <span contenteditable="true" class="aebs-f" data-field="model" style="cursor:text;margin-left:4px;">${r.model||''}</span>
       </td>
-    </tr>`).join('');
-  body.querySelectorAll('.aebs-row-edit').forEach(el => el.onclick = () => aebsOpenModal(el.dataset.id));
+      <td contenteditable="true" class="aebs-f" data-field="lokasi" style="padding:6px;color:var(--text-secondary);cursor:text;">${r.lokasi||''}</td>
+      <td style="padding:6px;" class="aebs-alasan-cell">${aebsAlasanBadge(r.alasanOff)}</td>
+      <td contenteditable="true" class="aebs-f" data-field="catatanNonAktif" style="padding:6px;color:var(--text-secondary);cursor:text;">${r.catatanNonAktif||''}</td>
+      <td style="padding:6px;" class="aebs-pic-cell">
+        <select class="aebs-pic-select" style="font-size:11.5px;padding:3px 6px;border:1px solid var(--border);border-radius:6px;background:#fff;">
+          <option value="">- pilih</option>
+          ${picList.map(p => `<option ${p === r.pic ? 'selected' : ''}>${p}</option>`).join('')}
+        </select>
+      </td>
+      <td style="padding:6px;" class="aebs-status-cell">${aebsStatusBadge(r.statusTL)}</td>
+      <td style="padding:6px;text-align:right;white-space:nowrap;">
+        <button type="button" class="wim-icon-btn danger aebs-row-del" title="Hapus"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>
+      </td>`;
+    body.appendChild(tr);
+
+    tr.querySelectorAll('.aebs-f').forEach(td => {
+      td.onblur = async () => {
+        const idx = aebsData.findIndex(x => x.id === r.id);
+        if(idx < 0) return;
+        aebsData[idx][td.dataset.field] = td.textContent.trim();
+        await aebsSave();
+        aebsPopulateFilterOptions();
+        aebsRenderSummary();
+      };
+    });
+    tr.querySelector('.aebs-alasan-cell').onclick = async () => {
+      const idx = aebsData.findIndex(x => x.id === r.id);
+      if(idx < 0) return;
+      const ci = AEBS_ALASAN_CYCLE.indexOf(aebsData[idx].alasanOff);
+      aebsData[idx].alasanOff = AEBS_ALASAN_CYCLE[(ci+1) % AEBS_ALASAN_CYCLE.length];
+      await aebsSave();
+      aebsPopulateFilterOptions();
+      aebsRenderSummary();
+      aebsRenderTable();
+    };
+    tr.querySelector('.aebs-status-cell').onclick = async () => {
+      const idx = aebsData.findIndex(x => x.id === r.id);
+      if(idx < 0) return;
+      const ci = AEBS_STATUS_CYCLE.indexOf(aebsData[idx].statusTL);
+      aebsData[idx].statusTL = AEBS_STATUS_CYCLE[(ci+1) % AEBS_STATUS_CYCLE.length];
+      await aebsSave();
+      aebsRenderSummary();
+      aebsRenderTable();
+    };
+    tr.querySelector('.aebs-pic-select').onchange = async (e) => {
+      const idx = aebsData.findIndex(x => x.id === r.id);
+      if(idx < 0) return;
+      aebsData[idx].pic = e.target.value;
+      await aebsSave();
+    };
+    tr.querySelector('.aebs-row-del').onclick = async () => {
+      if(!confirm('Hapus data unit "' + (r.noLambung || r.mitra || '') + '"?')) return;
+      aebsData = aebsData.filter(x => x.id !== r.id);
+      await aebsSave();
+      aebsPopulateFilterOptions();
+      aebsRenderSummary();
+      aebsRenderTable();
+      showToast('✓ Data AEBS Offline dihapus', 'success');
+    };
+  });
 }
 
-function aebsOpenModal(id){
-  aebsEditingId = id || null;
-  const rec = id ? aebsData.find(r => r.id === id) : null;
-  document.getElementById('aebsModalTitle').textContent = rec ? 'Edit Data AEBS Offline' : 'Tambah Data AEBS Offline';
-  document.getElementById('aebsFNoLambung').value = rec ? rec.noLambung||'' : '';
-  document.getElementById('aebsFMitra').value = rec ? rec.mitra||'' : '';
-  document.getElementById('aebsFMerk').value = rec ? rec.merk||'' : '';
-  document.getElementById('aebsFModel').value = rec ? rec.model||'' : '';
-  document.getElementById('aebsFLokasi').value = rec ? rec.lokasi||'' : '';
-  document.getElementById('aebsFAlasan').value = rec ? rec.alasanOff||'Belum POC' : 'Belum POC';
-  document.getElementById('aebsFCatatan').value = rec ? rec.catatanNonAktif||'' : '';
-  renderAebsPicOptions(rec ? rec.pic||'' : '');
-  document.getElementById('aebsFStatus').value = rec ? rec.statusTL||'offline' : 'offline';
-  document.getElementById('aebsDeleteBtn').style.display = rec ? 'inline-block' : 'none';
-  document.getElementById('aebsModalOverlay').classList.add('active');
-}
-
-async function aebsSaveModal(){
-  const rec = {
-    id: aebsEditingId || ('ae' + Date.now()),
-    noLambung: document.getElementById('aebsFNoLambung').value.trim(),
-    mitra: document.getElementById('aebsFMitra').value.trim(),
-    merk: document.getElementById('aebsFMerk').value.trim(),
-    model: document.getElementById('aebsFModel').value.trim(),
-    lokasi: document.getElementById('aebsFLokasi').value.trim(),
-    alasanOff: document.getElementById('aebsFAlasan').value,
-    catatanNonAktif: document.getElementById('aebsFCatatan').value.trim(),
-    pic: document.getElementById('aebsFPic').value,
-    statusTL: document.getElementById('aebsFStatus').value
-  };
-  if(!rec.noLambung){ showToast('⚠️ No Lambung wajib diisi', 'error'); return; }
-  const idx = aebsData.findIndex(r => r.id === rec.id);
-  if(idx >= 0) aebsData[idx] = rec; else aebsData.push(rec);
+async function aebsAddRow(){
+  const noLambung = prompt('No Lambung unit baru:');
+  if(!noLambung || !noLambung.trim()) return;
+  aebsData.push({
+    id: 'ae' + Date.now(),
+    noLambung: noLambung.trim(),
+    mitra: '', merk: '', model: '', lokasi: '',
+    alasanOff: 'Belum POC', catatanNonAktif: '', pic: '', statusTL: 'offline'
+  });
   await aebsSave();
-  document.getElementById('aebsModalOverlay').classList.remove('active');
   aebsPopulateFilterOptions();
   aebsRenderSummary();
   aebsRenderTable();
-  showToast('✓ Data AEBS Offline tersimpan', 'success');
-}
-
-async function aebsDeleteCurrent(){
-  if(!aebsEditingId) return;
-  aebsData = aebsData.filter(r => r.id !== aebsEditingId);
-  await aebsSave();
-  document.getElementById('aebsModalOverlay').classList.remove('active');
-  aebsPopulateFilterOptions();
-  aebsRenderSummary();
-  aebsRenderTable();
-  showToast('✓ Data AEBS Offline dihapus', 'success');
+  showToast('✓ Data AEBS Offline ditambahkan', 'success');
 }
 
 /* ---- Sync AEBS Offline dari Google Sheet (mirror dari SharePoint, lihat catatan AEBS_SHEET_ID di atas) ---- */
@@ -5497,12 +5474,7 @@ async function syncAebsFromSheet(showAlert){
 function aebsBindListenersOnce(){
   if(aebsListenersBound) return;
   aebsListenersBound = true;
-  document.getElementById('aebsAddBtn').onclick = () => aebsOpenModal(null);
-  document.getElementById('aebsModalCloseBtn').onclick = () => document.getElementById('aebsModalOverlay').classList.remove('active');
-  document.getElementById('aebsCancelBtn').onclick = () => document.getElementById('aebsModalOverlay').classList.remove('active');
-  document.getElementById('aebsModalOverlay').onclick = (e) => { if(e.target.id === 'aebsModalOverlay') e.currentTarget.classList.remove('active'); };
-  document.getElementById('aebsSaveBtn').onclick = aebsSaveModal;
-  document.getElementById('aebsDeleteBtn').onclick = aebsDeleteCurrent;
+  document.getElementById('aebsAddBtn').onclick = aebsAddRow;
   document.getElementById('aebsSearchInput').oninput = aebsRenderTable;
   document.getElementById('aebsAlasanFilter').onchange = aebsRenderTable;
   document.getElementById('aebsStatusFilter').onchange = aebsRenderTable;
