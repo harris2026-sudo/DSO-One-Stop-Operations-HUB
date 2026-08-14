@@ -3387,9 +3387,9 @@ async function fetchStockSheetData(){
             rec[field] = val ? val.trim() : '';
           }
           if(!rec.description) continue;
-          rec.newStock = Number(rec.newStock)||0;
-          rec.exSecond = Number(rec.exSecond)||0;
-          rec.broken = Number(rec.broken)||0;
+          if('newStock' in rec) rec.newStock = Number(rec.newStock)||0;
+          if('exSecond' in rec) rec.exSecond = Number(rec.exSecond)||0;
+          if('broken' in rec) rec.broken = Number(rec.broken)||0;
           rows.push(rec);
         }
         resolve(rows);
@@ -3435,17 +3435,20 @@ function apMergeSheetData(existingAssets, sheetRows){
       const i = indexByName.get(key);
       merged[i].category = row.category || merged[i].category;
       merged[i].source = row.source || merged[i].source;
-      merged[i].newStock = row.newStock;
-      merged[i].exSecond = row.exSecond;
+      merged[i].newStock = ('newStock' in row) ? row.newStock : merged[i].newStock;
+      merged[i].exSecond = ('exSecond' in row) ? row.exSecond : merged[i].exSecond;
       merged[i].unit = row.unit || merged[i].unit;
-      merged[i].broken = row.broken;
+      merged[i].broken = ('broken' in row) ? row.broken : merged[i].broken;
       merged[i].jenis = row.jenis || merged[i].jenis;
       merged[i].desc = row.desc || merged[i].desc;
     }else{
       merged.push({
         description: row.description, category: row.category, source: row.source,
-        newStock: row.newStock, exSecond: row.exSecond, unit: row.unit,
-        broken: row.broken, jenis: row.jenis, desc: row.desc,
+        newStock: ('newStock' in row) ? row.newStock : 0,
+        exSecond: ('exSecond' in row) ? row.exSecond : 0,
+        unit: row.unit,
+        broken: ('broken' in row) ? row.broken : 0,
+        jenis: row.jenis, desc: row.desc,
         replacements: [], serial: []
       });
       indexByName.set(key, merged.length-1);
