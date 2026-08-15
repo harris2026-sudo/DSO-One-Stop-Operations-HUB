@@ -646,8 +646,13 @@ function pjpPredikat(score){
   if(score > 50) return { label: 'MERAH', cls: 'ap-b-red' };
   return { label: 'HITAM', cls: 'ap-b-black' };
 }
+function pjpTotalBobot(){
+  return (pjpData.summaryAspects || []).reduce((sum, a) => sum + (Number(a.bobot) || 0), 0);
+}
 function pjpWeighted(field){
-  return (pjpData.summaryAspects || []).reduce((sum, a) => sum + (Number(a[field]) || 0) * (Number(a.bobot) || 0), 0);
+  const raw = (pjpData.summaryAspects || []).reduce((sum, a) => sum + (Number(a[field]) || 0) * (Number(a.bobot) || 0), 0);
+  const totalBobot = pjpTotalBobot();
+  return totalBobot > 0 ? raw / totalBobot : 0;
 }
 
 const pjpCompanyManager = createManagedList({
@@ -881,8 +886,10 @@ function pjpRenderSimulator(){
   pjpRecalcSim();
 }
 function pjpRecalcSim(){
-  let total = 0;
-  (pjpData.summaryAspects || []).forEach(a => { total += (pjpSimScores[a.no] || 0) * a.bobot; });
+  let raw = 0;
+  (pjpData.summaryAspects || []).forEach(a => { raw += (pjpSimScores[a.no] || 0) * a.bobot; });
+  const totalBobot = pjpTotalBobot();
+  const total = totalBobot > 0 ? raw / totalBobot : 0;
   document.getElementById('pjpSimScore').textContent = total.toFixed(2);
   const p = pjpPredikat(total);
   const el = document.getElementById('pjpSimPredikat');
