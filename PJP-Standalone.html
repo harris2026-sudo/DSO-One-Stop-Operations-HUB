@@ -587,6 +587,8 @@ function createManagedList(opts){
 /* ================= PENILAIAN JASA PERTAMBANGAN (PJP) ================= */
 const DSO_PJP_COMPANIES_KEY = 'dso:pjp:companies';
 const DSO_PJP_DATA_PREFIX = 'dso:pjp:data:';
+const DSO_PJP_DETAIL_PREFIX = 'dso:pjp:detail:';
+function pjpDetailKeyNo(key){ const m = String(key).match(/^(\d+)/); return m ? m[1] : '0'; }
 
 const PJP_ASPECT_DEFS = [
   { no: 1, name: 'Aspek Teknis Operasional', bobot: 0.15, aktif: true },
@@ -634,10 +636,46 @@ let pjpSelectedAspectKey = null;
 let pjpSimScores = {};
 
 async function pjpLoadCompanyData(company){
-  return await dsoLoad(DSO_PJP_DATA_PREFIX + company, pjpDefaultDataFor(company));
+  const def = pjpDefaultDataFor(company);
+  const summaryDefault = { meta: def.meta, summaryAspects: def.summaryAspects, detailKeys: Object.keys(def.detailedAspects || {}) };
+  let summary = await dsoLoad(DSO_PJP_DATA_PREFIX + company, summaryDefault);
+
+  // Migrasi otomatis dari format lama (detailedAspects tergabung dalam 1 key besar)
+  if(summary && summary.detailedAspects && Object.keys(summary.detailedAspects).length){
+    for(const k of Object.keys(summary.detailedAspects)){
+      await dsoSave(DSO_PJP_DETAIL_PREFIX + company + ':' + pjpDetailKeyNo(k), summary.detailedAspects[k]);
+    }
+    summary.detailKeys = Object.keys(summary.detailedAspects);
+    delete summary.detailedAspects;
+    await dsoSave(DSO_PJP_DATA_PREFIX + company, summary);
+  }
+
+  const detailedAspects = {};
+  const keys = summary.detailKeys || Object.keys(def.detailedAspects || {});
+  for(const k of keys){
+    const fallback = (def.detailedAspects && def.detailedAspects[k]) || [];
+    detailedAspects[k] = await dsoLoad(DSO_PJP_DETAIL_PREFIX + company + ':' + pjpDetailKeyNo(k), fallback);
+  }
+  return { meta: summary.meta, summaryAspects: summary.summaryAspects, detailedAspects };
+}
+async function pjpSaveSummary(){
+  await dsoSave(DSO_PJP_DATA_PREFIX + pjpCompany, {
+    meta: pjpData.meta,
+    summaryAspects: pjpData.summaryAspects,
+    detailKeys: Object.keys(pjpData.detailedAspects || {})
+  });
+}
+async function pjpSaveDetailAspect(key){
+  if(!key) return;
+  await dsoSave(DSO_PJP_DETAIL_PREFIX + pjpCompany + ':' + pjpDetailKeyNo(key), pjpData.detailedAspects[key] || []);
+  await pjpSaveSummary(); // pastikan index detailKeys ikut update kalau ada aspek baru
 }
 async function pjpSaveCompanyData(){
-  await dsoSave(DSO_PJP_DATA_PREFIX + pjpCompany, pjpData);
+  // Kompatibilitas: simpan summary + SEMUA aspek detail (dipakai saat rename/copy company)
+  await pjpSaveSummary();
+  for(const key of Object.keys(pjpData.detailedAspects || {})){
+    await dsoSave(DSO_PJP_DETAIL_PREFIX + pjpCompany + ':' + pjpDetailKeyNo(key), pjpData.detailedAspects[key] || []);
+  }
 }
 
 function pjpPredikat(score){
@@ -672,7 +710,21 @@ const pjpCompanyManager = createManagedList({
   onRename: async (oldName, newName) => {
     try{
       const old = await dsoLoad(DSO_PJP_DATA_PREFIX + oldName, null);
-      if(old){ await dsoSave(DSO_PJP_DATA_PREFIX + newName, old); await store.delete(DSO_PJP_DATA_PREFIX + oldName); }
+      if(old){
+        await dsoSave(DSO_PJP_DATA_PREFIX + newName, old);
+        await store.delete(DSO_PJP_DATA_PREFIX + oldName);
+        const keys = old.detailKeys || Object.keys(old.detailedAspects || {});
+        for(const k of keys){
+          const no = pjpDetailKeyNo(k);
+          try{
+            const detail = await dsoLoad(DSO_PJP_DETAIL_PREFIX + oldName + ':' + no, null);
+            if(detail){
+              await dsoSave(DSO_PJP_DETAIL_PREFIX + newName + ':' + no, detail);
+              await store.delete(DSO_PJP_DETAIL_PREFIX + oldName + ':' + no);
+            }
+          }catch(e){}
+        }
+      }
     }catch(e){}
     if(pjpCompany === oldName){ pjpCompany = newName; renderPJP(); }
   }
@@ -746,7 +798,7 @@ function pjpRenderSummary(){
       const idx = Number(btn.dataset.idx);
       const a = pjpData.summaryAspects[idx];
       a.aktif = a.aktif === false ? true : false;
-      await pjpSaveCompanyData();
+      await pjpSaveSummary();
       pjpRenderHero();
       pjpRenderCharts();
       pjpRenderSummary();
@@ -760,7 +812,7 @@ function pjpRenderSummary(){
       if(isNaN(v)) v = 0;
       if(field === 'bobot_pct') pjpData.summaryAspects[idx].bobot = v / 100;
       else pjpData.summaryAspects[idx][field] = v;
-      await pjpSaveCompanyData();
+      await pjpSaveSummary();
       pjpRenderHero();
       pjpRenderCharts();
       pjpRenderSummary();
@@ -842,7 +894,7 @@ function pjpRenderDetailTable(){
       } else {
         arr[idx][field] = val;
       }
-      await pjpSaveCompanyData();
+      await pjpSaveDetailAspect(pjpSelectedAspectKey);
     });
   });
   tbody.querySelectorAll('.pjp-row-del').forEach(btn => {
@@ -857,7 +909,7 @@ function pjpRenderDetailTable(){
       }
       const idx = Number(btn.dataset.idx);
       pjpData.detailedAspects[pjpSelectedAspectKey].splice(idx, 1);
-      await pjpSaveCompanyData();
+      await pjpSaveDetailAspect(pjpSelectedAspectKey);
       pjpRenderDetailTable();
     };
   });
@@ -873,7 +925,7 @@ document.getElementById('pjpAddItemBtn').onclick = async () => {
   }
   if(!pjpData.detailedAspects[pjpSelectedAspectKey]) pjpData.detailedAspects[pjpSelectedAspectKey] = [];
   pjpData.detailedAspects[pjpSelectedAspectKey].push({ no: '', code: '', desc: '', nilai_max: '', self_val: '', eval_val: '', notes: '', due_date: '' });
-  await pjpSaveCompanyData();
+  await pjpSaveDetailAspect(pjpSelectedAspectKey);
   pjpRenderDetail();
 };
 document.getElementById('pjpDetailSearch').addEventListener('keyup', () => {
@@ -918,7 +970,7 @@ function pjpRecalcSim(){
 document.getElementById('pjpSimResetBtn').onclick = () => pjpRenderSimulator();
 document.getElementById('pjpSimApplyBtn').onclick = async () => {
   (pjpData.summaryAspects || []).forEach(a => { if(a.aktif !== false && pjpSimScores[a.no] !== undefined) a.eval_akhir = pjpSimScores[a.no]; });
-  await pjpSaveCompanyData();
+  await pjpSaveSummary();
   pjpRenderHero();
   showToast('Simulasi diterapkan ke Nilai Evaluator (Akhir).');
 };
@@ -932,19 +984,19 @@ document.getElementById('pjpCompanySelect').onchange = async () => {
 };
 document.getElementById('pjpSemesterSelect').onchange = async () => {
   pjpData.meta.semester = document.getElementById('pjpSemesterSelect').value;
-  await pjpSaveCompanyData();
+  await pjpSaveSummary();
 };
 document.getElementById('pjpCompanyName').addEventListener('blur', async () => {
   pjpData.meta.name = document.getElementById('pjpCompanyName').textContent.trim() || pjpCompany;
-  await pjpSaveCompanyData();
+  await pjpSaveSummary();
 });
 document.getElementById('pjpPjoName').addEventListener('blur', async () => {
   pjpData.meta.pjo = document.getElementById('pjpPjoName').textContent.trim() || '-';
-  await pjpSaveCompanyData();
+  await pjpSaveSummary();
 });
 document.getElementById('pjpPenaltiChip').onclick = async () => {
   pjpData.meta.penalti = (pjpData.meta.penalti === 'YA') ? 'TIDAK' : 'YA';
-  await pjpSaveCompanyData();
+  await pjpSaveSummary();
   pjpRenderHero();
 };
 document.getElementById('pjpPrintBtn').onclick = () => window.print();
