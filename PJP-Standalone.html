@@ -863,7 +863,7 @@ function pjpRenderSimulator(){
   const container = document.getElementById('pjpSimSliders');
   pjpSimScores = {};
   container.innerHTML = (pjpData.summaryAspects || []).map(a => {
-    pjpSimScores[a.no] = Number(a.eval_akhir) || 0;
+    pjpSimScores[a.no] = 100;
     return `<div class="pjp-sim-slider">
       <div class="pjp-sim-slider-head"><span class="nm">${a.name}</span><span class="bobot">Bobot: ${(a.bobot * 100).toFixed(0)}%</span></div>
       <input type="range" min="0" max="100" value="${pjpSimScores[a.no]}" data-no="${a.no}" class="pjp-sim-range">
