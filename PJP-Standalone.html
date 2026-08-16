@@ -123,7 +123,7 @@
   .pjp-toolbar{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px;margin-bottom:14px;margin-top:22px;}
   .pjp-toolbar-left{display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap;}
   .pjp-field label{display:block;font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;}
-  .pjp-field select{padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:12.5px;font-family:var(--font-body);background:var(--surface);color:var(--text);min-width:170px;}
+  .pjp-field select{padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:12.5px;font-family:var(--font-body);background:var(--surface);color:var(--text);min-width:230px;}
   .pjp-hero{background:linear-gradient(135deg,var(--navy),var(--navy-light));color:#fff;border-radius:16px;
     padding:20px 22px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;
     box-shadow:0 8px 24px rgba(15,27,44,.18);margin-bottom:14px;}
@@ -624,11 +624,43 @@ function pjpDefaultDataFor(company){
       detailedAspects: JSON.parse(JSON.stringify(PJP_SEED_MVM_DETAIL))
     };
   }
+  if(company === 'BGS'){
+    const summaryAspects = JSON.parse(JSON.stringify(PJP_SEED_MVM_SUMMARY)).map(a => {
+      const isActiveForBGS = (a.no === 1 || a.no === 6); // hanya Teknis Operasional & Usaha Jasa
+      return { ...a, aktif: isActiveForBGS };
+    });
+    const mvmDetail = JSON.parse(JSON.stringify(PJP_SEED_MVM_DETAIL));
+    const detailedAspects = {};
+    for(const key of Object.keys(mvmDetail)){
+      const no = pjpDetailKeyNo(key);
+      detailedAspects[key] = (no === '1' || no === '6') ? mvmDetail[key] : [];
+    }
+    return {
+      meta: { name: 'BGS', pjo: '-', semester: 'Semester I - 2026', penalti: 'TIDAK' },
+      summaryAspects,
+      detailedAspects
+    };
+  }
   return {
     meta: { name: company, pjo: '-', semester: 'Semester I - 2026', penalti: 'TIDAK' },
     summaryAspects: pjpBlankAspects(),
     detailedAspects: {}
   };
+}
+async function pjpApplyBgsSeedOnce(){
+  const FLAG_KEY = 'dso:pjp:seed-applied:BGS:v2';
+  const already = await dsoLoad(FLAG_KEY, false);
+  if(already) return;
+  const def = pjpDefaultDataFor('BGS');
+  await dsoSave(DSO_PJP_DATA_PREFIX + 'BGS', {
+    meta: def.meta,
+    summaryAspects: def.summaryAspects,
+    detailKeys: Object.keys(def.detailedAspects)
+  });
+  for(const key of Object.keys(def.detailedAspects)){
+    await dsoSave(DSO_PJP_DETAIL_PREFIX + 'BGS:' + pjpDetailKeyNo(key), def.detailedAspects[key]);
+  }
+  await dsoSave(FLAG_KEY, true);
 }
 
 let pjpCompany = 'MVM';
@@ -1005,6 +1037,7 @@ document.getElementById('pjpSimApplyBtn').onclick = async () => {
 document.getElementById('pjpCompanySelect').onchange = async () => {
   pjpCompany = document.getElementById('pjpCompanySelect').value || 'MVM';
   pjpSelectedAspectKey = null;
+  if(pjpCompany === 'BGS') await pjpApplyBgsSeedOnce();
   pjpData = await pjpLoadCompanyData(pjpCompany);
   pjpRenderHero();
   pjpSwitchSubtab(pjpSubtab);
@@ -1034,6 +1067,7 @@ async function renderPJP(){
   const sel = document.getElementById('pjpCompanySelect');
   if(sel.value) pjpCompany = sel.value;
   else if(pjpCompanyManager.getList().length){ pjpCompany = pjpCompanyManager.getList()[0]; sel.value = pjpCompany; }
+  if(pjpCompany === 'BGS') await pjpApplyBgsSeedOnce();
   pjpData = await pjpLoadCompanyData(pjpCompany);
   pjpRenderHero();
   pjpSwitchSubtab(pjpSubtab);
