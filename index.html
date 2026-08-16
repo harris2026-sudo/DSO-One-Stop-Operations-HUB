@@ -5452,7 +5452,8 @@ let followUpFilter = 'All';
 /* ---- Daftar terkelola (dropdown + modal tambah/hapus) untuk Vendor & PIC ---- */
 function createManagedList(opts){
   const { storageKey, defaults, selectId, manageBtnId, modalOverlayId, modalInputId, modalAddBtnId,
-          modalCloseBtnId, modalDoneBtnId, modalListId, modalMsgId, itemLabel, onRename } = opts;
+          modalCloseBtnId, modalDoneBtnId, modalListId, modalMsgId, itemLabel, onRename,
+          includeEmptyOption = true } = opts;
   let list = [...defaults];
 
   async function load(){
@@ -5470,7 +5471,8 @@ function createManagedList(opts){
     const sel = document.getElementById(selectId);
     if(!sel) return;
     const current = selectedValue !== undefined ? selectedValue : sel.value;
-    sel.innerHTML = '<option value="">-</option>' + list.map(v =>
+    const emptyOpt = includeEmptyOption ? '<option value="">-</option>' : '';
+    sel.innerHTML = emptyOpt + list.map(v =>
       `<option ${v === current ? 'selected' : ''}>${v}</option>`
     ).join('');
   }
@@ -7315,6 +7317,7 @@ const pjpCompanyManager = createManagedList({
   storageKey: DSO_PJP_COMPANIES_KEY,
   defaults: ['BGS', 'MVM', 'VGT', 'VTC', 'LDP'],
   selectId: 'pjpCompanySelect',
+  includeEmptyOption: false,
   manageBtnId: 'pjpCompanyManageBtn',
   modalOverlayId: 'pjpCompanyModalOverlay',
   modalInputId: 'pjpCompanyModalInput',
