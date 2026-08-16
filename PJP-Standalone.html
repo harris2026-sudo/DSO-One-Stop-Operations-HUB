@@ -120,9 +120,9 @@
 
 /* ================= PENILAIAN JASA PERTAMBANGAN (PJP) ================= */
   .ap-b-black{background:var(--black-bg);color:var(--black-fg);}
-  .pjp-toolbar{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px;margin-bottom:14px;margin-top:22px;}
+  .pjp-toolbar{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px;margin-bottom:14px;margin-top:14px;}
   .pjp-toolbar-left{display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap;}
-  .pjp-field label{display:block;font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;}
+  .pjp-field label{display:flex;align-items:center;height:24px;font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px;margin:0 0 6px;}
   .pjp-field select{padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:12.5px;font-family:var(--font-body);background:var(--surface);color:var(--text);min-width:230px;}
   .pjp-hero{background:linear-gradient(135deg,var(--navy),var(--navy-light));color:#fff;border-radius:16px;
     padding:20px 22px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;
@@ -808,11 +808,10 @@ function pjpRenderHero(){
 function pjpRenderSummary(){
   const tbody = document.getElementById('pjpSummaryTableBody');
   tbody.innerHTML = (pjpData.summaryAspects || []).map((a, idx) => {
-    const isEvaluated = Number(a.eval_akhir) > 0;
-    const statusBadge = isEvaluated
-      ? '<span class="ap-badge ap-b-green">Ter-evaluasi</span>'
-      : '<span class="ap-badge ap-b-grey">Belum Dinilai / NA</span>';
     const isAktif = a.aktif !== false;
+    const statusBadge = isAktif
+      ? '<span class="ap-badge ap-b-green">Evaluasi</span>'
+      : '<span class="ap-badge ap-b-grey">N/A</span>';
     return `<tr style="border-bottom:1px solid var(--border);${idx % 2 ? 'background:var(--zebra);' : ''}">
       <td style="padding:7px;text-align:center;color:var(--text-muted);font-weight:700;">${a.no}</td>
       <td style="padding:7px;font-weight:700;color:var(--navy);">${a.name}</td>
