@@ -120,7 +120,7 @@
 
 /* ================= PENILAIAN JASA PERTAMBANGAN (PJP) ================= */
   .ap-b-black{background:var(--black-bg);color:var(--black-fg);}
-  .pjp-toolbar{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px;margin-bottom:14px;}
+  .pjp-toolbar{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px;margin-bottom:14px;margin-top:22px;}
   .pjp-toolbar-left{display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap;}
   .pjp-field label{display:block;font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;}
   .pjp-field select{padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:12.5px;font-family:var(--font-body);background:var(--surface);color:var(--text);min-width:170px;}
@@ -154,6 +154,10 @@
   .pjp-row-del{border:none;background:transparent;color:var(--red-fg);cursor:pointer;font-size:13px;padding:2px 6px;border-radius:6px;}
   .pjp-row-del:hover{background:var(--red-bg);}
   .pjp-row-del.confirming{background:var(--red-fg);color:#fff;font-size:10px;font-weight:700;}
+  .pjp-row-edit{border:none;background:transparent;color:var(--text-muted);cursor:pointer;font-size:13px;padding:2px 6px;border-radius:6px;}
+  .pjp-row-edit:hover{background:var(--hilite);color:var(--accent);}
+  .pjp-row-add{border:none;background:transparent;color:var(--green-fg,#2e7d32);cursor:pointer;font-size:13px;padding:2px 6px;border-radius:6px;}
+  .pjp-row-add:hover{background:var(--green-bg,rgba(46,125,50,.12));}
   tr.pjp-header-row td{background:var(--surface-alt);font-weight:700;color:var(--navy);}
   tr.pjp-total-row td{background:var(--hilite);font-weight:700;color:var(--navy);}
   .pjp-sim-grid{display:grid;grid-template-columns:2fr 1fr;gap:14px;}
@@ -878,7 +882,7 @@ function pjpRenderDetailTable(){
       <td style="padding:6px;text-align:center;background:rgba(28,138,110,.08);font-weight:700;color:var(--accent);" contenteditable="true" data-idx="${idx}" data-field="eval_val">${it.eval_val === undefined ? '' : it.eval_val}</td>
       <td style="padding:6px;font-style:italic;color:var(--text-secondary);" contenteditable="true" data-idx="${idx}" data-field="notes">${it.notes || ''}</td>
       <td style="padding:6px;text-align:center;" contenteditable="true" data-idx="${idx}" data-field="due_date">${it.due_date || ''}</td>
-      <td style="padding:6px;text-align:center;"><button type="button" class="pjp-row-del" data-idx="${idx}" title="Hapus baris"><i class="ti ti-trash"></i></button></td>
+      <td style="padding:6px;text-align:center;"><div style="display:flex;gap:2px;justify-content:center;"><button type="button" class="pjp-row-edit" data-idx="${idx}" title="Edit baris"><i class="ti ti-pencil"></i></button><button type="button" class="pjp-row-add" data-idx="${idx}" title="Tambah baris di bawah ini"><i class="ti ti-plus"></i></button><button type="button" class="pjp-row-del" data-idx="${idx}" title="Hapus baris"><i class="ti ti-trash"></i></button></div></td>
     </tr>`;
   }).join('');
 
@@ -896,6 +900,29 @@ function pjpRenderDetailTable(){
       }
       await pjpSaveDetailAspect(pjpSelectedAspectKey);
     });
+  });
+  tbody.querySelectorAll('.pjp-row-edit').forEach(btn => {
+    btn.onclick = () => {
+      const idx = Number(btn.dataset.idx);
+      const cell = tbody.querySelector(`[data-idx="${idx}"][data-field="desc"]`);
+      if(cell){
+        cell.focus();
+        const range = document.createRange();
+        range.selectNodeContents(cell);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+        cell.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      }
+    };
+  });
+  tbody.querySelectorAll('.pjp-row-add').forEach(btn => {
+    btn.onclick = async () => {
+      const idx = Number(btn.dataset.idx);
+      pjpData.detailedAspects[pjpSelectedAspectKey].splice(idx + 1, 0, { no: '', code: '', desc: '', nilai_max: '', self_val: '', eval_val: '', notes: '', due_date: '' });
+      await pjpSaveDetailAspect(pjpSelectedAspectKey);
+      pjpRenderDetailTable();
+    };
   });
   tbody.querySelectorAll('.pjp-row-del').forEach(btn => {
     btn.onclick = async () => {
