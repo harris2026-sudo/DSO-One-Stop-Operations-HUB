@@ -907,7 +907,7 @@ function pjpRenderDetailTable(){
     const isHeader = !isTotalRow && !it.nilai_max && !it.self_val && !it.eval_val && it.desc;
     const rowCls = isTotalRow ? 'pjp-total-row' : (isHeader ? 'pjp-header-row' : '');
     return `<tr class="${rowCls}" style="border-bottom:1px solid var(--border);">
-      <td style="padding:6px;text-align:center;font-family:var(--font-mono);color:var(--text-muted);" contenteditable="true" data-idx="${idx}" data-field="no_code">${it.no || it.code || ''}</td>
+      <td style="padding:6px 6px 6px ${6 + (isHeader ? 0 : Math.min(((String(it.no || it.code || '').match(/\./g) || []).length), 3) * 16)}px;text-align:left;font-family:var(--font-mono);color:${isHeader ? 'var(--navy)' : 'var(--text-muted)'};${isHeader ? 'font-weight:700;' : ''}" contenteditable="true" data-idx="${idx}" data-field="no_code">${it.no || it.code || ''}</td>
       <td style="padding:6px;" contenteditable="true" data-idx="${idx}" data-field="desc">${it.desc || ''}</td>
       <td style="padding:6px;text-align:center;" contenteditable="true" data-idx="${idx}" data-field="nilai_max">${it.nilai_max === undefined ? '' : it.nilai_max}</td>
       <td style="padding:6px;text-align:center;background:rgba(46,102,144,.06);" contenteditable="true" data-idx="${idx}" data-field="self_val">${it.self_val === undefined ? '' : it.self_val}</td>
