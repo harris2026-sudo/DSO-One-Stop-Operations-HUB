@@ -7225,6 +7225,8 @@ wimaMicWidget.onclick = () => {
 /* ================= PENILAIAN JASA PERTAMBANGAN (PJP) ================= */
 const DSO_PJP_COMPANIES_KEY = 'dso:pjp:companies';
 const DSO_PJP_DATA_PREFIX = 'dso:pjp:data:';
+const DSO_PJP_DETAIL_PREFIX = 'dso:pjp:detail:';
+function pjpDetailKeyNo(key){ const m = String(key).match(/^(\d+)/); return m ? m[1] : '0'; }
 
 const PJP_ASPECT_DEFS = [
   { no: 1, name: 'Aspek Teknis Operasional', bobot: 0.15 },
@@ -7295,11 +7297,57 @@ let pjpRadarChartInst = null;
 let pjpSelectedAspectKey = null;
 let pjpSimScores = {};
 
+// Kunci penyimpanan disamakan dengan modul PJP Standalone: dikunci berdasarkan
+// nama resmi mitra (bukan kode singkat BGS/MVM/dst), dan rincian per aspek
+// disimpan terpisah per aspek (bukan digabung dalam 1 key besar), supaya nilai
+// yang diisi di salah satu app (Hub atau Standalone) langsung terbaca di app satunya.
+function pjpCanonicalCompanyKey(company){
+  return (PJP_COMPANY_META[company] && PJP_COMPANY_META[company].name) || company;
+}
 async function pjpLoadCompanyData(company){
-  return await dsoLoad(DSO_PJP_DATA_PREFIX + company, pjpDefaultDataFor(company));
+  const canon = pjpCanonicalCompanyKey(company);
+  const def = pjpDefaultDataFor(company);
+  const summaryDefault = { meta: def.meta, summaryAspects: def.summaryAspects, detailKeys: Object.keys(def.detailedAspects || {}) };
+  let summary = await dsoLoad(DSO_PJP_DATA_PREFIX + canon, summaryDefault);
+
+  // Migrasi otomatis dari format lama (detailedAspects tergabung dalam 1 key besar)
+  if(summary && summary.detailedAspects && Object.keys(summary.detailedAspects).length){
+    for(const k of Object.keys(summary.detailedAspects)){
+      await dsoSave(DSO_PJP_DETAIL_PREFIX + canon + ':' + pjpDetailKeyNo(k), summary.detailedAspects[k]);
+    }
+    summary.detailKeys = Object.keys(summary.detailedAspects);
+    delete summary.detailedAspects;
+    await dsoSave(DSO_PJP_DATA_PREFIX + canon, summary);
+  }
+
+  const detailedAspects = {};
+  const keys = summary.detailKeys || Object.keys(def.detailedAspects || {});
+  for(const k of keys){
+    const fallback = (def.detailedAspects && def.detailedAspects[k]) || [];
+    detailedAspects[k] = await dsoLoad(DSO_PJP_DETAIL_PREFIX + canon + ':' + pjpDetailKeyNo(k), fallback);
+  }
+  return { meta: summary.meta, summaryAspects: summary.summaryAspects, detailedAspects };
+}
+async function pjpSaveSummary(){
+  const canon = pjpCanonicalCompanyKey(pjpCompany);
+  await dsoSave(DSO_PJP_DATA_PREFIX + canon, {
+    meta: pjpData.meta,
+    summaryAspects: pjpData.summaryAspects,
+    detailKeys: Object.keys(pjpData.detailedAspects || {})
+  });
+}
+async function pjpSaveDetailAspect(key){
+  if(!key) return;
+  const canon = pjpCanonicalCompanyKey(pjpCompany);
+  await dsoSave(DSO_PJP_DETAIL_PREFIX + canon + ':' + pjpDetailKeyNo(key), pjpData.detailedAspects[key] || []);
+  await pjpSaveSummary();
 }
 async function pjpSaveCompanyData(){
-  await dsoSave(DSO_PJP_DATA_PREFIX + pjpCompany, pjpData);
+  await pjpSaveSummary();
+  const canon = pjpCanonicalCompanyKey(pjpCompany);
+  for(const key of Object.keys(pjpData.detailedAspects || {})){
+    await dsoSave(DSO_PJP_DETAIL_PREFIX + canon + ':' + pjpDetailKeyNo(key), pjpData.detailedAspects[key] || []);
+  }
 }
 
 function pjpPredikat(score){
@@ -7329,8 +7377,21 @@ const pjpCompanyManager = createManagedList({
   itemLabel: 'perusahaan',
   onRename: async (oldName, newName) => {
     try{
-      const old = await dsoLoad(DSO_PJP_DATA_PREFIX + oldName, null);
-      if(old){ await dsoSave(DSO_PJP_DATA_PREFIX + newName, old); await store.delete(DSO_PJP_DATA_PREFIX + oldName); }
+      const oldCanon = pjpCanonicalCompanyKey(oldName);
+      const newCanon = pjpCanonicalCompanyKey(newName);
+      const old = await dsoLoad(DSO_PJP_DATA_PREFIX + oldCanon, null);
+      if(old){
+        await dsoSave(DSO_PJP_DATA_PREFIX + newCanon, old);
+        await store.delete(DSO_PJP_DATA_PREFIX + oldCanon);
+        const keys = old.detailKeys || [];
+        for(const k of keys){
+          const detailOld = await dsoLoad(DSO_PJP_DETAIL_PREFIX + oldCanon + ':' + pjpDetailKeyNo(k), null);
+          if(detailOld){
+            await dsoSave(DSO_PJP_DETAIL_PREFIX + newCanon + ':' + pjpDetailKeyNo(k), detailOld);
+            await store.delete(DSO_PJP_DETAIL_PREFIX + oldCanon + ':' + pjpDetailKeyNo(k));
+          }
+        }
+      }
     }catch(e){}
     if(pjpCompany === oldName){ pjpCompany = newName; renderPJP(); }
   }
