@@ -236,6 +236,19 @@
   .wim-icon-btn{display:inline-flex;align-items:center;justify-content:center;width:29px;height:29px;border-radius:8px;cursor:pointer;color:var(--text-muted);background:transparent;border:none;transition:transform .12s,background .12s,color .12s,box-shadow .12s;}
   .wim-icon-btn i{font-size:15px;}
   .wim-icon-btn:hover{transform:translateY(-1px);}
+  .ap-kpi{transition:transform .15s ease,box-shadow .15s ease,border-color .15s ease;}
+  .ap-kpi[style*="cursor:pointer"]:hover{transform:translateY(-2px);border-color:var(--accent);box-shadow:0 8px 16px rgba(15,27,44,.1);}
+  .ap-kpi.active{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent) inset;}
+  #apBody tr.ap-row{transition:background .12s ease;}
+  #apBody tr.ap-row:hover{background:var(--hilite)!important;}
+  .ap-table-scroll{max-height:560px;overflow-y:auto;overflow-x:auto;border:1px solid #d8dfe6;border-radius:8px;}
+  .ap-table-scroll table thead tr th{position:sticky;top:0;z-index:2;background:var(--navy);}
+  .ap-row-edit, .wim-icon-btn.ap-hist{transition:transform .12s ease,color .12s ease;}
+  .ap-row-edit:hover{transform:scale(1.12);color:var(--accent)!important;}
+  .ap-pill{transition:background .12s ease,transform .12s ease;}
+  .ap-pill-link:active{transform:scale(.96);}
+  .ap-pill-error{background:rgba(207,81,56,.18)!important;border:1px solid rgba(207,81,56,.4)!important;color:#F3B4A6!important;}
+  .ap-pill-error #apSyncDot{background:#CF5138!important;animation:none!important;}
   .wim-icon-btn.edit:hover{background:var(--steel-light);color:var(--accent);box-shadow:0 0 0 4px var(--steel-light);}
   .wim-icon-btn.danger:hover{background:var(--red-bg);color:var(--red-fg);box-shadow:0 0 0 4px var(--red-bg);}
   .wim-icon-btn:active{transform:translateY(0) scale(.92);}
@@ -823,11 +836,11 @@
         <div class="ap-hero-icon"><i class="ti ti-package"></i></div>
         <div>
           <h1>Stock Management — Part WIM</h1>
-          <p>Ringkasan real-time stok &amp; status kondisi spare part sistem Weigh-In-Motion</p>
+          <p>Summary Stock Part Sistem Weigh-In-Motion</p>
         </div>
       </div>
       <div class="ap-hero-badges">
-        <span class="ap-pill ap-pill-live"><span class="ap-pill-dot"></span> <span id="apSyncInfo">Belum pernah sync dari Google Sheet.</span></span>
+        <span class="ap-pill ap-pill-live" id="apSyncPill"><span class="ap-pill-dot" id="apSyncDot"></span> <span id="apSyncInfo">Belum pernah sync dari Google Sheet.</span></span>
         <a href="#" id="stockSheetLinkBtn" class="ap-pill ap-pill-link" target="_blank" rel="noopener" title="Buka spreadsheet sumber data di tab baru"><i class="ti ti-link"></i> Link Spreadsheet</a>
         <button type="button" class="ap-pill ap-pill-link" id="stockSheetEditBtn" title="Ubah link spreadsheet sumber data"><i class="ti ti-pencil"></i></button>
         <button type="button" class="ap-pill ap-pill-link" id="apSyncBtn"><i class="ti ti-refresh"></i> Sync dari Sheet</button>
@@ -863,7 +876,7 @@
             </select>
           </div>
         </div>
-        <div style="overflow-x:auto;border:1px solid #d8dfe6;border-radius:8px;">
+        <div class="ap-table-scroll">
         <table style="width:100%;border-collapse:collapse;font-size:12px;min-width:900px;">
           <thead><tr style="text-align:left;background:var(--navy);color:#fff;">
             <th style="padding:10px 8px;font-weight:600;">No</th>
@@ -3798,8 +3811,10 @@ function apMergeSheetData(existingAssets, sheetRows){
 }
 async function syncStockFromSheet(showAlert){
   const infoEl = document.getElementById('apSyncInfo');
+  const pillEl = document.getElementById('apSyncPill');
   const btnEl = document.getElementById('apSyncBtn');
   if(btnEl){ btnEl.disabled = true; btnEl.innerHTML = '<i class="ti ti-loader-2" style="animation:apSpin .8s linear infinite;"></i> Sinkronisasi...'; }
+  if(pillEl){ pillEl.classList.remove('ap-pill-error'); pillEl.removeAttribute('title'); }
   if(infoEl) infoEl.textContent = 'Sedang mengambil data dari Google Sheet...';
   try{
     const rows = await fetchStockSheetData();
@@ -3812,7 +3827,8 @@ async function syncStockFromSheet(showAlert){
     await renderAssetPlant(false);
   }catch(e){
     console.error('gagal sync Stock Management', e);
-    if(infoEl) infoEl.textContent = 'Gagal sync: ' + e.message;
+    if(infoEl) infoEl.innerHTML = '<i class="ti ti-alert-triangle" style="font-size:13px;"></i>';
+    if(pillEl){ pillEl.classList.add('ap-pill-error'); pillEl.title = 'Gagal sync: ' + e.message; }
     if(showAlert) alert('Gagal sync data Stock Management: ' + e.message);
   }finally{
     if(btnEl){ btnEl.disabled = false; btnEl.innerHTML = '<i class="ti ti-refresh"></i> Sync dari Sheet'; }
@@ -4229,6 +4245,18 @@ function apBadge(val, colorMap, cls){
 }
 
 /* ---- Dashboard: KPI cards ---- */
+function apAnimateCount(el, to){
+  const from = 0;
+  const dur = 600;
+  const start = performance.now();
+  function tick(now){
+    const p = Math.min(1, (now - start) / dur);
+    const eased = 1 - Math.pow(1 - p, 3);
+    el.textContent = Math.round(from + (to - from) * eased).toLocaleString('id-ID');
+    if(p < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
 function apRenderKpis(assets){
   const el = document.getElementById('apKpiRow');
   if(!el) return;
@@ -4238,19 +4266,31 @@ function apRenderKpis(assets){
   const totalNewStock = assets.reduce((s,a) => s + (Number(a.newStock)||0), 0);
   const outOfStock = assets.filter(a => a.category === 'Critical' && (Number(a.newStock)||0) === 0).length;
   const pct = (n) => total ? ((n/total*100).toFixed(1) + '% dari total item') : '—';
+  const activeCat = document.getElementById('apCategoryFilter')?.value || 'ALL';
   const kpis = [
-    {cls:'neu', lab:'Total Item Terdaftar', val:total, sub:'Part WIM di Summary Stok', icon:'ti-database'},
-    {cls:'crit', lab:'Kategori Critical', val:critical, sub:pct(critical), icon:'ti-alert-triangle'},
-    {cls:'med', lab:'Kategori Medium', val:medium, sub:pct(medium), icon:'ti-alert-circle'},
-    {cls:'ok', lab:'Total Stok Baru Tersedia', val:totalNewStock, sub:'Unit siap pakai (semua kategori)', icon:'ti-package'},
-    {cls:'crit', lab:'Critical Stock Warning', val:outOfStock, sub:outOfStock + ' item Critical stok 0', icon:'ti-triangle-exclamation'}
+    {cls:'neu', lab:'Total Item Terdaftar', val:total, sub:'Part WIM di Summary Stok', icon:'ti-database', filter:'ALL'},
+    {cls:'crit', lab:'Kategori Critical', val:critical, sub:pct(critical), icon:'ti-alert-triangle', filter:'Critical'},
+    {cls:'med', lab:'Kategori Medium', val:medium, sub:pct(medium), icon:'ti-alert-circle', filter:'Medium'},
+    {cls:'ok', lab:'Total Stok Baru Tersedia', val:totalNewStock, sub:'Unit siap pakai (semua kategori)', icon:'ti-package', filter:null},
+    {cls:'crit', lab:'Critical Stock Warning', val:outOfStock, sub:outOfStock + ' item Critical stok 0', icon:'ti-triangle-exclamation', filter:'Critical'}
   ];
-  el.innerHTML = kpis.map(k => `
-    <div class="ap-kpi ${k.cls}">
+  el.innerHTML = kpis.map((k,i) => `
+    <div class="ap-kpi ${k.cls}${k.filter && k.filter === activeCat ? ' active' : ''}" data-filter="${k.filter||''}" style="${k.filter ? 'cursor:pointer;' : ''}" data-kpi-idx="${i}">
       <div class="lab">${k.lab}</div>
-      <div class="val">${k.val}</div>
+      <div class="val" data-val="${k.val}">0</div>
       <div class="sub"><i class="ti ${k.icon}"></i> ${k.sub}</div>
     </div>`).join('');
+  el.querySelectorAll('.ap-kpi .val').forEach(v => apAnimateCount(v, Number(v.dataset.val)||0));
+  el.querySelectorAll('.ap-kpi[data-filter]').forEach(card => {
+    if(!card.dataset.filter) return;
+    card.onclick = () => {
+      const sel = document.getElementById('apCategoryFilter');
+      if(!sel) return;
+      sel.value = (sel.value === card.dataset.filter) ? 'ALL' : card.dataset.filter;
+      apApplyFilters();
+      apRenderKpis(apAssetsData);
+    };
+  });
 }
 
 /* ---- Dashboard: donut chart distribusi Category ---- */
@@ -4276,23 +4316,31 @@ function apRenderChart(assets){
 function apRenderBody(list){
   const body = document.getElementById('apBody');
   body.innerHTML = '';
+  if(!list.length){
+    body.innerHTML = `<tr><td colspan="11" style="padding:30px 10px;text-align:center;color:var(--text-muted);">
+      <i class="ti ti-package-off" style="font-size:22px;display:block;margin-bottom:6px;"></i>
+      Tidak ada item part yang cocok dengan pencarian/filter ini.
+    </td></tr>`;
+    return;
+  }
   list.forEach((entry, rowNo) => {
     const a = entry.item, i = entry.idx;
     const tr = document.createElement('tr');
+    tr.className = 'ap-row';
     const isWarn = a.category === 'Critical' && (Number(a.newStock)||0) === 0;
     tr.style.background = isWarn ? 'var(--red-bg)' : (rowNo%2 ? '#f7f9f8' : '#fff');
     tr.innerHTML = `
-      <td style="padding:6px;color:#889;">${rowNo+1}</td>
-      <td style="padding:6px;font-weight:bold;color:var(--navy);">${a.description||'-'}</td>
-      <td style="padding:6px;">${apBadge(a.category, AP_CATEGORY_COLOR, '')}</td>
-      <td style="padding:6px;">${apBadge(a.source, AP_SOURCE_COLOR, '')}</td>
-      <td style="padding:6px;">${a.newStock}</td>
-      <td style="padding:6px;">${a.exSecond||0}</td>
-      <td style="padding:6px;">${a.unit||''}</td>
-      <td style="padding:6px;">${a.broken}</td>
-      <td style="padding:6px;">${apBadge(a.jenis, AP_JENIS_COLOR, '')}</td>
-      <td style="padding:6px;color:#556;">${a.desc||''}</td>
-      <td style="padding:6px;text-align:right;white-space:nowrap;">
+      <td style="padding:8px 6px;color:#889;">${rowNo+1}</td>
+      <td style="padding:8px 6px;font-weight:bold;color:var(--navy);">${a.description||'-'}</td>
+      <td style="padding:8px 6px;">${apBadge(a.category, AP_CATEGORY_COLOR, '')}</td>
+      <td style="padding:8px 6px;">${apBadge(a.source, AP_SOURCE_COLOR, '')}</td>
+      <td style="padding:8px 6px;">${a.newStock}</td>
+      <td style="padding:8px 6px;">${a.exSecond||0}</td>
+      <td style="padding:8px 6px;">${a.unit||''}</td>
+      <td style="padding:8px 6px;">${a.broken}</td>
+      <td style="padding:8px 6px;">${apBadge(a.jenis, AP_JENIS_COLOR, '')}</td>
+      <td style="padding:8px 6px;color:#556;">${a.desc||''}</td>
+      <td style="padding:8px 6px;text-align:right;white-space:nowrap;">
         <i class="ti ti-edit ap-row-edit" data-idx="${i}" title="Edit" style="font-size:16px;color:var(--text-secondary);cursor:pointer;margin-right:6px;"></i>
         <button data-idx="${i}" class="wim-icon-btn ap-hist" title="Riwayat & serial number"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></button>
       </td>`;
@@ -4314,6 +4362,9 @@ function apApplyFilters(){
     if(matchesQ && matchesCat) filtered.push({ item:a, idx:i });
   });
   apRenderBody(filtered);
+  document.querySelectorAll('.ap-kpi[data-filter]').forEach(card => {
+    card.classList.toggle('active', !!card.dataset.filter && card.dataset.filter === cat);
+  });
 }
 
 async function renderAssetPlant(autoSync){
