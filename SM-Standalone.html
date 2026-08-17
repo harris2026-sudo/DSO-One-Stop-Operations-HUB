@@ -1082,7 +1082,8 @@ async function fetchStockSheetData(){
             const field = colField[c];
             if(!field) continue;
             const val = dt.getFormattedValue(r,c);
-            rec[field] = val ? val.trim() : '';
+            const cleaned = val ? val.replace(/[\u200B\u200C\u200D\uFEFF]/g, '').trim() : '';
+            rec[field] = cleaned;
           }
           if(!rec.description) continue;
           if('newStock' in rec) rec.newStock = Number(rec.newStock)||0;
