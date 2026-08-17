@@ -1,0 +1,1638 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Stock Management — DSO Ops HUB Standalone</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  :root{
+    --bg:#F4F6F4;
+    --surface:#FFFFFF;
+    --surface-alt:#EEF1EE;
+    --border:#DCE1DD;
+    --text:#152029;
+    --text-secondary:#5B6B70;
+    --text-muted:#8C9A9E;
+    --navy:#0F1B2C;
+    --navy-light:#1B2F47;
+    --accent:#2E6690;
+    --steel-light:#E6EEF4;
+    --hilite:#E6EEF4;
+    --zebra:#EEF1EE;
+    --green:#1C8A6E;
+    --green-bg:#E0F2EC;
+    --green-fg:#1C8A6E;
+    --yellow-bg:#FAEFDA;
+    --yellow-fg:#DE9A34;
+    --blue-bg:#E6EEF4;
+    --blue-fg:#2E6690;
+    --red-bg:#FAE6E1;
+    --red-fg:#CF5138;
+    --grey-bg:#EEF1EE;
+    --grey-fg:#5B6B70;
+    --gold-bg:#FAEFDA;
+    --gold-fg:#DE9A34;
+    --purple-bg:#EFE9F7;
+    --purple-fg:#6C4FA0;
+    --black-bg:#0F1B2C;
+    --black-fg:#fff;
+    --radius:10px;
+    --font-display:'Space Grotesk',sans-serif;
+    --font-body:'Inter',Arial,sans-serif;
+    --font-mono:'JetBrains Mono',monospace;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:var(--font-body);background:var(--bg);color:var(--text);padding-bottom:40px;}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 18px;}
+
+  header.top{background:var(--navy);color:#DDE6EC;padding:18px 18px 20px;}
+  header.top .inner{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:12px;}
+  header.top .brand-icon{width:38px;height:38px;border-radius:10px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+  .badge-role{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.08);border-radius:8px;padding:5px 10px;font-size:11px;font-weight:600;font-family:var(--font-display);margin-bottom:4px;}
+  .badge-role .dot{width:7px;height:7px;border-radius:50%;background:var(--accent);}
+  header.top h1{font-family:var(--font-display);font-size:17px;font-weight:600;margin:0;}
+  header.top .sub{font-size:11px;color:#9FB0C2;margin-top:2px;}
+
+  .btn{border:1px solid var(--border);border-radius:8px;padding:9px 14px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--font-body);background:var(--surface);color:var(--text);}
+  .btn-primary{background:var(--accent);border-color:var(--accent);color:#fff;}
+  .btn-primary:hover{background:var(--navy-light);border-color:var(--navy-light);color:#fff;}
+  .btn-ghost{background:var(--surface);color:var(--text);border-color:var(--border);}
+  .btn-ghost:hover{border-color:var(--accent);color:var(--accent);}
+
+  .select-with-actions{display:flex;gap:4px;}
+  .select-with-actions select{flex:1;min-width:0;}
+  .icon-btn{border:none;border-radius:6px;font-size:13px;font-weight:bold;cursor:pointer;padding:0 9px;font-family:Arial;flex-shrink:0;transition:transform .15s ease,box-shadow .15s ease;}
+  .icon-btn:hover{transform:translateY(-1px);box-shadow:0 3px 8px rgba(0,0,0,.12);}
+  .icon-btn:active{transform:scale(.94);}
+  .icon-btn-add{background:var(--hilite);color:var(--navy);}
+  .icon-btn-add:hover{background:#c3d7ee;}
+
+  .modal-overlay{position:fixed;inset:0;background:rgba(20,30,45,.55);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;z-index:9999;padding:16px;}
+  .modal-overlay.active{display:flex;}
+  .modal-box{background:#fff;border-radius:14px;max-width:420px;width:100%;max-height:82vh;overflow-y:auto;padding:20px;box-shadow:0 10px 40px rgba(0,0,0,.3);position:relative;animation:popIn .22s ease;}
+  .modal-box h3{margin:0 0 14px;color:var(--navy);font-size:16px;padding-right:20px;}
+  .modal-close-x{position:absolute;top:12px;right:14px;background:none;border:none;font-size:18px;cursor:pointer;color:#889;line-height:1;padding:2px;}
+  .modal-close-x:hover{color:var(--red-fg);}
+  .vendor-add-row{display:flex;gap:8px;margin-bottom:12px;}
+  .vendor-add-row input{flex:1;border:1px solid #c7d3e0;border-radius:6px;padding:9px 10px;font-size:13px;font-family:Arial;}
+  .vendor-item-list{display:flex;flex-direction:column;gap:6px;max-height:280px;overflow-y:auto;}
+  .vendor-item{display:flex;justify-content:space-between;align-items:center;background:var(--zebra);border-radius:8px;padding:8px 10px;font-size:13px;color:#223;transition:background .15s ease;}
+  .vendor-item:hover{background:var(--hilite);}
+  .vendor-item .vendor-item-label{font-size:12px;}
+  .vendor-item .vendor-item-del{background:var(--red-bg);color:var(--red-fg);border:none;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:bold;cursor:pointer;font-family:Arial;flex-shrink:0;}
+  .vendor-item .vendor-item-del:hover{background:#f8b3bc;}
+  .vendor-item .vendor-item-del.confirming{background:var(--red-fg);color:#fff;}
+  .vendor-empty-note{font-size:12px;color:#889;text-align:center;padding:10px 0;}
+  .wim-icon-btn{display:inline-flex;align-items:center;justify-content:center;width:29px;height:29px;border-radius:8px;cursor:pointer;color:var(--text-muted);background:transparent;border:none;transition:transform .12s,background .12s,color .12s,box-shadow .12s;}
+  .wim-icon-btn i{font-size:15px;}
+  .wim-icon-btn:hover{transform:translateY(-1px);}
+  .wim-icon-btn.edit:hover{background:var(--steel-light);color:var(--accent);box-shadow:0 0 0 4px var(--steel-light);}
+  .wim-icon-btn:active{transform:translateY(0) scale(.92);}
+
+  @keyframes popIn{from{opacity:0;transform:scale(.94) translateY(8px);}to{opacity:1;transform:scale(1) translateY(0);}}
+
+  .ap-chart-card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:16px 18px;box-shadow:0 2px 6px rgba(15,27,44,.04);}
+  .ap-chart-card h3{margin:0 0 10px;font-family:var(--font-display);font-size:13.5px;color:var(--navy);display:flex;align-items:center;gap:8px;font-weight:700;}
+  .ap-chart-card h3 i{font-size:15px;color:var(--accent);}
+  .ap-chart-box{height:230px;position:relative;}
+  .ap-search-wrap{position:relative;}
+  .ap-search-wrap input{padding:8px 12px 8px 30px;border:1px solid var(--border);border-radius:8px;font-size:12.5px;font-family:var(--font-body);width:210px;background:var(--surface);color:var(--text);}
+  .ap-search-wrap i{position:absolute;left:10px;top:9px;color:var(--text-muted);font-size:14px;}
+  .ap-badge{display:inline-block;padding:3px 9px;border-radius:999px;font-size:10.5px;font-weight:700;white-space:nowrap;}
+  .ap-b-red{background:var(--red-bg);color:var(--red-fg);}
+  .ap-b-green{background:var(--green-bg);color:var(--green-fg);}
+  .ap-b-blue{background:var(--blue-bg);color:var(--blue-fg);}
+  .ap-b-purple{background:var(--purple-bg);color:var(--purple-fg);}
+  .ap-b-gold{background:var(--gold-bg);color:var(--gold-fg);}
+  .ap-b-yellow{background:var(--yellow-bg);color:var(--yellow-fg);}
+  .ap-b-grey{background:var(--grey-bg);color:var(--grey-fg);}
+  .ap-b-black{background:var(--black-bg);color:var(--black-fg);}
+
+  #toastWrap{position:fixed;top:16px;right:16px;z-index:9999;display:flex;flex-direction:column;gap:8px;}
+  .toast{display:flex;align-items:center;gap:10px;min-width:220px;max-width:340px;padding:12px 16px;border-radius:8px;color:#fff;font-size:13px;font-weight:600;background:var(--navy);box-shadow:0 4px 14px rgba(0,0,0,.18);opacity:0;transform:translateX(20px);transition:opacity .3s ease,transform .35s cubic-bezier(.34,1.56,.64,1);}
+  .toast.show{opacity:1;transform:translateX(0);}
+  .toast.toast-success{background:#1f7a3f;}
+  .toast.toast-error{background:#b3261e;}
+
+/* ================= PENILAIAN JASA PERTAMBANGAN (PJP) ================= */
+  .ap-b-black{background:var(--black-bg);color:var(--black-fg);}
+  .pjp-toolbar{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px;margin-bottom:14px;margin-top:14px;}
+  .pjp-toolbar-left{display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap;}
+  .pjp-field label{display:flex;align-items:center;height:24px;font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px;margin:0 0 6px;}
+  .pjp-field select{padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:12.5px;font-family:var(--font-body);background:var(--surface);color:var(--text);min-width:230px;}
+  .pjp-hero{background:linear-gradient(135deg,var(--navy),var(--navy-light));color:#fff;border-radius:16px;
+    padding:20px 22px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;
+    box-shadow:0 8px 24px rgba(15,27,44,.18);margin-bottom:14px;}
+  .pjp-hero-left{display:flex;align-items:center;gap:14px;}
+  .pjp-hero-icon{width:48px;height:48px;border-radius:12px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+  .pjp-hero-name{font-family:var(--font-display);font-size:19px;margin:0;font-weight:700;letter-spacing:.2px;outline:none;}
+  .pjp-hero-sub{margin:4px 0 0;font-size:11.5px;color:#B9C6D2;display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+  .pjp-hero-sub b{color:#fff;font-weight:600;}
+  .pjp-hero-sub [contenteditable]{outline:none;border-bottom:1px dashed rgba(255,255,255,.35);cursor:text;}
+  .pjp-penalti-chip{cursor:pointer;padding:3px 10px;border-radius:999px;font-size:10.5px;font-weight:700;}
+  .pjp-hero-scores{display:flex;gap:22px;align-items:center;}
+  .pjp-score-box{text-align:right;}
+  .pjp-score-box .lab{font-size:10px;font-weight:700;color:#B9C6D2;text-transform:uppercase;letter-spacing:.4px;}
+  .pjp-score-box .val{font-family:var(--font-display);font-size:26px;font-weight:700;color:#fff;margin-top:2px;}
+  .pjp-score-box.final .val{color:#7FC4FF;font-size:32px;}
+  .pjp-subtabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;}
+  .pjp-subtab{padding:9px 16px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface);color:var(--text-secondary);font-size:12.5px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;}
+  .pjp-subtab:hover:not(.active){background:var(--hilite);}
+  .pjp-subtab.active{background:var(--hilite);color:var(--navy);border-color:var(--accent);}
+  .pjp-subview{display:none;}
+  .pjp-subview.active{display:block;}
+  .pjp-chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+  @media(max-width:900px){.pjp-chart-grid{grid-template-columns:1fr;}}
+  .pjp-summary-table td[contenteditable], .pjp-detail-table td[contenteditable]{outline:none;cursor:text;}
+  .pjp-summary-table td[contenteditable]:focus, .pjp-detail-table td[contenteditable]:focus{background:var(--hilite);}
+  .pjp-detail-controls{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px;}
+  .pjp-detail-controls select{padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:12.5px;font-family:var(--font-body);background:var(--surface);color:var(--text);min-width:260px;}
+  .pjp-row-del{border:none;background:transparent;color:var(--red-fg);cursor:pointer;font-size:13px;padding:2px 6px;border-radius:6px;}
+  .pjp-row-del:hover{background:var(--red-bg);}
+  .pjp-row-del.confirming{background:var(--red-fg);color:#fff;font-size:10px;font-weight:700;}
+  .pjp-row-edit{border:none;background:transparent;color:var(--text-muted);cursor:pointer;font-size:13px;padding:2px 6px;border-radius:6px;}
+  .pjp-row-edit:hover{background:var(--hilite);color:var(--accent);}
+  .pjp-row-add{border:none;background:transparent;color:var(--green-fg,#2e7d32);cursor:pointer;font-size:13px;padding:2px 6px;border-radius:6px;}
+  .pjp-row-add:hover{background:var(--green-bg,rgba(46,125,50,.12));}
+  tr.pjp-header-row td{background:var(--surface-alt);font-weight:700;color:var(--navy);}
+  tr.pjp-total-row td{background:var(--hilite);font-weight:700;color:var(--navy);}
+  .pjp-sim-grid{display:grid;grid-template-columns:2fr 1fr;gap:14px;}
+  @media(max-width:900px){.pjp-sim-grid{grid-template-columns:1fr;}}
+  .pjp-sim-card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:16px 18px;box-shadow:0 2px 6px rgba(15,27,44,.04);}
+  .pjp-sim-banner{background:var(--navy);color:#fff;border-radius:var(--radius);padding:16px 18px;margin-bottom:14px;}
+  .pjp-sim-banner h3{margin:0 0 4px;font-family:var(--font-display);font-size:15px;display:flex;align-items:center;gap:8px;}
+  .pjp-sim-banner p{margin:0;font-size:11.5px;color:#B9C6D2;}
+  .pjp-sim-slider{background:var(--surface-alt);padding:12px 14px;border-radius:var(--radius);border:1px solid var(--border);margin-bottom:10px;}
+  .pjp-sim-slider-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+  .pjp-sim-slider-head .nm{font-weight:700;font-size:12.5px;color:var(--text);}
+  .pjp-sim-slider-head .bobot{font-size:10.5px;background:var(--blue-bg);color:var(--blue-fg);padding:2px 8px;border-radius:999px;font-weight:700;}
+  .pjp-sim-slider input[type=range]{width:100%;accent-color:var(--accent);}
+  .pjp-sim-slider .valrow{display:flex;justify-content:flex-end;font-family:var(--font-display);font-weight:700;color:var(--navy);font-size:13px;margin-top:2px;}
+  .pjp-sim-result{text-align:center;margin:8px 0 16px;}
+  .pjp-sim-result .lab{font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px;}
+  .pjp-sim-result .val{font-family:var(--font-display);font-size:38px;font-weight:700;color:var(--accent);margin:4px 0;}
+  .pjp-legend-row{display:flex;justify-content:space-between;align-items:center;font-size:11.5px;padding:4px 0;}
+  .pjp-manage-list .vendor-item-label{font-size:12px;}
+
+  .conn-banner{display:none;background:var(--red-bg);color:var(--red-fg);border:1px solid #e3b3a8;border-radius:9px;padding:9px 11px;font-size:11.5px;margin:0 0 12px;}
+  .conn-banner.show{display:block;}
+  footer{text-align:center;font-size:11px;color:var(--text-muted);padding:26px 0 6px;}
+
+  /* ================= STOCK MANAGEMENT: DASHBOARD ================= */
+  .ap-hero{background:linear-gradient(135deg,var(--navy),var(--navy-light));color:#fff;border-radius:16px;
+    padding:20px 22px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;
+    box-shadow:0 8px 24px rgba(15,27,44,.18);margin-bottom:14px;}
+  .ap-hero-left{display:flex;align-items:center;gap:14px;}
+  .ap-hero-icon{width:44px;height:44px;border-radius:12px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+  .ap-hero h1{font-family:var(--font-display);font-size:18px;margin:0;font-weight:700;letter-spacing:.2px;}
+  .ap-hero p{margin:3px 0 0;font-size:11.5px;color:#B9C6D2;}
+  .ap-hero-badges{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+  .ap-pill{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;font-size:11px;font-weight:600;cursor:pointer;text-decoration:none;border:none;font-family:var(--font-body);}
+  .ap-pill-live{background:rgba(28,138,110,.18);color:#5BD9AF;border:1px solid rgba(91,217,175,.3);cursor:default;}
+  .ap-pill-dot{width:6px;height:6px;border-radius:50%;background:#5BD9AF;animation:apPulse 1.6s infinite;flex-shrink:0;}
+  @keyframes apPulse{0%,100%{opacity:1;}50%{opacity:.35;}}
+  @keyframes apSpin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+  .ap-pill-link{background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.18)!important;}
+  .ap-pill-link:hover{background:rgba(255,255,255,.16);}
+
+  .ap-kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:14px;}
+  .ap-kpi{background:var(--surface);border-radius:var(--radius);padding:14px 15px;border:1px solid var(--border);
+    border-left:4px solid var(--accent);box-shadow:0 2px 6px rgba(15,27,44,.04);transition:transform .15s,box-shadow .15s;}
+  .ap-kpi:hover{transform:translateY(-2px);box-shadow:0 8px 16px rgba(15,27,44,.08);}
+  .ap-kpi .lab{font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px;}
+  .ap-kpi .val{font-family:var(--font-display);font-size:25px;font-weight:700;color:var(--navy);margin-top:4px;}
+  .ap-kpi .sub{font-size:10px;margin-top:4px;font-weight:600;display:flex;align-items:center;gap:4px;}
+  .ap-kpi.crit{border-left-color:var(--red-fg);} .ap-kpi.crit .val,.ap-kpi.crit .sub{color:var(--red-fg);}
+  .ap-kpi.med{border-left-color:var(--yellow-fg);} .ap-kpi.med .val,.ap-kpi.med .sub{color:var(--yellow-fg);}
+  .ap-kpi.ok{border-left-color:var(--green-fg);} .ap-kpi.ok .val,.ap-kpi.ok .sub{color:var(--green-fg);}
+  .ap-kpi.neu .sub{color:var(--text-muted);font-weight:500;}
+
+  .ap-chart-wrap{display:grid;grid-template-columns:minmax(0,420px);justify-content:center;margin-bottom:14px;}
+  .ap-chart-card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:16px 18px;box-shadow:0 2px 6px rgba(15,27,44,.04);}
+  .ap-chart-card h3{margin:0 0 10px;font-family:var(--font-display);font-size:13.5px;color:var(--navy);display:flex;align-items:center;gap:8px;font-weight:700;}
+  .ap-chart-card h3 i{font-size:15px;color:var(--accent);}
+  .ap-chart-box{height:230px;position:relative;}
+
+  .ap-table-head{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px;margin-bottom:12px;}
+  .ap-table-head h3{margin:0;font-family:var(--font-display);font-size:14px;color:var(--navy);}
+  .ap-table-head p{margin:3px 0 0;font-size:11px;color:var(--text-secondary);}
+  .ap-table-controls{display:flex;gap:8px;flex-wrap:wrap;}
+  .ap-search-wrap{position:relative;}
+  .ap-search-wrap input{padding:8px 12px 8px 30px;border:1px solid var(--border);border-radius:8px;font-size:12.5px;font-family:var(--font-body);width:210px;background:var(--surface);color:var(--text);}
+  .ap-search-wrap i{position:absolute;left:10px;top:9px;color:var(--text-muted);font-size:14px;}
+  .ap-filter-sel{padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:12.5px;font-family:var(--font-body);background:var(--surface);color:var(--text);}
+  tr.ap-warn-row{background:var(--red-bg)!important;}
+  .ap-badge{display:inline-block;padding:3px 9px;border-radius:999px;font-size:10.5px;font-weight:700;white-space:nowrap;}
+  .ap-b-red{background:var(--red-bg);color:var(--red-fg);}
+  .ap-b-green{background:var(--green-bg);color:var(--green-fg);}
+  .ap-b-blue{background:var(--blue-bg);color:var(--blue-fg);}
+  .ap-b-purple{background:var(--purple-bg);color:var(--purple-fg);}
+  .ap-b-gold{background:var(--gold-bg);color:var(--gold-fg);}
+  .ap-b-yellow{background:var(--yellow-bg);color:var(--yellow-fg);}
+  .ap-b-grey{background:var(--grey-bg);color:var(--grey-fg);}
+  .ap-num-ok{color:var(--green-fg);font-weight:700;}
+  .ap-num-bad{color:var(--red-fg);font-weight:700;}
+  .ap-num-muted{color:var(--text-muted);}
+  @media(max-width:900px){.ap-kpis{grid-template-columns:repeat(2,1fr);}}
+
+  .category{background:var(--surface);border-radius:12px;margin-bottom:12px;overflow:hidden;border:1px solid var(--border);}
+  .category-body{padding:4px 0;}
+  .controls{display:flex;flex-wrap:wrap;gap:10px;background:var(--surface);padding:12px;border-radius:var(--radius);margin-bottom:14px;border:1px solid var(--border);align-items:center;}
+  .controls label{font-size:11px;font-weight:600;color:var(--text);display:block;margin-bottom:3px;}
+  .controls input[type=text],.controls input[type=number],.controls select,.controls textarea{
+    border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:13px;font-family:var(--font-body);background:var(--surface);color:var(--text);}
+  .controls .grow{flex:1;min-width:140px;}
+  .select-with-actions{display:flex;gap:4px;}
+  .select-with-actions select{flex:1;min-width:0;}
+  .icon-btn{border:none;border-radius:6px;font-size:13px;font-weight:bold;cursor:pointer;padding:0 9px;font-family:Arial;flex-shrink:0;transition:transform .15s ease,box-shadow .15s ease;}
+  .icon-btn:hover{transform:translateY(-1px);box-shadow:0 3px 8px rgba(0,0,0,.12);}
+  .icon-btn-add{background:var(--hilite);color:var(--navy);}
+  .icon-btn-add:hover{background:#c3d7ee;}
+  .add-task-wrap{padding:10px 14px 14px;}
+  .add-task-btn{background:var(--hilite);color:var(--navy);border:1.5px dashed var(--accent);border-radius:8px;padding:8px 14px;font-size:12px;font-weight:600;cursor:pointer;width:100%;text-align:left;}
+  .add-task-btn:hover{background:var(--accent);color:#fff;border-style:solid;}
+  .wim-icon-btn{display:inline-flex;align-items:center;justify-content:center;width:29px;height:29px;border-radius:8px;cursor:pointer;color:var(--text-muted);background:transparent;border:none;}
+  .wim-icon-btn i{font-size:15px;}
+  .wim-icon-btn:hover{background:var(--steel-light);color:var(--accent);}
+
+  .ap-kpi{transition:transform .15s ease,box-shadow .15s ease,border-color .15s ease;}
+  .ap-kpi[style*="cursor:pointer"]:hover{transform:translateY(-2px);border-color:var(--accent);box-shadow:0 8px 16px rgba(15,27,44,.1);}
+  .ap-kpi.active{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent) inset;}
+  .ap-kpi .val{transition:none;}
+  #apBody tr.ap-row{transition:background .12s ease;}
+  #apBody tr.ap-row:hover{background:var(--hilite)!important;}
+  #apBody tr.ap-row td{transition:none;}
+  .ap-table-scroll{max-height:560px;overflow-y:auto;overflow-x:auto;border:1px solid #d8dfe6;border-radius:8px;}
+  .ap-table-scroll table thead tr th{position:sticky;top:0;z-index:2;background:var(--navy);}
+  .ap-row-edit, .wim-icon-btn.ap-hist{transition:transform .12s ease,color .12s ease;}
+  .ap-row-edit:hover{transform:scale(1.12);color:var(--accent)!important;}
+  .ap-pill{transition:background .12s ease,transform .12s ease;}
+  .ap-pill-link:active{transform:scale(.96);}
+  .add-task-btn{transition:background .15s ease,color .15s ease;}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="conn-banner" id="connBanner"></div>
+
+
+  <div class="ap-hero">
+    <div class="ap-hero-left">
+      <div class="ap-hero-icon"><i class="ti ti-package"></i></div>
+      <div>
+        <h1>Stock Management — Part WIM</h1>
+        <p>Ringkasan real-time stok &amp; status kondisi spare part sistem Weigh-In-Motion</p>
+      </div>
+    </div>
+    <div class="ap-hero-badges">
+      <span class="ap-pill ap-pill-live"><span class="ap-pill-dot"></span> <span id="apSyncInfo">Belum pernah sync dari Google Sheet.</span></span>
+      <a href="#" id="stockSheetLinkBtn" class="ap-pill ap-pill-link" target="_blank" rel="noopener" title="Buka spreadsheet sumber data di tab baru"><i class="ti ti-link"></i> Link Spreadsheet</a>
+      <button type="button" class="ap-pill ap-pill-link" id="stockSheetEditBtn" title="Ubah link spreadsheet sumber data"><i class="ti ti-pencil"></i></button>
+      <button type="button" class="ap-pill ap-pill-link" id="apSyncBtn"><i class="ti ti-refresh"></i> Sync dari Sheet</button>
+    </div>
+  </div>
+
+  <div class="ap-kpis" id="apKpiRow"></div>
+
+  <div class="ap-chart-wrap">
+    <div class="ap-chart-card">
+      <h3><i class="ti ti-chart-donut-2"></i> Distribusi Category (Severity)</h3>
+      <div class="ap-chart-box"><canvas id="apChartCategory"></canvas></div>
+    </div>
+  </div>
+
+  <div class="category">
+    <div class="category-body" style="padding:16px 18px;">
+      <div class="ap-table-head">
+        <div>
+          <h3><i class="ti ti-table"></i> Summary Stok Detail &amp; Risk Severity</h3>
+          <p>Cari dan filter part berdasarkan tingkat kepentingan (Category)</p>
+        </div>
+        <div class="ap-table-controls">
+          <div class="ap-search-wrap"><i class="ti ti-search"></i><input type="text" id="apSearchInput" placeholder="Cari nama part..."></div>
+          <select class="ap-filter-sel" id="apCategoryFilter">
+            <option value="ALL">Semua Category</option>
+            <option value="Critical">Critical</option>
+            <option value="Medium">Medium</option>
+            <option value="Low">Low</option>
+          </select>
+        </div>
+      </div>
+      <div class="ap-table-scroll">
+      <table style="width:100%;border-collapse:collapse;font-size:12px;min-width:900px;">
+        <thead><tr style="text-align:left;background:var(--navy);color:#fff;">
+          <th style="padding:10px 8px;font-weight:600;">No</th>
+          <th style="padding:10px 8px;font-weight:600;">Description</th>
+          <th style="padding:10px 8px;font-weight:600;">Category</th>
+          <th style="padding:10px 8px;font-weight:600;">Source</th>
+          <th style="padding:10px 8px;font-weight:600;">New Stock Spare</th>
+          <th style="padding:10px 8px;font-weight:600;">Ex / Second</th>
+          <th style="padding:10px 8px;font-weight:600;">Unit</th>
+          <th style="padding:10px 8px;font-weight:600;">Broken</th>
+          <th style="padding:10px 8px;font-weight:600;">Jenis</th>
+          <th style="padding:10px 8px;font-weight:600;">Desc</th>
+          <th style="padding:10px 8px;font-weight:600;text-align:right;">Aksi</th>
+        </tr></thead>
+        <tbody id="apBody"></tbody>
+      </table>
+      </div>
+      <div class="add-task-wrap" style="padding:10px 0 0;"><button class="add-task-btn" id="apAddBtn">+ Tambah item part</button></div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="stockModalOverlay">
+    <div class="modal-box" style="max-width:480px;">
+      <button type="button" class="modal-close-x" id="stockModalCloseBtn" title="Tutup">✕</button>
+      <h3 id="stockModalTitle">Detail Kategori</h3>
+      <div style="display:flex;gap:6px;margin-bottom:12px;">
+        <button type="button" class="stock-subtab active" data-sub="riwayat" style="padding:6px 12px;border-radius:999px;font-size:11px;font-weight:bold;border:none;cursor:pointer;background:var(--accent);color:#fff;">Riwayat Pergantian</button>
+        <button type="button" class="stock-subtab" data-sub="serial" style="padding:6px 12px;border-radius:999px;font-size:11px;font-weight:bold;border:none;cursor:pointer;background:var(--hilite);color:var(--navy);">Serial Number</button>
+      </div>
+      <div id="stockSubRiwayat"></div>
+      <div id="stockSubSerial" style="display:none;"></div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="apModalOverlay">
+    <div class="modal-box" style="max-width:460px;">
+      <button type="button" class="modal-close-x" id="apModalCloseBtn" title="Tutup">✕</button>
+      <h3 id="apModalTitle">Tambah Item Part</h3>
+      <div class="controls" style="flex-direction:column;align-items:stretch;background:none;border:none;padding:0;margin-bottom:0;">
+        <div class="grow"><label>Description</label><input type="text" id="apFDescription" style="width:100%;"></div>
+        <div style="display:flex;gap:10px;">
+          <div class="grow"><label>Category</label>
+            <select id="apFCategory" style="width:100%;">
+              <option value="">-</option>
+              <option>Low</option>
+              <option>Medium</option>
+              <option>Critical</option>
+            </select>
+          </div>
+          <div class="grow"><label>Source</label>
+            <select id="apFSource" style="width:100%;">
+              <option value="">-</option>
+              <option>Impor</option>
+              <option>Local</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;">
+          <div class="grow"><label>New Stock Spare</label><input type="number" id="apFNewStock" style="width:100%;"></div>
+          <div class="grow"><label>Ex / Second</label><input type="number" id="apFExSecond" style="width:100%;"></div>
+        </div>
+        <div style="display:flex;gap:10px;">
+          <div class="grow"><label>Unit</label><input type="text" id="apFUnit" style="width:100%;" placeholder="Pcs"></div>
+          <div class="grow"><label>Broken</label><input type="number" id="apFBroken" style="width:100%;"></div>
+        </div>
+        <div class="grow"><label>Jenis</label>
+          <div class="select-with-actions">
+            <select id="apFJenis" style="width:100%;">
+              <option value="">-</option>
+              <option>Bekas</option>
+              <option>Rusak</option>
+              <option>Aus</option>
+              <option>Dummy</option>
+            </select>
+            <button type="button" class="icon-btn icon-btn-add" id="apJenisManageBtn" title="Kelola daftar jenis (tambah/ubah/hapus)">⚙️</button>
+          </div>
+        </div>
+        <div class="grow"><label>Desc</label><textarea id="apFDesc" rows="2" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:13px;font-family:var(--font-body);"></textarea></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:14px;">
+        <button type="button" class="btn" id="apDeleteBtn" style="color:var(--red-fg);border-color:var(--red-fg);display:none;">Hapus</button>
+        <div style="display:flex;gap:8px;margin-left:auto;">
+          <button type="button" class="btn btn-ghost" id="apCancelBtn">Batal</button>
+          <button type="button" class="btn btn-primary" id="apSaveBtn">Simpan</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="jenisModalOverlay">
+    <div class="modal-box">
+      <button type="button" class="modal-close-x" id="jenisModalCloseBtn" title="Tutup">✕</button>
+      <h3>🏷️ Kelola Daftar Jenis</h3>
+      <div class="vendor-add-row">
+        <input type="text" id="jenisModalInput" placeholder="Nama jenis baru...">
+        <button type="button" class="btn btn-primary" id="jenisModalAddBtn">+ Tambah</button>
+      </div>
+      <div id="jenisModalMsg" style="display:none;font-size:11.5px;color:var(--red-fg);font-weight:bold;margin-bottom:8px;"></div>
+      <div class="vendor-item-list" id="jenisModalList"></div>
+      <div style="text-align:right;margin-top:14px;">
+        <button type="button" class="btn btn-ghost" id="jenisModalDoneBtn">Selesai</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="pjpCompanyModalOverlay">
+    <div class="modal-box">
+      <button type="button" class="modal-close-x" id="pjpCompanyModalCloseBtn" title="Tutup">✕</button>
+      <h3>🏭 Kelola Daftar Perusahaan Jasa Pertambangan</h3>
+      <div class="vendor-add-row">
+        <input type="text" id="pjpCompanyModalInput" placeholder="Nama/kode perusahaan baru...">
+        <button type="button" class="btn btn-primary" id="pjpCompanyModalAddBtn">+ Tambah</button>
+      </div>
+      <div id="pjpCompanyModalMsg" style="display:none;font-size:11.5px;color:var(--red-fg);font-weight:bold;margin-bottom:8px;"></div>
+      <div class="vendor-item-list pjp-manage-list" id="pjpCompanyModalList"></div>
+      <div style="text-align:right;margin-top:14px;">
+        <button type="button" class="btn btn-ghost" id="pjpCompanyModalDoneBtn">Selesai</button>
+      </div>
+    </div>
+  </div>
+
+<div id="toastWrap"></div>
+
+<footer>Maintain. Monitor. Improve. — Digitech Monitoring Team</footer>
+
+<script>
+/* ================= KONFIGURASI — HARUS SAMA PERSIS DENGAN HUB UTAMA ================= */
+const APPS_SCRIPT_URL = "https://dcva-backend.meharrisborneo.workers.dev";
+
+/* ================= BACKEND: sama persis dengan store.get/set di HUB utama ================= */
+async function gsGet(key){
+  const res = await fetch(`${APPS_SCRIPT_URL}?action=get&key=${encodeURIComponent(key)}&_t=${Date.now()}`, { cache: 'no-store' });
+  if(!res.ok) throw new Error('HTTP ' + res.status);
+  const data = await res.json();
+  if(data.error === 'not_found') throw new Error('not found');
+  if(data.error) throw new Error(data.message || data.error);
+  return { key: data.key, value: data.value };
+}
+async function gsSet(key, value){
+  const url = `${APPS_SCRIPT_URL}?action=set&key=${encodeURIComponent(key)}&value=${encodeURIComponent(value)}&_t=${Date.now()}`;
+  const res = await fetch(url, { cache: 'no-store' });
+  if(!res.ok) throw new Error('HTTP ' + res.status);
+  const data = await res.json();
+  if(data.error) throw new Error(data.message || data.error);
+  return { key: data.key, value: data.value };
+}
+async function gsDelete(key){
+  const url = `${APPS_SCRIPT_URL}?action=delete&key=${encodeURIComponent(key)}&_t=${Date.now()}`;
+  const res = await fetch(url, { cache: 'no-store' });
+  if(!res.ok) throw new Error('HTTP ' + res.status);
+  const data = await res.json();
+  if(data.error) throw new Error(data.message || data.error);
+  return { key: data.key, deleted: data.deleted };
+}
+async function gsList(prefix){
+  const res = await fetch(`${APPS_SCRIPT_URL}?action=list&prefix=${encodeURIComponent(prefix)}&_t=${Date.now()}`, { cache: 'no-store' });
+  if(!res.ok) throw new Error('HTTP ' + res.status);
+  const data = await res.json();
+  if(data.error) throw new Error(data.message || data.error);
+  return { keys: data.keys || [] };
+}
+const store = { get: gsGet, set: gsSet, delete: gsDelete, list: gsList };
+
+function showConnBanner(msg){
+  const el = document.getElementById('connBanner');
+  el.textContent = '⚠️ Gagal terhubung ke backend: ' + msg + '. Perubahan akan dicoba lagi otomatis saat koneksi kembali normal.';
+  el.classList.add('show');
+}
+function hideConnBanner(){ document.getElementById('connBanner').classList.remove('show'); }
+
+/* ================= HELPER PENYIMPANAN (identik dengan dsoLoad/dsoSave di HUB utama) ================= */
+async function dsoLoad(key, fallback){
+  try{
+    const res = await store.get(key);
+    if(res && res.value) { hideConnBanner(); return JSON.parse(res.value); }
+  }catch(e){
+    if(e.message !== 'not found'){ showConnBanner(e.message || 'unknown error'); }
+  }
+  try{ await store.set(key, JSON.stringify(fallback)); }catch(e){}
+  return fallback;
+}
+async function dsoSave(key, val){
+  try{ await store.set(key, JSON.stringify(val)); hideConnBanner(); }
+  catch(e){ console.error('gagal simpan', key, e); showConnBanner(e.message || 'unknown error'); }
+}
+
+/* ---------------- TOAST NOTIFIKASI ---------------- */
+function showToast(message, type){
+  const wrap = document.getElementById('toastWrap');
+  const el = document.createElement('div');
+  el.className = 'toast' + (type ? ' toast-' + type : '');
+  el.textContent = message;
+  wrap.appendChild(el);
+  requestAnimationFrame(() => el.classList.add('show'));
+  setTimeout(() => {
+    el.classList.remove('show');
+    setTimeout(() => el.remove(), 300);
+  }, 2800);
+}
+
+function createManagedList(opts){
+  const { storageKey, defaults, selectId, manageBtnId, modalOverlayId, modalInputId, modalAddBtnId,
+          modalCloseBtnId, modalDoneBtnId, modalListId, modalMsgId, itemLabel, onRename } = opts;
+  let list = [...defaults];
+
+  async function load(){
+    try{
+      const res = await store.get(storageKey);
+      const parsed = (res && res.value) ? JSON.parse(res.value) : null;
+      list = (Array.isArray(parsed) && parsed.length > 0) ? parsed : [...defaults];
+    }catch(e){ list = [...defaults]; }
+  }
+  async function save(){
+    try{ await store.set(storageKey, JSON.stringify(list)); }
+    catch(e){ console.error('Gagal menyimpan daftar ' + itemLabel, e); }
+  }
+  function renderOptions(selectedValue){
+    const sel = document.getElementById(selectId);
+    if(!sel) return;
+    const current = selectedValue !== undefined ? selectedValue : sel.value;
+    sel.innerHTML = list.map(v =>
+      `<option ${v === current ? 'selected' : ''}>${v}</option>`
+    ).join('');
+  }
+  function showMsg(text){
+    const msg = document.getElementById(modalMsgId);
+    msg.textContent = text;
+    msg.style.display = 'block';
+    clearTimeout(showMsg._t);
+    showMsg._t = setTimeout(() => { msg.style.display = 'none'; }, 3500);
+  }
+  function renderModalList(){
+    const el = document.getElementById(modalListId);
+    if(list.length === 0){
+      el.innerHTML = `<div class="vendor-empty-note">Belum ada ${itemLabel}. Tambahkan lewat kolom di atas.</div>`;
+      return;
+    }
+    el.innerHTML = list.map(v => `
+      <div class="vendor-item" data-v="${v}">
+        <span class="vendor-item-label">${v}</span>
+        <div style="display:flex;gap:4px;flex-shrink:0;">
+          <button type="button" class="wim-icon-btn edit vendor-item-edit" data-v="${v}" title="Ubah nama"><i class="ti ti-edit"></i></button>
+          <button type="button" class="vendor-item-del" data-v="${v}">Hapus</button>
+        </div>
+      </div>
+    `).join('');
+    el.querySelectorAll('.vendor-item-edit').forEach(btn => {
+      btn.onclick = () => {
+        const item = btn.closest('.vendor-item');
+        const label = item.querySelector('.vendor-item-label');
+        const oldName = btn.dataset.v;
+        if(item.querySelector('.vendor-item-rename-input')) return;
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = oldName;
+        input.className = 'vendor-item-rename-input';
+        input.style.cssText = 'flex:1;font-size:13px;border:1px solid var(--accent);border-radius:6px;padding:4px 8px;';
+        label.replaceWith(input);
+        input.focus();
+        input.select();
+        const commit = async () => {
+          const newName = input.value.trim();
+          if(!newName || newName === oldName){ renderModalList(); return; }
+          if(list.some(v => v.toLowerCase() === newName.toLowerCase() && v !== oldName)){
+            showMsg(`${itemLabel.charAt(0).toUpperCase() + itemLabel.slice(1)} "${newName}" sudah ada di daftar.`);
+            renderModalList();
+            return;
+          }
+          list = list.map(v => v === oldName ? newName : v);
+          await save();
+          if(typeof onRename === 'function') await onRename(oldName, newName);
+          renderOptions(newName);
+          renderModalList();
+        };
+        input.addEventListener('keydown', (e) => {
+          if(e.key === 'Enter'){ e.preventDefault(); commit(); }
+          if(e.key === 'Escape'){ e.preventDefault(); renderModalList(); }
+        });
+        input.addEventListener('blur', commit);
+      };
+    });
+    el.querySelectorAll('.vendor-item-del').forEach(btn => {
+      btn.onclick = async () => {
+        if(!btn.classList.contains('confirming')){
+          el.querySelectorAll('.vendor-item-del.confirming').forEach(b => { b.classList.remove('confirming'); b.textContent = 'Hapus'; });
+          btn.classList.add('confirming');
+          btn.textContent = 'Yakin?';
+          clearTimeout(btn._resetT);
+          btn._resetT = setTimeout(() => { btn.classList.remove('confirming'); btn.textContent = 'Hapus'; }, 2500);
+          return;
+        }
+        const name = btn.dataset.v;
+        list = list.filter(v => v !== name);
+        await save();
+        renderOptions('');
+        renderModalList();
+      };
+    });
+  }
+  async function submitNew(){
+    const input = document.getElementById(modalInputId);
+    const trimmed = input.value.trim();
+    if(!trimmed){ input.focus(); return; }
+    if(list.some(v => v.toLowerCase() === trimmed.toLowerCase())){
+      showMsg(`${itemLabel.charAt(0).toUpperCase() + itemLabel.slice(1)} "${trimmed}" sudah ada di daftar.`);
+      input.value = '';
+      input.focus();
+      return;
+    }
+    list.push(trimmed);
+    await save();
+    renderOptions(trimmed);
+    renderModalList();
+    input.value = '';
+    input.focus();
+  }
+  function openModal(){
+    document.getElementById(modalOverlayId).classList.add('active');
+    renderModalList();
+    document.getElementById(modalInputId).value = '';
+    document.getElementById(modalMsgId).style.display = 'none';
+    setTimeout(() => document.getElementById(modalInputId).focus(), 50);
+  }
+  function closeModal(){
+    document.getElementById(modalOverlayId).classList.remove('active');
+  }
+
+  document.getElementById(manageBtnId).onclick = openModal;
+  document.getElementById(modalCloseBtnId).onclick = closeModal;
+  document.getElementById(modalDoneBtnId).onclick = closeModal;
+  document.getElementById(modalAddBtnId).onclick = submitNew;
+  document.getElementById(modalInputId).addEventListener('keydown', (e) => {
+    if(e.key === 'Enter'){ e.preventDefault(); submitNew(); }
+  });
+  document.getElementById(modalOverlayId).addEventListener('click', (e) => {
+    if(e.target.id === modalOverlayId) closeModal();
+  });
+  document.addEventListener('keydown', (e) => {
+    if(e.key === 'Escape' && document.getElementById(modalOverlayId).classList.contains('active')) closeModal();
+  });
+
+  return { load, renderOptions, getList: () => list };
+}
+
+
+const DSO_AVAIL_KEY = 'dso:availability';
+const DSO_ASSETS_KEY = 'dso:stock-wim-v2';
+let apAssetsData = [];
+let apEditingIdx = null;
+const DSO_POB_KEY = 'dso:pob';
+const STOCK_SHEET_ID = '1w3rlXybBify-dOTs26n83WrlO5FzlWvQUbLq21pp4n4';
+const STOCK_SHEET_NAME = 'Summary Stok';
+const DSO_STOCK_LASTSYNC_KEY = 'dso:stock-lastsync';
+const DSO_STOCK_SHEETID_OVERRIDE_KEY = 'dso:stock-sheet-id-override';
+let stockSheetIdOverride = null; // null = belum dimuat dari storage; '' = sudah dimuat, tidak ada override
+
+async function apGetEffectiveSheetId(){
+  if(stockSheetIdOverride === null){
+    stockSheetIdOverride = await dsoLoad(DSO_STOCK_SHEETID_OVERRIDE_KEY, '');
+  }
+  return stockSheetIdOverride || STOCK_SHEET_ID;
+}
+
+async function apUpdateSheetBadge(){
+  const id = await apGetEffectiveSheetId();
+  const linkEl = document.getElementById('stockSheetLinkBtn');
+  if(linkEl) linkEl.href = `https://docs.google.com/spreadsheets/d/${id}/edit`;
+}
+
+async function apEditSheetLink(){
+  const current = await apGetEffectiveSheetId();
+  const currentUrl = `https://docs.google.com/spreadsheets/d/${current}/edit`;
+  const input = prompt(
+    `Tempel URL atau ID Google Sheet sumber data Stock Management.\nSheet harus punya tab bernama "${STOCK_SHEET_NAME}" dan akses "Anyone with link can view".`,
+    currentUrl
+  );
+  if(input === null) return;
+  const trimmed = input.trim();
+  if(!trimmed) return;
+  let newId = trimmed;
+  const m = trimmed.match(/\/d\/([a-zA-Z0-9-_]+)/);
+  if(m) newId = m[1];
+  if(!/^[a-zA-Z0-9-_]{15,}$/.test(newId)){
+    showToast('⚠️ Link/ID Google Sheet tidak valid', 'error');
+    return;
+  }
+  stockSheetIdOverride = newId;
+  await dsoSave(DSO_STOCK_SHEETID_OVERRIDE_KEY, newId);
+  await apUpdateSheetBadge();
+  showToast('✓ Link spreadsheet Stock Management diperbarui, menyinkron ulang...', 'success');
+  syncStockFromSheet(true);
+}
+
+function dsoDefaults(){
+  return {
+    availability: { uptime: 99.85 },
+    assets: [
+      {cat:'Load Cell', real:4, dummy:6, status:'green', label:'Ready',
+        replacements:[
+          {tanggal:'2026-05-22', lane:'Lane 3', keterangan:'Pergantian Loadcell Intercomp nomor 1 dan diganti keseluruhan dengan Loadcell Bosche'},
+          {tanggal:'2026-05-26', lane:'Lane 3', keterangan:'Pergantian Loadcell Bosche dengan Intercomp'},
+          {tanggal:'2026-05-28', lane:'Lane 1', keterangan:'Pergantian Loadcell Intercomp nomor 3 dan diganti keseluruhan dengan Loadcell Bosche'}
+        ],
+        serial:[
+          {nama:'LOADCELL INTERCOMP', merk:'INTERCOMP Loadcell double ended shear beam', sn:'91066926', kondisi:'Rusak', lokasi:'Office VGT'},
+          {nama:'LOADCELL INTERCOMP', merk:'INTERCOMP Loadcell double ended shear beam', sn:'9106930', kondisi:'Dummy', lokasi:'Office VGT'},
+          {nama:'LOADCELL INTERCOMP', merk:'INTERCOMP Loadcell double ended shear beam', sn:'91066931', kondisi:'Rusak', lokasi:'Office VGT'}
+        ]},
+      {cat:'Saddle', real:0, dummy:6, status:'red', label:'Out of Stock',
+        replacements:[
+          {tanggal:'2025-07-27', lane:'Lane 1', keterangan:'Pergantian sadle Load Cell 1 yang aus di Lane 1'},
+          {tanggal:'2025-08-02', lane:'Lane 1', keterangan:'Pergantian sadle Load Cell 4 yang aus di Lane 1'},
+          {tanggal:'2025-10-27', lane:'Lane 1', keterangan:'Pergantian sadle Load Cell 2 yang aus di Lane 1'}
+        ],
+        serial:[]},
+      {cat:'RFID Reader', real:0, dummy:0, status:'red', label:'Out of Stock',
+        replacements:[
+          {tanggal:'2025-12-09', lane:'Lane 3', keterangan:'Pergantian RFID Reader HS Lane 3'},
+          {tanggal:'2026-07-17', lane:'Lane 2', keterangan:'Pergantian RFID Reader HS Lane 2 karena kabel connector putus'}
+        ],
+        serial:[
+          {nama:'Electron UHF Fixed Reader antenna 9dBi / 12dBi', merk:'Electron HW-VX6346KL V2', sn:'-', kondisi:'Bekas', lokasi:'Office VGT'}
+        ]},
+      {cat:'Baut Load Cell', real:11, dummy:0, status:'green', label:'Ready',
+        replacements:[
+          {tanggal:'2025-07-27', lane:'Lane 1', keterangan:'Pergantian baut Load Cell 2 dan 3 yang patah di Lane 1'},
+          {tanggal:'2025-07-31', lane:'Lane 1', keterangan:'Pergantian baut Load Cell 1 yang patah di Lane 1'},
+          {tanggal:'2025-08-02', lane:'Lane 1', keterangan:'Pergantian baut Load Cell 4 yang bengkok di Lane 1'},
+          {tanggal:'2025-12-02', lane:'Lane 1', keterangan:'Pergantian baut Load Cell 4 yang bengkok di Lane 1'},
+          {tanggal:'2026-01-14', lane:'Lane 3', keterangan:'Pergantian Load Cell 4 yang patah di Lane 3'},
+          {tanggal:'2026-03-18', lane:'Lane 1', keterangan:'Pergantian Load Cell 4 yang patah di Lane 3'},
+          {tanggal:'2026-05-22', lane:'Lane 3', keterangan:'Baut dipake untuk Loadcell 1 dan Loadcell 2'},
+          {tanggal:'2026-05-28', lane:'Lane 1', keterangan:'Baut dipake untuk masing-masing Loadcell menggunakan satu baut baru pada Lane 1'}
+        ],
+        serial:[]},
+      {cat:'Dudukan Load Cell', real:3, dummy:5, status:'green', label:'Ready',
+        replacements:[
+          {tanggal:'2025-02-02', lane:'Lane 3', keterangan:'Pergantian dudukan loadcell 4 dikarenakan baut patah didalam'},
+          {tanggal:'2025-12-19', lane:'Lane 1', keterangan:'Dudukan Loadcell diganti semua dikarenakan instalasi dengan frame baru'},
+          {tanggal:'2026-01-14', lane:'Lane 3', keterangan:'Pergantian Load Cell 4 yang patah di Lane 3'}
+        ],
+        serial:[
+          {nama:'INTERCOMP AX920 Loadcell Base', merk:'UL50-30', sn:'-', kondisi:'Aus'},
+          {nama:'INTERCOMP AX920 Loadcell Base', merk:'UL50-30', sn:'-', kondisi:'Aus'},
+          {nama:'INTERCOMP AX920 Loadcell Base', merk:'UL50-30', sn:'-', kondisi:'Aus'},
+          {nama:'INTERCOMP AX920 Loadcell Base', merk:'UL50-30', sn:'-', kondisi:'Aus'},
+          {nama:'INTERCOMP AX920 Loadcell Base', merk:'UL50-30', sn:'-', kondisi:'Baru'},
+          {nama:'INTERCOMP AX920 Loadcell Base', merk:'UL50-30', sn:'-', kondisi:'Baru'},
+          {nama:'INTERCOMP AX920 Loadcell Base', merk:'UL50-30', sn:'-', kondisi:'Baru'},
+          {nama:'INTERCOMP AX920 Loadcell Base', merk:'UL50-30', sn:'-', kondisi:'Rusak'},
+          {nama:'INTERCOMP AX920 Loadcell Base', merk:'UL50-30', sn:'-', kondisi:'Baru'},
+          {nama:'INTERCOMP AX920 Loadcell Base', merk:'UL50-30', sn:'-', kondisi:'Baru'}
+        ]},
+      {cat:'Bolt Adjuster Platform', real:8, dummy:0, status:'green', label:'Ready',
+        replacements:[],
+        serial:[]},
+      {cat:'Longrat Adjuster', real:4, dummy:0, status:'green', label:'Ready',
+        replacements:[
+          {tanggal:'2025-07-27', lane:'Lane 1', keterangan:'Pergantian adjuster sebelah kanan yang patah di Lane 1'},
+          {tanggal:'2025-07-31', lane:'Lane 1', keterangan:'Pergantian adjuster sebelah kiri yang patah di Lane 1'}
+        ],
+        serial:[]},
+      {cat:'Ring Adjuster', real:20, dummy:0, status:'green', label:'Ready',
+        replacements:[
+          {tanggal:'2025-07-27', lane:'Lane 1', keterangan:'Pergantian adjuster sebelah kanan yang patah di Lane 1'},
+          {tanggal:'2025-07-31', lane:'Lane 1', keterangan:'Pergantian adjuster sebelah kiri yang patah di Lane 1'}
+        ],
+        serial:[]},
+      {cat:'Rubber Adjuster', real:4, dummy:0, status:'green', label:'Ready',
+        replacements:[
+          {tanggal:'2025-07-27', lane:'Lane 1', keterangan:'Pergantian adjuster sebelah kanan yang patah di Lane 1'},
+          {tanggal:'2025-07-31', lane:'Lane 1', keterangan:'Pergantian adjuster sebelah kiri yang patah di Lane 1'}
+        ],
+        serial:[]},
+      {cat:'Mur Adjuster', real:2, dummy:0, status:'green', label:'Ready',
+        replacements:[
+          {tanggal:'2025-07-27', lane:'Lane 1', keterangan:'Pergantian adjuster sebelah kanan yang patah di Lane 1'},
+          {tanggal:'2025-07-31', lane:'Lane 1', keterangan:'Pergantian adjuster sebelah kiri yang patah di Lane 1'}
+        ],
+        serial:[]},
+      {cat:'Mounting Platform LS', real:8, dummy:4, status:'green', label:'Ready',
+        replacements:[],
+        serial:[
+          {nama:'INTERCOMP Mounting Platform Low Speed', merk:'UC50-30', sn:'-', kondisi:'Aus'},
+          {nama:'INTERCOMP Mounting Platform Low Speed', merk:'UC50-30', sn:'-', kondisi:'Aus'},
+          {nama:'INTERCOMP Mounting Platform Low Speed', merk:'UC50-30', sn:'-', kondisi:'Aus'},
+          {nama:'INTERCOMP Mounting Platform Low Speed', merk:'UC50-30', sn:'-', kondisi:'Aus'},
+          {nama:'INTERCOMP Mounting Platform Low Speed', merk:'UC50-30', sn:'-', kondisi:'Baru'},
+          {nama:'INTERCOMP Mounting Platform Low Speed', merk:'UC50-30', sn:'-', kondisi:'Baru'},
+          {nama:'INTERCOMP Mounting Platform Low Speed', merk:'UC50-30', sn:'-', kondisi:'Baru'},
+          {nama:'INTERCOMP Mounting Platform Low Speed', merk:'UC50-30', sn:'-', kondisi:'Baru'},
+          {nama:'INTERCOMP Mounting Platform Low Speed', merk:'UC50-30', sn:'-', kondisi:'Baru'},
+          {nama:'INTERCOMP Mounting Platform Low Speed', merk:'UC50-30', sn:'-', kondisi:'Baru'}
+        ]},
+      {cat:'Platform Low Speed', real:0, dummy:1, status:'red', label:'Out of Stock',
+        replacements:[],
+        serial:[
+          {nama:'LS-WIM AXLE SCALE INTERCOMP', merk:'LS-WIM AXLE SCALE SYSTEM 3.9 M PLATFORM / 125007', sn:'1112YH24001', kondisi:'Bekas'},
+          {nama:'LS-WIM AXLE SCALE INTERCOMP', merk:'LS-WIM AXLE SCALE SYSTEM 3.9 M PLATFORM / 125007', sn:'0217YH25001', kondisi:'Baru'},
+          {nama:'LS-WIM AXLE SCALE INTERCOMP', merk:'LS-WIM AXLE SCALE SYSTEM 3.9 M PLATFORM / 125007', sn:'0217YH25002', kondisi:'Baru'}
+        ]},
+      {cat:'Frame Low Speed', real:1, dummy:1, status:'green', label:'Ready',
+        replacements:[],
+        serial:[
+          {nama:'INTERCOMP Frame Low Speed', merk:'-', sn:'-', kondisi:'Bekas'},
+          {nama:'INTERCOMP Frame Low Speed', merk:'-', sn:'-', kondisi:'Baru'},
+          {nama:'Fabrikasi dari Jakarta', merk:'-', sn:'-', kondisi:'Baru'},
+          {nama:'INTERCOMP Frame Low Speed', merk:'-', sn:'-', kondisi:'Baru'}
+        ]},
+      {cat:'Junction Box', real:1, dummy:0, status:'green', label:'Ready',
+        replacements:[],
+        serial:[
+          {nama:'INTERCOMP Summing Box', merk:'-', sn:'-', kondisi:'Baru'},
+          {nama:'INTERCOMP Summing Box', merk:'-', sn:'-', kondisi:'Baru'},
+          {nama:'INTERCOMP Summing Box', merk:'-', sn:'-', kondisi:'Bekas'}
+        ]},
+      {cat:'CCTV', real:1, dummy:0, status:'green', label:'Ready',
+        replacements:[],
+        serial:[
+          {nama:'HIKVISION', merk:'HIKVISION Network Camera', sn:'-', kondisi:'Baru'},
+          {nama:'HIKVISION', merk:'HIKVISION Network Camera', sn:'-', kondisi:'Baru'},
+          {nama:'HIKVISION', merk:'HIKVISION Network Camera', sn:'-', kondisi:'Baru'},
+          {nama:'HIKVISION', merk:'HIKVISION Network Camera', sn:'-', kondisi:'Baru'},
+          {nama:'HIKVISION', merk:'HIKVISION Network Camera', sn:'-', kondisi:'Baru'},
+          {nama:'HIKVISION', merk:'HIKVISION Network Camera', sn:'AB7521332', kondisi:'Baru'}
+        ]},
+      {cat:'Strip Sensor High Speed', real:4, dummy:0, status:'green', label:'Ready',
+        replacements:[],
+        serial:[
+          {nama:'Sensor Strip High Speed INTERCOMP', merk:'2.0M STRAIN GAUGE STRIP SENSOR W/100M CABLE (3.0) / 153033 - 100', sn:'-', kondisi:'Baru'},
+          {nama:'Sensor Strip High Speed INTERCOMP', merk:'2.0M STRAIN GAUGE STRIP SENSOR W/100M CABLE (3.0) / 153033 - 100', sn:'-', kondisi:'Baru'},
+          {nama:'Sensor Strip High Speed INTERCOMP', merk:'2.0M STRAIN GAUGE STRIP SENSOR W/100M CABLE (3.0) / 153033 - 100', sn:'-', kondisi:'Baru'},
+          {nama:'Sensor Strip High Speed INTERCOMP', merk:'2.0M STRAIN GAUGE STRIP SENSOR W/100M CABLE (3.0) / 153033 - 100', sn:'-', kondisi:'Baru'},
+          {nama:'Sensor Strip High Speed INTERCOMP', merk:'2.0M STRAIN GAUGE STRIP SENSOR W/100M CABLE (3.0) / 153033 - 100', sn:'-', kondisi:'Baru'},
+          {nama:'Sensor Strip High Speed INTERCOMP', merk:'2.0M STRAIN GAUGE STRIP SENSOR W/100M CABLE (3.0) / 153033 - 100', sn:'-', kondisi:'Baru'},
+          {nama:'Sensor Strip High Speed INTERCOMP', merk:'2.0M STRAIN GAUGE STRIP SENSOR W/100M CABLE (3.0) / 153033 - 100', sn:'-', kondisi:'Baru'},
+          {nama:'Sensor Strip High Speed INTERCOMP', merk:'2.0M STRAIN GAUGE STRIP SENSOR W/100M CABLE (3.0) / 153033 - 100', sn:'-', kondisi:'Baru'},
+          {nama:'Sensor Strip High Speed INTERCOMP', merk:'2.0M STRAIN GAUGE STRIP SENSOR W/100M CABLE (3.0) / 153033 - 100', sn:'-', kondisi:'Baru'},
+          {nama:'Sensor Strip High Speed INTERCOMP', merk:'2.0M STRAIN GAUGE STRIP SENSOR W/100M CABLE (3.0) / 153033 - 100', sn:'-', kondisi:'Baru'}
+        ]},
+      {cat:'Switch', real:1, dummy:0, status:'green', label:'Ready',
+        replacements:[
+          {tanggal:'2025-10-22', lane:'Lane 3', keterangan:'Pergantian di Lane 3'}
+        ],
+        serial:[
+          {nama:'Tp-Link 16 Port Gigabit', merk:'TL-SG1016PE(UN)', sn:'-', kondisi:'Baru'},
+          {nama:'Tp-Link 16 Port Gigabit', merk:'TL-SG1016PE(UN)', sn:'-', kondisi:'Baru'},
+          {nama:'D-Link Un-Managed PoE Switch', merk:'DES-F1018P-E', sn:'RVBPEO5000126', kondisi:'Bekas'},
+          {nama:'Tp-Link 16 Port Gigabit', merk:'TL-SG1016PE(UN)', sn:'22524J2001742', kondisi:'Baru'},
+          {nama:'Tp-Link Omada 8 Port Gigabit', merk:'SG3210', sn:'225A0LB000437', kondisi:'Baru'}
+        ]},
+      {cat:'PLC', real:0, dummy:0, status:'red', label:'Out of Stock',
+        replacements:[],
+        serial:[
+          {nama:'MITSUBISI ELECTRIC', merk:'Misubisi Electric FX3u-16M', sn:'-', kondisi:'Baru'},
+          {nama:'MITSUBISI ELECTRIC', merk:'Misubisi Electric FX3u-16M', sn:'-', kondisi:'Rusak'},
+          {nama:'MITSUBISI ELECTRIC', merk:'Misubisi Electric FX3u-16M', sn:'-', kondisi:'Rusak'}
+        ]},
+      {cat:'Batterai Lithium', real:0, dummy:0, status:'red', label:'Out of Stock',
+        replacements:[
+          {tanggal:'2026-04-16', lane:'Lane 2', keterangan:'Pergantian di Lane 2 karena over discharging'},
+          {tanggal:'2026-06-28', lane:'Lane 3', keterangan:'Pergantian di Lane 3 karena over discharging'}
+        ],
+        serial:[
+          {nama:'SHOTO', merk:'SDA10-48100', sn:'-', kondisi:'Rusak'},
+          {nama:'SMT-POWER', merk:'LITHIUM BATTERY SL5210 51.2V 100AH', sn:'Y028151100A241209A81', kondisi:'Baru'},
+          {nama:'SHOTO', merk:'SDA10-48100', sn:'-', kondisi:'Rusak'},
+          {nama:'SMT-POWER', merk:'LITHIUM BATTERY SL5210 51.2V 100AH', sn:'Y028151100A240409B84', kondisi:'Baru'},
+          {nama:'SMT-POWER', merk:'LITHIUM BATTERY SL5210 51.2V 100AH', sn:'Y028151100A260327A01', kondisi:'Baru'}
+        ]},
+      {cat:'WIM Logix HS', real:0, dummy:0, status:'red', label:'Out of Stock',
+        replacements:[],
+        serial:[
+          {nama:'Weigh-In-Motion CPU Modules', merk:'WIMLOGIX I/O + CPU (Up to 8 Sensors) / 153037', sn:'0306YS24001', kondisi:'Baru'},
+          {nama:'Weigh-In-Motion CPU Modules', merk:'WIMLOGIX I/O + CPU (Up to 8 Sensors) / 153037', sn:'1024YS24001', kondisi:'Baru'},
+          {nama:'Weigh-In-Motion CPU Modules', merk:'WIMLOGIX I/O + CPU (Up to 8 Sensors) / 153037', sn:'0122YS25005', kondisi:'Baru'}
+        ]},
+      {cat:'WIM Logix LS', real:1, dummy:0, status:'green', label:'Ready',
+        replacements:[],
+        serial:[
+          {nama:'WIM LOGIX LS', merk:'WIM4 CPU WITH ETHERNET OUTPUT FOR LS WIM / 125001', sn:'1112YH24002', kondisi:'Baru'},
+          {nama:'WIM LOGIX LS', merk:'WIM4 CPU WITH ETHERNET OUTPUT FOR LS WIM / 125001', sn:'0217YH25003', kondisi:'Baru'},
+          {nama:'WIM LOGIX LS', merk:'WIM4 CPU WITH ETHERNET OUTPUT FOR LS WIM / 125001', sn:'0217YH25004', kondisi:'Baru'}
+        ]},
+      {cat:'Light Curtain', real:2, dummy:0, status:'green', label:'Ready',
+        replacements:[],
+        serial:[
+          {nama:'Receiver Light Curtain HS Lane 1', merk:'TYPE4/SIL3(IEC61496/IEC61508)', sn:'#C3420333', kondisi:'Baru'},
+          {nama:'Transmitter Light Curtain HS Lane 1', merk:'TYPE4/SIL3(IEC61496/IEC61508)', sn:'#C3420326', kondisi:'Baru'},
+          {nama:'Receiver Light Curtain LS Lane 1', merk:'TYPE4/SIL3(IEC61496/IEC61508)', sn:'#63420055', kondisi:'Baru'},
+          {nama:'Transmitter Light Curtain LS Lane 1', merk:'TYPE4/SIL3(IEC61496/IEC61508)', sn:'#63420102', kondisi:'Baru'},
+          {nama:'Receiver Light Curtain HS Lane 2', merk:'TYPE4/SIL3(IEC61496/IEC61508)', sn:'#23520133', kondisi:'Baru'},
+          {nama:'Transmitter Light Curtain HS Lane 2', merk:'TYPE4/SIL3(IEC61496/IEC61508)', sn:'#23520196', kondisi:'Baru'},
+          {nama:'Receiver Light Curtain HS Lane 3', merk:'TYPE4/SIL3(IEC61496/IEC61508)', sn:'#33520065', kondisi:'Baru'},
+          {nama:'Transmitter Light Curtain HS Lane 3', merk:'TYPE4/SIL3(IEC61496/IEC61508)', sn:'#33520057', kondisi:'Baru'},
+          {nama:'Receiver Light Curtain LS Lane 3', merk:'TYPE4/SIL3(IEC61496/IEC61508)', sn:'#23520209', kondisi:'Baru'},
+          {nama:'Transmitter Light Curtain LS Lane 3', merk:'TYPE4/SIL3(IEC61496/IEC61508)', sn:'-', kondisi:'Baru'}
+        ]},
+      {cat:'Mini PC', real:1, dummy:1, status:'green', label:'Ready',
+        replacements:[],
+        serial:[
+          {nama:'Mini PC Industrial', merk:'-', sn:'-', kondisi:'Baru'},
+          {nama:'Mini PC Industrial', merk:'-', sn:'-', kondisi:'Rusak'},
+          {nama:'Mini PC Industrial', merk:'-', sn:'-', kondisi:'Baru'},
+          {nama:'Mini PC Industrial', merk:'-', sn:'-', kondisi:'Baru'},
+          {nama:'Mini PC Industrial', merk:'-', sn:'-', kondisi:'Baru'},
+          {nama:'Mini PC Industrial', merk:'-', sn:'-', kondisi:'Baru'},
+          {nama:'Mini PC Industrial', merk:'-', sn:'-', kondisi:'Baru'},
+          {nama:'Mini PC Industrial', merk:'-', sn:'-', kondisi:'Baru'}
+        ]},
+      {cat:'Stabilizer', real:0, dummy:0, status:'red', label:'Out of Stock',
+        replacements:[],
+        serial:[
+          {nama:'SAMOTO', merk:'SAMOTO SVC-5000N', sn:'2404602900', kondisi:'Baru'},
+          {nama:'SAMOTO', merk:'SAMOTO SVC-5000N', sn:'2370600531', kondisi:'Baru'},
+          {nama:'-', merk:'-', sn:'C158225021300545', kondisi:'Baru'}
+        ]},
+      {cat:'Inverter', real:1, dummy:0, status:'green', label:'Ready',
+        replacements:[
+          {tanggal:'2026-01-15', lane:'Lane 1', keterangan:'Inverter rusak dari Lane 1 dan sudah dikirim ke Jakarta Tanggal 29/06/2026'},
+          {tanggal:'2026-03-02', lane:'Lane 1', keterangan:'Pergantian inverter lane 1 rusak dikarenakan kena rembesan air hujan'}
+        ],
+        serial:[
+          {nama:'ELEC Inverter', merk:'INVERTER CHARGER / SO 5500-48', sn:'92090211211039', kondisi:'Baru'},
+          {nama:'ELEC Inverter', merk:'INVERTER CHARGER / SO 5500-48', sn:'-', kondisi:'Rusak'},
+          {nama:'ELEC Inverter', merk:'INVERTER CHARGER / SO 5500-48', sn:'92090211211055', kondisi:'Baru'},
+          {nama:'ELEC Inverter', merk:'INVERTER CHARGER / SO 5500-48', sn:'92090211211074', kondisi:'Baru'},
+          {nama:'SAMOTO INVERTER', merk:'SAMOTO HYBRID SOLAR INVERTER / ILS6300', sn:'ILS63WY106369', kondisi:'Baru'}
+        ]},
+      {cat:'Loop Detector', real:2, dummy:0, status:'green', label:'Ready',
+        replacements:[],
+        serial:[
+          {nama:'Loop Detector', merk:'Schneider Electric / 542073030 20037010', sn:'-', kondisi:'Baru'},
+          {nama:'Loop Detector', merk:'Schneider Electric / 542073030 20037010', sn:'-', kondisi:'Baru'},
+          {nama:'Loop Detector', merk:'Schneider Electric / 542073030 20037010', sn:'-', kondisi:'Baru'},
+          {nama:'Loop Detector', merk:'Schneider Electric / 542073030 20037010', sn:'-', kondisi:'Baru'},
+          {nama:'Loop Detector', merk:'Schneider Electric / 542073030 20037010', sn:'-', kondisi:'Baru'},
+          {nama:'Loop Detector', merk:'Schneider Electric / 542073030 20037010', sn:'RF 427119 YE', kondisi:'Baru'},
+          {nama:'Loop Detector', merk:'Schneider Electric / 542073030 20037010', sn:'RF 418374 WH', kondisi:'Baru'}
+        ]},
+      {cat:'Resin Kit', real:0, dummy:0, status:'grey', label:'Belum ada data',
+        replacements:[],
+        serial:[
+          {nama:'Resin Epoxy', merk:'-', sn:'-', kondisi:'-'},
+          {nama:'Herdener Epoxy', merk:'-', sn:'-', kondisi:'-'},
+          {nama:'Pasir Silica', merk:'-', sn:'-', kondisi:'-'}
+        ]},
+      {cat:'PSU', real:0, dummy:0, status:'red', label:'Out of Stock',
+        replacements:[],
+        serial:[
+          {nama:'Power Supply', merk:'MW MEAN WELL Power Supply', sn:'SC62086314', kondisi:'Baru'},
+          {nama:'Power Supply', merk:'MW MEAN WELL Power Supply', sn:'SC62086312', kondisi:'Baru'}
+        ]}
+    ],
+    pob: { employees: 1215, contractors: 627, musterSafe: true }
+  };
+}
+
+/* ================= STOCK MANAGEMENT: SYNC DARI GOOGLE SHEET ================= */
+/* Sumber: sheet "Summary Stok" pada spreadsheet List Asset Management.
+   Menggunakan pola gviz yang sama seperti modul Roster (google.visualization.Query)
+   supaya tidak kena CORS meski file di-hosting terpisah dari Google Sheets. */
+/* ================= GOOGLE CHARTS LOADER (dipakai untuk query gviz Google Sheet) ================= */
+let stockGChartsPromise = null;
+function loadGoogleChartsOnce(){
+  if(stockGChartsPromise) return stockGChartsPromise;
+  stockGChartsPromise = new Promise((resolve, reject) => {
+    if(window.google && window.google.visualization && window.google.visualization.Query){
+      resolve();
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = 'https://www.gstatic.com/charts/loader.js';
+    script.onerror = () => {
+      stockGChartsPromise = null;
+      reject(new Error('gagal memuat pustaka Google Charts (cek koneksi internet)'));
+    };
+    script.onload = () => {
+      try{
+        google.charts.load('current', { packages: ['table'] });
+        google.charts.setOnLoadCallback(() => resolve());
+      }catch(err){
+        stockGChartsPromise = null;
+        reject(err);
+      }
+    };
+    document.head.appendChild(script);
+  });
+  return stockGChartsPromise;
+}
+
+function apNormalizeName(s){
+  return String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+}
+const STOCK_HEADER_ALIASES = {
+  description: ['description','nama barang','nama'],
+  category: ['category','category severity','severity'],
+  source: ['source'],
+  newStock: ['new stock spare','sisa stok baru','stok baru','new stock'],
+  exSecond: ['ex / second','ex/second','ex second','ex-second'],
+  unit: ['unit','satuan'],
+  broken: ['broken','stok rusak/aus/dummy','rusak'],
+  jenis: ['jenis'],
+  desc: ['desc','deskripsi','keterangan']
+};
+function apMatchHeader(headerText){
+  const norm = String(headerText||'').toLowerCase().trim();
+  for(const field in STOCK_HEADER_ALIASES){
+    if(STOCK_HEADER_ALIASES[field].includes(norm)) return field;
+  }
+  return null;
+}
+async function fetchStockSheetData(){
+  await loadGoogleChartsOnce();
+  const sheetId = await apGetEffectiveSheetId();
+  const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?sheet=${encodeURIComponent(STOCK_SHEET_NAME)}`;
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    const timer = setTimeout(() => {
+      if(settled) return;
+      settled = true;
+      reject(new Error('timeout memuat data Stock Management dari Sheet'));
+    }, 15000);
+    try{
+      const query = new google.visualization.Query(url);
+      query.send(response => {
+        if(settled) return;
+        settled = true;
+        clearTimeout(timer);
+        if(response.isError()){
+          reject(new Error('tab "Summary Stok" tidak ditemukan (' + response.getMessage() + ')'));
+          return;
+        }
+        const dt = response.getDataTable();
+        const numRows = dt.getNumberOfRows();
+        const numCols = dt.getNumberOfColumns();
+        const colField = [];
+        for(let c=0;c<numCols;c++){
+          colField.push(apMatchHeader(dt.getColumnLabel(c)));
+        }
+        let headerRowIdx = -1;
+        if(colField.every(f => f===null)){
+          for(let r=0;r<Math.min(numRows,5);r++){
+            const test = [];
+            for(let c=0;c<numCols;c++) test.push(apMatchHeader(dt.getFormattedValue(r,c)));
+            if(test.some(f => f==='description')){ headerRowIdx = r; colField.splice(0, colField.length, ...test); break; }
+          }
+        }
+        const rows = [];
+        for(let r=headerRowIdx+1;r<numRows;r++){
+          const rec = {};
+          for(let c=0;c<numCols;c++){
+            const field = colField[c];
+            if(!field) continue;
+            const val = dt.getFormattedValue(r,c);
+            rec[field] = val ? val.trim() : '';
+          }
+          if(!rec.description) continue;
+          if('newStock' in rec) rec.newStock = Number(rec.newStock)||0;
+          if('exSecond' in rec) rec.exSecond = Number(rec.exSecond)||0;
+          if('broken' in rec) rec.broken = Number(rec.broken)||0;
+          rows.push(rec);
+        }
+        resolve(rows);
+      });
+    }catch(err){
+      if(settled) return;
+      settled = true;
+      clearTimeout(timer);
+      reject(err);
+    }
+  });
+}
+/* Migrasi struktur lama (cat/real/dummy/status/label) ke struktur baru
+   (description/category/source/newStock/exSecond/unit/broken/jenis/desc)
+   supaya data lama tidak hilang saat pertama kali membuka tampilan baru ini.
+   Riwayat pergantian & serial number (replacements/serial) TETAP dipertahankan apa adanya. */
+function apMigrateAsset(a){
+  if(a.description !== undefined) return a;
+  return {
+    description: a.cat || '',
+    category: '',
+    source: '',
+    newStock: a.real || 0,
+    exSecond: 0,
+    unit: 'Pcs',
+    broken: a.dummy || 0,
+    jenis: a.jenis || '',
+    desc: '',
+    replacements: a.replacements || [],
+    serial: a.serial || []
+  };
+}
+function apMigrateAll(assets){
+  return assets.map(apMigrateAsset);
+}
+function apMergeSheetData(existingAssets, sheetRows){
+  const merged = apMigrateAll(existingAssets).map(a => ({...a}));
+  const indexByName = new Map();
+  merged.forEach((a,i) => indexByName.set(apNormalizeName(a.description), i));
+  sheetRows.forEach(row => {
+    const key = apNormalizeName(row.description);
+    if(indexByName.has(key)){
+      const i = indexByName.get(key);
+      merged[i].category = row.category || merged[i].category;
+      merged[i].source = row.source || merged[i].source;
+      merged[i].newStock = ('newStock' in row) ? row.newStock : merged[i].newStock;
+      merged[i].exSecond = ('exSecond' in row) ? row.exSecond : merged[i].exSecond;
+      merged[i].unit = row.unit || merged[i].unit;
+      merged[i].broken = ('broken' in row) ? row.broken : merged[i].broken;
+      merged[i].jenis = row.jenis || merged[i].jenis;
+      merged[i].desc = row.desc || merged[i].desc;
+    }else{
+      merged.push({
+        description: row.description, category: row.category, source: row.source,
+        newStock: ('newStock' in row) ? row.newStock : 0,
+        exSecond: ('exSecond' in row) ? row.exSecond : 0,
+        unit: row.unit,
+        broken: ('broken' in row) ? row.broken : 0,
+        jenis: row.jenis, desc: row.desc,
+        replacements: [], serial: []
+      });
+      indexByName.set(key, merged.length-1);
+    }
+  });
+  return merged;
+}
+async function syncStockFromSheet(showAlert){
+  const infoEl = document.getElementById('apSyncInfo');
+  const btnEl = document.getElementById('apSyncBtn');
+  if(btnEl){ btnEl.disabled = true; btnEl.innerHTML = '<i class="ti ti-loader-2" style="animation:apSpin .8s linear infinite;"></i> Sinkronisasi...'; }
+  if(infoEl) infoEl.textContent = 'Sedang mengambil data dari Google Sheet...';
+  try{
+    const rows = await fetchStockSheetData();
+    const current = await dsoLoad(DSO_ASSETS_KEY, dsoDefaults().assets);
+    const merged = apMergeSheetData(current, rows);
+    await dsoSave(DSO_ASSETS_KEY, merged);
+    const now = new Date();
+    await dsoSave(DSO_STOCK_LASTSYNC_KEY, now.toISOString());
+    if(infoEl) infoEl.textContent = 'Sync terakhir: ' + now.toLocaleString('id-ID') + ' (' + rows.length + ' item dari Sheet)';
+    await renderAssetPlant(false);
+  }catch(e){
+    console.error('gagal sync Stock Management', e);
+    if(infoEl) infoEl.textContent = 'Gagal sync: ' + e.message;
+    if(showAlert) alert('Gagal sync data Stock Management: ' + e.message);
+  }finally{
+    if(btnEl){ btnEl.disabled = false; btnEl.innerHTML = '<i class="ti ti-refresh"></i> Sync dari Sheet'; }
+  }
+}
+
+function openStockModal(assets, idx){
+  const item = assets[idx];
+  document.getElementById('stockModalTitle').textContent = item.description;
+  const riwayatEl = document.getElementById('stockSubRiwayat');
+  const serialEl = document.getElementById('stockSubSerial');
+  if(!item.replacements || !item.replacements.length){
+    riwayatEl.innerHTML = '<p style="font-size:12px;color:#667;">Belum ada riwayat pergantian tercatat.</p>';
+  }else{
+    riwayatEl.innerHTML = '<div style="border-left:2px solid var(--accent);padding-left:12px;">' +
+      item.replacements.map(r => `
+        <div style="margin-bottom:10px;">
+          <div style="font-size:12px;font-weight:bold;color:var(--navy);">${r.tanggal} · ${r.lane||'-'}</div>
+          <div style="font-size:11.5px;color:#556;">${r.keterangan||'-'}</div>
+        </div>`).join('') + '</div>';
+  }
+  if(!item.serial || !item.serial.length){
+    serialEl.innerHTML = '<p style="font-size:12px;color:#667;">Belum ada data serial number tercatat.</p>';
+  }else{
+    serialEl.innerHTML = '<table style="width:100%;border-collapse:collapse;font-size:11.5px;">' +
+      '<thead><tr style="text-align:left;color:#667;font-size:10.5px;font-weight:600;"><th style="padding:4px 2px;">Nama</th><th>Merk/Model</th><th>SN</th><th>Kondisi</th></tr></thead><tbody>' +
+      item.serial.map(s => `<tr><td style="padding:4px 2px;">${s.nama}</td><td>${s.merk}</td><td>${s.sn}</td><td>${s.kondisi}</td></tr>`).join('') +
+      '</tbody></table>';
+  }
+  document.querySelectorAll('.stock-subtab').forEach(b => {
+    b.classList.toggle('active', b.dataset.sub === 'riwayat');
+    b.style.background = b.dataset.sub === 'riwayat' ? 'var(--accent)' : 'var(--hilite)';
+    b.style.color = b.dataset.sub === 'riwayat' ? '#fff' : 'var(--navy)';
+  });
+  riwayatEl.style.display = 'block';
+  serialEl.style.display = 'none';
+  document.getElementById('stockModalOverlay').classList.add('active');
+}
+document.querySelectorAll('.stock-subtab').forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll('.stock-subtab').forEach(b => {
+      b.classList.toggle('active', b === btn);
+      b.style.background = b === btn ? 'var(--accent)' : 'var(--hilite)';
+      b.style.color = b === btn ? '#fff' : 'var(--navy)';
+    });
+    document.getElementById('stockSubRiwayat').style.display = btn.dataset.sub === 'riwayat' ? 'block' : 'none';
+    document.getElementById('stockSubSerial').style.display = btn.dataset.sub === 'serial' ? 'block' : 'none';
+  };
+});
+document.getElementById('stockModalCloseBtn').onclick = () => document.getElementById('stockModalOverlay').classList.remove('active');
+document.getElementById('stockModalOverlay').onclick = (e) => { if(e.target.id === 'stockModalOverlay') e.currentTarget.classList.remove('active'); };
+
+const AP_CATEGORY_CYCLE = ['Low','Medium','Critical'];
+const AP_SOURCE_CYCLE = ['Impor','Local'];
+const AP_JENIS_CYCLE = ['Bekas','Rusak','Aus','Dummy'];
+const AP_CATEGORY_COLOR = { Low:'blue', Medium:'green', Critical:'red' };
+const AP_SOURCE_COLOR = { Impor:'blue', Local:'purple' };
+const AP_JENIS_COLOR = { Bekas:'gold', Rusak:'red', Aus:'yellow', Dummy:'grey' };
+function apBadge(val, colorMap, cls){
+  if(!val) return `<span class="${cls}" data-empty="1" style="cursor:pointer;color:#aab;font-size:11px;">— pilih</span>`;
+  const c = colorMap[val] || 'grey';
+  return `<span class="${cls}" style="cursor:pointer;padding:2px 10px;border-radius:999px;font-size:11px;font-weight:bold;display:inline-block;background:var(--${c}-bg);color:var(--${c}-fg);">${val}</span>`;
+}
+
+/* ---- Dashboard: KPI cards ---- */
+function apAnimateCount(el, to){
+  const from = 0;
+  const dur = 600;
+  const start = performance.now();
+  function tick(now){
+    const p = Math.min(1, (now - start) / dur);
+    const eased = 1 - Math.pow(1 - p, 3);
+    el.textContent = Math.round(from + (to - from) * eased).toLocaleString('id-ID');
+    if(p < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+function apRenderKpis(assets){
+  const el = document.getElementById('apKpiRow');
+  if(!el) return;
+  const total = assets.length;
+  const critical = assets.filter(a => a.category === 'Critical').length;
+  const medium = assets.filter(a => a.category === 'Medium').length;
+  const totalNewStock = assets.reduce((s,a) => s + (Number(a.newStock)||0), 0);
+  const outOfStock = assets.filter(a => a.category === 'Critical' && (Number(a.newStock)||0) === 0).length;
+  const pct = (n) => total ? ((n/total*100).toFixed(1) + '% dari total item') : '—';
+  const activeCat = document.getElementById('apCategoryFilter')?.value || 'ALL';
+  const kpis = [
+    {cls:'neu', lab:'Total Item Terdaftar', val:total, sub:'Part WIM di Summary Stok', icon:'ti-database', filter:'ALL'},
+    {cls:'crit', lab:'Kategori Critical', val:critical, sub:pct(critical), icon:'ti-alert-triangle', filter:'Critical'},
+    {cls:'med', lab:'Kategori Medium', val:medium, sub:pct(medium), icon:'ti-alert-circle', filter:'Medium'},
+    {cls:'ok', lab:'Total Stok Baru Tersedia', val:totalNewStock, sub:'Unit siap pakai (semua kategori)', icon:'ti-package', filter:null},
+    {cls:'crit', lab:'Critical Stock Warning', val:outOfStock, sub:outOfStock + ' item Critical stok 0', icon:'ti-triangle-exclamation', filter:'Critical'}
+  ];
+  el.innerHTML = kpis.map((k,i) => `
+    <div class="ap-kpi ${k.cls}${k.filter && k.filter === activeCat ? ' active' : ''}" data-filter="${k.filter||''}" style="${k.filter ? 'cursor:pointer;' : ''}" data-kpi-idx="${i}">
+      <div class="lab">${k.lab}</div>
+      <div class="val" data-val="${k.val}">0</div>
+      <div class="sub"><i class="ti ${k.icon}"></i> ${k.sub}</div>
+    </div>`).join('');
+  el.querySelectorAll('.ap-kpi .val').forEach(v => apAnimateCount(v, Number(v.dataset.val)||0));
+  el.querySelectorAll('.ap-kpi[data-filter]').forEach(card => {
+    if(!card.dataset.filter) return;
+    card.onclick = () => {
+      const sel = document.getElementById('apCategoryFilter');
+      if(!sel) return;
+      sel.value = (sel.value === card.dataset.filter) ? 'ALL' : card.dataset.filter;
+      apApplyFilters();
+      apRenderKpis(apAssetsData);
+    };
+  });
+}
+
+/* ---- Dashboard: donut chart distribusi Category ---- */
+let apCategoryChartInstance = null;
+function apRenderChart(assets){
+  const canvas = document.getElementById('apChartCategory');
+  if(!canvas || typeof Chart === 'undefined') return;
+  const counts = { Critical:0, Medium:0, Low:0 };
+  assets.forEach(a => { if(counts.hasOwnProperty(a.category)) counts[a.category]++; });
+  const labels = Object.keys(counts).filter(k => counts[k] > 0);
+  const data = labels.map(k => counts[k]);
+  const colorMap = { Critical:'#CF5138', Medium:'#DE9A34', Low:'#2E6690' };
+  if(apCategoryChartInstance){ apCategoryChartInstance.destroy(); }
+  if(!labels.length){ return; }
+  apCategoryChartInstance = new Chart(canvas, {
+    type:'doughnut',
+    data:{ labels, datasets:[{ data, backgroundColor:labels.map(l => colorMap[l]), borderWidth:2, borderColor:'#fff' }] },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom', labels:{ boxWidth:10, font:{ size:11 } } } } }
+  });
+}
+
+/* ---- Tabel: render body dari list {item, idx} ---- */
+function apRenderBody(list){
+  const body = document.getElementById('apBody');
+  body.innerHTML = '';
+  if(!list.length){
+    body.innerHTML = `<tr><td colspan="11" style="padding:30px 10px;text-align:center;color:var(--text-muted);">
+      <i class="ti ti-package-off" style="font-size:22px;display:block;margin-bottom:6px;"></i>
+      Tidak ada item part yang cocok dengan pencarian/filter ini.
+    </td></tr>`;
+    return;
+  }
+  list.forEach((entry, rowNo) => {
+    const a = entry.item, i = entry.idx;
+    const tr = document.createElement('tr');
+    tr.className = 'ap-row';
+    const isWarn = a.category === 'Critical' && (Number(a.newStock)||0) === 0;
+    tr.style.background = isWarn ? 'var(--red-bg)' : (rowNo%2 ? '#f7f9f8' : '#fff');
+    tr.innerHTML = `
+      <td style="padding:8px 6px;color:#889;">${rowNo+1}</td>
+      <td style="padding:8px 6px;font-weight:bold;color:var(--navy);">${a.description||'-'}</td>
+      <td style="padding:8px 6px;">${apBadge(a.category, AP_CATEGORY_COLOR, '')}</td>
+      <td style="padding:8px 6px;">${apBadge(a.source, AP_SOURCE_COLOR, '')}</td>
+      <td style="padding:8px 6px;">${a.newStock}</td>
+      <td style="padding:8px 6px;">${a.exSecond||0}</td>
+      <td style="padding:8px 6px;">${a.unit||''}</td>
+      <td style="padding:8px 6px;">${a.broken}</td>
+      <td style="padding:8px 6px;">${apBadge(a.jenis, AP_JENIS_COLOR, '')}</td>
+      <td style="padding:8px 6px;color:#556;">${a.desc||''}</td>
+      <td style="padding:8px 6px;text-align:right;white-space:nowrap;">
+        <i class="ti ti-edit ap-row-edit" data-idx="${i}" title="Edit" style="font-size:16px;color:var(--text-secondary);cursor:pointer;margin-right:6px;"></i>
+        <button data-idx="${i}" class="wim-icon-btn ap-hist" title="Riwayat & serial number"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></button>
+      </td>`;
+    body.appendChild(tr);
+    tr.dataset.idx = i;
+    tr.querySelector('.ap-row-edit').onclick = () => apOpenModal(i);
+    tr.querySelector('.ap-hist').onclick = () => openStockModal(apAssetsData, i);
+  });
+}
+
+/* ---- Filter: search + category, dipakai tombol search/select di header tabel ---- */
+function apApplyFilters(){
+  const q = (document.getElementById('apSearchInput')?.value || '').toLowerCase().trim();
+  const cat = document.getElementById('apCategoryFilter')?.value || 'ALL';
+  const filtered = [];
+  apAssetsData.forEach((a, i) => {
+    const matchesQ = !q || (a.description||'').toLowerCase().includes(q) || (a.desc||'').toLowerCase().includes(q);
+    const matchesCat = cat === 'ALL' || a.category === cat;
+    if(matchesQ && matchesCat) filtered.push({ item:a, idx:i });
+  });
+  apRenderBody(filtered);
+  document.querySelectorAll('.ap-kpi[data-filter]').forEach(card => {
+    card.classList.toggle('active', !!card.dataset.filter && card.dataset.filter === cat);
+  });
+}
+
+async function renderAssetPlant(autoSync){
+  apAssetsData = await dsoLoad(DSO_ASSETS_KEY, dsoDefaults().assets);
+  apAssetsData = apMigrateAll(apAssetsData);
+  const assets = apAssetsData;
+
+  apRenderKpis(assets);
+  apRenderChart(assets);
+  apApplyFilters();
+
+  const searchEl = document.getElementById('apSearchInput');
+  if(searchEl && !searchEl.dataset.bound){
+    searchEl.dataset.bound = '1';
+    searchEl.addEventListener('keyup', apApplyFilters);
+  }
+  const catFilterEl = document.getElementById('apCategoryFilter');
+  if(catFilterEl && !catFilterEl.dataset.bound){
+    catFilterEl.dataset.bound = '1';
+    catFilterEl.addEventListener('change', apApplyFilters);
+  }
+
+  document.getElementById('apAddBtn').onclick = () => apOpenModal(null);
+  const sheetEditBtn = document.getElementById('stockSheetEditBtn');
+  if(sheetEditBtn && !sheetEditBtn.dataset.bound){
+    sheetEditBtn.dataset.bound = '1';
+    sheetEditBtn.onclick = (e) => { e.stopPropagation(); apEditSheetLink(); };
+  }
+  const sheetLinkBtn = document.getElementById('stockSheetLinkBtn');
+  if(sheetLinkBtn && !sheetLinkBtn.dataset.bound){
+    sheetLinkBtn.dataset.bound = '1';
+    sheetLinkBtn.onclick = (e) => e.stopPropagation();
+  }
+  apUpdateSheetBadge();
+  document.getElementById('apModalCloseBtn').onclick = () => document.getElementById('apModalOverlay').classList.remove('active');
+  document.getElementById('apCancelBtn').onclick = () => document.getElementById('apModalOverlay').classList.remove('active');
+  document.getElementById('apModalOverlay').onclick = (e) => { if(e.target.id === 'apModalOverlay') e.currentTarget.classList.remove('active'); };
+  document.getElementById('apSaveBtn').onclick = apSaveModal;
+  document.getElementById('apDeleteBtn').onclick = apDeleteCurrent;
+  const syncBtn = document.getElementById('apSyncBtn');
+  if(syncBtn && !syncBtn.dataset.bound){
+    syncBtn.dataset.bound = '1';
+    syncBtn.onclick = () => syncStockFromSheet(true);
+  }
+  const infoEl = document.getElementById('apSyncInfo');
+  if(infoEl && !infoEl.dataset.loaded){
+    infoEl.dataset.loaded = '1';
+    dsoLoad(DSO_STOCK_LASTSYNC_KEY, null).then(iso => {
+      if(iso) infoEl.textContent = 'Sync terakhir: ' + new Date(iso).toLocaleString('id-ID');
+    });
+  }
+  if(autoSync !== false && !renderAssetPlant._autoSynced){
+    renderAssetPlant._autoSynced = true;
+    syncStockFromSheet(false);
+  }
+}
+
+function apOpenModal(idx){
+  apEditingIdx = (idx === null || idx === undefined) ? null : idx;
+  const rec = apEditingIdx !== null ? apAssetsData[apEditingIdx] : null;
+  document.getElementById('apModalTitle').textContent = rec ? 'Edit Item Part' : 'Tambah Item Part';
+  document.getElementById('apFDescription').value = rec ? rec.description||'' : '';
+  document.getElementById('apFCategory').value = rec ? rec.category||'' : '';
+  document.getElementById('apFSource').value = rec ? rec.source||'' : '';
+  document.getElementById('apFNewStock').value = rec ? rec.newStock||0 : 0;
+  document.getElementById('apFExSecond').value = rec ? rec.exSecond||0 : 0;
+  document.getElementById('apFUnit').value = rec ? rec.unit||'Pcs' : 'Pcs';
+  document.getElementById('apFBroken').value = rec ? rec.broken||0 : 0;
+  renderJenisOptions(rec ? rec.jenis||'' : '');
+  document.getElementById('apFDesc').value = rec ? rec.desc||'' : '';
+  document.getElementById('apDeleteBtn').style.display = rec ? 'inline-block' : 'none';
+  document.getElementById('apModalOverlay').classList.add('active');
+}
+
+async function apSaveModal(){
+  const description = document.getElementById('apFDescription').value.trim();
+  if(!description){ showToast('⚠️ Description wajib diisi', 'error'); return; }
+  const rec = {
+    description,
+    category: document.getElementById('apFCategory').value,
+    source: document.getElementById('apFSource').value,
+    newStock: Number(document.getElementById('apFNewStock').value) || 0,
+    exSecond: Number(document.getElementById('apFExSecond').value) || 0,
+    unit: document.getElementById('apFUnit').value.trim() || 'Pcs',
+    broken: Number(document.getElementById('apFBroken').value) || 0,
+    jenis: document.getElementById('apFJenis').value,
+    desc: document.getElementById('apFDesc').value.trim()
+  };
+  if(apEditingIdx !== null && apAssetsData[apEditingIdx]){
+    const old = apAssetsData[apEditingIdx];
+    rec.replacements = old.replacements || [];
+    rec.serial = old.serial || [];
+    apAssetsData[apEditingIdx] = rec;
+  } else {
+    rec.replacements = [];
+    rec.serial = [];
+    apAssetsData.push(rec);
+  }
+  await dsoSave(DSO_ASSETS_KEY, apAssetsData);
+  document.getElementById('apModalOverlay').classList.remove('active');
+  renderAssetPlant(false);
+  showToast('✓ Item part tersimpan', 'success');
+}
+
+async function apDeleteCurrent(){
+  if(apEditingIdx === null || !apAssetsData[apEditingIdx]) return;
+  const nama = apAssetsData[apEditingIdx].description;
+  if(!confirm('Hapus item "' + nama + '"?')) return;
+  apAssetsData.splice(apEditingIdx, 1);
+  await dsoSave(DSO_ASSETS_KEY, apAssetsData);
+  document.getElementById('apModalOverlay').classList.remove('active');
+  renderAssetPlant(false);
+  showToast('✓ Item part dihapus', 'success');
+}
+
+function createManagedList(opts){
+  const { storageKey, defaults, selectId, manageBtnId, modalOverlayId, modalInputId, modalAddBtnId,
+          modalCloseBtnId, modalDoneBtnId, modalListId, modalMsgId, itemLabel, onRename,
+          includeEmptyOption = true } = opts;
+  let list = [...defaults];
+
+  async function load(){
+    try{
+      const res = await store.get(storageKey);
+      const parsed = (res && res.value) ? JSON.parse(res.value) : null;
+      list = (Array.isArray(parsed) && parsed.length > 0) ? parsed : [...defaults];
+    }catch(e){ list = [...defaults]; }
+  }
+  async function save(){
+    try{ await store.set(storageKey, JSON.stringify(list)); }
+    catch(e){ console.error('Gagal menyimpan daftar ' + itemLabel, e); }
+  }
+  function renderOptions(selectedValue){
+    const sel = document.getElementById(selectId);
+    if(!sel) return;
+    const current = selectedValue !== undefined ? selectedValue : sel.value;
+    const emptyOpt = includeEmptyOption ? '<option value="">-</option>' : '';
+    sel.innerHTML = emptyOpt + list.map(v =>
+      `<option ${v === current ? 'selected' : ''}>${v}</option>`
+    ).join('');
+  }
+  function showMsg(text){
+    const msg = document.getElementById(modalMsgId);
+    msg.textContent = text;
+    msg.style.display = 'block';
+    clearTimeout(showMsg._t);
+    showMsg._t = setTimeout(() => { msg.style.display = 'none'; }, 3500);
+  }
+  function renderModalList(){
+    const el = document.getElementById(modalListId);
+    if(list.length === 0){
+      el.innerHTML = `<div class="vendor-empty-note">Belum ada ${itemLabel}. Tambahkan lewat kolom di atas.</div>`;
+      return;
+    }
+    el.innerHTML = list.map(v => `
+      <div class="vendor-item" data-v="${v}">
+        <span class="vendor-item-label">${v}</span>
+        <div style="display:flex;gap:4px;flex-shrink:0;">
+          <button type="button" class="wim-icon-btn edit vendor-item-edit" data-v="${v}" title="Ubah nama"><i class="ti ti-edit"></i></button>
+          <button type="button" class="vendor-item-del" data-v="${v}">Hapus</button>
+        </div>
+      </div>
+    `).join('');
+    el.querySelectorAll('.vendor-item-edit').forEach(btn => {
+      btn.onclick = () => {
+        const item = btn.closest('.vendor-item');
+        const label = item.querySelector('.vendor-item-label');
+        const oldName = btn.dataset.v;
+        if(item.querySelector('.vendor-item-rename-input')) return;
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = oldName;
+        input.className = 'vendor-item-rename-input';
+        input.style.cssText = 'flex:1;font-size:13px;border:1px solid var(--accent);border-radius:6px;padding:4px 8px;';
+        label.replaceWith(input);
+        input.focus();
+        input.select();
+        const commit = async () => {
+          const newName = input.value.trim();
+          if(!newName || newName === oldName){ renderModalList(); return; }
+          if(list.some(v => v.toLowerCase() === newName.toLowerCase() && v !== oldName)){
+            showMsg(`${itemLabel.charAt(0).toUpperCase() + itemLabel.slice(1)} "${newName}" sudah ada di daftar.`);
+            renderModalList();
+            return;
+          }
+          list = list.map(v => v === oldName ? newName : v);
+          await save();
+          if(typeof onRename === 'function') await onRename(oldName, newName);
+          renderOptions(newName);
+          renderModalList();
+        };
+        input.addEventListener('keydown', (e) => {
+          if(e.key === 'Enter'){ e.preventDefault(); commit(); }
+          if(e.key === 'Escape'){ e.preventDefault(); renderModalList(); }
+        });
+        input.addEventListener('blur', commit);
+      };
+    });
+    el.querySelectorAll('.vendor-item-del').forEach(btn => {
+      btn.onclick = async () => {
+        if(!btn.classList.contains('confirming')){
+          el.querySelectorAll('.vendor-item-del.confirming').forEach(b => { b.classList.remove('confirming'); b.textContent = 'Hapus'; });
+          btn.classList.add('confirming');
+          btn.textContent = 'Yakin?';
+          clearTimeout(btn._resetT);
+          btn._resetT = setTimeout(() => { btn.classList.remove('confirming'); btn.textContent = 'Hapus'; }, 2500);
+          return;
+        }
+        const name = btn.dataset.v;
+        list = list.filter(v => v !== name);
+        await save();
+        renderOptions('');
+        renderModalList();
+      };
+    });
+  }
+  async function submitNew(){
+    const input = document.getElementById(modalInputId);
+    const trimmed = input.value.trim();
+    if(!trimmed){ input.focus(); return; }
+    if(list.some(v => v.toLowerCase() === trimmed.toLowerCase())){
+      showMsg(`${itemLabel.charAt(0).toUpperCase() + itemLabel.slice(1)} "${trimmed}" sudah ada di daftar.`);
+      input.value = '';
+      input.focus();
+      return;
+    }
+    list.push(trimmed);
+    await save();
+    renderOptions(trimmed);
+    renderModalList();
+    input.value = '';
+    input.focus();
+  }
+  function openModal(){
+    document.getElementById(modalOverlayId).classList.add('active');
+    renderModalList();
+    document.getElementById(modalInputId).value = '';
+    document.getElementById(modalMsgId).style.display = 'none';
+    setTimeout(() => document.getElementById(modalInputId).focus(), 50);
+  }
+  function closeModal(){
+    document.getElementById(modalOverlayId).classList.remove('active');
+  }
+
+  document.getElementById(manageBtnId).onclick = openModal;
+  document.getElementById(modalCloseBtnId).onclick = closeModal;
+  document.getElementById(modalDoneBtnId).onclick = closeModal;
+  document.getElementById(modalAddBtnId).onclick = submitNew;
+  document.getElementById(modalInputId).addEventListener('keydown', (e) => {
+    if(e.key === 'Enter'){ e.preventDefault(); submitNew(); }
+  });
+  document.getElementById(modalOverlayId).addEventListener('click', (e) => {
+    if(e.target.id === modalOverlayId) closeModal();
+  });
+  document.addEventListener('keydown', (e) => {
+    if(e.key === 'Escape' && document.getElementById(modalOverlayId).classList.contains('active')) closeModal();
+  });
+
+  return { load, renderOptions, getList: () => list };
+}
+
+const jenisManager = createManagedList({
+  storageKey: 'stock:jenis-list',
+  defaults: ['Bekas','Rusak','Aus','Dummy'],
+  selectId: 'apFJenis',
+  manageBtnId: 'apJenisManageBtn',
+  modalOverlayId: 'jenisModalOverlay',
+  modalInputId: 'jenisModalInput',
+  modalAddBtnId: 'jenisModalAddBtn',
+  modalCloseBtnId: 'jenisModalCloseBtn',
+  modalDoneBtnId: 'jenisModalDoneBtn',
+  modalListId: 'jenisModalList',
+  modalMsgId: 'jenisModalMsg',
+  itemLabel: 'jenis'
+});
+function renderJenisOptions(v){ jenisManager.renderOptions(v); }
+
+/* ================= INIT ================= */
+renderAssetPlant();
+</script>
+</body>
+</html>
