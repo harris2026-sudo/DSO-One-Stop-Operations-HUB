@@ -272,6 +272,8 @@
   .ap-row-edit:hover{transform:scale(1.12);color:var(--accent)!important;}
   .ap-pill{transition:background .12s ease,transform .12s ease;}
   .ap-pill-link:active{transform:scale(.96);}
+  .ap-pill-error{background:rgba(207,81,56,.18)!important;border:1px solid rgba(207,81,56,.4)!important;color:#F3B4A6!important;}
+  .ap-pill-error #apSyncDot{background:#CF5138!important;animation:none!important;}
   .add-task-btn{transition:background .15s ease,color .15s ease;}
 </style>
 </head>
@@ -286,11 +288,11 @@
       <div class="ap-hero-icon"><i class="ti ti-package"></i></div>
       <div>
         <h1>Stock Management — Part WIM</h1>
-        <p>Ringkasan real-time stok &amp; status kondisi spare part sistem Weigh-In-Motion</p>
+        <p>Summary Stock Part Sistem Weigh-In-Motion</p>
       </div>
     </div>
     <div class="ap-hero-badges">
-      <span class="ap-pill ap-pill-live"><span class="ap-pill-dot"></span> <span id="apSyncInfo">Belum pernah sync dari Google Sheet.</span></span>
+      <span class="ap-pill ap-pill-live" id="apSyncPill"><span class="ap-pill-dot" id="apSyncDot"></span> <span id="apSyncInfo">Belum pernah sync dari Google Sheet.</span></span>
       <a href="#" id="stockSheetLinkBtn" class="ap-pill ap-pill-link" target="_blank" rel="noopener" title="Buka spreadsheet sumber data di tab baru"><i class="ti ti-link"></i> Link Spreadsheet</a>
       <button type="button" class="ap-pill ap-pill-link" id="stockSheetEditBtn" title="Ubah link spreadsheet sumber data"><i class="ti ti-pencil"></i></button>
       <button type="button" class="ap-pill ap-pill-link" id="apSyncBtn"><i class="ti ti-refresh"></i> Sync dari Sheet</button>
@@ -1154,8 +1156,11 @@ function apMergeSheetData(existingAssets, sheetRows){
 }
 async function syncStockFromSheet(showAlert){
   const infoEl = document.getElementById('apSyncInfo');
+  const pillEl = document.getElementById('apSyncPill');
+  const dotEl = document.getElementById('apSyncDot');
   const btnEl = document.getElementById('apSyncBtn');
   if(btnEl){ btnEl.disabled = true; btnEl.innerHTML = '<i class="ti ti-loader-2" style="animation:apSpin .8s linear infinite;"></i> Sinkronisasi...'; }
+  if(pillEl){ pillEl.classList.remove('ap-pill-error'); pillEl.removeAttribute('title'); }
   if(infoEl) infoEl.textContent = 'Sedang mengambil data dari Google Sheet...';
   try{
     const rows = await fetchStockSheetData();
@@ -1168,7 +1173,8 @@ async function syncStockFromSheet(showAlert){
     await renderAssetPlant(false);
   }catch(e){
     console.error('gagal sync Stock Management', e);
-    if(infoEl) infoEl.textContent = 'Gagal sync: ' + e.message;
+    if(infoEl) infoEl.innerHTML = '<i class="ti ti-alert-triangle" style="font-size:13px;"></i>';
+    if(pillEl){ pillEl.classList.add('ap-pill-error'); pillEl.title = 'Gagal sync: ' + e.message; }
     if(showAlert) alert('Gagal sync data Stock Management: ' + e.message);
   }finally{
     if(btnEl){ btnEl.disabled = false; btnEl.innerHTML = '<i class="ti ti-refresh"></i> Sync dari Sheet'; }
