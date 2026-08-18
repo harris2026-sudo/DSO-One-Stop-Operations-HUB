@@ -425,6 +425,43 @@
   .fu-actions select{border:1px solid #c7d3e0;border-radius:6px;padding:4px 6px;font-size:11.5px;font-family:Arial;}
   .fu-del{border:1.5px solid #e39aa1;background:var(--red-bg);color:var(--red-fg);border-radius:14px;padding:5px 14px;font-size:11.5px;font-weight:bold;cursor:pointer;font-family:Arial;}
   .fu-del:hover{background:#ffb3bd;}
+  /* ---- POB: Status Kehadiran Tim Digitech (dari Rooster_BIB.xlsx) ---- */
+  .pobr-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px;margin-top:16px;}
+  .pobr-card h3{font-family:var(--font-display);color:var(--navy);font-size:14.5px;margin:0 0 3px;display:flex;align-items:center;gap:8px;}
+  .pobr-card h3 i{color:var(--accent);font-size:17px;}
+  .pobr-card .pobr-subtitle{font-size:11.5px;color:var(--text-secondary);margin:0 0 14px;}
+  .pobr-legend{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;}
+  .pobr-legend-chip{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;padding:5px 12px;border-radius:999px;}
+  .pobr-legend-chip .dot{width:8px;height:8px;border-radius:50%;}
+  .pobr-mini-kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px;}
+  .pobr-mini-kpi{border-radius:10px;padding:12px 14px;text-align:center;}
+  .pobr-mini-kpi .n{font-family:var(--font-display);font-size:22px;font-weight:700;}
+  .pobr-mini-kpi .l{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;margin-top:2px;}
+  .pobr-avatar-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:20px;}
+  .pobr-avatar-card{border:1px solid var(--border);border-radius:12px;padding:12px 10px;text-align:center;background:var(--surface-alt);transition:transform .15s ease, box-shadow .15s ease;}
+  .pobr-avatar-card:hover{transform:translateY(-2px);box-shadow:0 4px 14px rgba(15,27,44,.1);}
+  .pobr-avatar-circle{width:44px;height:44px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-family:var(--font-display);font-size:15px;margin:0 auto 8px;box-shadow:0 0 0 3px var(--ring, var(--border));overflow:hidden;}
+  .pobr-avatar-circle img{width:100%;height:100%;object-fit:cover;display:block;}
+  .pobr-avatar-name{font-size:11.5px;font-weight:700;color:var(--navy);margin-bottom:5px;line-height:1.25;min-height:28px;display:flex;align-items:center;justify-content:center;}
+  .pobr-avatar-status{display:inline-block;font-size:10px;font-weight:700;padding:3px 10px;border-radius:999px;}
+  .pobr-toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
+  .pobr-mode-select{display:flex;gap:6px;background:var(--surface-alt);padding:4px;border-radius:9px;}
+  .pobr-mode-select button{border:none;background:transparent;padding:7px 14px;border-radius:7px;font-size:11.5px;font-weight:700;color:var(--text-secondary);cursor:pointer;}
+  .pobr-mode-select button.active{background:var(--navy);color:#fff;}
+  .pobr-search-wrap{position:relative;}
+  .pobr-search-wrap input{padding:8px 12px 8px 30px;border:1px solid var(--border);border-radius:8px;font-size:12px;width:200px;font-family:var(--font-body);}
+  .pobr-search-wrap i{position:absolute;left:10px;top:9px;color:var(--text-muted);font-size:13px;}
+  .pobr-table-wrap{overflow-x:auto;border-radius:10px;border:1px solid var(--border);}
+  table.pobr-table{border-collapse:collapse;width:100%;font-size:11.5px;min-width:600px;}
+  table.pobr-table th, table.pobr-table td{padding:7px 9px;text-align:center;white-space:nowrap;border-bottom:1px solid var(--zebra);}
+  table.pobr-table thead th{background:var(--navy);color:#fff;font-weight:700;position:sticky;top:0;}
+  table.pobr-table td.rowlabel, table.pobr-table th.rowlabel{text-align:left;font-weight:700;color:var(--navy);background:var(--hilite);position:sticky;left:0;z-index:2;min-width:150px;}
+  table.pobr-table thead th.rowlabel{z-index:3;}
+  table.pobr-table tbody tr:nth-child(odd) td:not(.rowlabel){background:#fafbfa;}
+  table.pobr-table td.status-cell{font-weight:700;font-size:10px;}
+  table.pobr-table th.today-col, table.pobr-table td.today-col{box-shadow:inset 0 0 0 2px var(--accent);}
+  .pobr-empty{text-align:center;padding:16px;color:var(--text-muted);font-size:12px;}
+
   /* ---- Roster ---- */
   .roster-legend{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;}
   .roster-chip{
@@ -996,6 +1033,33 @@
     <div class="progress-wrap" style="display:flex;justify-content:space-between;align-items:center;">
       <span style="font-size:12px;font-weight:bold;color:var(--navy);">4 muster point aktif &amp; operasional</span>
       <span id="pobMusterChip" style="padding:3px 10px;border-radius:999px;font-size:10.5px;font-weight:bold;cursor:pointer;background:var(--green-bg);color:var(--green-fg);">Aman</span>
+    </div>
+
+    <div class="pobr-card">
+      <h3><i class="ti ti-users"></i> Status Kehadiran Tim Digitech</h3>
+      <p class="pobr-subtitle">Sumber: Rooster_BIB.xlsx — <span id="pobrPersonCount">10</span> personel, kode ON/OFF/HO/Leave sesuai roster resmi</p>
+
+      <div class="pobr-legend">
+        <span class="pobr-legend-chip" style="background:var(--pobr-on-bg,#B7E1CD);color:var(--pobr-on-fg,#1C7A4E);"><span class="dot" style="background:var(--pobr-on-fg,#1C7A4E);"></span>ON — Site</span>
+        <span class="pobr-legend-chip" style="background:var(--pobr-off-bg,#FCE8B2);color:var(--pobr-off-fg,#95700B);"><span class="dot" style="background:var(--pobr-off-fg,#95700B);"></span>OFF</span>
+        <span class="pobr-legend-chip" style="background:var(--pobr-ho-bg,#A4C2F4);color:var(--pobr-ho-fg,#1C4CA6);"><span class="dot" style="background:var(--pobr-ho-fg,#1C4CA6);"></span>HO</span>
+        <span class="pobr-legend-chip" style="background:var(--pobr-leave-bg,#F4CCCC);color:var(--pobr-leave-fg,#B23A3A);"><span class="dot" style="background:var(--pobr-leave-fg,#B23A3A);"></span>Leave</span>
+      </div>
+
+      <div class="pobr-mini-kpi-row" id="pobrMiniKpiRow"></div>
+      <div class="pobr-avatar-grid" id="pobrAvatarGrid"></div>
+
+      <div class="pobr-toolbar">
+        <div class="pobr-mode-select" id="pobrModeSelect">
+          <button type="button" data-mode="week" class="active">Minggu Ini</button>
+          <button type="button" data-mode="month">Bulan Ini</button>
+        </div>
+        <div class="pobr-search-wrap"><i class="ti ti-search"></i><input type="text" id="pobrSearchInput" placeholder="Cari nama personel..."></div>
+      </div>
+
+      <div class="pobr-table-wrap">
+        <table class="pobr-table" id="pobrTable"></table>
+      </div>
     </div>
   </div>
 
@@ -3349,6 +3413,7 @@ const DSO_ASSETS_KEY = 'dso:stock-wim-v2';
 let apAssetsData = [];
 let apEditingIdx = null;
 const DSO_POB_KEY = 'dso:pob';
+const DSO_POBR_KEY = 'dso:pob-roster'; // status kehadiran tim Digitech (dari Rooster_BIB.xlsx)
 const STOCK_SHEET_ID = '1w3rlXybBify-dOTs26n83WrlO5FzlWvQUbLq21pp4n4';
 const STOCK_SHEET_NAME = 'Summary Stok';
 const DSO_STOCK_LASTSYNC_KEY = 'dso:stock-lastsync';
@@ -3391,6 +3456,24 @@ async function apEditSheetLink(){
   showToast('✓ Link spreadsheet Stock Management diperbarui, menyinkron ulang...', 'success');
   syncStockFromSheet(true);
 }
+
+/* ================= POB: SEED DATA ROSTER DIGITECH (dari Rooster_BIB.xlsx) =================
+   Data awal (default) supaya menu POB langsung terisi meski belum pernah disimpan ke storage.
+   Setelah tersimpan sekali lewat dsoSave, data berikut ini hanya dipakai sebagai fallback. */
+const POBR_SEED_DATES = ["2025-12-29", "2025-12-30", "2025-12-31", "2026-01-01", "2026-01-02", "2026-01-03", "2026-01-04", "2026-01-05", "2026-01-06", "2026-01-07", "2026-01-08", "2026-01-09", "2026-01-10", "2026-01-11", "2026-01-12", "2026-01-13", "2026-01-14", "2026-01-15", "2026-01-16", "2026-01-17", "2026-01-18", "2026-01-19", "2026-01-20", "2026-01-21", "2026-01-22", "2026-01-23", "2026-01-24", "2026-01-25", "2026-01-26", "2026-01-27", "2026-01-28", "2026-01-29", "2026-01-30", "2026-01-31", "2026-02-01", "2026-02-02", "2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06", "2026-02-07", "2026-02-08", "2026-02-09", "2026-02-10", "2026-02-11", "2026-02-12", "2026-02-13", "2026-02-14", "2026-02-15", "2026-02-16", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-21", "2026-02-22", "2026-02-23", "2026-02-24", "2026-02-25", "2026-02-26", "2026-02-27", "2026-02-28", "2026-03-01", "2026-03-02", "2026-03-03", "2026-03-04", "2026-03-05", "2026-03-06", "2026-03-07", "2026-03-08", "2026-03-09", "2026-03-10", "2026-03-11", "2026-03-12", "2026-03-13", "2026-03-14", "2026-03-15", "2026-03-16", "2026-03-17", "2026-03-18", "2026-03-19", "2026-03-20", "2026-03-21", "2026-03-22", "2026-03-23", "2026-03-24", "2026-03-25", "2026-03-26", "2026-03-27", "2026-03-28", "2026-03-29", "2026-03-30", "2026-03-31", "2026-04-01", "2026-04-02", "2026-04-03", "2026-04-04", "2026-04-05", "2026-04-06", "2026-04-07", "2026-04-08", "2026-04-09", "2026-04-10", "2026-04-11", "2026-04-12", "2026-04-13", "2026-04-14", "2026-04-15", "2026-04-16", "2026-04-17", "2026-04-18", "2026-04-19", "2026-04-20", "2026-04-21", "2026-04-22", "2026-04-23", "2026-04-24", "2026-04-25", "2026-04-26", "2026-04-27", "2026-04-28", "2026-04-29", "2026-04-30", "2026-05-01", "2026-05-02", "2026-05-03", "2026-05-04", "2026-05-05", "2026-05-06", "2026-05-07", "2026-05-08", "2026-05-09", "2026-05-10", "2026-05-11", "2026-05-12", "2026-05-13", "2026-05-14", "2026-05-15", "2026-05-16", "2026-05-17", "2026-05-18", "2026-05-19", "2026-05-20", "2026-05-21", "2026-05-22", "2026-05-23", "2026-05-24", "2026-05-25", "2026-05-26", "2026-05-27", "2026-05-28", "2026-05-29", "2026-05-30", "2026-05-31", "2026-06-01", "2026-06-02", "2026-06-03", "2026-06-04", "2026-06-05", "2026-06-06", "2026-06-07", "2026-06-08", "2026-06-09", "2026-06-10", "2026-06-11", "2026-06-12", "2026-06-13", "2026-06-14", "2026-06-15", "2026-06-16", "2026-06-17", "2026-06-18", "2026-06-19", "2026-06-20", "2026-06-21", "2026-06-22", "2026-06-23", "2026-06-24", "2026-06-25", "2026-06-26", "2026-06-27", "2026-06-28", "2026-06-29", "2026-06-30", "2026-07-01", "2026-07-02", "2026-07-03", "2026-07-04", "2026-07-05", "2026-07-06", "2026-07-07", "2026-07-08", "2026-07-09", "2026-07-10", "2026-07-11", "2026-07-12", "2026-07-13", "2026-07-14", "2026-07-15", "2026-07-16", "2026-07-17", "2026-07-18", "2026-07-19", "2026-07-20", "2026-07-21", "2026-07-22", "2026-07-23", "2026-07-24", "2026-07-25", "2026-07-26", "2026-07-27", "2026-07-28", "2026-07-29", "2026-07-30", "2026-07-31", "2026-08-01", "2026-08-02", "2026-08-03", "2026-08-04", "2026-08-05", "2026-08-06", "2026-08-07", "2026-08-08", "2026-08-09", "2026-08-10", "2026-08-11", "2026-08-12", "2026-08-13", "2026-08-14", "2026-08-15", "2026-08-16", "2026-08-17", "2026-08-18", "2026-08-19", "2026-08-20", "2026-08-21", "2026-08-22", "2026-08-23", "2026-08-24", "2026-08-25", "2026-08-26", "2026-08-27", "2026-08-28", "2026-08-29", "2026-08-30", "2026-08-31", "2026-09-01", "2026-09-02", "2026-09-03", "2026-09-04", "2026-09-05", "2026-09-06", "2026-09-07", "2026-09-08", "2026-09-09", "2026-09-10", "2026-09-11", "2026-09-12", "2026-09-13", "2026-09-14", "2026-09-15", "2026-09-16", "2026-09-17", "2026-09-18", "2026-09-19", "2026-09-20", "2026-09-21", "2026-09-22", "2026-09-23", "2026-09-24", "2026-09-25", "2026-09-26", "2026-09-27", "2026-09-28", "2026-09-29", "2026-09-30", "2026-10-01", "2026-10-02", "2026-10-03", "2026-10-04", "2026-10-05", "2026-10-06", "2026-10-07", "2026-10-08", "2026-10-09", "2026-10-10", "2026-10-11", "2026-10-12", "2026-10-13", "2026-10-14", "2026-10-15", "2026-10-16", "2026-10-17", "2026-10-18", "2026-10-19", "2026-10-20", "2026-10-21", "2026-10-22", "2026-10-23", "2026-10-24", "2026-10-25", "2026-10-26", "2026-10-27", "2026-10-28", "2026-10-29", "2026-10-30", "2026-10-31", "2026-11-01", "2026-11-02", "2026-11-03", "2026-11-04", "2026-11-05", "2026-11-06", "2026-11-07", "2026-11-08", "2026-11-09", "2026-11-10", "2026-11-11", "2026-11-12", "2026-11-13", "2026-11-14", "2026-11-15", "2026-11-16", "2026-11-17", "2026-11-18", "2026-11-19", "2026-11-20", "2026-11-21", "2026-11-22", "2026-11-23", "2026-11-24", "2026-11-25", "2026-11-26", "2026-11-27", "2026-11-28", "2026-11-29", "2026-11-30", "2026-12-01", "2026-12-02", "2026-12-03", "2026-12-04", "2026-12-05", "2026-12-06", "2026-12-07", "2026-12-08", "2026-12-09", "2026-12-10", "2026-12-11", "2026-12-12", "2026-12-13", "2026-12-14", "2026-12-15", "2026-12-16", "2026-12-17", "2026-12-18", "2026-12-19", "2026-12-20", "2026-12-21", "2026-12-22", "2026-12-23", "2026-12-24", "2026-12-25", "2026-12-26", "2026-12-27", "2026-12-28", "2026-12-29", "2026-12-30", "2026-12-31", "2027-01-01", "2027-01-02", "2027-01-03"];
+const POBR_SEED_PEOPLE = [
+  { name:'Sony Salubongga', photo:null, statuses:[2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1] },
+  { name:'Harris', photo:'data:image/jpeg;base64,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', statuses:[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1] },
+  { name:'Abdillah', photo:null, statuses:[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1] },
+  { name:'Lukman Gunawan', photo:null, statuses:[1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1] },
+  { name:'Dani Suryanda', photo:null, statuses:[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+  { name:'Ishaq Arifin', photo:null, statuses:[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1] },
+  { name:'Nyco', photo:null, statuses:[2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2] },
+  { name:'Raka', photo:null, statuses:[2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1] },
+  { name:'Taufik', photo:null, statuses:[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1] },
+  { name:'Adhe Setiawan', photo:null, statuses:[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1] },
+];
+const POBR_SEED = { dates: POBR_SEED_DATES, people: POBR_SEED_PEOPLE };
 
 function dsoDefaults(){
   return {
@@ -4501,6 +4584,163 @@ async function renderPob(){
     pob.contractors = Number(document.getElementById('pobContNum').textContent.replace(/\D/g,''))||0;
     await dsoSave(DSO_POB_KEY, pob); renderPob();
   };
+
+  await renderPobRoster();
+}
+
+/* ============ POB: Status Kehadiran Tim Digitech (Roster) ============ */
+const POBR_STATUS_MAP = {
+  1: { label:'ON',    bg:'#B7E1CD', fg:'#1C7A4E' },
+  2: { label:'OFF',   bg:'#FCE8B2', fg:'#95700B' },
+  3: { label:'HO',    bg:'#A4C2F4', fg:'#1C4CA6' },
+  4: { label:'Leave', bg:'#F4CCCC', fg:'#B23A3A' },
+  0: { label:'-',     bg:'var(--grey-bg)', fg:'var(--grey-fg)' }
+};
+const POBR_DAY_ID = ['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
+let pobrMode = 'week';
+let pobrData = null;
+
+function pobrInitials(name){
+  return String(name||'').trim().split(/\s+/).slice(0,2).map(w => w[0]).join('').toUpperCase();
+}
+function pobrTodayIso(){
+  const d = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+}
+function pobrTodayIdx(dates){
+  const iso = pobrTodayIso();
+  let idx = dates.indexOf(iso);
+  if(idx === -1){
+    // fallback: cari tanggal terdekat kalau hari ini di luar rentang data roster
+    let best = 0, bestDiff = Infinity;
+    const t = new Date(iso).getTime();
+    dates.forEach((d,i) => {
+      const diff = Math.abs(new Date(d).getTime() - t);
+      if(diff < bestDiff){ bestDiff = diff; best = i; }
+    });
+    idx = best;
+  }
+  return idx;
+}
+
+async function renderPobRoster(){
+  pobrData = await dsoLoad(DSO_POBR_KEY, POBR_SEED);
+  document.getElementById('pobrPersonCount').textContent = pobrData.people.length;
+  pobrRenderMiniKpi();
+  pobrRenderAvatars('');
+  pobrRenderTable('');
+
+  const modeSelect = document.getElementById('pobrModeSelect');
+  if(modeSelect && !modeSelect.dataset.bound){
+    modeSelect.dataset.bound = '1';
+    modeSelect.addEventListener('click', (e) => {
+      const btn = e.target.closest('button');
+      if(!btn) return;
+      pobrMode = btn.dataset.mode;
+      modeSelect.querySelectorAll('button').forEach(b => b.classList.toggle('active', b === btn));
+      const q = document.getElementById('pobrSearchInput').value.toLowerCase().trim();
+      pobrRenderTable(q);
+    });
+  }
+  const searchEl = document.getElementById('pobrSearchInput');
+  if(searchEl && !searchEl.dataset.bound){
+    searchEl.dataset.bound = '1';
+    searchEl.addEventListener('keyup', (e) => {
+      const q = e.target.value.toLowerCase().trim();
+      pobrRenderAvatars(q);
+      pobrRenderTable(q);
+    });
+  }
+}
+
+function pobrRenderMiniKpi(){
+  if(!pobrData) return;
+  const idx = pobrTodayIdx(pobrData.dates);
+  const counts = {1:0,2:0,3:0,4:0};
+  pobrData.people.forEach(p => { const v = p.statuses[idx]; if(counts[v]!==undefined) counts[v]++; });
+  const defs = [
+    {k:1, l:'ON — Site Hari Ini'},
+    {k:2, l:'OFF Hari Ini'},
+    {k:3, l:'HO Hari Ini'},
+    {k:4, l:'Leave Hari Ini'}
+  ];
+  const el = document.getElementById('pobrMiniKpiRow');
+  if(!el) return;
+  el.innerHTML = defs.map(d => {
+    const st = POBR_STATUS_MAP[d.k];
+    return `<div class="pobr-mini-kpi" style="background:${st.bg};color:${st.fg};"><div class="n">${counts[d.k]||0}</div><div class="l">${d.l}</div></div>`;
+  }).join('');
+}
+
+function pobrRenderAvatars(filterQ){
+  if(!pobrData) return;
+  const idx = pobrTodayIdx(pobrData.dates);
+  const el = document.getElementById('pobrAvatarGrid');
+  if(!el) return;
+  const people = pobrData.people.filter(p => !filterQ || p.name.toLowerCase().includes(filterQ));
+  if(!people.length){ el.innerHTML = '<div class="pobr-empty">Tidak ada personel yang cocok.</div>'; return; }
+  el.innerHTML = people.map(p => {
+    const v = p.statuses[idx];
+    const st = POBR_STATUS_MAP[v] || POBR_STATUS_MAP[0];
+    const avatarInner = p.photo ? `<img src="${p.photo}" alt="${p.name}">` : pobrInitials(p.name);
+    return `<div class="pobr-avatar-card">
+      <div class="pobr-avatar-circle" style="--ring:${st.fg};">${avatarInner}</div>
+      <div class="pobr-avatar-name">${p.name}</div>
+      <span class="pobr-avatar-status" style="background:${st.bg};color:${st.fg};">${st.label}</span>
+    </div>`;
+  }).join('');
+}
+
+function pobrGetRangeIdx(){
+  const dates = pobrData.dates;
+  const idx = pobrTodayIdx(dates);
+  if(pobrMode === 'week'){
+    const start = Math.max(0, idx - 3);
+    const end = Math.min(dates.length - 1, idx + 3);
+    return [start, end];
+  }
+  const ym = dates[idx].slice(0,7);
+  let start = idx, end = idx;
+  while(start > 0 && dates[start-1].slice(0,7) === ym) start--;
+  while(end < dates.length-1 && dates[end+1].slice(0,7) === ym) end++;
+  return [start, end];
+}
+
+function pobrRenderTable(filterQ){
+  if(!pobrData) return;
+  const table = document.getElementById('pobrTable');
+  if(!table) return;
+  const [start, end] = pobrGetRangeIdx();
+  const idx = pobrTodayIdx(pobrData.dates);
+  const dates = pobrData.dates.slice(start, end+1);
+  const people = pobrData.people.filter(p => !filterQ || p.name.toLowerCase().includes(filterQ));
+
+  if(!people.length){ table.innerHTML = ''; return; }
+
+  let thead = '<thead><tr><th class="rowlabel">Personel</th>';
+  dates.forEach((d,i) => {
+    const realIdx = start + i;
+    const dt = new Date(d + 'T00:00:00');
+    const isToday = realIdx === idx;
+    thead += `<th class="${isToday?'today-col':''}">${POBR_DAY_ID[dt.getDay()]}<br>${dt.getDate()}/${dt.getMonth()+1}</th>`;
+  });
+  thead += '</tr></thead>';
+
+  let tbody = '<tbody>';
+  people.forEach(p => {
+    tbody += `<tr><td class="rowlabel">${p.name}</td>`;
+    dates.forEach((d,i) => {
+      const realIdx = start + i;
+      const v = p.statuses[realIdx];
+      const st = POBR_STATUS_MAP[v] || POBR_STATUS_MAP[0];
+      const isToday = realIdx === idx;
+      tbody += `<td class="status-cell ${isToday?'today-col':''}" style="background:${st.bg};color:${st.fg};">${st.label}</td>`;
+    });
+    tbody += '</tr>';
+  });
+  tbody += '</tbody>';
+  table.innerHTML = thead + tbody;
 }
 
 // muat Overview begitu app dibuka karena ini tab default
