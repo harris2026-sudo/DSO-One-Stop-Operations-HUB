@@ -112,6 +112,18 @@
   .ap-b-grey{background:var(--grey-bg);color:var(--grey-fg);}
   .ap-b-black{background:var(--black-bg);color:var(--black-fg);}
 
+  .ap-dup-banner{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+    background:var(--yellow-bg);border:1px solid #EBCB8C;border-radius:10px;padding:11px 16px;margin-bottom:14px;}
+  .ap-dup-banner .msg{display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--yellow-fg);font-weight:600;}
+  .ap-dup-banner .msg i{font-size:17px;}
+  .ap-dup-modal-box{max-width:640px;}
+  .ap-dup-item{border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:10px;background:var(--surface-alt);}
+  .ap-dup-item label{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--navy);cursor:pointer;}
+  .ap-dup-item .ap-dup-meta{margin:8px 0 0 24px;font-size:11.5px;color:var(--text-secondary);display:grid;grid-template-columns:1fr 1fr;gap:4px 14px;}
+  .ap-dup-field{margin-top:12px;}
+  .ap-dup-field label{display:block;font-size:10.5px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px;}
+  .ap-dup-field input, .ap-dup-field textarea{width:100%;border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:12.5px;font-family:var(--font-body);}
+  .ap-dup-numrow{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
   #toastWrap{position:fixed;top:16px;right:16px;z-index:9999;display:flex;flex-direction:column;gap:8px;}
   .toast{display:flex;align-items:center;gap:10px;min-width:220px;max-width:340px;padding:12px 16px;border-radius:8px;color:#fff;font-size:13px;font-weight:600;background:var(--navy);box-shadow:0 4px 14px rgba(0,0,0,.18);opacity:0;transform:translateX(20px);transition:opacity .3s ease,transform .35s cubic-bezier(.34,1.56,.64,1);}
   .toast.show{opacity:1;transform:translateX(0);}
@@ -300,6 +312,8 @@
   </div>
 
   <div class="ap-kpis" id="apKpiRow"></div>
+
+  <div id="apDupBanner"></div>
 
   <div class="ap-chart-wrap">
     <div class="ap-chart-card">
@@ -1021,6 +1035,150 @@ function loadGoogleChartsOnce(){
 function apNormalizeName(s){
   return String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
 }
+/* ================= DETEKSI & GABUNG ITEM DUPLIKAT =================
+   Kasus nyata: "Loadcell Merk Intercomp/Bosche" (data lama di storage) vs
+   "LOADCELL INTERCOMP / BOSCHE" (nama terbaru di Google Sheet) dianggap 2 item
+   berbeda oleh apMergeSheetData karena nama persis tidak sama (ada kata "Merk").
+   Deteksi di bawah ini lebih longgar: buang kata-kata umum yang tidak menambah
+   arti (merk/model/type/jenis), lalu urutkan kata supaya urutan kata beda tetap
+   terdeteksi sama, supaya item semacam ini bisa ditinjau & digabung manual. */
+const AP_DUP_NOISE_WORDS = ['merk','type','model','jenis','unit','part'];
+function apNormalizeLoose(s){
+  const words = String(s||'').toLowerCase().replace(/[^a-z0-9\s]/g,' ').split(/\s+/)
+    .filter(Boolean).filter(w => !AP_DUP_NOISE_WORDS.includes(w));
+  words.sort();
+  return words.join('');
+}
+const DSO_DUP_DISMISS_KEY = 'stock:dup-dismissed';
+async function apLoadDupDismissed(){
+  try{ return await dsoLoad(DSO_DUP_DISMISS_KEY, []); }catch(e){ return []; }
+}
+async function apSaveDupDismissed(list){
+  await dsoSave(DSO_DUP_DISMISS_KEY, list);
+}
+function apFindDuplicateGroups(assets, dismissed){
+  const groups = new Map();
+  assets.forEach((a,i) => {
+    const key = apNormalizeLoose(a.description);
+    if(!key) return;
+    if(!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(i);
+  });
+  const result = [];
+  groups.forEach((idxs, key) => {
+    if(idxs.length > 1 && !dismissed.includes(key)) result.push({ key, idxs });
+  });
+  return result;
+}
+async function apRenderDupBanner(assets){
+  const el = document.getElementById('apDupBanner');
+  if(!el) return;
+  const dismissed = await apLoadDupDismissed();
+  const groups = apFindDuplicateGroups(assets, dismissed);
+  if(!groups.length){ el.innerHTML = ''; return; }
+  const totalItems = groups.reduce((s,g) => s + g.idxs.length, 0);
+  el.innerHTML = `
+    <div class="ap-dup-banner">
+      <div class="msg"><i class="ti ti-alert-triangle"></i> Terdeteksi ${groups.length} kemungkinan item duplikat (nama mirip, total ${totalItems} baris). Nama part di Sheet mungkin sudah diubah tapi data lama belum digabung.</div>
+      <button type="button" class="btn btn-primary" id="apDupReviewBtn"><i class="ti ti-git-merge"></i> Tinjau &amp; Gabungkan</button>
+    </div>`;
+  document.getElementById('apDupReviewBtn').onclick = () => apOpenDupModal(groups, 0);
+}
+function apDupItemHtml(a, i, checked){
+  return `
+    <div class="ap-dup-item">
+      <label><input type="radio" name="apDupPrimary" value="${i}" ${checked?'checked':''}> ${a.description||'-'}</label>
+      <div class="ap-dup-meta">
+        <div>Category: <b>${a.category||'-'}</b></div>
+        <div>Source: <b>${a.source||'-'}</b></div>
+        <div>New Stock: <b>${a.newStock||0}</b></div>
+        <div>Ex/Second: <b>${a.exSecond||0}</b></div>
+        <div>Broken: <b>${a.broken||0}</b></div>
+        <div>Jenis: <b>${a.jenis||'-'}</b></div>
+        <div style="grid-column:1/-1;">Desc: <b>${a.desc||'-'}</b></div>
+      </div>
+    </div>`;
+}
+function apOpenDupModal(groups, groupIdx){
+  if(groupIdx >= groups.length){
+    document.getElementById('apDupModalOverlay')?.remove();
+    renderAssetPlant(false);
+    return;
+  }
+  const { key, idxs } = groups[groupIdx];
+  const items = idxs.map(i => apAssetsData[i]);
+  document.getElementById('apDupModalOverlay')?.remove();
+  const sumNewStock = items.reduce((s,a) => s + (Number(a.newStock)||0), 0);
+  const sumExSecond = items.reduce((s,a) => s + (Number(a.exSecond)||0), 0);
+  const sumBroken = items.reduce((s,a) => s + (Number(a.broken)||0), 0);
+  const combinedDesc = [...new Set(items.map(a => (a.desc||'').trim()).filter(Boolean))].join('; ');
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay active';
+  overlay.id = 'apDupModalOverlay';
+  overlay.innerHTML = `
+    <div class="modal-box ap-dup-modal-box">
+      <button type="button" class="modal-close-x" id="apDupModalCloseX">&times;</button>
+      <h3><i class="ti ti-git-merge"></i> Tinjau Item Duplikat (${groupIdx+1}/${groups.length})</h3>
+      <p style="font-size:11.5px;color:#667;margin-top:-8px;">Pilih data mana yang jadi acuan (deskripsi/category/source/jenis). Angka stok bisa disesuaikan, defaultnya dijumlahkan dari semua baris duplikat.</p>
+      ${idxs.map((i,n) => apDupItemHtml(apAssetsData[i], i, n===0)).join('')}
+      <div class="ap-dup-field">
+        <label>New Stock Spare (gabungan)</label>
+        <div class="ap-dup-numrow">
+          <input type="number" id="apDupNewStock" value="${sumNewStock}">
+          <input type="number" id="apDupExSecond" value="${sumExSecond}" placeholder="Ex/Second">
+          <input type="number" id="apDupBroken" value="${sumBroken}" placeholder="Broken">
+        </div>
+      </div>
+      <div class="ap-dup-field">
+        <label>Desc (gabungan, bisa diedit)</label>
+        <textarea id="apDupDesc" rows="2">${combinedDesc}</textarea>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap;">
+        <button type="button" class="btn" id="apDupSkipBtn">Bukan Duplikat</button>
+        <button type="button" class="btn" id="apDupNextBtn">Lewati</button>
+        <button type="button" class="btn btn-primary" id="apDupMergeBtn"><i class="ti ti-git-merge"></i> Gabungkan Jadi 1</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  const close = () => overlay.remove();
+  document.getElementById('apDupModalCloseX').onclick = close;
+  overlay.addEventListener('click', (e) => { if(e.target === overlay) close(); });
+  document.getElementById('apDupNextBtn').onclick = () => apOpenDupModal(groups, groupIdx+1);
+  document.getElementById('apDupSkipBtn').onclick = async () => {
+    const dismissed = await apLoadDupDismissed();
+    if(!dismissed.includes(key)) dismissed.push(key);
+    await apSaveDupDismissed(dismissed);
+    apOpenDupModal(groups, groupIdx+1);
+  };
+  document.getElementById('apDupMergeBtn').onclick = async () => {
+    const primaryIdx = Number(overlay.querySelector('input[name="apDupPrimary"]:checked').value);
+    const primary = apAssetsData[primaryIdx];
+    const merged = {
+      ...primary,
+      newStock: Number(document.getElementById('apDupNewStock').value) || 0,
+      exSecond: Number(document.getElementById('apDupExSecond').value) || 0,
+      broken: Number(document.getElementById('apDupBroken').value) || 0,
+      desc: document.getElementById('apDupDesc').value.trim(),
+      replacements: [],
+      serial: []
+    };
+    idxs.forEach(i => {
+      merged.replacements.push(...(apAssetsData[i].replacements||[]));
+      merged.serial.push(...(apAssetsData[i].serial||[]));
+    });
+    const sortedIdxs = [...idxs].sort((a,b) => b-a);
+    const primaryPos = sortedIdxs.indexOf(primaryIdx);
+    apAssetsData[primaryIdx] = merged;
+    sortedIdxs.forEach((i, pos) => { if(i !== primaryIdx) apAssetsData.splice(i, 1); });
+    await dsoSave(DSO_ASSETS_KEY, apAssetsData);
+    showToast('✓ Item duplikat digabung', 'success');
+    close();
+    apAssetsData = await dsoLoad(DSO_ASSETS_KEY, dsoDefaults().assets);
+    apAssetsData = apMigrateAll(apAssetsData);
+    const remainingGroups = apFindDuplicateGroups(apAssetsData, await apLoadDupDismissed());
+    apOpenDupModal(remainingGroups, 0);
+  };
+}
 const STOCK_HEADER_ALIASES = {
   description: ['description','nama barang','nama'],
   category: ['category','category severity','severity'],
@@ -1371,6 +1529,7 @@ async function renderAssetPlant(autoSync){
   apRenderKpis(assets);
   apRenderChart(assets);
   apApplyFilters();
+  apRenderDupBanner(assets);
 
   const searchEl = document.getElementById('apSearchInput');
   if(searchEl && !searchEl.dataset.bound){
