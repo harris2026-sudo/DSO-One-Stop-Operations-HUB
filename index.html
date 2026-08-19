@@ -425,11 +425,34 @@
   .fu-actions select{border:1px solid #c7d3e0;border-radius:6px;padding:4px 6px;font-size:11.5px;font-family:Arial;}
   .fu-del{border:1.5px solid #e39aa1;background:var(--red-bg);color:var(--red-fg);border-radius:14px;padding:5px 14px;font-size:11.5px;font-weight:bold;cursor:pointer;font-family:Arial;}
   .fu-del:hover{background:#ffb3bd;}
+  /* ---- POB: KPI interaktif (Total POB / Employees / Contractors) ---- */
+  .pob-kpi-row{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:14px;margin-bottom:14px;}
+  .pob-kpi-hero{background:var(--navy);border-radius:12px;padding:16px 18px;color:#fff;position:relative;overflow:hidden;}
+  .pob-kpi-hero i.pob-kpi-icon{position:absolute;right:14px;top:14px;font-size:22px;color:rgba(255,255,255,0.35);}
+  .pob-kpi-hero .pob-kpi-label{font-size:11px;color:#B8C4CC;font-weight:600;text-transform:uppercase;letter-spacing:.4px;}
+  .pob-kpi-hero .pob-kpi-num{font-size:30px;font-weight:600;font-family:var(--font-mono);margin-top:6px;}
+  .pob-kpi-hero .pob-kpi-sub{font-size:11px;color:#8FE0C4;margin-top:4px;font-weight:600;}
+  .pob-kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;transition:border-color .12s ease;}
+  .pob-kpi-card:hover{border-color:var(--accent);}
+  .pob-kpi-card .pob-kpi-top{display:flex;align-items:center;justify-content:space-between;}
+  .pob-kpi-card .pob-kpi-top i{font-size:18px;}
+  .pob-kpi-pct{font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;}
+  .pob-kpi-card .pob-kpi-num{font-size:24px;font-weight:500;font-family:var(--font-mono);margin-top:8px;outline:none;}
+  .pob-kpi-card .pob-kpi-num:focus{color:var(--accent);}
+  .pob-kpi-card .pob-kpi-lab{font-size:11.5px;color:var(--text-secondary);margin-top:3px;}
+  .pob-comp-bar{height:8px;border-radius:999px;overflow:hidden;display:flex;margin-bottom:14px;background:var(--zebra);}
+  .pob-comp-bar .seg{transition:width .2s ease;}
   /* ---- POB: Status Kehadiran Tim Digitech (dari Rooster_BIB.xlsx) ---- */
   .pobr-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px;margin-top:16px;}
   .pobr-card h3{font-family:var(--font-display);color:var(--navy);font-size:14.5px;margin:0 0 3px;display:flex;align-items:center;gap:8px;}
   .pobr-card h3 i{color:var(--accent);font-size:17px;}
   .pobr-card .pobr-subtitle{font-size:11.5px;color:var(--text-secondary);margin:0 0 14px;}
+  .pobr-head-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;}
+  .pobr-src-icon{width:30px;height:30px;border-radius:8px;background:var(--zebra);display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;position:relative;transition:background .12s ease;}
+  .pobr-src-icon:hover{background:var(--steel-light);}
+  .pobr-src-icon i{font-size:16px;color:var(--text-secondary);}
+  .pobr-src-icon .pobr-src-tip{position:absolute;top:36px;right:0;background:var(--navy);color:#fff;font-size:10.5px;font-weight:600;padding:6px 10px;border-radius:8px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .12s ease;z-index:5;}
+  .pobr-src-icon:hover .pobr-src-tip{opacity:1;}
   .pobr-legend{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;}
   .pobr-legend-chip{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;padding:5px 12px;border-radius:999px;}
   .pobr-legend-chip .dot{width:8px;height:8px;border-radius:50%;}
@@ -803,7 +826,7 @@
     <div class="topbar">
       <div>
         <h1 id="pageTitle">Overview</h1>
-        <div class="sub" id="pageSub">Ringkasan operasional site hari ini</div>
+        <div class="sub" id="pageSub">Ringkasan Operasional Site</div>
       </div>
       <div class="topbar-right">
         <div class="wima-mic-widget">
@@ -1025,19 +1048,52 @@
 
   <!-- ================= VIEW: POB ================= -->
   <div class="view" id="view-pob">
-    <div class="summary" style="grid-template-columns:repeat(3,1fr);">
-      <div class="card"><div class="num" id="pobTotalNum">--</div><div class="lab">Total POB</div></div>
-      <div class="card"><div class="num" id="pobEmpNum" contenteditable="true">--</div><div class="lab">Employees</div></div>
-      <div class="card"><div class="num" id="pobContNum" contenteditable="true">--</div><div class="lab">Contractors</div></div>
+    <div class="pob-kpi-row">
+      <div class="pob-kpi-hero">
+        <i class="ti ti-users pob-kpi-icon"></i>
+        <div class="pob-kpi-label">Total POB</div>
+        <div class="pob-kpi-num" id="pobTotalNum">--</div>
+        <div class="pob-kpi-sub">Personil di site hari ini</div>
+      </div>
+      <div class="pob-kpi-card">
+        <div class="pob-kpi-top">
+          <i class="ti ti-briefcase" style="color:var(--accent);"></i>
+          <span class="pob-kpi-pct" id="pobEmpPct" style="background:var(--blue-bg);color:var(--blue-fg);">--%</span>
+        </div>
+        <div class="pob-kpi-num" id="pobEmpNum" contenteditable="true">--</div>
+        <div class="pob-kpi-lab">Employees</div>
+      </div>
+      <div class="pob-kpi-card">
+        <div class="pob-kpi-top">
+          <i class="ti ti-helmet" style="color:var(--gold-fg);"></i>
+          <span class="pob-kpi-pct" id="pobContPct" style="background:var(--gold-bg);color:var(--gold-fg);">--%</span>
+        </div>
+        <div class="pob-kpi-num" id="pobContNum" contenteditable="true">--</div>
+        <div class="pob-kpi-lab">Contractors</div>
+      </div>
     </div>
+
+    <div class="pob-comp-bar">
+      <div class="seg" id="pobBarEmp" style="width:50%;background:var(--accent);"></div>
+      <div class="seg" id="pobBarCont" style="width:50%;background:var(--gold-fg);"></div>
+    </div>
+
     <div class="progress-wrap" style="display:flex;justify-content:space-between;align-items:center;">
       <span style="font-size:12px;font-weight:bold;color:var(--navy);">4 muster point aktif &amp; operasional</span>
       <span id="pobMusterChip" style="padding:3px 10px;border-radius:999px;font-size:10.5px;font-weight:bold;cursor:pointer;background:var(--green-bg);color:var(--green-fg);">Aman</span>
     </div>
 
     <div class="pobr-card">
-      <h3><i class="ti ti-users"></i> Status Kehadiran Tim Digitech</h3>
-      <p class="pobr-subtitle">Sumber: Rooster_BIB.xlsx — <span id="pobrPersonCount">10</span> personel, kode ON/OFF/HO/Leave sesuai roster resmi</p>
+      <div class="pobr-head-row">
+        <div>
+          <h3><i class="ti ti-users"></i> Digitech Team Attendance Status</h3>
+          <p class="pobr-subtitle" style="margin:0;"><span id="pobrPersonCount">10</span> personel, kode ON/OFF/HO/Leave sesuai roster resmi</p>
+        </div>
+        <div class="pobr-src-icon" title="Sumber: Rooster_BIB.xlsx">
+          <i class="ti ti-file-spreadsheet"></i>
+          <span class="pobr-src-tip">Sumber: Rooster_BIB.xlsx</span>
+        </div>
+      </div>
 
       <div class="pobr-legend">
         <span class="pobr-legend-chip" style="background:var(--pobr-on-bg,#B7E1CD);color:var(--pobr-on-fg,#1C7A4E);"><span class="dot" style="background:var(--pobr-on-fg,#1C7A4E);"></span>ON — Site</span>
@@ -4591,10 +4647,20 @@ async function apDeleteCurrent(){
 
 async function renderPob(){
   const pob = await dsoLoad(DSO_POB_KEY, dsoDefaults().pob);
-  const total = Number(pob.employees) + Number(pob.contractors);
+  const emp = Number(pob.employees)||0;
+  const cont = Number(pob.contractors)||0;
+  const total = emp + cont;
+  const empPct = total ? Math.round((emp/total)*100) : 0;
+  const contPct = total ? 100 - empPct : 0;
+
   document.getElementById('pobTotalNum').textContent = total.toLocaleString('id-ID');
-  document.getElementById('pobEmpNum').textContent = pob.employees;
-  document.getElementById('pobContNum').textContent = pob.contractors;
+  document.getElementById('pobEmpNum').textContent = emp;
+  document.getElementById('pobContNum').textContent = cont;
+  document.getElementById('pobEmpPct').textContent = empPct + '%';
+  document.getElementById('pobContPct').textContent = contPct + '%';
+  document.getElementById('pobBarEmp').style.width = empPct + '%';
+  document.getElementById('pobBarCont').style.width = contPct + '%';
+
   const chip = document.getElementById('pobMusterChip');
   chip.textContent = pob.musterSafe ? 'Aman' : 'Perhatian';
   chip.style.background = pob.musterSafe ? 'var(--green-bg)' : 'var(--red-bg)';
