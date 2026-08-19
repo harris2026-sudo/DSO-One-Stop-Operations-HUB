@@ -56,6 +56,51 @@
   @keyframes shimmer{0%{background-position:-300px 0;}100%{background-position:300px 0;}}
   .view.active{animation:fadeSlideIn .32s ease;}
 
+  /* ===== Global micro-interaction & entrance layer (v19) — berlaku di semua menu ===== */
+  .view.active .summary .card,
+  .view.active .ap-kpis > .ap-kpi,
+  .view.active .ap-chart-card,
+  .view.active .pjp-sim-card,
+  .view.active .fu-card,
+  .view.active .category,
+  .view.active .roster-daycard,
+  .view.active .pob-kpi-hero,
+  .view.active .pob-kpi-card,
+  .view.active .pobr-mini-kpi,
+  .view.active .pobr-avatar-card{
+    animation:fadeSlideIn .3s ease both;
+  }
+  .view.active .summary .card:nth-child(1),.view.active .ap-kpis>.ap-kpi:nth-child(1),.view.active .fu-card:nth-child(1),.view.active .category:nth-child(1),.view.active .roster-daycard:nth-child(1),.view.active .pob-kpi-card:nth-child(1),.view.active .pobr-mini-kpi:nth-child(1),.view.active .pobr-avatar-card:nth-child(1){animation-delay:.02s;}
+  .view.active .summary .card:nth-child(2),.view.active .ap-kpis>.ap-kpi:nth-child(2),.view.active .fu-card:nth-child(2),.view.active .category:nth-child(2),.view.active .roster-daycard:nth-child(2),.view.active .pob-kpi-card:nth-child(2),.view.active .pobr-mini-kpi:nth-child(2),.view.active .pobr-avatar-card:nth-child(2){animation-delay:.06s;}
+  .view.active .summary .card:nth-child(3),.view.active .ap-kpis>.ap-kpi:nth-child(3),.view.active .fu-card:nth-child(3),.view.active .category:nth-child(3),.view.active .roster-daycard:nth-child(3),.view.active .pobr-mini-kpi:nth-child(3),.view.active .pobr-avatar-card:nth-child(3){animation-delay:.1s;}
+  .view.active .summary .card:nth-child(4),.view.active .ap-kpis>.ap-kpi:nth-child(4),.view.active .fu-card:nth-child(4),.view.active .category:nth-child(4),.view.active .roster-daycard:nth-child(4),.view.active .pobr-mini-kpi:nth-child(4),.view.active .pobr-avatar-card:nth-child(4){animation-delay:.14s;}
+  .view.active .summary .card:nth-child(5),.view.active .ap-kpis>.ap-kpi:nth-child(5),.view.active .fu-card:nth-child(5),.view.active .roster-daycard:nth-child(5),.view.active .pobr-avatar-card:nth-child(5){animation-delay:.18s;}
+  .view.active .summary .card:nth-child(6),.view.active .ap-kpis>.ap-kpi:nth-child(6),.view.active .fu-card:nth-child(6),.view.active .pobr-avatar-card:nth-child(6){animation-delay:.22s;}
+  .view.active .summary .card:nth-child(n+7),.view.active .fu-card:nth-child(n+7),.view.active .pobr-avatar-card:nth-child(n+7){animation-delay:.26s;}
+
+  .view.active table tbody tr{animation:fadeSlideIn .28s ease both;}
+  .view.active table tbody tr:nth-child(1){animation-delay:.06s;}
+  .view.active table tbody tr:nth-child(2){animation-delay:.09s;}
+  .view.active table tbody tr:nth-child(3){animation-delay:.12s;}
+  .view.active table tbody tr:nth-child(4){animation-delay:.15s;}
+  .view.active table tbody tr:nth-child(5){animation-delay:.18s;}
+  .view.active table tbody tr:nth-child(n+6){animation-delay:.2s;}
+
+  /* Hover-lift standar untuk card yang belum punya efek lift */
+  .ap-chart-card{transition:transform .18s ease,box-shadow .18s ease,border-color .15s ease;}
+  .ap-chart-card:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(15,27,44,.08);border-color:var(--accent);}
+  .pjp-sim-card{transition:transform .18s ease,box-shadow .18s ease,border-color .15s ease;}
+  .pjp-sim-card:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(15,27,44,.08);border-color:var(--accent);}
+
+  /* Hover baris tabel untuk tabel yang belum ada highlight */
+  table.pjp-summary-table tbody tr:hover td,
+  table.pjp-detail-table tbody tr:hover td,
+  table.pobr-table tbody tr:hover td:not(.rowlabel){background:var(--steel-light);transition:background .15s ease;}
+
+  /* Status chip berdenyut halus (mengikuti warna currentColor, tanpa ubah markup/JS) */
+  @keyframes statusChipPulse{0%,100%{opacity:1;}50%{opacity:.65;}}
+  #pobMusterChip{animation:statusChipPulse 2.2s ease-in-out infinite;transition:background .15s ease,color .15s ease;}
+
   /* ---- Sidebar ---- */
   .sidebar{
     width:var(--sidebar-w);flex-shrink:0;min-height:100vh;position:sticky;top:0;
@@ -146,8 +191,8 @@
 
   .summary{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-bottom:22px;}
   .summary .card{background:var(--surface);border-radius:12px;padding:16px 18px;text-align:left;box-shadow:none;
-    transition:border-color .15s ease;border:1px solid var(--border);}
-  .summary .card:hover{border-color:var(--accent);}
+    transition:border-color .15s ease,transform .18s ease,box-shadow .18s ease;border:1px solid var(--border);}
+  .summary .card:hover{border-color:var(--accent);transform:translateY(-3px);box-shadow:0 8px 18px rgba(15,27,44,.08);}
   .summary .card .num{font-size:26px;font-weight:500;font-family:var(--font-mono);color:var(--text);}
   .summary .card .lab{font-size:12px;color:var(--text-secondary);margin-top:8px;text-transform:none;letter-spacing:0;}
   .summary .card.clickable{cursor:pointer;transition:border-color .12s ease;border:1px solid var(--border);}
@@ -208,8 +253,8 @@
   .progress-bar{height:10px;background:var(--zebra);border-radius:6px;overflow:hidden;}
   .progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--navy));border-radius:6px;transition:width .7s cubic-bezier(.22,.9,.32,1);}
 
-  .category{background:var(--surface);border-radius:12px;margin-bottom:12px;overflow:hidden;box-shadow:none;border:1px solid var(--border);}
-  .category:hover{border-color:var(--accent);}
+  .category{background:var(--surface);border-radius:12px;margin-bottom:12px;overflow:hidden;box-shadow:none;border:1px solid var(--border);transition:transform .15s ease,border-color .15s ease,box-shadow .15s ease;}
+  .category:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 6px 14px rgba(15,27,44,.06);}
   .category-head{background:var(--accent);color:#fff;padding:10px 14px;font-size:13.5px;font-weight:600;font-family:var(--font-display);display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none;transition:filter .15s ease;}
   .category-head:hover{filter:brightness(1.08);}
   .category-head .chev{transition:transform .2s;font-size:11px;}
@@ -432,8 +477,8 @@
   .pob-kpi-hero .pob-kpi-label{font-size:11px;color:#B8C4CC;font-weight:600;text-transform:uppercase;letter-spacing:.4px;}
   .pob-kpi-hero .pob-kpi-num{font-size:30px;font-weight:600;font-family:var(--font-mono);margin-top:6px;}
   .pob-kpi-hero .pob-kpi-sub{font-size:11px;color:#8FE0C4;margin-top:4px;font-weight:600;}
-  .pob-kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;transition:border-color .12s ease;}
-  .pob-kpi-card:hover{border-color:var(--accent);}
+  .pob-kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;transition:border-color .12s ease,transform .18s ease,box-shadow .18s ease;}
+  .pob-kpi-card:hover{border-color:var(--accent);transform:translateY(-3px);box-shadow:0 8px 18px rgba(15,27,44,.08);}
   .pob-kpi-card .pob-kpi-top{display:flex;align-items:center;justify-content:space-between;}
   .pob-kpi-card .pob-kpi-top i{font-size:18px;}
   .pob-kpi-pct{font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;}
@@ -441,7 +486,7 @@
   .pob-kpi-card .pob-kpi-num:focus{color:var(--accent);}
   .pob-kpi-card .pob-kpi-lab{font-size:11.5px;color:var(--text-secondary);margin-top:3px;}
   .pob-comp-bar{height:8px;border-radius:999px;overflow:hidden;display:flex;margin-bottom:14px;background:var(--zebra);}
-  .pob-comp-bar .seg{transition:width .2s ease;}
+  .pob-comp-bar .seg{transition:width .7s cubic-bezier(.22,.9,.32,1);}
   /* ---- POB: Status Kehadiran Tim Digitech (dari Rooster_BIB.xlsx) ---- */
   .pobr-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px;margin-top:16px;}
   .pobr-card h3{font-family:var(--font-display);color:var(--navy);font-size:14.5px;margin:0 0 3px;display:flex;align-items:center;gap:8px;}
@@ -457,7 +502,8 @@
   .pobr-legend-chip{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;padding:5px 12px;border-radius:999px;}
   .pobr-legend-chip .dot{width:8px;height:8px;border-radius:50%;}
   .pobr-mini-kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px;}
-  .pobr-mini-kpi{border-radius:10px;padding:12px 14px;text-align:center;}
+  .pobr-mini-kpi{border-radius:10px;padding:12px 14px;text-align:center;transition:transform .15s ease;}
+  .pobr-mini-kpi:hover{transform:translateY(-2px);}
   .pobr-mini-kpi .n{font-family:var(--font-display);font-size:22px;font-weight:700;}
   .pobr-mini-kpi .l{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;margin-top:2px;}
   .pobr-avatar-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:20px;}
