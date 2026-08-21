@@ -6,8 +6,12 @@
 <title>DSO One Stop Ops HUB</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- TAMBAHAN KEAMANAN: versi dikunci (bukan @latest lagi) supaya isi file tidak
+     bisa berubah diam-diam kapan saja. Untuk proteksi lebih kuat lagi (SRI hash),
+     lihat catatan yang diberikan terpisah -- hash TIDAK ditambahkan otomatis di
+     sini karena kalau salah, akan memblokir SEMUA ikon/chart di seluruh HUB. -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.46.0/dist/tabler-icons.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.min.js"></script>
 <style>
   :root{
     --bg:#F4F6F4;
@@ -877,6 +881,91 @@
 </style>
 </head>
 <body>
+<!-- ================= GERBANG PIN (TAMBAHAN KEAMANAN) =================
+     Ini penghalang RINGAN, bukan proteksi setara login sungguhan -- HUB ini
+     file HTML statis, jadi PIN-nya tetap ada di source code kalau ada yang
+     sengaja buka "View Page Source". Tujuannya menahan orang/link yang
+     ter-share tanpa sengaja (screenshot, grup chat, dsb), bukan penyerang
+     yang serius. Data operasional yang sesungguhnya tetap dilindungi di sisi
+     backend (Worker wajib API key, lihat DSO_API_KEY di atas). -->
+<div id="pinGateOverlay" style="position:fixed;inset:0;z-index:9999;background:#0F1B2C;display:flex;align-items:center;justify-content:center;">
+  <div style="background:#16253A;border-radius:16px;padding:32px 28px;width:280px;text-align:center;">
+    <div style="width:48px;height:48px;border-radius:12px;background:#2E6690;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+      <i class="ti ti-lock" style="font-size:22px;color:#fff;"></i>
+    </div>
+    <div style="color:#fff;font-size:15px;font-weight:500;margin-bottom:2px;">DSO One-Stop Ops HUB</div>
+    <div style="color:#8B98A6;font-size:12px;margin-bottom:20px;">Masukkan PIN untuk lanjut</div>
+    <div style="display:flex;justify-content:center;gap:10px;margin-bottom:20px;" id="pinDots">
+      <div class="pingate-dot"></div><div class="pingate-dot"></div><div class="pingate-dot"></div><div class="pingate-dot"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+      <button type="button" class="pingate-btn" data-k="1">1</button><button type="button" class="pingate-btn" data-k="2">2</button><button type="button" class="pingate-btn" data-k="3">3</button>
+      <button type="button" class="pingate-btn" data-k="4">4</button><button type="button" class="pingate-btn" data-k="5">5</button><button type="button" class="pingate-btn" data-k="6">6</button>
+      <button type="button" class="pingate-btn" data-k="7">7</button><button type="button" class="pingate-btn" data-k="8">8</button><button type="button" class="pingate-btn" data-k="9">9</button>
+      <div></div><button type="button" class="pingate-btn" data-k="0">0</button><button type="button" class="pingate-btn" id="pinGateDel" aria-label="Hapus"><i class="ti ti-backspace"></i></button>
+    </div>
+    <div id="pinGateError" style="color:#F09595;font-size:11px;margin-top:14px;height:14px;"></div>
+  </div>
+</div>
+<style>
+.pingate-dot{width:11px;height:11px;border-radius:50%;border:1.5px solid #4A5A6B;transition:background .15s,border-color .15s;}
+.pingate-dot.filled{background:#2E6690;border-color:#2E6690;}
+.pingate-btn{background:rgba(255,255,255,.06);border:none;color:#fff;font-size:16px;padding:12px 0;border-radius:9px;cursor:pointer;transition:background .12s;}
+.pingate-btn:hover{background:rgba(255,255,255,.14);}
+#pinGateDel{display:flex;align-items:center;justify-content:center;font-size:15px;}
+.pingate-shake{animation:pingateShake .35s;}
+@keyframes pingateShake{0%,100%{transform:translateX(0);}25%{transform:translateX(-6px);}75%{transform:translateX(6px);}}
+</style>
+<script>
+(function(){
+  var CORRECT_PIN = '3412';
+  var entered = '';
+  var overlay = document.getElementById('pinGateOverlay');
+  var dotsWrap = document.getElementById('pinDots');
+  var errEl = document.getElementById('pinGateError');
+  var box = dotsWrap.parentElement;
+
+  // Sudah unlock sebelumnya di tab/sesi browser ini? Langsung lewati gerbang.
+  if (sessionStorage.getItem('dso:pin-unlocked') === '1') {
+    overlay.style.display = 'none';
+  }
+
+  function renderDots(){
+    document.querySelectorAll('.pingate-dot').forEach(function(d, i){
+      d.classList.toggle('filled', i < entered.length);
+    });
+  }
+  function checkPin(){
+    if (entered === CORRECT_PIN) {
+      sessionStorage.setItem('dso:pin-unlocked', '1');
+      overlay.style.display = 'none';
+    } else {
+      errEl.textContent = 'PIN salah, coba lagi';
+      box.classList.add('pingate-shake');
+      setTimeout(function(){
+        box.classList.remove('pingate-shake');
+        entered = '';
+        renderDots();
+        errEl.textContent = '';
+      }, 500);
+    }
+  }
+  document.querySelectorAll('.pingate-btn[data-k]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      if (entered.length >= 4) return;
+      entered += btn.dataset.k;
+      renderDots();
+      if (entered.length === 4) setTimeout(checkPin, 150);
+    });
+  });
+  document.getElementById('pinGateDel').addEventListener('click', function(){
+    entered = entered.slice(0, -1);
+    renderDots();
+    errEl.textContent = '';
+  });
+})();
+</script>
+
 <div id="toastWrap"></div>
 <div id="orderformAlertWrap"></div>
 <div class="app">
@@ -2044,6 +2133,19 @@ const APPS_SCRIPT_URL = "https://dcva-backend.meharrisborneo.workers.dev"; // <-
    Cloudflare dashboard (Worker "dcva-backend" > Settings > Variables and
    Secrets). Kalau Harris ganti key di Cloudflare, ganti juga nilainya di sini. */
 const DSO_API_KEY = "jNiEM1vRHpdTBnimKIX7b7FBDHiSCcQhl5nhJ4KXq0k";
+
+/* TAMBAHAN KEAMANAN (global, dipakai semua modul): escape teks bebas dari
+   pengguna sebelum dimasukkan ke innerHTML, supaya karakter HTML seperti
+   < > " tidak ditafsirkan sebagai tag/atribut oleh browser (mencegah XSS).
+   Dipakai untuk field yang genuinely diketik bebas oleh pengguna: nama
+   personnel, deskripsi/catatan follow-up, serial number alat, nama
+   perusahaan PJP, dsb -- BUKAN untuk nilai enum/kode/angka internal yang
+   sudah pasti aman. */
+function escapeHtml(str){
+  return String(str == null ? '' : str)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
 
 /* ============================================================
    KONFIGURASI SINKRON ORDER FORM (pengajuan mitra -> Follow Up)
@@ -4551,7 +4653,7 @@ function openStockModal(assets, idx){
   }else{
     serialEl.innerHTML = '<table style="width:100%;border-collapse:collapse;font-size:11.5px;">' +
       '<thead><tr style="text-align:left;color:#667;font-size:10.5px;font-weight:600;"><th style="padding:4px 2px;">Nama</th><th>Merk/Model</th><th>SN</th><th>Kondisi</th></tr></thead><tbody>' +
-      item.serial.map(s => `<tr><td style="padding:4px 2px;">${s.nama}</td><td>${s.merk}</td><td>${s.sn}</td><td>${s.kondisi}</td></tr>`).join('') +
+      item.serial.map(s => `<tr><td style="padding:4px 2px;">${escapeHtml(s.nama)}</td><td>${escapeHtml(s.merk)}</td><td>${escapeHtml(s.sn)}</td><td>${escapeHtml(s.kondisi)}</td></tr>`).join('') +
       '</tbody></table>';
   }
   document.querySelectorAll('.stock-subtab').forEach(b => {
@@ -4955,10 +5057,10 @@ function pobrRenderAvatars(filterQ){
     const v = p.statuses[idx];
     const st = POBR_STATUS_MAP[v] || POBR_STATUS_MAP[0];
     const resolvedPhoto = pobrResolvePhoto(p.name);
-    const avatarInner = resolvedPhoto ? `<img src="${resolvedPhoto}" alt="${p.name}">` : pobrInitials(p.name);
+    const avatarInner = resolvedPhoto ? `<img src="${resolvedPhoto}" alt="${escapeHtml(p.name)}">` : pobrInitials(p.name);
     return `<div class="pobr-avatar-card">
       <div class="pobr-avatar-circle" style="--ring:${st.fg};">${avatarInner}</div>
-      <div class="pobr-avatar-name">${p.name}</div>
+      <div class="pobr-avatar-name">${escapeHtml(p.name)}</div>
       <span class="pobr-avatar-status" style="background:${st.bg};color:${st.fg};">${st.label}</span>
     </div>`;
   }).join('');
@@ -5001,7 +5103,7 @@ function pobrRenderTable(filterQ){
 
   let tbody = '<tbody>';
   people.forEach(p => {
-    tbody += `<tr><td class="rowlabel">${p.name}</td>`;
+    tbody += `<tr><td class="rowlabel">${escapeHtml(p.name)}</td>`;
     dates.forEach((d,i) => {
       const realIdx = start + i;
       const v = p.statuses[realIdx];
@@ -5668,7 +5770,7 @@ function openRekapStatusModal(status){
       : items.map(it => `<div class="rekap-status-item" data-date="${it.date}" data-shift="${it.shiftSlug}">
           <div class="rsi-date">${dayLabel(it.date)} · ${it.date} · ${it.shiftLabel}</div>
           <div class="rsi-task">${it.task}</div>
-          ${it.note ? `<div class="rsi-note">📝 ${it.note}</div>` : ''}
+          ${it.note ? `<div class="rsi-note">📝 ${escapeHtml(it.note)}</div>` : ''}
         </div>`).join('');
   }
 
@@ -5891,7 +5993,7 @@ function renderFollowListBody(){
   el.innerHTML = items.map(it => {
     const isManual = it.source === 'manual';
     const descHtml = isManual
-      ? `<span class="fi-date">${formatDateID(it.date)} </span>${it.desc}`
+      ? `<span class="fi-date">${formatDateID(it.date)} </span>${escapeHtml(it.desc)}`
       : `<span class="fi-date">${formatDateID(it.date)} </span>${taskTextMap[it.taskId] || it.taskId}`;
     const metaHtml = isManual
       ? `<span class="fi-status fu">Follow Up (manual)</span>${it.vendor ? ' · ' + it.vendor : ''}${it.pic ? ' · PIC: ' + it.pic : ''}${it.due ? ' · Due: ' + it.due : ''}`
@@ -5905,7 +6007,7 @@ function renderFollowListBody(){
         </div>
         <span class="fu-badge ${it.trackStatus}">${it.trackStatus}</span>
       </div>
-      ${it.note ? `<div class="fu-note">${it.note}</div>` : ''}
+      ${it.note ? `<div class="fu-note">${escapeHtml(it.note)}</div>` : ''}
       <div class="fu-actions">
         <select data-key="${it.key}" data-source="${it.source}" class="rekap-fu-status-select">
           ${FOLLOWUP_STATUS.map(s => `<option value="${s}" ${s===it.trackStatus?'selected':''}>${s}</option>`).join('')}
@@ -6802,12 +6904,12 @@ function renderFuList(){
       <div class="fu-card status-${it.status}" data-id="${it.id}" data-kind="manual">
         <div class="fu-top">
           <div>
-            <div class="fu-desc">${it.desc}${it.source === 'orderform' ? '<span class="fu-src-tag">📥 Order Form</span>' : ''}</div>
+            <div class="fu-desc">${escapeHtml(it.desc)}${it.source === 'orderform' ? '<span class="fu-src-tag">📥 Order Form</span>' : ''}</div>
             <div class="fu-meta">${formatDateID(it.date)}${it.vendor ? ' · ' + it.vendor : ''}${it.pic ? ' · PIC: ' + it.pic : ''}${it.due ? ' · Due: ' + it.due : ''}</div>
           </div>
           <span class="fu-badge ${it.status}">${it.status}</span>
         </div>
-        ${it.note ? `<div class="fu-note">${it.note}</div>` : ''}
+        ${it.note ? `<div class="fu-note">${escapeHtml(it.note)}</div>` : ''}
         <div class="fu-actions">
           <select data-id="${it.id}" data-kind="manual" class="fu-status-select">
             ${FOLLOWUP_STATUS.map(s => `<option value="${s}" ${s===it.status?'selected':''}>${s}</option>`).join('')}
@@ -6829,7 +6931,7 @@ function renderFuList(){
           </div>
           <span class="fu-badge ${it.trackStatus}">${it.trackStatus}</span>
         </div>
-        ${it.note ? `<div class="fu-note">${it.note}</div>` : ''}
+        ${it.note ? `<div class="fu-note">${escapeHtml(it.note)}</div>` : ''}
         <div class="fu-actions">
           <select data-key="${it.key}" data-kind="checklist" class="fu-status-select">
             ${FOLLOWUP_STATUS.map(s => `<option value="${s}" ${s===it.trackStatus?'selected':''}>${s}</option>`).join('')}
@@ -6985,12 +7087,12 @@ function renderTlList(){
     <div class="fu-card status-${eff}" data-id="${it.id}">
       <div class="fu-top">
         <div>
-          <div class="fu-desc">${it.desc}</div>
+          <div class="fu-desc">${escapeHtml(it.desc)}</div>
           <div class="fu-meta">${formatDateID(it.date)}${it.pic ? ' · PIC: ' + it.pic : ''}${it.vendor ? ' · Vendor: ' + it.vendor : ''}${it.deadline ? ' · Deadline: ' + formatDateID(it.deadline) : ''}</div>
         </div>
         <span class="fu-badge ${eff}">${TASKLIST_STATUS_LABEL[eff]}</span>
       </div>
-      ${it.note ? `<div class="fu-note">${it.note}</div>` : ''}
+      ${it.note ? `<div class="fu-note">${escapeHtml(it.note)}</div>` : ''}
       <div class="fu-actions">
         <select data-id="${it.id}" class="tl-status-select">
           ${TASKLIST_STATUS.map(s => `<option value="${s}" ${s===it.status?'selected':''}>${TASKLIST_STATUS_LABEL[s]}</option>`).join('')}
@@ -7148,12 +7250,12 @@ function renderOpList(){
     <div class="fu-card status-${it.status}" data-id="${it.id}">
       <div class="fu-top">
         <div>
-          <div class="fu-desc">${it.desc}<span class="fu-age-tag">${opAgeDays(it)} hari</span></div>
+          <div class="fu-desc">${escapeHtml(it.desc)}<span class="fu-age-tag">${opAgeDays(it)} hari</span></div>
           <div class="fu-meta">${formatDateID(it.date)}${it.site ? ' · ' + it.site : ''}${it.vendor ? ' · Vendor: ' + it.vendor : ''}</div>
         </div>
         <span class="fu-badge ${it.status}">${OPENPOINT_STATUS_LABEL[it.status]}</span>
       </div>
-      ${it.note ? `<div class="fu-note">${it.note}</div>` : ''}
+      ${it.note ? `<div class="fu-note">${escapeHtml(it.note)}</div>` : ''}
       <div class="fu-actions">
         <select data-id="${it.id}" class="op-status-select">
           ${OPENPOINT_STATUS.map(s => `<option value="${s}" ${s===it.status?'selected':''}>${OPENPOINT_STATUS_LABEL[s]}</option>`).join('')}
@@ -7389,7 +7491,7 @@ function showOrderFormAlert(items){
   wrap.innerHTML = '';
   const el = document.createElement('div');
   el.className = 'orderform-alert';
-  const listHtml = items.slice(0, 5).map(it => `<div class="oa-item">📥 ${it.pic} · Mitra: ${it.vendor} · ${it.desc} · ${it.note}</div>`).join('')
+  const listHtml = items.slice(0, 5).map(it => `<div class="oa-item">📥 ${escapeHtml(it.pic)} · Mitra: ${escapeHtml(it.vendor)} · ${escapeHtml(it.desc)} · ${escapeHtml(it.note)}</div>`).join('')
     + (items.length > 5 ? `<div class="oa-item">+${items.length - 5} pengajuan lainnya…</div>` : '');
   el.innerHTML = `
     <div class="oa-head"><span>🔔 ${items.length} Pengajuan Baru Masuk</span><button class="oa-close" id="oaCloseBtn">✕</button></div>
@@ -8066,7 +8168,7 @@ function pjpRenderSummary(){
       : '<span class="ap-badge ap-b-grey">N/A</span>';
     return `<tr style="border-bottom:1px solid var(--border);${idx % 2 ? 'background:var(--zebra);' : ''}">
       <td style="padding:7px;text-align:center;color:var(--text-muted);font-weight:700;">${a.no}</td>
-      <td style="padding:7px;font-weight:700;color:var(--navy);">${a.name}</td>
+      <td style="padding:7px;font-weight:700;color:var(--navy);">${escapeHtml(a.name)}</td>
       <td style="padding:7px;text-align:center;">
         <button class="pjp-aktif-toggle" data-idx="${idx}" style="border:1px solid var(--border);border-radius:999px;width:38px;height:22px;position:relative;cursor:pointer;background:${isAktif ? '#2e7d32' : '#e0e0e0'};">
           <span style="position:absolute;top:2px;left:${isAktif ? '18px' : '2px'};width:16px;height:16px;border-radius:50%;background:#fff;transition:left .15s;"></span>
@@ -8257,7 +8359,7 @@ function pjpRenderSimulator(){
     pjpSimScores[a.no] = 100;
     const isAktif = a.aktif !== false;
     return `<div class="pjp-sim-slider" style="${isAktif ? '' : 'opacity:0.45;'}">
-      <div class="pjp-sim-slider-head"><span class="nm">${a.name}${isAktif ? '' : ' (Nonaktif)'}</span><span class="bobot">Bobot: ${(a.bobot * 100).toFixed(0)}%</span></div>
+      <div class="pjp-sim-slider-head"><span class="nm">${escapeHtml(a.name)}${isAktif ? '' : ' (Nonaktif)'}</span><span class="bobot">Bobot: ${(a.bobot * 100).toFixed(0)}%</span></div>
       <input type="range" min="0" max="100" value="${pjpSimScores[a.no]}" data-no="${a.no}" class="pjp-sim-range" ${isAktif ? '' : 'disabled'}>
       <div class="valrow"><span id="pjpSimVal${a.no}">${pjpSimScores[a.no].toFixed(0)}</span></div>
     </div>`;
