@@ -2032,6 +2032,19 @@ function animateCountsIn(container){
    ============================================================ */
 const APPS_SCRIPT_URL = "https://dcva-backend.meharrisborneo.workers.dev"; // <-- TEST: Cloudflare Worker (paralel, backend production tetap Apps Script)
 
+/* TAMBAHAN KEAMANAN: API key wajib disertakan di setiap request ke Worker
+   (lihat review keamanan -- sebelumnya endpoint ini terbuka untuk siapa saja
+   yang tahu URL-nya, termasuk listValues yang bisa dump SELURUH database).
+   CATATAN JUJUR: karena HUB ini file HTML statis (GitHub Pages, tanpa server
+   sendiri), key ini tetap akan terlihat kalau ada yang buka "View Page Source".
+   Ini BUKAN proteksi setara login sungguhan, tapi tetap menutup celah untuk
+   orang/bot yang cuma menemukan URL worker-nya tanpa pernah membuka HUB ini
+   sama sekali -- yang merupakan skenario risiko paling mungkin terjadi.
+   Key ini HARUS SAMA PERSIS dengan Secret "DSO_API_KEY" yang diisi di
+   Cloudflare dashboard (Worker "dcva-backend" > Settings > Variables and
+   Secrets). Kalau Harris ganti key di Cloudflare, ganti juga nilainya di sini. */
+const DSO_API_KEY = "jNiEM1vRHpdTBnimKIX7b7FBDHiSCcQhl5nhJ4KXq0k";
+
 /* ============================================================
    KONFIGURASI SINKRON ORDER FORM (pengajuan mitra -> Follow Up)
    Dashboard ini akan mengecek secara berkala apakah ada baris BARU
@@ -2129,7 +2142,8 @@ function logWaHistory(entry){
       + `&status=${encodeURIComponent(entry.status || '-')}`
       + `&keterangan=${encodeURIComponent(entry.detail || '')}`
       + `&_t=${Date.now()}`;
-    fetch(url, { cache: 'no-store' }).catch(() => { /* log gagal tidak boleh mengganggu app */ });
+    // TAMBAHAN KEAMANAN: sertakan API key (action=log sekarang wajib otentikasi juga).
+    fetch(url, { cache: 'no-store', headers: { 'X-Dso-Api-Key': DSO_API_KEY } }).catch(() => { /* log gagal tidak boleh mengganggu app */ });
   }catch(e){ /* abaikan, logging bersifat best-effort */ }
 }
 
@@ -2157,7 +2171,8 @@ async function sendWhatsAppNotif(items){
     }
     try{
       const url = `${APPS_SCRIPT_URL}?action=send_wa&phone=${encodeURIComponent(r.phone)}&message=${encodeURIComponent(message)}&_t=${Date.now()}`;
-      const res = await fetch(url, { cache: 'no-store' });
+      // TAMBAHAN KEAMANAN: sertakan API key (send_wa sekarang wajib otentikasi juga).
+      const res = await fetch(url, { cache: 'no-store', headers: { 'X-Dso-Api-Key': DSO_API_KEY } });
       const data = await res.json().catch(() => null);
       if(!data || !data.ok) console.warn(`Gagal kirim notif WA ke ${r.name} (via Fonnte/Apps Script):`, data);
       results.push({ name: r.name, ...(data || { ok: false }) });
@@ -2236,7 +2251,8 @@ async function _gsFetchWithRetry(url, maxRetries){
   let lastErr;
   for (let attempt = 0; attempt <= maxRetries; attempt++){
     try{
-      const res = await fetch(url, { cache: 'no-store' });
+      // TAMBAHAN KEAMANAN: sertakan API key di setiap request ke Worker.
+      const res = await fetch(url, { cache: 'no-store', headers: { 'X-Dso-Api-Key': DSO_API_KEY } });
       if (res.status === 404 && attempt < maxRetries){
         await _gsSleep(400 * (attempt + 1));
         continue; // kemungkinan besar cuma tabrakan concurrency sesaat, coba lagi
@@ -8377,6 +8393,22 @@ let sopActiveCat = null;
 const SOP_TYPE_ICON = { pptx:['ti-presentation','#D85A30'], pdf:['ti-file-type-pdf','#A32D2D'], doc:['ti-file-type-doc','#2E6690'], video:['ti-video','#993556'], other:['ti-file','#8C9A9E'] };
 const SOP_COLOR_MAP = { blue:['blue-bg','blue-fg'], purple:['purple-bg','purple-fg'], gold:['gold-bg','gold-fg'], green:['green-bg','green-fg'], red:['red-bg','red-fg'] };
 
+/* Escape teks dari input pengguna (nama dokumen, deskripsi kategori, owner) sebelum
+   dimasukkan ke innerHTML. Tanpa ini, karakter seperti < > " di judul dokumen bisa
+   merusak tampilan atau (kalau disengaja) menjalankan script di browser pengguna lain
+   yang membuka menu SOP -- lihat catatan review keamanan. */
+function sopEsc(str){
+  return String(str == null ? '' : str)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+/* Hanya izinkan link http/https untuk dibuka. Mencegah skema berbahaya seperti
+   javascript: dituliskan di field "Link Dokumen" lalu dieksekusi saat baris diklik. */
+function sopIsSafeUrl(url){
+  try{ const u = new URL(url, window.location.href); return u.protocol === 'http:' || u.protocol === 'https:'; }
+  catch(e){ return false; }
+}
+
 function sopDocIcon(type){
   const [icon,color] = SOP_TYPE_ICON[type] || SOP_TYPE_ICON.other;
   return `<i class="ti ${icon}" style="color:${color};"></i>`;
@@ -8455,8 +8487,8 @@ function sopRenderGrid(filterQuery){
         <div class="sop-card-icon" style="background:var(--${bg});"><i class="ti ${cat.icon}" style="color:var(--${fg});"></i></div>
         <span class="sop-card-count" style="background:var(--${bg});color:var(--${fg});">${docs.length} dok</span>
       </div>
-      <div class="sop-card-title">${cat.title}</div>
-      <div class="sop-card-desc">${docs.length ? cat.desc : 'Belum ada dokumen'}</div>`;
+      <div class="sop-card-title">${sopEsc(cat.title)}</div>
+      <div class="sop-card-desc">${docs.length ? sopEsc(cat.desc) : 'Belum ada dokumen'}</div>`;
     card.onclick = () => { sopActiveCat = key; sopRenderGrid(document.getElementById('sopSearchInput').value); sopRenderDocs(key); };
     grid.appendChild(card);
   });
@@ -8484,12 +8516,13 @@ function sopRenderDocs(key){
     row.innerHTML = `
       <span class="sop-doc-icon">${sopDocIcon(doc.type)}</span>
       <div style="flex:1;min-width:0;">
-        <div class="sop-doc-name">${doc.name}</div>
-        <div class="sop-doc-meta">${doc.owner || '-'}${doc.size ? ' · ' + doc.size : ''}</div>
+        <div class="sop-doc-name">${sopEsc(doc.name)}</div>
+        <div class="sop-doc-meta">${sopEsc(doc.owner || '-')}${doc.size ? ' · ' + sopEsc(doc.size) : ''}</div>
       </div>
       <i class="ti ti-external-link sop-doc-open"></i>`;
     row.onclick = () => {
-      if(doc.url) window.open(doc.url, '_blank', 'noopener');
+      if(doc.url && sopIsSafeUrl(doc.url)) window.open(doc.url, '_blank', 'noopener');
+      else if(doc.url){ alert('Link dokumen ini tidak valid (hanya link http/https yang diizinkan). Silakan perbaiki linknya.'); sopOpenDocModal(key); }
       else { sopOpenDocModal(key); document.getElementById('sopDocName').value = ''; }
     };
     wrap.appendChild(row);
@@ -8556,6 +8589,7 @@ document.getElementById('sopDocSaveBtn').onclick = async () => {
   const url = document.getElementById('sopDocUrl').value.trim();
   if(!name){ alert('Judul dokumen wajib diisi.'); return; }
   if(!url){ alert('Link dokumen wajib diisi (SharePoint/Google Drive/URL lain).'); return; }
+  if(!sopIsSafeUrl(url)){ alert('Link dokumen tidak valid. Hanya link yang diawali http:// atau https:// yang diizinkan.'); return; }
   const key = document.getElementById('sopDocCategory').value;
   if(!sopDocsCache[key]) sopDocsCache[key] = await sopLoadCatDocs(key);
   sopDocsCache[key].push({
