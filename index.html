@@ -63,6 +63,7 @@
   .view.active .pjp-sim-card,
   .view.active .fu-card,
   .view.active .category,
+  .view.active .sop-card,
   .view.active .roster-daycard,
   .view.active .pob-kpi-hero,
   .view.active .pob-kpi-card,
@@ -252,6 +253,42 @@
   .progress-wrap .top{display:flex;justify-content:space-between;font-size:12px;font-weight:600;color:var(--navy);margin-bottom:6px;}
   .progress-bar{height:10px;background:var(--zebra);border-radius:6px;overflow:hidden;}
   .progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--navy));border-radius:6px;transition:width .7s cubic-bezier(.22,.9,.32,1);}
+
+  /* ===== SOP (Standard Operational Procedure) ===== */
+  .sop-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px;}
+  .sop-title{font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--navy);}
+  .sop-sub{font-size:12px;color:var(--text-muted);margin-top:2px;}
+  .sop-toolbar-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .sop-search{display:flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 12px;min-width:200px;}
+  .sop-search i{font-size:14px;color:var(--text-muted);}
+  .sop-search input{border:none;outline:none;font-size:12.5px;width:100%;background:transparent;color:var(--text);font-family:var(--font-body);}
+  .sop-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px;margin-bottom:16px;}
+  .sop-card{cursor:pointer;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:13px 14px;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;}
+  .sop-card:hover{transform:translateY(-3px);box-shadow:0 8px 18px rgba(15,27,44,.09);border-color:var(--accent);}
+  .sop-card.active{border-color:var(--accent);box-shadow:0 0 0 1.5px var(--accent) inset;}
+  .sop-card-top{display:flex;justify-content:space-between;align-items:flex-start;}
+  .sop-card-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
+  .sop-card-count{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;}
+  .sop-card-title{font-size:13px;font-weight:600;color:var(--navy);margin-top:9px;font-family:var(--font-display);}
+  .sop-card-desc{font-size:11px;color:var(--text-muted);margin-top:2px;}
+  .sop-card-add{cursor:pointer;border:1.5px dashed var(--border);border-radius:12px;padding:13px 14px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--text-muted);gap:4px;transition:border-color .15s ease,color .15s ease;min-height:78px;}
+  .sop-card-add:hover{border-color:var(--accent);color:var(--accent);}
+  .sop-card-add i{font-size:18px;}
+  .sop-card-add span{font-size:11px;font-weight:600;}
+  .sop-detail{background:var(--surface-alt);border:1px solid var(--border);border-radius:12px;padding:14px 16px;}
+  .sop-detail-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:4px;}
+  .sop-detail-head #sopDetailTitle{font-size:13px;font-weight:600;color:var(--navy);font-family:var(--font-display);}
+  .sop-detail-hint{font-size:10.5px;color:var(--text-muted);}
+  .sop-docs{display:flex;flex-direction:column;}
+  .sop-doc-row{display:flex;align-items:center;gap:10px;padding:10px 8px;border-radius:8px;cursor:pointer;transition:background .12s ease;opacity:0;transform:translateY(4px);animation:sopDocIn .28s ease forwards;}
+  .sop-doc-row:hover{background:var(--hilite);}
+  .sop-doc-row + .sop-doc-row{border-top:1px solid var(--border);}
+  .sop-doc-icon{font-size:17px;flex-shrink:0;width:20px;text-align:center;}
+  .sop-doc-name{font-size:12px;font-weight:600;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .sop-doc-meta{font-size:10.5px;color:var(--text-muted);margin-top:1px;}
+  .sop-doc-open{font-size:15px;color:var(--accent);flex-shrink:0;}
+  .sop-doc-empty{font-size:11.5px;color:var(--text-muted);padding:10px 4px;}
+  @keyframes sopDocIn{to{opacity:1;transform:translateY(0);}}
 
   .category{background:var(--surface);border-radius:12px;margin-bottom:12px;overflow:hidden;box-shadow:none;border:1px solid var(--border);transition:transform .15s ease,border-color .15s ease,box-shadow .15s ease;}
   .category:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 6px 14px rgba(15,27,44,.06);}
@@ -858,6 +895,7 @@
       <div class="tab" data-view="pob" data-label="Personnel On Board"><i class="ti ti-user-check"></i><span>POB</span></div>
       <div class="tab" data-view="harian" data-label="Inspection &amp; Control" id="sidebarGroupChecklist"><i class="ti ti-checklist"></i><span>Inspection &amp; Control</span><span class="tab-badge" id="fuTabBadgeGroup" style="display:none;"></span></div>
       <div class="tab" data-view="roster" data-label="Roster"><i class="ti ti-users"></i><span>Roster</span></div>
+      <div class="tab" data-view="sop" data-label="Standard Operational Procedure"><i class="ti ti-book-2"></i><span>SOP</span></div>
       <div class="tab" data-view="tasklist" data-label="Task List"><i class="ti ti-clipboard-list"></i><span>Task List</span></div>
       <div class="tab" data-view="openpoint" data-label="Open Point"><i class="ti ti-alert-triangle"></i><span>Open Point</span></div>
       <div class="tab" data-view="pjp" data-label="Penilaian Jasa Pertambangan"><i class="ti ti-building-factory-2"></i><span>Penilaian Jasa Pertambangan</span></div>
@@ -1613,6 +1651,85 @@
       </div>
     </div>
     <div id="rosterContent"></div>
+  </div>
+
+  <!-- ================= VIEW: SOP (STANDARD OPERATIONAL PROCEDURE) ================= -->
+  <div class="view" id="view-sop">
+    <div class="sop-toolbar">
+      <div class="sop-toolbar-info">
+        <div class="sop-title">Standard Operational Procedure</div>
+        <div class="sop-sub" id="sopSummarySub">-- kategori · -- dokumen</div>
+      </div>
+      <div class="sop-toolbar-actions">
+        <div class="sop-search">
+          <i class="ti ti-search"></i>
+          <input type="text" id="sopSearchInput" placeholder="Cari dokumen SOP...">
+        </div>
+        <button type="button" class="btn btn-ghost" id="sopAddCategoryBtn"><i class="ti ti-folder-plus"></i> Kategori</button>
+        <button type="button" class="btn btn-primary" id="sopAddDocBtn"><i class="ti ti-file-plus"></i> Tambah Dokumen</button>
+      </div>
+    </div>
+
+    <div class="sop-grid" id="sopGrid"></div>
+
+    <div class="sop-detail" id="sopDetail">
+      <div class="sop-detail-head">
+        <span id="sopDetailTitle">Pilih kategori untuk lihat dokumen</span>
+        <span class="sop-detail-hint">Klik baris untuk buka dokumen</span>
+      </div>
+      <div class="sop-docs" id="sopDocs"></div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL: TAMBAH / EDIT KATEGORI SOP ================= -->
+  <div class="modal-overlay" id="sopCategoryModalOverlay">
+    <div class="modal-box" style="max-width:420px;">
+      <button type="button" class="modal-close-x" id="sopCategoryModalCloseBtn" title="Tutup">✕</button>
+      <h3>Tambah Kategori SOP</h3>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div><label>Nama Kategori</label><input type="text" id="sopCatName" style="width:100%;" placeholder="Contoh: Manajemen Lalu Lintas Tambang"></div>
+        <div><label>Deskripsi Singkat</label><input type="text" id="sopCatDesc" style="width:100%;" placeholder="Contoh: Prosedur pengaturan jalur & armada"></div>
+        <div><label>Warna Badge</label>
+          <select id="sopCatColor" style="width:100%;">
+            <option value="blue">Biru</option>
+            <option value="purple">Ungu</option>
+            <option value="gold">Kuning / Gold</option>
+            <option value="green">Hijau</option>
+            <option value="red">Merah</option>
+          </select>
+        </div>
+        <button type="button" class="btn btn-primary" id="sopCatSaveBtn" style="width:100%;justify-content:center;">Simpan Kategori</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL: TAMBAH DOKUMEN SOP ================= -->
+  <div class="modal-overlay" id="sopDocModalOverlay">
+    <div class="modal-box" style="max-width:460px;">
+      <button type="button" class="modal-close-x" id="sopDocModalCloseBtn" title="Tutup">✕</button>
+      <h3>Tambah Dokumen SOP</h3>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div><label>Kategori</label>
+          <select id="sopDocCategory" style="width:100%;"></select>
+        </div>
+        <div><label>Judul Dokumen</label><input type="text" id="sopDocName" style="width:100%;" placeholder="Contoh: SOP RED ZONE.pptx"></div>
+        <div style="display:flex;gap:10px;">
+          <div class="grow"><label>Tipe File</label>
+            <select id="sopDocType" style="width:100%;">
+              <option value="pptx">PowerPoint (.pptx)</option>
+              <option value="pdf">PDF (.pdf)</option>
+              <option value="doc">Word (.doc/.docx)</option>
+              <option value="video">Video (.mp4)</option>
+              <option value="other">Lainnya</option>
+            </select>
+          </div>
+          <div class="grow"><label>Ukuran File</label><input type="text" id="sopDocSize" style="width:100%;" placeholder="Contoh: 2.2 MB"></div>
+        </div>
+        <div><label>Link Dokumen (SharePoint / Google Drive / URL lain)</label><input type="text" id="sopDocUrl" style="width:100%;" placeholder="https://..."></div>
+        <div><label>Owner / Pengunggah</label><input type="text" id="sopDocOwner" style="width:100%;" placeholder="Contoh: Nico Fahryan Sandy"></div>
+        <button type="button" class="btn btn-primary" id="sopDocSaveBtn" style="width:100%;justify-content:center;">Simpan Dokumen</button>
+      </div>
+    </div>
   </div>
 
   <!-- ================= VIEW: TASK LIST ================= -->
@@ -3492,6 +3609,7 @@ document.querySelectorAll('.tab').forEach(tab => {
     if(tab.dataset.view === 'aebs') renderAebs();
     if(tab.dataset.view === 'followup'){ renderFollowUp().then(clearOrderFormUnread); }
     if(tab.dataset.view === 'roster') loadRoster();
+    if(tab.dataset.view === 'sop') renderSop();
     if(tab.dataset.view === 'tasklist') renderTaskList();
     if(tab.dataset.view === 'openpoint') renderOpenPoint();
     if(tab.dataset.view === 'pjp') renderPJP();
@@ -8196,6 +8314,262 @@ async function renderPJP(){
   pjpRenderHero();
   pjpSwitchSubtab(pjpSubtab);
 }
+
+/* ================= MODUL: SOP (STANDARD OPERATIONAL PROCEDURE) =================
+   Dokumen SOP (pptx/pdf/video) tidak di-host langsung di HUB (SharePoint tidak bisa
+   diakses lewat CORS dari static HTML — sama seperti kasus AEBS). Sebagai gantinya,
+   HUB hanya menyimpan METADATA + LINK eksternal (SharePoint/Google Drive/dsb) per
+   dokumen. Klik baris dokumen akan membuka link tsb di tab baru.
+
+   CATATAN PENTING SOAL STORAGE (v2 — diperbaiki):
+   dsoSave mengirim SELURUH isi data lewat parameter URL (GET ...&value=...), bukan
+   body request (lihat komentar di gsSet). Ini artinya ada batas panjang URL (~8KB
+   umum di banyak CDN/proxy termasuk Cloudflare). Karena SOP adalah dokumen referensi
+   yang TERUS BERTAMBAH selamanya (tidak pernah dihapus) dan tiap dokumen membawa
+   link eksternal yang panjang (link SharePoint bisa 150-300+ karakter), menyimpan
+   SEMUA kategori + SEMUA dokumen dalam SATU key (seperti versi pertama dulu) akan
+   mentok batas itu sekitar 15-20 dokumen dan gagal simpan diam-diam.
+   Solusinya: ikut pola yang SUDAH dipakai modul PJP di file ini (key kecil untuk
+   daftar + key terpisah per-item):
+     - dso:sop-v1:meta        -> hanya daftar & info kategori (ringan, jarang berubah)
+     - dso:sop-v1:cat:{key}   -> dokumen milik SATU kategori saja
+   Dengan ini, menambah 1 dokumen hanya mengirim ulang dokumen di kategori itu saja
+   (bukan seluruh modul SOP), dan tabrakan antar user (2 orang edit bersamaan) cuma
+   berdampak ke 1 kategori, bukan seluruh data SOP.
+   Data lama di key tunggal "dso:sop-v1" (versi pertama) di-MIGRASI OTOMATIS sekali
+   saat pertama kali dibuka setelah update ini (lihat sopLoadMeta -> migrasi). Key
+   lama sengaja TIDAK dihapus (dibiarkan sebagai backup implisit, tidak memakan biaya
+   berarti), hanya tidak dipakai lagi setelah migrasi selesai. */
+const DSO_SOP_META_KEY = 'dso:sop-v1:meta';
+const DSO_SOP_CAT_PREFIX = 'dso:sop-v1:cat:';
+const DSO_SOP_MIGRATED_FLAG = 'dso:sop-v1:migrated-flag';
+const DSO_SOP_LEGACY_KEY = 'dso:sop-v1'; // key lama (blob tunggal, v1) - dibaca sekali saja untuk migrasi
+
+function sopSeedMeta(){
+  return {
+    order: ['digitech','ops','k3','lh','mtc'],
+    categories: {
+      digitech: { title:'Sistem Digitech', desc:'Red Zone, Traffic Light, WIM, UCAN, USEA', color:'blue', icon:'ti-traffic-cone' },
+      ops: { title:'Operasional Tambang', desc:'Prosedur hauling & loading', color:'purple', icon:'ti-truck' },
+      k3: { title:'Keselamatan Kerja (K3)', desc:'APD, izin kerja, tanggap darurat', color:'gold', icon:'ti-shield-check' },
+      lh: { title:'Lingkungan Hidup', desc:'Pengelolaan air & limbah tambang', color:'green', icon:'ti-droplet' },
+      mtc: { title:'Perawatan Alat', desc:'Inspeksi & maintenance rutin', color:'red', icon:'ti-tool' }
+    }
+  };
+}
+function sopSeedDocsFor(key){
+  if(key === 'digitech') return [
+    { name:'SOP RED ZONE.pptx', type:'pptx', size:'2.2 MB', owner:'Nico Fahryan Sandy', url:'' },
+    { name:'SOP TRAFFIC LIGHT.pptx', type:'pptx', size:'2.5 MB', owner:'Nico Fahryan Sandy', url:'' },
+    { name:'SOP UCAN.pptx', type:'pptx', size:'2 MB', owner:'Nico Fahryan Sandy', url:'' },
+    { name:'SOP USEA.pptx', type:'pptx', size:'1.3 MB', owner:'Nico Fahryan Sandy', url:'' },
+    { name:'SOP WIM_v1.pptx', type:'pptx', size:'3.8 MB', owner:'Nico Fahryan Sandy', url:'' },
+    { name:'SOP WIM.pptx', type:'pptx', size:'3.6 MB', owner:'Nico Fahryan Sandy', url:'' },
+    { name:'WIM Calibration.mp4', type:'video', size:'32.3 MB', owner:'Nico Fahryan Sandy', url:'' }
+  ];
+  return [];
+}
+
+let sopMeta = null;          // { order:[...], categories:{ key:{title,desc,color,icon} } } -- TANPA docs
+let sopDocsCache = {};       // { key: [ {name,type,size,owner,url}, ... ] } -- dimuat per-kategori
+let sopActiveCat = null;
+
+const SOP_TYPE_ICON = { pptx:['ti-presentation','#D85A30'], pdf:['ti-file-type-pdf','#A32D2D'], doc:['ti-file-type-doc','#2E6690'], video:['ti-video','#993556'], other:['ti-file','#8C9A9E'] };
+const SOP_COLOR_MAP = { blue:['blue-bg','blue-fg'], purple:['purple-bg','purple-fg'], gold:['gold-bg','gold-fg'], green:['green-bg','green-fg'], red:['red-bg','red-fg'] };
+
+function sopDocIcon(type){
+  const [icon,color] = SOP_TYPE_ICON[type] || SOP_TYPE_ICON.other;
+  return `<i class="ti ${icon}" style="color:${color};"></i>`;
+}
+
+/* Migrasi satu kali dari key lama (blob tunggal) -> meta + key per-kategori.
+   Aman dipanggil berkali-kali (dilindungi flag), dan aman kalau key lama tidak ada
+   sama sekali (langsung pakai seed data baru). */
+async function sopLoadMeta(){
+  if(sopMeta) return sopMeta;
+  const migrated = await dsoLoad(DSO_SOP_MIGRATED_FLAG, false);
+  if(!migrated){
+    try{
+      const legacy = await store.get(DSO_SOP_LEGACY_KEY, true);
+      if(legacy && legacy.value){
+        const old = JSON.parse(legacy.value);
+        const meta = { order: old.order || [], categories: {} };
+        for(const k of meta.order){
+          const c = old.categories[k] || {};
+          meta.categories[k] = { title:c.title||k, desc:c.desc||'', color:c.color||'blue', icon:c.icon||'ti-folder' };
+          await dsoSave(DSO_SOP_CAT_PREFIX + k, c.docs || []);
+        }
+        await dsoSave(DSO_SOP_META_KEY, meta);
+        await dsoSave(DSO_SOP_MIGRATED_FLAG, true);
+        sopMeta = meta;
+        return sopMeta;
+      }
+    }catch(e){ /* key lama belum ada / gagal ambil -> lanjut pakai seed baru di bawah */ }
+    await dsoSave(DSO_SOP_MIGRATED_FLAG, true);
+  }
+  sopMeta = await dsoLoad(DSO_SOP_META_KEY, sopSeedMeta());
+  return sopMeta;
+}
+
+async function sopLoadCatDocs(key){
+  if(sopDocsCache[key]) return sopDocsCache[key];
+  const docs = await dsoLoad(DSO_SOP_CAT_PREFIX + key, sopSeedDocsFor(key));
+  sopDocsCache[key] = docs;
+  return docs;
+}
+async function sopSaveCatDocs(key){
+  const docs = sopDocsCache[key] || [];
+  const approxSize = encodeURIComponent(JSON.stringify(docs)).length;
+  // Ambang aman: batas praktis banyak CDN/proxy (termasuk Cloudflare) ada di sekitar
+  // 8.192 karakter untuk panjang URL. Kita beri peringatan jauh sebelum itu (6.000
+  // karakter) supaya Harris sempat pecah kategori ini jadi beberapa sub-kategori
+  // SEBELUM benar-benar gagal simpan, bukan sesudahnya.
+  if(approxSize > 6000){
+    const catName = sopMeta.categories[key]?.title || key;
+    alert('Peringatan: kategori "' + catName + '" sudah berisi ' + docs.length + ' dokumen (~' + approxSize + ' karakter data). Ini mendekati batas aman penyimpanan per-kategori. Disarankan buat kategori/sub-kategori baru untuk dokumen berikutnya agar tidak gagal simpan.');
+  }
+  await dsoSave(DSO_SOP_CAT_PREFIX + key, docs);
+}
+async function sopSaveMeta(){ await dsoSave(DSO_SOP_META_KEY, sopMeta); }
+
+function sopTotalDocs(){
+  return sopMeta.order.reduce((sum,key) => sum + (sopDocsCache[key]?.length || 0), 0);
+}
+
+function sopRenderGrid(filterQuery){
+  const grid = document.getElementById('sopGrid');
+  grid.innerHTML = '';
+  const q = (filterQuery||'').trim().toLowerCase();
+  sopMeta.order.forEach(key => {
+    const cat = sopMeta.categories[key];
+    const docs = sopDocsCache[key] || [];
+    if(!cat) return;
+    const matches = !q || cat.title.toLowerCase().includes(q) || docs.some(d => d.name.toLowerCase().includes(q));
+    if(!matches) return;
+    const [bg,fg] = SOP_COLOR_MAP[cat.color] || SOP_COLOR_MAP.blue;
+    const card = document.createElement('div');
+    card.className = 'sop-card' + (key === sopActiveCat ? ' active' : '');
+    card.dataset.cat = key;
+    card.innerHTML = `
+      <div class="sop-card-top">
+        <div class="sop-card-icon" style="background:var(--${bg});"><i class="ti ${cat.icon}" style="color:var(--${fg});"></i></div>
+        <span class="sop-card-count" style="background:var(--${bg});color:var(--${fg});">${docs.length} dok</span>
+      </div>
+      <div class="sop-card-title">${cat.title}</div>
+      <div class="sop-card-desc">${docs.length ? cat.desc : 'Belum ada dokumen'}</div>`;
+    card.onclick = () => { sopActiveCat = key; sopRenderGrid(document.getElementById('sopSearchInput').value); sopRenderDocs(key); };
+    grid.appendChild(card);
+  });
+  const addCard = document.createElement('div');
+  addCard.className = 'sop-card-add';
+  addCard.innerHTML = `<i class="ti ti-plus"></i><span>Tambah Kategori</span>`;
+  addCard.onclick = () => sopOpenCategoryModal();
+  grid.appendChild(addCard);
+}
+
+function sopRenderDocs(key){
+  const cat = sopMeta.categories[key];
+  const docs = sopDocsCache[key] || [];
+  document.getElementById('sopDetailTitle').textContent = 'Dokumen: ' + (cat ? cat.title : '-');
+  const wrap = document.getElementById('sopDocs');
+  wrap.innerHTML = '';
+  if(!cat || docs.length === 0){
+    wrap.innerHTML = '<div class="sop-doc-empty">Belum ada dokumen di kategori ini. Klik "Tambah Dokumen" untuk menambahkan.</div>';
+    return;
+  }
+  docs.forEach((doc, i) => {
+    const row = document.createElement('div');
+    row.className = 'sop-doc-row';
+    row.style.animationDelay = (i * 0.04) + 's';
+    row.innerHTML = `
+      <span class="sop-doc-icon">${sopDocIcon(doc.type)}</span>
+      <div style="flex:1;min-width:0;">
+        <div class="sop-doc-name">${doc.name}</div>
+        <div class="sop-doc-meta">${doc.owner || '-'}${doc.size ? ' · ' + doc.size : ''}</div>
+      </div>
+      <i class="ti ti-external-link sop-doc-open"></i>`;
+    row.onclick = () => {
+      if(doc.url) window.open(doc.url, '_blank', 'noopener');
+      else { sopOpenDocModal(key); document.getElementById('sopDocName').value = ''; }
+    };
+    wrap.appendChild(row);
+  });
+}
+
+async function renderSop(){
+  await sopLoadMeta();
+  // Muat dokumen SEMUA kategori secara paralel (aman untuk PEMBACAAN -- hanya
+  // "key" yang ikut di URL saat GET, isi datanya balik lewat response body,
+  // jadi tidak kena batas panjang URL seperti saat SIMPAN/SET).
+  await Promise.all(sopMeta.order.map(k => sopLoadCatDocs(k)));
+  if(!sopActiveCat || !sopMeta.categories[sopActiveCat]) sopActiveCat = sopMeta.order[0];
+  document.getElementById('sopSummarySub').textContent = sopMeta.order.length + ' kategori · ' + sopTotalDocs() + ' dokumen';
+  sopRenderGrid(document.getElementById('sopSearchInput').value);
+  sopRenderDocs(sopActiveCat);
+}
+
+document.getElementById('sopSearchInput').addEventListener('input', (e) => sopRenderGrid(e.target.value));
+
+/* ---- Modal: Tambah Kategori ---- */
+function sopOpenCategoryModal(){
+  document.getElementById('sopCatName').value = '';
+  document.getElementById('sopCatDesc').value = '';
+  document.getElementById('sopCatColor').value = 'blue';
+  document.getElementById('sopCategoryModalOverlay').style.display = 'flex';
+}
+document.getElementById('sopAddCategoryBtn').onclick = sopOpenCategoryModal;
+document.getElementById('sopCategoryModalCloseBtn').onclick = () => document.getElementById('sopCategoryModalOverlay').style.display = 'none';
+document.getElementById('sopCatSaveBtn').onclick = async () => {
+  const name = document.getElementById('sopCatName').value.trim();
+  if(!name){ alert('Nama kategori wajib diisi.'); return; }
+  const key = 'cat_' + Date.now();
+  sopMeta.categories[key] = { title:name, desc:document.getElementById('sopCatDesc').value.trim(), color:document.getElementById('sopCatColor').value, icon:'ti-folder' };
+  sopMeta.order.push(key);
+  sopDocsCache[key] = [];
+  await sopSaveMeta(); // hanya meta (kecil) yang disimpan, docs kosong belum perlu ditulis
+  document.getElementById('sopCategoryModalOverlay').style.display = 'none';
+  sopActiveCat = key;
+  renderSop();
+};
+
+/* ---- Modal: Tambah Dokumen ---- */
+function sopOpenDocModal(presetCat){
+  const sel = document.getElementById('sopDocCategory');
+  sel.innerHTML = '';
+  sopMeta.order.forEach(key => {
+    const opt = document.createElement('option');
+    opt.value = key; opt.textContent = sopMeta.categories[key].title;
+    sel.appendChild(opt);
+  });
+  sel.value = presetCat || sopActiveCat || sopMeta.order[0];
+  document.getElementById('sopDocName').value = '';
+  document.getElementById('sopDocType').value = 'pptx';
+  document.getElementById('sopDocSize').value = '';
+  document.getElementById('sopDocUrl').value = '';
+  document.getElementById('sopDocOwner').value = '';
+  document.getElementById('sopDocModalOverlay').style.display = 'flex';
+}
+document.getElementById('sopAddDocBtn').onclick = () => sopOpenDocModal();
+document.getElementById('sopDocModalCloseBtn').onclick = () => document.getElementById('sopDocModalOverlay').style.display = 'none';
+document.getElementById('sopDocSaveBtn').onclick = async () => {
+  const name = document.getElementById('sopDocName').value.trim();
+  const url = document.getElementById('sopDocUrl').value.trim();
+  if(!name){ alert('Judul dokumen wajib diisi.'); return; }
+  if(!url){ alert('Link dokumen wajib diisi (SharePoint/Google Drive/URL lain).'); return; }
+  const key = document.getElementById('sopDocCategory').value;
+  if(!sopDocsCache[key]) sopDocsCache[key] = await sopLoadCatDocs(key);
+  sopDocsCache[key].push({
+    name, type: document.getElementById('sopDocType').value,
+    size: document.getElementById('sopDocSize').value.trim(),
+    owner: document.getElementById('sopDocOwner').value.trim(),
+    url
+  });
+  await sopSaveCatDocs(key); // HANYA kategori ini yang dikirim ulang ke backend, bukan semua kategori
+  document.getElementById('sopDocModalOverlay').style.display = 'none';
+  sopActiveCat = key;
+  renderSop();
+};
+
 
 /* ================= WIMA DINONAKTIFKAN SEMENTARA (permintaan Harris) =================
    Mic tidak lagi auto-start dan widget-nya disembunyikan lewat CSS (.wima-mic-widget{display:none;}).
