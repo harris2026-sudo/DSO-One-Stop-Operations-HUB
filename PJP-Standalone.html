@@ -371,10 +371,13 @@
 <script>
 /* ================= KONFIGURASI — HARUS SAMA PERSIS DENGAN HUB UTAMA ================= */
 const APPS_SCRIPT_URL = "https://dcva-backend.meharrisborneo.workers.dev";
+// TAMBAHAN KEAMANAN: HARUS SAMA PERSIS dengan DSO_API_KEY di HUB utama & Secret
+// "DSO_API_KEY" di Cloudflare (Worker "dcva-backend" > Settings > Variables and Secrets).
+const DSO_API_KEY = "jNiEM1vRHpdTBnimKIX7b7FBDHiSCcQhl5nhJ4KXq0k";
 
 /* ================= BACKEND: sama persis dengan store.get/set di HUB utama ================= */
 async function gsGet(key){
-  const res = await fetch(`${APPS_SCRIPT_URL}?action=get&key=${encodeURIComponent(key)}&_t=${Date.now()}`, { cache: 'no-store' });
+  const res = await fetch(`${APPS_SCRIPT_URL}?action=get&key=${encodeURIComponent(key)}&_t=${Date.now()}`, { cache: 'no-store', headers: { 'X-Dso-Api-Key': DSO_API_KEY } });
   if(!res.ok) throw new Error('HTTP ' + res.status);
   const data = await res.json();
   if(data.error === 'not_found') throw new Error('not found');
@@ -383,7 +386,7 @@ async function gsGet(key){
 }
 async function gsSet(key, value){
   const url = `${APPS_SCRIPT_URL}?action=set&key=${encodeURIComponent(key)}&value=${encodeURIComponent(value)}&_t=${Date.now()}`;
-  const res = await fetch(url, { cache: 'no-store' });
+  const res = await fetch(url, { cache: 'no-store', headers: { 'X-Dso-Api-Key': DSO_API_KEY } });
   if(!res.ok) throw new Error('HTTP ' + res.status);
   const data = await res.json();
   if(data.error) throw new Error(data.message || data.error);
@@ -391,14 +394,14 @@ async function gsSet(key, value){
 }
 async function gsDelete(key){
   const url = `${APPS_SCRIPT_URL}?action=delete&key=${encodeURIComponent(key)}&_t=${Date.now()}`;
-  const res = await fetch(url, { cache: 'no-store' });
+  const res = await fetch(url, { cache: 'no-store', headers: { 'X-Dso-Api-Key': DSO_API_KEY } });
   if(!res.ok) throw new Error('HTTP ' + res.status);
   const data = await res.json();
   if(data.error) throw new Error(data.message || data.error);
   return { key: data.key, deleted: data.deleted };
 }
 async function gsList(prefix){
-  const res = await fetch(`${APPS_SCRIPT_URL}?action=list&prefix=${encodeURIComponent(prefix)}&_t=${Date.now()}`, { cache: 'no-store' });
+  const res = await fetch(`${APPS_SCRIPT_URL}?action=list&prefix=${encodeURIComponent(prefix)}&_t=${Date.now()}`, { cache: 'no-store', headers: { 'X-Dso-Api-Key': DSO_API_KEY } });
   if(!res.ok) throw new Error('HTTP ' + res.status);
   const data = await res.json();
   if(data.error) throw new Error(data.message || data.error);
