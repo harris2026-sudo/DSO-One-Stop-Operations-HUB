@@ -919,15 +919,31 @@
 <script>
 (function(){
   var CORRECT_PIN = '3412';
+  var IDLE_TIMEOUT_MS = 30 * 60 * 1000; // TAMBAHAN KEAMANAN: auto-lock setelah 30 menit tidak ada aktivitas
+  var LAST_ACTIVITY_KEY = 'dso:pin-last-activity';
   var entered = '';
   var overlay = document.getElementById('pinGateOverlay');
   var dotsWrap = document.getElementById('pinDots');
   var errEl = document.getElementById('pinGateError');
   var box = dotsWrap.parentElement;
 
-  // Sudah unlock sebelumnya di tab/sesi browser ini? Langsung lewati gerbang.
-  if (sessionStorage.getItem('dso:pin-unlocked') === '1') {
+  function isUnlocked(){
+    if (sessionStorage.getItem('dso:pin-unlocked') !== '1') return false;
+    var last = Number(sessionStorage.getItem(LAST_ACTIVITY_KEY) || 0);
+    return (Date.now() - last) < IDLE_TIMEOUT_MS;
+  }
+
+  function showGate(){
+    overlay.style.display = 'flex';
+    sessionStorage.removeItem('dso:pin-unlocked');
+    entered = '';
+    renderDots();
+  }
+
+  // Sudah unlock sebelumnya DAN belum idle 30 menit? Langsung lewati gerbang.
+  if (isUnlocked()) {
     overlay.style.display = 'none';
+    markActivity();
   }
 
   function renderDots(){
@@ -938,6 +954,7 @@
   function checkPin(){
     if (entered === CORRECT_PIN) {
       sessionStorage.setItem('dso:pin-unlocked', '1');
+      markActivity();
       overlay.style.display = 'none';
     } else {
       errEl.textContent = 'PIN salah, coba lagi';
@@ -963,6 +980,32 @@
     renderDots();
     errEl.textContent = '';
   });
+
+  // ---- TAMBAHAN KEAMANAN: idle timeout (auto-lock 30 menit tidak aktif) ----
+  // markActivity dipanggil dari mana saja (termasuk sebelum definisinya di atas,
+  // karena function declaration di-hoist) tiap kali ada interaksi pengguna.
+  // Ditulis throttled (maks 1x/5 detik) supaya tidak menulis ke sessionStorage
+  // di setiap gerakan mouse.
+  var lastWrite = 0;
+  function markActivity(){
+    var now = Date.now();
+    if (now - lastWrite < 5000 && sessionStorage.getItem(LAST_ACTIVITY_KEY)) return;
+    lastWrite = now;
+    sessionStorage.setItem(LAST_ACTIVITY_KEY, String(now));
+  }
+  ['mousedown','mousemove','keydown','scroll','touchstart'].forEach(function(evt){
+    document.addEventListener(evt, function(){
+      if (sessionStorage.getItem('dso:pin-unlocked') === '1') markActivity();
+    }, { passive: true });
+  });
+  // Cek tiap 10 detik: kalau sudah unlock tapi ternyata sudah lewat 30 menit
+  // idle, kunci lagi otomatis -- walau tab masih terbuka dan aktif dipakai
+  // tab lain di sebelahnya.
+  setInterval(function(){
+    if (sessionStorage.getItem('dso:pin-unlocked') === '1' && !isUnlocked()) {
+      showGate();
+    }
+  }, 10000);
 })();
 </script>
 
