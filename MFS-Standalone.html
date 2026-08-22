@@ -80,6 +80,31 @@
   .save-btn{position:sticky;bottom:12px;width:100%;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:13px;font-size:14px;font-weight:600;font-family:var(--font-display);margin-top:16px;cursor:pointer;box-shadow:0 6px 18px rgba(15,27,44,.25);}
   .save-btn:active{transform:scale(.98);}
   .save-btn:disabled{opacity:.5;cursor:not-allowed;box-shadow:none;}
+  /* ---- Toast notifikasi (sama seperti HUB utama: ikon animasi + progress bar) ---- */
+  #toastWrap{position:fixed;top:16px;right:16px;left:16px;z-index:9999;display:flex;flex-direction:column;align-items:flex-end;gap:10px;pointer-events:none;}
+  .toast{
+    position:relative;overflow:hidden;pointer-events:auto;
+    display:flex;align-items:center;gap:10px;min-width:220px;max-width:360px;
+    padding:13px 16px 15px;border-radius:10px;color:#fff;font-size:13px;font-weight:600;
+    background:var(--navy);box-shadow:0 8px 24px rgba(0,0,0,.22);
+    opacity:0;transform:translateX(30px) scale(.92);
+    transition:opacity .3s ease,transform .45s cubic-bezier(.34,1.56,.64,1);
+  }
+  .toast.show{opacity:1;transform:translateX(0) scale(1);}
+  .toast.toast-success{background:var(--green-fg);}
+  .toast.toast-error{background:var(--red-fg);}
+  .toast-icon{width:22px;height:22px;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+  .toast-icon svg{width:22px;height:22px;}
+  .toast-icon svg circle{fill:none;stroke:rgba(255,255,255,.4);stroke-width:2;
+    stroke-dasharray:60;stroke-dashoffset:60;animation:toastRing .4s ease forwards;}
+  .toast-icon svg path{fill:none;stroke:#fff;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;
+    stroke-dasharray:26;stroke-dashoffset:26;animation:toastDrawIcon .35s .18s cubic-bezier(.65,0,.35,1) forwards;}
+  .toast-text{flex:1;line-height:1.4;}
+  .toast-progress{position:absolute;left:0;bottom:0;height:3px;width:100%;background:rgba(255,255,255,.55);
+    transform-origin:left;animation:toastShrink 2.8s linear forwards;}
+  @keyframes toastRing{to{stroke-dashoffset:0;}}
+  @keyframes toastDrawIcon{to{stroke-dashoffset:0;}}
+  @keyframes toastShrink{from{transform:scaleX(1);}to{transform:scaleX(0);}}
 
   .sync-note{display:flex;align-items:flex-start;gap:7px;margin-top:12px;font-size:11px;color:var(--text-muted);line-height:1.5;padding:0 4px;}
 
@@ -105,6 +130,7 @@
 </style>
 </head>
 <body>
+<div id="toastWrap"></div>
 
 <header class="top">
   <div class="inner">
@@ -305,6 +331,27 @@ function showConnBanner(msg){
   el.classList.add('show');
 }
 function hideConnBanner(){ document.getElementById('connBanner').classList.remove('show'); }
+
+/* ---------------- TOAST NOTIFIKASI (sama seperti HUB utama) ---------------- */
+const TOAST_ICONS = {
+  success: '<svg viewBox="0 0 22 22"><circle cx="11" cy="11" r="9.2"/><path d="M6.2 11.3l3.1 3.1L16 7.6"/></svg>',
+  error:   '<svg viewBox="0 0 22 22"><circle cx="11" cy="11" r="9.2"/><path d="M7.2 7.2l7.6 7.6M14.8 7.2l-7.6 7.6"/></svg>',
+  default: '<svg viewBox="0 0 22 22"><circle cx="11" cy="11" r="9.2"/><path d="M11 10v5M11 6.5v.1"/></svg>'
+};
+function showToast(message, type){
+  const wrap = document.getElementById('toastWrap');
+  const el = document.createElement('div');
+  el.className = 'toast' + (type ? ' toast-' + type : '');
+  el.innerHTML = `<span class="toast-icon">${TOAST_ICONS[type] || TOAST_ICONS.default}</span>`
+    + `<span class="toast-text"></span><span class="toast-progress"></span>`;
+  el.querySelector('.toast-text').textContent = message; // textContent -> aman dari HTML injection
+  wrap.appendChild(el);
+  requestAnimationFrame(() => el.classList.add('show'));
+  setTimeout(() => {
+    el.classList.remove('show');
+    setTimeout(() => el.remove(), 300);
+  }, 2800);
+}
 
 /* ================= STATE ================= */
 let taskIds = [];
@@ -564,9 +611,18 @@ async function init(){
 
   document.getElementById('saveBtn').addEventListener('click', async (e) => {
     e.preventDefault();
+    // v10: tampilkan status "Menyimpan..." di tombol supaya jeda tunggu backend
+    // tidak terlihat seperti macet/freeze, plus cegah klik ganda selama proses.
+    const saveBtnEl = document.getElementById('saveBtn');
+    const originalLabel = saveBtnEl.textContent;
+    saveBtnEl.disabled = true;
+    saveBtnEl.textContent = 'Menyimpan...';
     await saveCurrent();
+    saveBtnEl.disabled = false;
+    saveBtnEl.textContent = originalLabel;
     const ok = !document.getElementById('saveStatus').classList.contains('error');
     if(ok){
+      showToast('✓ Checklist tersimpan', 'success');
       // Kembalikan tampilan tombol status (Checked/Follow up/Continue/Not yet/Information/n-a)
       // ke kondisi normal/tidak terklik setelah berhasil disimpan. PENTING: data yang baru saja
       // tersimpan ke backend TIDAK dihapus (aman di riwayat) — hanya currentData di memori & UI
@@ -577,6 +633,8 @@ async function init(){
       refreshStatusButtons();
       refreshNotes();
       refreshSummary();
+    }else{
+      showToast('✗ Gagal menyimpan checklist', 'error');
     }
   });
 
