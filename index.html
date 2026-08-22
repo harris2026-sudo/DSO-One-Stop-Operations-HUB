@@ -4168,9 +4168,26 @@ async function dsoLoad(key, fallback){
   try{
     const res = await store.get(key, true);
     if(res && res.value) return JSON.parse(res.value);
-  }catch(e){ /* key belum ada, pakai default */ }
-  await store.set(key, JSON.stringify(fallback), true);
-  return fallback;
+    // res berhasil tapi value kosong -> memang belum pernah ada isinya, aman untuk seed.
+    await store.set(key, JSON.stringify(fallback), true);
+    return fallback;
+  }catch(e){
+    if(e && e.message === 'not found'){
+      // "not found" LEGIT dari backend (data.error === 'not_found' di gsGet) -> key
+      // memang belum pernah dibuat, aman untuk ditulis dengan data awal (seed).
+      await store.set(key, JSON.stringify(fallback), true);
+      return fallback;
+    }
+    // Error LAIN (CORS diblokir, network gagal, HTTP error dari gsGet) BUKAN berarti
+    // datanya kosong -- kemungkinan besar cuma gangguan koneksi sesaat. JANGAN timpa
+    // data asli di backend dengan fallback di sini (dulu ini yang menyebabkan dokumen
+    // SOP yang sudah tersimpan bisa hilang kalau kebetulan GET-nya gagal transient
+    // saat SOP memuat banyak kategori sekaligus). Cukup tampilkan fallback sementara
+    // di layar untuk render kali ini; data asli di backend tetap utuh dan akan
+    // terbaca normal lagi begitu koneksi pulih.
+    console.error('dsoLoad: gagal ambil data (bukan "not found"), tampilkan fallback TANPA menimpa backend:', key, e);
+    return fallback;
+  }
 }
 async function dsoSave(key, val){
   try{ await store.set(key, JSON.stringify(val), true); }catch(e){ console.error('gagal simpan', key, e); }
