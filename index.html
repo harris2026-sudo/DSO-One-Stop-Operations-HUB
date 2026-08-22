@@ -2381,7 +2381,15 @@ const _lastKnownValues = {};
       SEBELUM dianggap benar-benar gagal & memunculkan banner merah. 404 di sini
       biasanya transient (tabrakan concurrency), jadi biasanya berhasil di
       percobaan ke-2/ke-3 tanpa user sadar ada masalah. ---- */
-const MAX_CONCURRENT_GS_REQUESTS = 2;
+/* PERBAIKAN LOAD-FIX v9: backend sekarang Cloudflare Worker + D1 (jauh lebih kuat
+   dari Apps Script lama), tapi limit 2 di atas jadi bottleneck baru -- kalau 2
+   request kebetulan gagal bersamaan (mis. WiFi sempat putus sesaat) dan masuk
+   proses retry (jeda 400ms-1600ms per percobaan, SLOT TIDAK DILEPAS selama retry),
+   maka KEDUA slot yang tersedia tersandera, dan seluruh sisa antrean (halaman
+   berat seperti SOP bisa fire 50+ request sekaligus) ikut macet sampai retry itu
+   selesai -- persis gejala "menu freeze lalu normal lagi setelah beberapa lama".
+   Dinaikkan ke 6 supaya 1-2 request yang lagi retry tidak menghentikan semuanya. */
+const MAX_CONCURRENT_GS_REQUESTS = 6;
 let _gsActiveCount = 0;
 const _gsQueue = [];
 
