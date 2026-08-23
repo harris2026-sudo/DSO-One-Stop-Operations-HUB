@@ -1081,7 +1081,7 @@
       <div class="brand-mark">DSO</div>
       <header>
         <h1 contenteditable="true" id="headerTitle">DSO One Stop Ops HUB</h1>
-        <p contenteditable="true" id="headerSubtitle">Digital & Technology Solutions (DigiTech) · Site Borneo Indobara</p>
+        <p id="headerSubtitle">Digital Sustainability Operation</p>
       </header>
     </div>
 
@@ -2719,7 +2719,6 @@ function scheduleHeaderSave(){ clearTimeout(headerSaveTimer); headerSavePending 
 function headerConfigPayload(){
   return JSON.stringify({
     title: headerFields.headerTitle.textContent,
-    subtitle: headerFields.headerSubtitle.textContent,
     badge: headerFields.storageBadge.textContent
   });
 }
@@ -2735,12 +2734,14 @@ async function loadHeaderConfig(){
     if(res && res.value){
       const data = JSON.parse(res.value);
       if(data.title) headerFields.headerTitle.textContent = data.title;
-      if(data.subtitle) headerFields.headerSubtitle.textContent = data.subtitle;
+      // subtitle sengaja TIDAK dimuat lagi dari server - teksnya sudah dipermanenkan
+      // langsung di HTML ("Digital Sustainability Operation") dan tidak lagi bisa diedit.
       if(data.badge) headerFields.storageBadge.textContent = data.badge;
     }
   }catch(e){ /* belum ada data tersimpan, gunakan default */ }
 }
 Object.values(headerFields).forEach(el => {
+  if(el.id === 'headerSubtitle') return; // subjudul sudah permanen, tidak lagi diedit/disinkron
   el.addEventListener('input', scheduleHeaderSave);
   // Saat kolom kehilangan fokus (klik di luar / pindah field), simpan SEGERA -
   // tidak perlu menunggu debounce 500ms lagi, supaya kalau user langsung
