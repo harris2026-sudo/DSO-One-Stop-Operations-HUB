@@ -500,17 +500,13 @@
   .fu-badge.BelumMulai{background:var(--grey-bg);color:var(--grey-fg);}
   .fu-badge.Selesai{background:var(--green-bg);color:var(--green);}
   .fu-badge.Overdue{background:var(--red-bg);color:var(--red-fg);}
-  .fu-badge.Kritis{background:var(--red-bg);color:var(--red-fg);}
-  .fu-badge.MenungguVendor{background:var(--yellow-bg);color:var(--yellow-fg);}
-  .fu-badge.Normal{background:var(--blue-bg);color:var(--blue-fg);}
-  .fu-badge.Closed{background:var(--green-bg);color:var(--green);}
   .fu-card.status-BelumMulai{border-left-color:#9a9a9a;}
   .fu-card.status-Selesai{border-left-color:var(--green);}
   .fu-card.status-Overdue{border-left-color:var(--red-fg);}
-  .fu-card.status-Kritis{border-left-color:var(--red-fg);}
-  .fu-card.status-MenungguVendor{border-left-color:#d8b400;}
-  .fu-card.status-Normal{border-left-color:#6a9bcf;}
-  .fu-card.status-Closed{border-left-color:var(--green);}
+  .op-status-swatch{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:8px;flex-shrink:0;vertical-align:middle;}
+  .op-status-item-label{display:flex;align-items:center;font-size:12px;}
+  .op-status-done-toggle{background:none;border:1px solid var(--border,#DCE1DD);border-radius:6px;font-size:9.5px;font-weight:700;padding:3px 7px;cursor:pointer;color:#889;flex-shrink:0;}
+  .op-status-done-toggle.on{background:var(--green-bg);color:var(--green);border-color:var(--green);}
   .fu-age-tag{display:inline-block;font-size:9.5px;font-weight:bold;background:var(--hilite);color:var(--navy);border-radius:8px;padding:1px 7px;margin-left:6px;vertical-align:middle;}
   .fu-actions{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;}
   .fu-actions select{border:1px solid #c7d3e0;border-radius:6px;padding:4px 6px;font-size:11.5px;font-family:Arial;}
@@ -1577,6 +1573,33 @@
     </div>
   </div>
 
+  <!-- ================= MODAL: KELOLA STATUS (Open Point) ================= -->
+  <div class="modal-overlay" id="statusModalOverlay">
+    <div class="modal-box">
+      <button type="button" class="modal-close-x" id="statusModalCloseBtn" title="Tutup">✕</button>
+      <h3>🏷️ Kelola Daftar Prioritas / Status</h3>
+      <div class="vendor-add-row" style="align-items:flex-start;">
+        <input type="text" id="statusModalInput" placeholder="Nama status baru...">
+        <select id="statusModalColor" style="border:1px solid #c7d3e0;border-radius:6px;padding:9px 8px;font-size:13px;font-family:Arial;">
+          <option value="red">🔴 Merah</option>
+          <option value="yellow">🟡 Kuning</option>
+          <option value="blue">🔵 Biru</option>
+          <option value="green">🟢 Hijau</option>
+          <option value="purple">🟣 Ungu</option>
+          <option value="grey">⚪ Abu-abu</option>
+        </select>
+        <button type="button" class="btn btn-primary" id="statusModalAddBtn">+ Tambah</button>
+      </div>
+      <div id="statusModalMsg" style="display:none;font-size:11.5px;color:var(--red-fg);font-weight:bold;margin-bottom:8px;"></div>
+      <div class="vendor-item-list" id="statusModalList"></div>
+      <div style="font-size:11px;color:#889;margin-top:10px;">Tandai satu status sebagai "status selesai" agar otomatis disembunyikan dari filter "Semua" dan tidak dihitung sebagai open point aktif.</div>
+      <div style="text-align:right;margin-top:14px;">
+        <button type="button" class="btn btn-ghost" id="statusModalDoneBtn">Selesai</button>
+      </div>
+    </div>
+  </div>
+
+
   <!-- ================= MODAL: DETAIL STATUS REKAP (klik card ringkasan) ================= -->
   <div class="modal-overlay" id="rekapStatusModalOverlay">
     <div class="modal-box" style="max-width:480px;">
@@ -2015,12 +2038,10 @@
       </div>
       <div class="f-small">
         <label>Prioritas / Status</label>
-        <select id="opStatus">
-          <option value="Kritis">Kritis</option>
-          <option value="MenungguVendor">Menunggu Vendor</option>
-          <option value="Normal">Normal</option>
-          <option value="Closed">Closed</option>
-        </select>
+        <div class="select-with-actions">
+          <select id="opStatus"></select>
+          <button type="button" class="icon-btn icon-btn-add" id="opStatusManageBtn" title="Kelola daftar status (tambah/ubah/hapus)">⚙️</button>
+        </div>
       </div>
       <div class="f-grow">
         <label>Catatan</label>
@@ -7307,10 +7328,189 @@ async function renderTaskList(){
    umur isu (berapa hari sudah terbuka) supaya prioritas gampang dilihat.
    ================================================================== */
 const OPENPOINT_KEY = 'openpoint:list';
-const OPENPOINT_STATUS = ["Kritis","MenungguVendor","Normal","Closed"];
-const OPENPOINT_STATUS_LABEL = { Kritis:'Kritis', MenungguVendor:'Menunggu Vendor', Normal:'Normal', Closed:'Closed' };
 let openPointItems = [];
 let openPointFilter = 'All';
+
+/* ---------------- WARNA BADGE STATUS (dipilih user saat tambah status) ---------------- */
+const OP_STATUS_COLORS = {
+  red:    { bg:'var(--red-bg)',    fg:'var(--red-fg)' },
+  yellow: { bg:'var(--yellow-bg)', fg:'var(--yellow-fg)' },
+  blue:   { bg:'var(--blue-bg)',   fg:'var(--blue-fg)' },
+  green:  { bg:'var(--green-bg)',  fg:'var(--green)' },
+  purple: { bg:'var(--purple-bg)', fg:'var(--purple-fg)' },
+  grey:   { bg:'var(--grey-bg)',   fg:'var(--grey-fg)' }
+};
+function opStatusColor(colorKey){ return OP_STATUS_COLORS[colorKey] || OP_STATUS_COLORS.grey; }
+
+/* ==================================================================
+   KELOLA DAFTAR STATUS -- mirip createManagedList (site/vendor), tapi
+   tiap entri berupa objek {name, color, done} supaya badge bisa diberi
+   warna sendiri dan satu status bisa ditandai sebagai "status selesai"
+   (dipakai untuk logika sembunyikan dari filter "Semua").
+   NILAI DEFAULT SENGAJA DIBUAT PERSIS SAMA dengan versi lama (Kritis,
+   MenungguVendor, Normal, Closed) supaya data open point yang sudah ada
+   tetap terbaca & cocok setelah update ini -- termasuk tetap sinkron
+   dengan Open-Point-Standalone.html.
+   ================================================================== */
+const OPENPOINT_STATUSES_KEY = 'openpoint:statuses';
+const OPENPOINT_STATUS_DEFAULTS = [
+  { name:'Kritis',         color:'red',    done:false },
+  { name:'MenungguVendor', color:'yellow', done:false },
+  { name:'Normal',         color:'blue',   done:false },
+  { name:'Closed',         color:'green',  done:true  }
+];
+let opStatusList = OPENPOINT_STATUS_DEFAULTS.map(s => ({...s}));
+
+async function opStatusLoad(){
+  try{
+    const res = await store.get(OPENPOINT_STATUSES_KEY);
+    const parsed = (res && res.value) ? JSON.parse(res.value) : null;
+    opStatusList = (Array.isArray(parsed) && parsed.length > 0) ? parsed : OPENPOINT_STATUS_DEFAULTS.map(s => ({...s}));
+  }catch(e){ opStatusList = OPENPOINT_STATUS_DEFAULTS.map(s => ({...s})); }
+}
+async function opStatusSave(){
+  try{ await store.set(OPENPOINT_STATUSES_KEY, JSON.stringify(opStatusList)); }
+  catch(e){ console.error('Gagal menyimpan daftar status', e); }
+}
+function opStatusFind(name){ return opStatusList.find(s => s.name === name); }
+function opStatusIsDone(name){ const s = opStatusFind(name); return !!(s && s.done); }
+
+function opStatusRenderOptions(selectedValue){
+  const sel = document.getElementById('opStatus');
+  if(!sel) return;
+  const current = selectedValue !== undefined ? selectedValue : sel.value;
+  sel.innerHTML = opStatusList.map(s => `<option value="${s.name}" ${s.name===current?'selected':''}>${s.name}</option>`).join('');
+}
+function opStatusShowMsg(text){
+  const msg = document.getElementById('statusModalMsg');
+  msg.textContent = text;
+  msg.style.display = 'block';
+  clearTimeout(opStatusShowMsg._t);
+  opStatusShowMsg._t = setTimeout(() => { msg.style.display = 'none'; }, 3500);
+}
+function opStatusRenderModalList(){
+  const el = document.getElementById('statusModalList');
+  if(opStatusList.length === 0){
+    el.innerHTML = `<div class="vendor-empty-note">Belum ada status. Tambahkan lewat kolom di atas.</div>`;
+    return;
+  }
+  el.innerHTML = opStatusList.map(s => {
+    const c = opStatusColor(s.color);
+    return `
+    <div class="vendor-item" data-v="${s.name}">
+      <span class="op-status-item-label"><span class="op-status-swatch" style="background:${c.fg}"></span>${escapeHtml(s.name)}</span>
+      <div style="display:flex;gap:4px;flex-shrink:0;align-items:center;">
+        <button type="button" class="op-status-done-toggle ${s.done?'on':''}" data-v="${s.name}" title="Tandai sebagai status selesai">${s.done ? 'Selesai ✓' : 'Tandai selesai'}</button>
+        <button type="button" class="wim-icon-btn edit op-status-item-edit" data-v="${s.name}" title="Ubah nama"><i class="ti ti-edit"></i></button>
+        <button type="button" class="vendor-item-del op-status-item-del" data-v="${s.name}">Hapus</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  el.querySelectorAll('.op-status-done-toggle').forEach(btn => {
+    btn.onclick = async () => {
+      const s = opStatusFind(btn.dataset.v);
+      if(!s) return;
+      s.done = !s.done;
+      await opStatusSave();
+      opStatusRenderModalList();
+    };
+  });
+  el.querySelectorAll('.op-status-item-edit').forEach(btn => {
+    btn.onclick = () => {
+      const item = btn.closest('.vendor-item');
+      const label = item.querySelector('.op-status-item-label');
+      const oldName = btn.dataset.v;
+      if(item.querySelector('.vendor-item-rename-input')) return;
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.value = oldName;
+      input.className = 'vendor-item-rename-input';
+      input.style.cssText = 'flex:1;font-size:13px;border:1px solid var(--accent);border-radius:6px;padding:4px 8px;';
+      label.replaceWith(input);
+      input.focus();
+      input.select();
+      const commit = async () => {
+        const newName = input.value.trim();
+        if(!newName || newName === oldName){ opStatusRenderModalList(); return; }
+        if(opStatusList.some(s => s.name.toLowerCase() === newName.toLowerCase() && s.name !== oldName)){
+          opStatusShowMsg(`Status "${newName}" sudah ada di daftar.`);
+          opStatusRenderModalList();
+          return;
+        }
+        const s = opStatusFind(oldName);
+        if(s) s.name = newName;
+        await opStatusSave();
+        let migrated = false;
+        openPointItems.forEach(it => { if(it.status === oldName){ it.status = newName; migrated = true; } });
+        if(migrated) await saveOpenPoint();
+        opStatusRenderOptions(newName);
+        opStatusRenderModalList();
+      };
+      input.addEventListener('keydown', (e) => {
+        if(e.key === 'Enter'){ e.preventDefault(); commit(); }
+        if(e.key === 'Escape'){ e.preventDefault(); opStatusRenderModalList(); }
+      });
+      input.addEventListener('blur', commit);
+    };
+  });
+  el.querySelectorAll('.op-status-item-del').forEach(btn => {
+    btn.onclick = async () => {
+      if(!btn.classList.contains('confirming')){
+        el.querySelectorAll('.op-status-item-del.confirming').forEach(b => { b.classList.remove('confirming'); b.textContent = 'Hapus'; });
+        btn.classList.add('confirming');
+        btn.textContent = 'Yakin?';
+        clearTimeout(btn._resetT);
+        btn._resetT = setTimeout(() => { btn.classList.remove('confirming'); btn.textContent = 'Hapus'; }, 2500);
+        return;
+      }
+      const name = btn.dataset.v;
+      opStatusList = opStatusList.filter(s => s.name !== name);
+      await opStatusSave();
+      opStatusRenderOptions('');
+      opStatusRenderModalList();
+    };
+  });
+}
+async function opStatusSubmitNew(){
+  const input = document.getElementById('statusModalInput');
+  const colorSel = document.getElementById('statusModalColor');
+  const trimmed = input.value.trim();
+  if(!trimmed){ input.focus(); return; }
+  if(opStatusList.some(s => s.name.toLowerCase() === trimmed.toLowerCase())){
+    opStatusShowMsg(`Status "${trimmed}" sudah ada di daftar.`);
+    input.value = '';
+    input.focus();
+    return;
+  }
+  opStatusList.push({ name:trimmed, color:colorSel.value, done:false });
+  await opStatusSave();
+  opStatusRenderOptions(trimmed);
+  opStatusRenderModalList();
+  input.value = '';
+  input.focus();
+}
+function opStatusOpenModal(){
+  document.getElementById('statusModalOverlay').classList.add('active');
+  opStatusRenderModalList();
+  document.getElementById('statusModalInput').value = '';
+  document.getElementById('statusModalMsg').style.display = 'none';
+  setTimeout(() => document.getElementById('statusModalInput').focus(), 50);
+}
+function opStatusCloseModal(){ document.getElementById('statusModalOverlay').classList.remove('active'); }
+document.getElementById('opStatusManageBtn').onclick = opStatusOpenModal;
+document.getElementById('statusModalCloseBtn').onclick = opStatusCloseModal;
+document.getElementById('statusModalDoneBtn').onclick = async () => { opStatusCloseModal(); await renderOpenPoint(); };
+document.getElementById('statusModalAddBtn').onclick = opStatusSubmitNew;
+document.getElementById('statusModalInput').addEventListener('keydown', (e) => {
+  if(e.key === 'Enter'){ e.preventDefault(); opStatusSubmitNew(); }
+});
+document.getElementById('statusModalOverlay').addEventListener('click', (e) => {
+  if(e.target.id === 'statusModalOverlay') opStatusCloseModal();
+});
+document.addEventListener('keydown', (e) => {
+  if(e.key === 'Escape' && document.getElementById('statusModalOverlay').classList.contains('active')) opStatusCloseModal();
+});
 
 const siteManager = createManagedList({
   storageKey: 'openpoint:sites',
@@ -7383,19 +7583,21 @@ document.getElementById('opAddBtn').onclick = async () => {
   document.getElementById('opSite').value = '';
   document.getElementById('opVendor').value = '';
   document.getElementById('opNote').value = '';
-  document.getElementById('opStatus').value = 'Kritis';
+  opStatusRenderOptions(opStatusList[0] ? opStatusList[0].name : '');
+  showToast('Open point berhasil ditambahkan.', 'success');
   renderOpenPoint();
 };
 
 function opSummaryCounts(){
-  const counts = { Kritis:0, MenungguVendor:0, Normal:0, Closed:0 };
+  const counts = {};
+  opStatusList.forEach(s => { counts[s.name] = 0; });
   openPointItems.forEach(it => { if(counts[it.status] !== undefined) counts[it.status]++; });
   return counts;
 }
 
 function renderOpSummary(){
   const counts = opSummaryCounts();
-  const html = OPENPOINT_STATUS.map(s => `<div class="card"><div class="num" data-count="${counts[s]}">0</div><div class="lab">${OPENPOINT_STATUS_LABEL[s]}</div></div>`).join('')
+  const html = opStatusList.map(s => `<div class="card"><div class="num" data-count="${counts[s.name]}">0</div><div class="lab">${escapeHtml(s.name)}</div></div>`).join('')
     + `<div class="card"><div class="num" data-count="${openPointItems.length}">0</div><div class="lab">Total</div></div>`;
   document.getElementById('opSummaryCards').innerHTML = html;
   animateCountsIn(document.getElementById('opSummaryCards'));
@@ -7403,8 +7605,8 @@ function renderOpSummary(){
 
 function renderOpFilterBar(){
   const bar = document.getElementById('opFilterBar');
-  const opts = ['All', ...OPENPOINT_STATUS];
-  bar.innerHTML = opts.map(o => `<button class="fu-filter ${openPointFilter===o?'active':''}" data-f="${o}">${o === 'All' ? 'Semua' : OPENPOINT_STATUS_LABEL[o]}</button>`).join('');
+  const opts = ['All', ...opStatusList.map(s => s.name)];
+  bar.innerHTML = opts.map(o => `<button class="fu-filter ${openPointFilter===o?'active':''}" data-f="${escapeHtml(o)}">${o === 'All' ? 'Semua' : escapeHtml(o)}</button>`).join('');
   bar.querySelectorAll('.fu-filter').forEach(btn => {
     btn.onclick = () => { openPointFilter = btn.dataset.f; renderOpenPoint(); };
   });
@@ -7413,34 +7615,39 @@ function renderOpFilterBar(){
 function renderOpList(){
   const el = document.getElementById('opList');
   const items = openPointFilter === 'All'
-    ? openPointItems.filter(it => it.status !== 'Closed')
+    ? openPointItems.filter(it => !opStatusIsDone(it.status))
     : openPointItems.filter(it => it.status === openPointFilter);
   if(items.length === 0){
     el.innerHTML = '<div class="empty-note">Belum ada open point pada filter ini.</div>';
     return;
   }
-  el.innerHTML = items.map(it => `
-    <div class="fu-card status-${it.status}" data-id="${it.id}">
+  el.innerHTML = items.map(it => {
+    const sDef = opStatusFind(it.status);
+    const c = opStatusColor(sDef ? sDef.color : 'grey');
+    const optionNames = sDef ? opStatusList.map(s => s.name) : [it.status, ...opStatusList.map(s => s.name)];
+    return `
+    <div class="fu-card" data-id="${it.id}" style="border-left-color:${c.fg}">
       <div class="fu-top">
         <div>
           <div class="fu-desc">${escapeHtml(it.desc)}<span class="fu-age-tag">${opAgeDays(it)} hari</span></div>
-          <div class="fu-meta">${formatDateID(it.date)}${it.site ? ' · ' + it.site : ''}${it.vendor ? ' · Vendor: ' + it.vendor : ''}</div>
+          <div class="fu-meta">${formatDateID(it.date)}${it.site ? ' · ' + escapeHtml(it.site) : ''}${it.vendor ? ' · Vendor: ' + escapeHtml(it.vendor) : ''}</div>
         </div>
-        <span class="fu-badge ${it.status}">${OPENPOINT_STATUS_LABEL[it.status]}</span>
+        <span class="fu-badge" style="background:${c.bg};color:${c.fg}">${escapeHtml(it.status)}</span>
       </div>
       ${it.note ? `<div class="fu-note">${escapeHtml(it.note)}</div>` : ''}
       <div class="fu-actions">
         <select data-id="${it.id}" class="op-status-select">
-          ${OPENPOINT_STATUS.map(s => `<option value="${s}" ${s===it.status?'selected':''}>${OPENPOINT_STATUS_LABEL[s]}</option>`).join('')}
+          ${optionNames.map(name => `<option value="${escapeHtml(name)}" ${name===it.status?'selected':''}>${escapeHtml(name)}</option>`).join('')}
         </select>
         <button class="fu-del" data-id="${it.id}">Hapus</button>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 
   el.querySelectorAll('.op-status-select').forEach(sel => {
     sel.onchange = async () => {
       const item = openPointItems.find(i => i.id === sel.dataset.id);
-      if(item){ item.status = sel.value; await saveOpenPoint(); }
+      if(item){ item.status = sel.value; await saveOpenPoint(); showToast('Status open point diperbarui.', 'success'); }
       renderOpenPoint();
     };
   });
@@ -7449,6 +7656,7 @@ function renderOpList(){
       if(!confirm('Hapus open point ini?')) return;
       openPointItems = openPointItems.filter(i => i.id !== btn.dataset.id);
       await saveOpenPoint();
+      showToast('Open point dihapus.', 'success');
       renderOpenPoint();
     };
   });
@@ -7459,6 +7667,8 @@ async function renderOpenPoint(){
   siteManager.renderOptions();
   await opVendorManager.load();
   opVendorManager.renderOptions();
+  await opStatusLoad();
+  opStatusRenderOptions();
   await loadOpenPoint();
   renderOpSummary();
   renderOpFilterBar();
