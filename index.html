@@ -910,26 +910,48 @@
      backend (Worker wajib API key, lihat DSO_API_KEY di atas). -->
 <div id="pinGateOverlay" style="position:fixed;inset:0;z-index:9999;background:#0F1B2C;display:flex;align-items:center;justify-content:center;">
   <div style="background:#16253A;border-radius:16px;padding:32px 28px;width:280px;text-align:center;">
-    <div style="width:48px;height:48px;border-radius:12px;background:#2E6690;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
-      <i class="ti ti-lock" style="font-size:22px;color:#fff;"></i>
+
+    <div id="pinGateStage1">
+      <div style="width:48px;height:48px;border-radius:12px;background:#2E6690;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+        <i class="ti ti-lock" style="font-size:22px;color:#fff;"></i>
+      </div>
+      <div style="color:#fff;font-size:15px;font-weight:500;margin-bottom:2px;">DSO One-Stop Ops HUB</div>
+      <div style="color:#8B98A6;font-size:12px;margin-bottom:20px;">Masukkan PIN untuk lanjut</div>
+      <div style="position:relative;width:224px;height:52px;margin:0 auto 20px;" id="pinBoxWrap">
+        <div class="pingate-box" id="pb0"><span class="pingate-dgt"></span></div>
+        <div class="pingate-box" id="pb1"><span class="pingate-dgt"></span></div>
+        <div class="pingate-box" id="pb2"><span class="pingate-dgt"></span></div>
+        <div class="pingate-box" id="pb3"><span class="pingate-dgt"></span></div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+        <button type="button" class="pingate-btn" data-k="1">1</button><button type="button" class="pingate-btn" data-k="2">2</button><button type="button" class="pingate-btn" data-k="3">3</button>
+        <button type="button" class="pingate-btn" data-k="4">4</button><button type="button" class="pingate-btn" data-k="5">5</button><button type="button" class="pingate-btn" data-k="6">6</button>
+        <button type="button" class="pingate-btn" data-k="7">7</button><button type="button" class="pingate-btn" data-k="8">8</button><button type="button" class="pingate-btn" data-k="9">9</button>
+        <div></div><button type="button" class="pingate-btn" data-k="0">0</button><button type="button" class="pingate-btn" id="pinGateDel" aria-label="Hapus"><i class="ti ti-backspace"></i></button>
+      </div>
+      <div id="pinGateError" style="color:#F09595;font-size:11px;margin-top:14px;height:14px;"></div>
     </div>
-    <div style="color:#fff;font-size:15px;font-weight:500;margin-bottom:2px;">DSO One-Stop Ops HUB</div>
-    <div style="color:#8B98A6;font-size:12px;margin-bottom:20px;">Masukkan PIN untuk lanjut</div>
-    <div style="display:flex;justify-content:center;gap:10px;margin-bottom:20px;" id="pinDots">
-      <div class="pingate-dot"></div><div class="pingate-dot"></div><div class="pingate-dot"></div><div class="pingate-dot"></div>
+
+    <div id="pinGateSuccess" style="display:none;">
+      <div style="width:60px;height:60px;border-radius:14px;background:#1F3D2E;border:1.5px solid #4ADE9A;display:flex;align-items:center;justify-content:center;margin:8px auto 16px;">
+        <i class="ti ti-check" style="font-size:26px;color:#4ADE9A;"></i>
+      </div>
+      <div style="color:#4ADE9A;font-size:15px;font-weight:500;">Verifikasi berhasil</div>
+      <div style="color:#8B98A6;font-size:11.5px;margin-top:2px;">Mengalihkan ke HUB...</div>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
-      <button type="button" class="pingate-btn" data-k="1">1</button><button type="button" class="pingate-btn" data-k="2">2</button><button type="button" class="pingate-btn" data-k="3">3</button>
-      <button type="button" class="pingate-btn" data-k="4">4</button><button type="button" class="pingate-btn" data-k="5">5</button><button type="button" class="pingate-btn" data-k="6">6</button>
-      <button type="button" class="pingate-btn" data-k="7">7</button><button type="button" class="pingate-btn" data-k="8">8</button><button type="button" class="pingate-btn" data-k="9">9</button>
-      <div></div><button type="button" class="pingate-btn" data-k="0">0</button><button type="button" class="pingate-btn" id="pinGateDel" aria-label="Hapus"><i class="ti ti-backspace"></i></button>
-    </div>
-    <div id="pinGateError" style="color:#F09595;font-size:11px;margin-top:14px;height:14px;"></div>
+
   </div>
 </div>
 <style>
-.pingate-dot{width:11px;height:11px;border-radius:50%;border:1.5px solid #4A5A6B;transition:background .15s,border-color .15s;}
-.pingate-dot.filled{background:#2E6690;border-color:#2E6690;}
+.pingate-box{position:absolute;top:0;width:44px;height:52px;background:rgba(255,255,255,.05);border:1.5px solid #33465C;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;font-weight:500;
+  transition:left .5s cubic-bezier(.34,1.35,.64,1), width .4s ease, height .4s ease, border-radius .4s ease, background .4s ease, border-color .3s ease;}
+#pb0{left:0;} #pb1{left:60px;} #pb2{left:120px;} #pb3{left:180px;}
+.pingate-box.filled{border-color:#2E6690;background:rgba(46,102,144,.18);}
+.pingate-box.glow{border-color:#5FA8D3;}
+.pingate-dgt{transition:opacity .2s ease;}
+.pingate-box.as-dot .pingate-dgt{opacity:0;}
+.pingate-box.as-dot{width:14px;height:14px;border-radius:50%;background:#5FA8D3;border-color:#5FA8D3;}
+#pb0.as-dot{left:79px;} #pb1.as-dot{left:99px;} #pb2.as-dot{left:119px;} #pb3.as-dot{left:139px;}
 .pingate-btn{background:rgba(255,255,255,.06);border:none;color:#fff;font-size:16px;padding:12px 0;border-radius:9px;cursor:pointer;transition:background .12s;}
 .pingate-btn:hover{background:rgba(255,255,255,.14);}
 #pinGateDel{display:flex;align-items:center;justify-content:center;font-size:15px;}
@@ -943,9 +965,11 @@
   var LAST_ACTIVITY_KEY = 'dso:pin-last-activity';
   var entered = '';
   var overlay = document.getElementById('pinGateOverlay');
-  var dotsWrap = document.getElementById('pinDots');
+  var stage1 = document.getElementById('pinGateStage1');
+  var successStage = document.getElementById('pinGateSuccess');
+  var boxWrap = document.getElementById('pinBoxWrap');
+  var boxes = [0,1,2,3].map(function(i){ return document.getElementById('pb'+i); });
   var errEl = document.getElementById('pinGateError');
-  var box = dotsWrap.parentElement;
 
   function isUnlocked(){
     if (sessionStorage.getItem('dso:pin-unlocked') !== '1') return false;
@@ -957,7 +981,10 @@
     overlay.style.display = 'flex';
     sessionStorage.removeItem('dso:pin-unlocked');
     entered = '';
-    renderDots();
+    stage1.style.display = 'block';
+    successStage.style.display = 'none';
+    boxes.forEach(function(b){ b.classList.remove('as-dot','glow'); });
+    renderBoxes();
   }
 
   // Sudah unlock sebelumnya DAN belum idle 30 menit? Langsung lewati gerbang.
@@ -966,38 +993,55 @@
     markActivity();
   }
 
-  function renderDots(){
-    document.querySelectorAll('.pingate-dot').forEach(function(d, i){
-      d.classList.toggle('filled', i < entered.length);
+  function renderBoxes(){
+    boxes.forEach(function(b, i){
+      var dgt = b.querySelector('.pingate-dgt');
+      var ch = entered[i] || '';
+      dgt.textContent = ch;
+      b.classList.toggle('filled', ch !== '');
     });
   }
+  function sleep(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
   function checkPin(){
     if (entered === CORRECT_PIN) {
-      sessionStorage.setItem('dso:pin-unlocked', '1');
-      markActivity();
-      overlay.style.display = 'none';
+      playSuccessAnim();
     } else {
       errEl.textContent = 'PIN salah, coba lagi';
-      box.classList.add('pingate-shake');
+      boxWrap.classList.add('pingate-shake');
       setTimeout(function(){
-        box.classList.remove('pingate-shake');
+        boxWrap.classList.remove('pingate-shake');
         entered = '';
-        renderDots();
+        renderBoxes();
         errEl.textContent = '';
       }, 500);
     }
+  }
+  // TAMBAHAN VISUAL: setelah PIN benar, kotak digit meleleh jadi titik lalu
+  // otomatis pindah ke layar sukses -- tanpa garis penghubung, tanpa tombol
+  // lanjut manual, langsung masuk ke HUB.
+  async function playSuccessAnim(){
+    boxes.forEach(function(b){ b.classList.add('glow'); });
+    await sleep(200);
+    boxes.forEach(function(b, i){ setTimeout(function(){ b.classList.add('as-dot'); }, i*50); });
+    await sleep(650);
+    stage1.style.display = 'none';
+    successStage.style.display = 'block';
+    await sleep(750);
+    sessionStorage.setItem('dso:pin-unlocked', '1');
+    markActivity();
+    overlay.style.display = 'none';
   }
   document.querySelectorAll('.pingate-btn[data-k]').forEach(function(btn){
     btn.addEventListener('click', function(){
       if (entered.length >= 4) return;
       entered += btn.dataset.k;
-      renderDots();
+      renderBoxes();
       if (entered.length === 4) setTimeout(checkPin, 150);
     });
   });
   document.getElementById('pinGateDel').addEventListener('click', function(){
     entered = entered.slice(0, -1);
-    renderDots();
+    renderBoxes();
     errEl.textContent = '';
   });
 
