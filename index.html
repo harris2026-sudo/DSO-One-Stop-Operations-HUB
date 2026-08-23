@@ -4038,7 +4038,10 @@ function parsePobrSheet(rows){
   }
   const { r: rHeader, noCol, nameCol } = head;
   const dayNumRow = rows[rHeader+1] || [];
-  const dateAnchorRow = rows[rHeader-1] || [];
+  // Baris tanggal-anchor ("29-Des-25" dst.) ternyata ada di baris YANG SAMA dengan header
+  // "No."/"Personnel" (cuma di kolom yang jauh lebih kanan, di area kolom-kolom hari) -
+  // bukan di baris atasnya seperti dugaan awal.
+  const dateAnchorRow = rows[rHeader] || [];
 
   // Kumpulkan kolom-kolom hari: mulai dari kolom pertama setelah nameCol yang berisi angka 1-31,
   // lalu ambil semua kolom berikutnya secara berurutan selama masih berisi angka 1-31 (tanpa jeda).
@@ -4089,7 +4092,15 @@ function parsePobrSheet(rows){
   }
   if(people.length === 0) throw new Error('baris data personel tidak ditemukan di sheet');
 
-  return { dates, people };
+  // Pengaman: buang kolom-kolom di ujung yang tanggalnya gagal ke-parse (null) - jangan sampai
+  // ada null lolos ke dates[] yang bisa bikin tampilan (pobrTodayIdx dkk) crash.
+  const keepIdx = [];
+  dates.forEach((d,i) => { if(d) keepIdx.push(i); });
+  if(keepIdx.length === 0) throw new Error('tanggal pada kolom harian gagal terbaca semua (cek format anchor tanggal di sheet)');
+  const cleanDates = keepIdx.map(i => dates[i]);
+  const cleanPeople = people.map(p => ({ name:p.name, photo:p.photo, statuses: keepIdx.map(i => p.statuses[i]) }));
+
+  return { dates: cleanDates, people: cleanPeople };
 }
 async function fetchPobrSheetData(){
   await loadGoogleChartsOnce();
@@ -4131,7 +4142,16 @@ async function syncPobrFromSheet(showAlert){
     await dsoSave(DSO_POBR_KEY, fresh);
     const now = new Date();
     await dsoSave(DSO_POBR_LASTSYNC_KEY, now.toISOString());
-    if(tipEl) tipEl.textContent = 'Live-sync dari Rooster_BIB.xlsx · terakhir ' + now.toLocaleString('id-ID');
+    // Kalau tanggal terakhir yang tercatat di sheet sudah lewat lebih dari 7 hari dari hari ini,
+    // kemungkinan besar sheet-nya belum di-update untuk periode terbaru - beri tahu di tooltip
+    // supaya jelas ini bukan gagal sync, tapi memang datanya belum diisi sampai hari ini.
+    const lastSheetDate = fresh.dates.length ? new Date(fresh.dates[fresh.dates.length-1] + 'T00:00:00') : null;
+    const daysBehind = lastSheetDate ? Math.round((now - lastSheetDate) / 86400000) : null;
+    let tip = 'Live-sync dari Rooster_BIB.xlsx · terakhir ' + now.toLocaleString('id-ID');
+    if(daysBehind !== null && daysBehind > 7){
+      tip += ` · ⚠️ sheet baru terisi s/d ${lastSheetDate.toLocaleDateString('id-ID')} (${daysBehind} hari lalu) - cek apakah roster perlu diperpanjang`;
+    }
+    if(tipEl) tipEl.textContent = tip;
     pobrData = fresh;
     const countEl = document.getElementById('pobrPersonCount');
     if(countEl) countEl.textContent = pobrData.people.length;
@@ -5401,6 +5421,7 @@ function pobrTodayIdx(dates){
     let best = 0, bestDiff = Infinity;
     const t = new Date(iso).getTime();
     dates.forEach((d,i) => {
+      if(!d) return; // lewati entri kosong, jangan sampai dipilih jadi "terdekat"
       const diff = Math.abs(new Date(d).getTime() - t);
       if(diff < bestDiff){ bestDiff = diff; best = i; }
     });
@@ -5515,12 +5536,23 @@ function pobrRenderTable(filterQ){
 
   if(!people.length){ table.innerHTML = ''; return; }
 
+  // Pengaman: kalau ada entri tanggal yang rusak/kosong di data (mis. sisa data lama sebelum
+  // perbaikan sync), jangan sampai tampil "undefined NaN/NaN" - lewati kolomnya saja dan catat
+  // ke console supaya ketahuan datanya perlu di-sync ulang.
+  const badDates = [];
+  dates.forEach((d,i) => { if(!d || isNaN(new Date(d+'T00:00:00').getTime())) badDates.push(start+i); });
+  if(badDates.length){
+    console.warn('POB Roster: ditemukan tanggal tidak valid pada index', badDates, '- data pobrData.dates:', JSON.stringify(pobrData.dates), '. Coba klik ikon sumber (📄) untuk sync ulang.');
+  }
+
   let thead = '<thead><tr><th class="rowlabel">Personel</th>';
   dates.forEach((d,i) => {
     const realIdx = start + i;
-    const dt = new Date(d + 'T00:00:00');
+    const dt = d ? new Date(d + 'T00:00:00') : null;
+    const valid = dt && !isNaN(dt.getTime());
     const isToday = realIdx === idx;
-    thead += `<th class="${isToday?'today-col':''}">${POBR_DAY_ID[dt.getDay()]}<br>${dt.getDate()}/${dt.getMonth()+1}</th>`;
+    const label = valid ? `${POBR_DAY_ID[dt.getDay()]}<br>${dt.getDate()}/${dt.getMonth()+1}` : '–';
+    thead += `<th class="${isToday?'today-col':''}">${label}</th>`;
   });
   thead += '</tr></thead>';
 
