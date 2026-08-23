@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Open Point — DSO Ops HUB</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<style>
+  :root{
+    --bg:#F4F6F4;
+    --surface:#FFFFFF;
+    --surface-alt:#EEF1EE;
+    --border:#DCE1DD;
+    --text:#152029;
+    --text-secondary:#5B6B70;
+    --text-muted:#8C9A9E;
+    --navy:#0F1B2C;
+    --navy-light:#1B2F47;
+    --accent:#2E6690;
+    --steel-light:#E6EEF4;
+    --hilite:#E6EEF4;
+    --zebra:#EEF1EE;
+    --green:#1C8A6E;
+    --green-bg:#E0F2EC;
+    --green-fg:#1C8A6E;
+    --yellow-bg:#FAEFDA;
+    --yellow-fg:#DE9A34;
+    --blue-bg:#E6EEF4;
+    --blue-fg:#2E6690;
+    --red-bg:#FAE6E1;
+    --red-fg:#CF5138;
+    --grey-bg:#EEF1EE;
+    --grey-fg:#5B6B70;
+    --gold-bg:#FAEFDA;
+    --gold-fg:#DE9A34;
+    --purple-bg:#EFE9F7;
+    --purple-fg:#6C4FA0;
+    --black-bg:#0F1B2C;
+    --black-fg:#fff;
+    --radius:10px;
+    --font-display:'Space Grotesk',sans-serif;
+    --font-body:'Inter',Arial,sans-serif;
+    --font-mono:'JetBrains Mono',monospace;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:var(--font-body);background:var(--bg);color:var(--text);padding-bottom:40px;}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 18px;}
+
+  header.top{background:var(--navy);color:#DDE6EC;padding:18px 18px 20px;}
+  header.top .inner{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:12px;}
+  header.top .brand-icon{width:38px;height:38px;border-radius:10px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+  .badge-role{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.08);border-radius:8px;padding:5px 10px;font-size:11px;font-weight:600;font-family:var(--font-display);margin-bottom:4px;}
+  .badge-role .dot{width:7px;height:7px;border-radius:50%;background:var(--accent);}
+  header.top h1{font-family:var(--font-display);font-size:17px;font-weight:600;margin:0;}
+  header.top .sub{font-size:11px;color:#9FB0C2;margin-top:2px;}
+
+  .btn{border:1px solid var(--border);border-radius:8px;padding:9px 14px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--font-body);background:var(--surface);color:var(--text);}
+  .btn-primary{background:var(--accent);border-color:var(--accent);color:#fff;}
+  .btn-primary:hover{background:var(--navy-light);border-color:var(--navy-light);color:#fff;}
+  .btn-ghost{background:var(--surface);color:var(--text);border-color:var(--border);}
+  .btn-ghost:hover{border-color:var(--accent);color:var(--accent);}
+
+  .select-with-actions{display:flex;gap:4px;}
+  .select-with-actions select{flex:1;min-width:0;}
+  .icon-btn{border:none;border-radius:6px;font-size:13px;font-weight:bold;cursor:pointer;padding:0 9px;font-family:Arial;flex-shrink:0;transition:transform .15s ease,box-shadow .15s ease;}
+  .icon-btn:hover{transform:translateY(-1px);box-shadow:0 3px 8px rgba(0,0,0,.12);}
+  .icon-btn:active{transform:scale(.94);}
+  .icon-btn-add{background:var(--hilite);color:var(--navy);}
+  .icon-btn-add:hover{background:#c3d7ee;}
+
+  .modal-overlay{position:fixed;inset:0;background:rgba(20,30,45,.55);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;z-index:9999;padding:16px;}
+  .modal-overlay.active{display:flex;}
+  .modal-box{background:#fff;border-radius:14px;max-width:420px;width:100%;max-height:82vh;overflow-y:auto;padding:20px;box-shadow:0 10px 40px rgba(0,0,0,.3);position:relative;animation:popIn .22s ease;}
+  .modal-box h3{margin:0 0 14px;color:var(--navy);font-size:16px;padding-right:20px;}
+  .modal-close-x{position:absolute;top:12px;right:14px;background:none;border:none;font-size:18px;cursor:pointer;color:#889;line-height:1;padding:2px;}
+  .modal-close-x:hover{color:var(--red-fg);}
+  .vendor-add-row{display:flex;gap:8px;margin-bottom:12px;}
+  .vendor-add-row input{flex:1;border:1px solid #c7d3e0;border-radius:6px;padding:9px 10px;font-size:13px;font-family:Arial;}
+  .vendor-item-list{display:flex;flex-direction:column;gap:6px;max-height:280px;overflow-y:auto;}
+  .vendor-item{display:flex;justify-content:space-between;align-items:center;background:var(--zebra);border-radius:8px;padding:8px 10px;font-size:13px;color:#223;transition:background .15s ease;}
+  .vendor-item:hover{background:var(--hilite);}
+  .vendor-item .vendor-item-label{font-size:12px;}
+  .vendor-item .vendor-item-del{background:var(--red-bg);color:var(--red-fg);border:none;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:bold;cursor:pointer;font-family:Arial;flex-shrink:0;}
+  .vendor-item .vendor-item-del:hover{background:#f8b3bc;}
+  .vendor-item .vendor-item-del.confirming{background:var(--red-fg);color:#fff;}
+  .vendor-empty-note{font-size:12px;color:#889;text-align:center;padding:10px 0;}
+  .wim-icon-btn{display:inline-flex;align-items:center;justify-content:center;width:29px;height:29px;border-radius:8px;cursor:pointer;color:var(--text-muted);background:transparent;border:none;transition:transform .12s,background .12s,color .12s,box-shadow .12s;}
+  .wim-icon-btn i{font-size:15px;}
+  .wim-icon-btn:hover{transform:translateY(-1px);}
+  .wim-icon-btn.edit:hover{background:var(--steel-light);color:var(--accent);box-shadow:0 0 0 4px var(--steel-light);}
+  .wim-icon-btn:active{transform:translateY(0) scale(.92);}
+
+  @keyframes popIn{from{opacity:0;transform:scale(.94) translateY(8px);}to{opacity:1;transform:scale(1) translateY(0);}}
+
+  #toastWrap{position:fixed;top:16px;right:16px;z-index:9999;display:flex;flex-direction:column;gap:8px;}
+  .toast{display:flex;align-items:center;gap:10px;min-width:220px;max-width:340px;padding:12px 16px;border-radius:8px;color:#fff;font-size:13px;font-weight:600;background:var(--navy);box-shadow:0 4px 14px rgba(0,0,0,.18);opacity:0;transform:translateX(20px);transition:opacity .3s ease,transform .35s cubic-bezier(.34,1.56,.64,1);}
+  .toast.show{opacity:1;transform:translateX(0);}
+  .toast.toast-success{background:#1f7a3f;}
+  .toast.toast-error{background:#b3261e;}
+
+  .conn-banner{display:none;background:var(--red-bg);color:var(--red-fg);border:1px solid #e3b3a8;border-radius:9px;padding:9px 11px;font-size:11.5px;margin:0 0 12px;}
+  .conn-banner.show{display:block;}
+  footer{text-align:center;font-size:11px;color:var(--text-muted);padding:26px 0 6px;}
+
+/* ================= OPEN POINT ================= */
+  .summary{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:22px;margin-top:14px;}
+  @media(max-width:900px){.summary{grid-template-columns:repeat(3,1fr);}}
+  @media(max-width:560px){.summary{grid-template-columns:repeat(2,1fr);}}
+  .summary .card{background:var(--surface);border-radius:12px;padding:16px 18px;text-align:left;box-shadow:none;border:1px solid var(--border);}
+  .summary .card .num{font-size:26px;font-weight:500;font-family:var(--font-mono);color:var(--text);}
+  .summary .card .lab{font-size:12px;color:var(--text-secondary);margin-top:8px;text-transform:none;letter-spacing:0;}
+
+  .fu-form{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px;box-shadow:0 2px 6px rgba(15,27,44,.04);display:flex;flex-wrap:wrap;gap:10px;}
+  .fu-form label{font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:6px;}
+  .fu-form input, .fu-form select, .fu-form textarea{border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:8px;padding:9px 10px;font-size:13px;font-family:var(--font-body);width:100%;}
+  .fu-form .f-grow{flex:2;min-width:200px;}
+  .fu-form .f-small{flex:1;min-width:150px;}
+
+  .fu-toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;}
+  .fu-filter{border:1.5px solid var(--hilite);background:var(--surface);color:var(--navy);border-radius:14px;padding:6px 12px;font-size:12px;font-weight:bold;cursor:pointer;font-family:var(--font-body);}
+  .fu-filter.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+
+  .fu-card{background:var(--surface);border-radius:10px;padding:12px 14px;margin-bottom:8px;box-shadow:0 2px 6px rgba(15,27,44,.04);border:1px solid var(--border);border-left:5px solid #ccc;transition:transform .15s ease,box-shadow .15s ease;}
+  .fu-card:hover{transform:translateX(2px);box-shadow:0 4px 14px rgba(0,0,0,.08);}
+  .fu-card .fu-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+  .fu-card .fu-desc{font-size:13px;color:var(--text);font-weight:700;margin-bottom:4px;}
+  .fu-card .fu-meta{font-size:11px;color:var(--text-secondary);}
+  .fu-card .fu-note{font-size:12px;color:var(--text-secondary);margin-top:6px;}
+
+  .fu-badge{display:inline-block;font-size:10.5px;font-weight:bold;padding:3px 10px;border-radius:12px;white-space:nowrap;}
+  .fu-badge.Kritis{background:var(--red-bg);color:var(--red-fg);}
+  .fu-badge.MenungguVendor{background:var(--yellow-bg);color:var(--yellow-fg);}
+  .fu-badge.Normal{background:var(--blue-bg);color:var(--blue-fg);}
+  .fu-badge.Closed{background:var(--green-bg);color:var(--green);}
+  .fu-card.status-Kritis{border-left-color:var(--red-fg);}
+  .fu-card.status-MenungguVendor{border-left-color:#d8b400;}
+  .fu-card.status-Normal{border-left-color:#6a9bcf;}
+  .fu-card.status-Closed{border-left-color:var(--green);}
+
+  .fu-age-tag{display:inline-block;font-size:9.5px;font-weight:bold;background:var(--hilite);color:var(--navy);border-radius:8px;padding:1px 7px;margin-left:6px;vertical-align:middle;}
+  .fu-actions{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;}
+  .fu-actions select{border:1px solid var(--border);border-radius:6px;padding:4px 6px;font-size:11.5px;font-family:var(--font-body);background:var(--surface);color:var(--text);width:auto;}
+  .fu-del{border:1.5px solid #e39aa1;background:var(--red-bg);color:var(--red-fg);border-radius:14px;padding:5px 14px;font-size:11.5px;font-weight:bold;cursor:pointer;font-family:var(--font-body);}
+  .fu-del:hover{background:#ffb3bd;}
+  .empty-note{font-size:12px;color:var(--text-muted);text-align:center;padding:14px;}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="inner">
+    <div class="brand-icon"><i class="ti ti-alert-triangle"></i></div>
+    <div>
+      <span class="badge-role"><span class="dot"></span> DSO One-Stop Ops HUB</span>
+      <h1>Open Point</h1>
+      <div class="sub">Ringkasan Operasional Site</div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="conn-banner" id="connBanner"></div>
+
+  <div class="fu-form">
+    <div class="f-grow">
+      <label>Deskripsi Isu</label>
+      <input type="text" id="opDesc" placeholder="Contoh: UPS shelter drop out berulang">
+    </div>
+    <div class="f-small">
+      <label>Site</label>
+      <div class="select-with-actions">
+        <select id="opSite">
+          <option value="">-</option>
+        </select>
+        <button type="button" class="icon-btn icon-btn-add" id="opSiteManageBtn" title="Kelola daftar site (tambah/hapus)">⚙️</button>
+      </div>
+    </div>
+    <div class="f-small">
+      <label>Vendor</label>
+      <div class="select-with-actions">
+        <select id="opVendor">
+          <option value="">-</option>
+        </select>
+        <button type="button" class="icon-btn icon-btn-add" id="opVendorManageBtn" title="Kelola daftar vendor (tambah/hapus)">⚙️</button>
+      </div>
+    </div>
+    <div class="f-small">
+      <label>Prioritas / Status</label>
+      <select id="opStatus">
+        <option value="Kritis">Kritis</option>
+        <option value="MenungguVendor">Menunggu Vendor</option>
+        <option value="Normal">Normal</option>
+        <option value="Closed">Closed</option>
+      </select>
+    </div>
+    <div class="f-grow">
+      <label>Catatan</label>
+      <input type="text" id="opNote" placeholder="Catatan tambahan (opsional)">
+    </div>
+    <div style="align-self:flex-end;">
+      <button class="btn btn-primary" id="opAddBtn">+ Tambah Open Point</button>
+    </div>
+  </div>
+
+  <div class="summary" id="opSummaryCards"></div>
+
+  <div class="fu-toolbar" id="opFilterBar"></div>
+  <div id="opList"></div>
+</div>
+
+<!-- ================= MODAL: KELOLA SITE ================= -->
+<div class="modal-overlay" id="siteModalOverlay">
+  <div class="modal-box">
+    <button type="button" class="modal-close-x" id="siteModalCloseBtn" title="Tutup">✕</button>
+    <h3>📍 Kelola Daftar Site</h3>
+    <div class="vendor-add-row">
+      <input type="text" id="siteModalInput" placeholder="Nama site baru...">
+      <button type="button" class="btn btn-primary" id="siteModalAddBtn">+ Tambah</button>
+    </div>
+    <div id="siteModalMsg" style="display:none;font-size:11.5px;color:var(--red-fg);font-weight:bold;margin-bottom:8px;"></div>
+    <div class="vendor-item-list" id="siteModalList"></div>
+    <div style="text-align:right;margin-top:14px;">
+      <button type="button" class="btn btn-ghost" id="siteModalDoneBtn">Selesai</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= MODAL: KELOLA VENDOR ================= -->
+<div class="modal-overlay" id="vendorModalOverlay">
+  <div class="modal-box">
+    <button type="button" class="modal-close-x" id="vendorModalCloseBtn" title="Tutup">✕</button>
+    <h3>🛠️ Kelola Daftar Vendor</h3>
+    <div class="vendor-add-row">
+      <input type="text" id="vendorModalInput" placeholder="Nama vendor baru...">
+      <button type="button" class="btn btn-primary" id="vendorModalAddBtn">+ Tambah</button>
+    </div>
+    <div id="vendorModalMsg" style="display:none;font-size:11.5px;color:var(--red-fg);font-weight:bold;margin-bottom:8px;"></div>
+    <div class="vendor-item-list" id="vendorModalList"></div>
+    <div style="text-align:right;margin-top:14px;">
+      <button type="button" class="btn btn-ghost" id="vendorModalDoneBtn">Selesai</button>
+    </div>
+  </div>
+</div>
+
+<div id="toastWrap"></div>
+
+<footer>Maintain. Monitor. Improve. — Digitech Monitoring Team</footer>
+
+<script>
+/* ================= KONFIGURASI — HARUS SAMA PERSIS DENGAN HUB UTAMA ================= */
+const APPS_SCRIPT_URL = "https://dcva-backend.meharrisborneo.workers.dev";
+// TAMBAHAN KEAMANAN: HARUS SAMA PERSIS dengan DSO_API_KEY di HUB utama & Secret
+// "DSO_API_KEY" di Cloudflare (Worker "dcva-backend" > Settings > Variables and Secrets).
+const DSO_API_KEY = "jNiEM1vRHpdTBnimKIX7b7FBDHiSCcQhl5nhJ4KXq0k";
+
+/* ================= BACKEND: sama persis dengan store.get/set di HUB utama ================= */
+async function gsGet(key){
+  const res = await fetch(`${APPS_SCRIPT_URL}?action=get&key=${encodeURIComponent(key)}&_t=${Date.now()}`, { cache: 'no-store', headers: { 'X-Dso-Api-Key': DSO_API_KEY } });
+  if(!res.ok) throw new Error('HTTP ' + res.status);
+  const data = await res.json();
+  if(data.error === 'not_found') throw new Error('not found');
+  if(data.error) throw new Error(data.message || data.error);
+  return { key: data.key, value: data.value };
+}
+async function gsSet(key, value){
+  const url = `${APPS_SCRIPT_URL}?action=set&key=${encodeURIComponent(key)}&value=${encodeURIComponent(value)}&_t=${Date.now()}`;
+  const res = await fetch(url, { cache: 'no-store', headers: { 'X-Dso-Api-Key': DSO_API_KEY } });
+  if(!res.ok) throw new Error('HTTP ' + res.status);
+  const data = await res.json();
+  if(data.error) throw new Error(data.message || data.error);
+  return { key: data.key, value: data.value };
+}
+async function gsDelete(key){
+  const url = `${APPS_SCRIPT_URL}?action=delete&key=${encodeURIComponent(key)}&_t=${Date.now()}`;
+  const res = await fetch(url, { cache: 'no-store', headers: { 'X-Dso-Api-Key': DSO_API_KEY } });
+  if(!res.ok) throw new Error('HTTP ' + res.status);
+  const data = await res.json();
+  if(data.error) throw new Error(data.message || data.error);
+  return { key: data.key, deleted: data.deleted };
+}
+async function gsList(prefix){
+  const res = await fetch(`${APPS_SCRIPT_URL}?action=list&prefix=${encodeURIComponent(prefix)}&_t=${Date.now()}`, { cache: 'no-store', headers: { 'X-Dso-Api-Key': DSO_API_KEY } });
+  if(!res.ok) throw new Error('HTTP ' + res.status);
+  const data = await res.json();
+  if(data.error) throw new Error(data.message || data.error);
+  return { keys: data.keys || [] };
+}
+const store = { get: gsGet, set: gsSet, delete: gsDelete, list: gsList };
+
+function showConnBanner(msg){
+  const el = document.getElementById('connBanner');
+  el.textContent = '⚠️ Gagal terhubung ke backend: ' + msg + '. Perubahan akan dicoba lagi otomatis saat koneksi kembali normal.';
+  el.classList.add('show');
+}
+function hideConnBanner(){ document.getElementById('connBanner').classList.remove('show'); }
+
+/* ================= HELPER PENYIMPANAN (identik dengan dsoLoad/dsoSave di HUB utama) ================= */
+async function dsoLoad(key, fallback){
+  try{
+    const res = await store.get(key);
+    if(res && res.value) { hideConnBanner(); return JSON.parse(res.value); }
+  }catch(e){
+    if(e.message !== 'not found'){ showConnBanner(e.message || 'unknown error'); }
+  }
+  try{ await store.set(key, JSON.stringify(fallback)); }catch(e){}
+  return fallback;
+}
+async function dsoSave(key, val){
+  try{ await store.set(key, JSON.stringify(val)); hideConnBanner(); }
+  catch(e){ console.error('gagal simpan', key, e); showConnBanner(e.message || 'unknown error'); }
+}
+
+/* ---------------- TOAST NOTIFIKASI ---------------- */
+function showToast(message, type){
+  const wrap = document.getElementById('toastWrap');
+  const el = document.createElement('div');
+  el.className = 'toast' + (type ? ' toast-' + type : '');
+  el.textContent = message;
+  wrap.appendChild(el);
+  requestAnimationFrame(() => el.classList.add('show'));
+  setTimeout(() => {
+    el.classList.remove('show');
+    setTimeout(() => el.remove(), 300);
+  }, 2800);
+}
+
+/* ---------------- ESCAPE HTML (anti-XSS untuk teks bebas pengguna) ---------------- */
+function escapeHtml(str){
+  return String(str == null ? '' : str)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function todayStr(){
+  const d = new Date();
+  const tz = d.getTimezoneOffset() * 60000;
+  return new Date(d - tz).toISOString().slice(0,10);
+}
+function formatDateID(dateStr){
+  if(!dateStr) return '';
+  const parts = String(dateStr).split('-');
+  if(parts.length !== 3) return dateStr;
+  const [y, m, d] = parts;
+  return `${d}-${m}-${y}`;
+}
+
+/* ---------------- ANIMASI ANGKA KARTU RINGKASAN ---------------- */
+function animateCount(el, to){
+  const target = Number(to) || 0;
+  const from = 0;
+  const dur = 500;
+  const start = performance.now();
+  function step(now){
+    const p = Math.min(1, (now-start)/dur);
+    const eased = 1 - Math.pow(1-p, 3);
+    el.textContent = Math.round(from + (target-from)*eased);
+    if(p < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+function animateCountsIn(container){
+  (container||document).querySelectorAll('[data-count]').forEach(el => animateCount(el, el.dataset.count));
+}
+
+/* ---------------- KELOLA DAFTAR (site / vendor) — pola sama dengan HUB utama ---------------- */
+function createManagedList(opts){
+  const { storageKey, defaults, selectId, manageBtnId, modalOverlayId, modalInputId, modalAddBtnId,
+          modalCloseBtnId, modalDoneBtnId, modalListId, modalMsgId, itemLabel, onRename } = opts;
+  let list = [...defaults];
+
+  async function load(){
+    try{
+      const res = await store.get(storageKey);
+      const parsed = (res && res.value) ? JSON.parse(res.value) : null;
+      list = (Array.isArray(parsed) && parsed.length > 0) ? parsed : [...defaults];
+    }catch(e){ list = [...defaults]; }
+  }
+  async function save(){
+    try{ await store.set(storageKey, JSON.stringify(list)); }
+    catch(e){ console.error('Gagal menyimpan daftar ' + itemLabel, e); }
+  }
+  function renderOptions(selectedValue){
+    const sel = document.getElementById(selectId);
+    if(!sel) return;
+    const current = selectedValue !== undefined ? selectedValue : sel.value;
+    sel.innerHTML = list.map(v =>
+      `<option ${v === current ? 'selected' : ''}>${v}</option>`
+    ).join('');
+  }
+  function showMsg(text){
+    const msg = document.getElementById(modalMsgId);
+    msg.textContent = text;
+    msg.style.display = 'block';
+    clearTimeout(showMsg._t);
+    showMsg._t = setTimeout(() => { msg.style.display = 'none'; }, 3500);
+  }
+  function renderModalList(){
+    const el = document.getElementById(modalListId);
+    if(list.length === 0){
+      el.innerHTML = `<div class="vendor-empty-note">Belum ada ${itemLabel}. Tambahkan lewat kolom di atas.</div>`;
+      return;
+    }
+    el.innerHTML = list.map(v => `
+      <div class="vendor-item" data-v="${v}">
+        <span class="vendor-item-label">${v}</span>
+        <div style="display:flex;gap:4px;flex-shrink:0;">
+          <button type="button" class="wim-icon-btn edit vendor-item-edit" data-v="${v}" title="Ubah nama"><i class="ti ti-edit"></i></button>
+          <button type="button" class="vendor-item-del" data-v="${v}">Hapus</button>
+        </div>
+      </div>
+    `).join('');
+    el.querySelectorAll('.vendor-item-edit').forEach(btn => {
+      btn.onclick = () => {
+        const item = btn.closest('.vendor-item');
+        const label = item.querySelector('.vendor-item-label');
+        const oldName = btn.dataset.v;
+        if(item.querySelector('.vendor-item-rename-input')) return;
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = oldName;
+        input.className = 'vendor-item-rename-input';
+        input.style.cssText = 'flex:1;font-size:13px;border:1px solid var(--accent);border-radius:6px;padding:4px 8px;';
+        label.replaceWith(input);
+        input.focus();
+        input.select();
+        const commit = async () => {
+          const newName = input.value.trim();
+          if(!newName || newName === oldName){ renderModalList(); return; }
+          if(list.some(v => v.toLowerCase() === newName.toLowerCase() && v !== oldName)){
+            showMsg(`${itemLabel.charAt(0).toUpperCase() + itemLabel.slice(1)} "${newName}" sudah ada di daftar.`);
+            renderModalList();
+            return;
+          }
+          list = list.map(v => v === oldName ? newName : v);
+          await save();
+          if(typeof onRename === 'function') await onRename(oldName, newName);
+          renderOptions(newName);
+          renderModalList();
+        };
+        input.addEventListener('keydown', (e) => {
+          if(e.key === 'Enter'){ e.preventDefault(); commit(); }
+          if(e.key === 'Escape'){ e.preventDefault(); renderModalList(); }
+        });
+        input.addEventListener('blur', commit);
+      };
+    });
+    el.querySelectorAll('.vendor-item-del').forEach(btn => {
+      btn.onclick = async () => {
+        if(!btn.classList.contains('confirming')){
+          el.querySelectorAll('.vendor-item-del.confirming').forEach(b => { b.classList.remove('confirming'); b.textContent = 'Hapus'; });
+          btn.classList.add('confirming');
+          btn.textContent = 'Yakin?';
+          clearTimeout(btn._resetT);
+          btn._resetT = setTimeout(() => { btn.classList.remove('confirming'); btn.textContent = 'Hapus'; }, 2500);
+          return;
+        }
+        const name = btn.dataset.v;
+        list = list.filter(v => v !== name);
+        await save();
+        renderOptions('');
+        renderModalList();
+      };
+    });
+  }
+  async function submitNew(){
+    const input = document.getElementById(modalInputId);
+    const trimmed = input.value.trim();
+    if(!trimmed){ input.focus(); return; }
+    if(list.some(v => v.toLowerCase() === trimmed.toLowerCase())){
+      showMsg(`${itemLabel.charAt(0).toUpperCase() + itemLabel.slice(1)} "${trimmed}" sudah ada di daftar.`);
+      input.value = '';
+      input.focus();
+      return;
+    }
+    list.push(trimmed);
+    await save();
+    renderOptions(trimmed);
+    renderModalList();
+    input.value = '';
+    input.focus();
+  }
+  function openModal(){
+    document.getElementById(modalOverlayId).classList.add('active');
+    renderModalList();
+    document.getElementById(modalInputId).value = '';
+    document.getElementById(modalMsgId).style.display = 'none';
+    setTimeout(() => document.getElementById(modalInputId).focus(), 50);
+  }
+  function closeModal(){
+    document.getElementById(modalOverlayId).classList.remove('active');
+  }
+
+  document.getElementById(manageBtnId).onclick = openModal;
+  document.getElementById(modalCloseBtnId).onclick = closeModal;
+  document.getElementById(modalDoneBtnId).onclick = closeModal;
+  document.getElementById(modalAddBtnId).onclick = submitNew;
+  document.getElementById(modalInputId).addEventListener('keydown', (e) => {
+    if(e.key === 'Enter'){ e.preventDefault(); submitNew(); }
+  });
+  document.getElementById(modalOverlayId).addEventListener('click', (e) => {
+    if(e.target.id === modalOverlayId) closeModal();
+  });
+  document.addEventListener('keydown', (e) => {
+    if(e.key === 'Escape' && document.getElementById(modalOverlayId).classList.contains('active')) closeModal();
+  });
+
+  return { load, renderOptions, getList: () => list };
+}
+
+/* ==================================================================
+   OPEN POINT -- daftar isu/temuan operasional yang masih terbuka.
+   Key/storage IDENTIK dengan modul Open Point di HUB utama, supaya
+   data yang diinput lewat halaman standalone ini otomatis tersinkron
+   dan tampil juga di HUB (dan sebaliknya).
+   ================================================================== */
+const OPENPOINT_KEY = 'openpoint:list';
+const OPENPOINT_STATUS = ["Kritis","MenungguVendor","Normal","Closed"];
+const OPENPOINT_STATUS_LABEL = { Kritis:'Kritis', MenungguVendor:'Menunggu Vendor', Normal:'Normal', Closed:'Closed' };
+let openPointItems = [];
+let openPointFilter = 'All';
+
+const siteManager = createManagedList({
+  storageKey: 'openpoint:sites',
+  defaults: ['Angsana KM 13','Shelter Bunati 2'],
+  selectId: 'opSite',
+  manageBtnId: 'opSiteManageBtn',
+  modalOverlayId: 'siteModalOverlay',
+  modalInputId: 'siteModalInput',
+  modalAddBtnId: 'siteModalAddBtn',
+  modalCloseBtnId: 'siteModalCloseBtn',
+  modalDoneBtnId: 'siteModalDoneBtn',
+  modalListId: 'siteModalList',
+  modalMsgId: 'siteModalMsg',
+  itemLabel: 'site'
+});
+
+const opVendorManager = createManagedList({
+  storageKey: 'followup:vendors',
+  defaults: ['MVM','VGT','Vixmo','BGS','Internal'],
+  selectId: 'opVendor',
+  manageBtnId: 'opVendorManageBtn',
+  modalOverlayId: 'vendorModalOverlay',
+  modalInputId: 'vendorModalInput',
+  modalAddBtnId: 'vendorModalAddBtn',
+  modalCloseBtnId: 'vendorModalCloseBtn',
+  modalDoneBtnId: 'vendorModalDoneBtn',
+  modalListId: 'vendorModalList',
+  modalMsgId: 'vendorModalMsg',
+  itemLabel: 'vendor'
+});
+
+function opId(){ return 'op' + Date.now() + Math.floor(Math.random()*1000); }
+
+async function loadOpenPoint(){
+  try{
+    const res = await store.get(OPENPOINT_KEY);
+    openPointItems = (res && res.value) ? JSON.parse(res.value) : [];
+    hideConnBanner();
+  }catch(e){
+    openPointItems = [];
+    if(e.message !== 'not found'){ showConnBanner(e.message || 'unknown error'); }
+  }
+}
+async function saveOpenPoint(){
+  try{ await store.set(OPENPOINT_KEY, JSON.stringify(openPointItems)); hideConnBanner(); }
+  catch(e){ console.error('Gagal menyimpan open point', e); showConnBanner(e.message || 'unknown error'); }
+}
+
+/* Umur isu dalam hari, dihitung dari tanggal dibuat sampai hari ini --
+   supaya isu yang sudah lama menggantung gampang kelihatan tanpa perlu
+   hitung manual. */
+function opAgeDays(it){
+  const created = new Date(it.date + 'T00:00:00');
+  const now = new Date(todayStr() + 'T00:00:00');
+  const diff = Math.round((now - created) / 86400000);
+  return diff < 0 ? 0 : diff;
+}
+
+document.getElementById('opAddBtn').onclick = async () => {
+  const desc = document.getElementById('opDesc').value.trim();
+  if(!desc){ alert('Deskripsi isu wajib diisi.'); return; }
+  const item = {
+    id: opId(),
+    date: todayStr(),
+    desc,
+    site: document.getElementById('opSite').value,
+    vendor: document.getElementById('opVendor').value,
+    status: document.getElementById('opStatus').value,
+    note: document.getElementById('opNote').value.trim()
+  };
+  openPointItems.unshift(item);
+  await saveOpenPoint();
+  document.getElementById('opDesc').value = '';
+  document.getElementById('opSite').value = '';
+  document.getElementById('opVendor').value = '';
+  document.getElementById('opNote').value = '';
+  document.getElementById('opStatus').value = 'Kritis';
+  showToast('Open point berhasil ditambahkan.', 'success');
+  renderOpenPoint();
+};
+
+function opSummaryCounts(){
+  const counts = { Kritis:0, MenungguVendor:0, Normal:0, Closed:0 };
+  openPointItems.forEach(it => { if(counts[it.status] !== undefined) counts[it.status]++; });
+  return counts;
+}
+
+function renderOpSummary(){
+  const counts = opSummaryCounts();
+  const html = OPENPOINT_STATUS.map(s => `<div class="card"><div class="num" data-count="${counts[s]}">0</div><div class="lab">${OPENPOINT_STATUS_LABEL[s]}</div></div>`).join('')
+    + `<div class="card"><div class="num" data-count="${openPointItems.length}">0</div><div class="lab">Total</div></div>`;
+  document.getElementById('opSummaryCards').innerHTML = html;
+  animateCountsIn(document.getElementById('opSummaryCards'));
+}
+
+function renderOpFilterBar(){
+  const bar = document.getElementById('opFilterBar');
+  const opts = ['All', ...OPENPOINT_STATUS];
+  bar.innerHTML = opts.map(o => `<button class="fu-filter ${openPointFilter===o?'active':''}" data-f="${o}">${o === 'All' ? 'Semua' : OPENPOINT_STATUS_LABEL[o]}</button>`).join('');
+  bar.querySelectorAll('.fu-filter').forEach(btn => {
+    btn.onclick = () => { openPointFilter = btn.dataset.f; renderOpenPoint(); };
+  });
+}
+
+function renderOpList(){
+  const el = document.getElementById('opList');
+  const items = openPointFilter === 'All'
+    ? openPointItems.filter(it => it.status !== 'Closed')
+    : openPointItems.filter(it => it.status === openPointFilter);
+  if(items.length === 0){
+    el.innerHTML = '<div class="empty-note">Belum ada open point pada filter ini.</div>';
+    return;
+  }
+  el.innerHTML = items.map(it => `
+    <div class="fu-card status-${it.status}" data-id="${it.id}">
+      <div class="fu-top">
+        <div>
+          <div class="fu-desc">${escapeHtml(it.desc)}<span class="fu-age-tag">${opAgeDays(it)} hari</span></div>
+          <div class="fu-meta">${formatDateID(it.date)}${it.site ? ' · ' + escapeHtml(it.site) : ''}${it.vendor ? ' · Vendor: ' + escapeHtml(it.vendor) : ''}</div>
+        </div>
+        <span class="fu-badge ${it.status}">${OPENPOINT_STATUS_LABEL[it.status]}</span>
+      </div>
+      ${it.note ? `<div class="fu-note">${escapeHtml(it.note)}</div>` : ''}
+      <div class="fu-actions">
+        <select data-id="${it.id}" class="op-status-select">
+          ${OPENPOINT_STATUS.map(s => `<option value="${s}" ${s===it.status?'selected':''}>${OPENPOINT_STATUS_LABEL[s]}</option>`).join('')}
+        </select>
+        <button class="fu-del" data-id="${it.id}">Hapus</button>
+      </div>
+    </div>`).join('');
+
+  el.querySelectorAll('.op-status-select').forEach(sel => {
+    sel.onchange = async () => {
+      const item = openPointItems.find(i => i.id === sel.dataset.id);
+      if(item){ item.status = sel.value; await saveOpenPoint(); showToast('Status open point diperbarui.', 'success'); }
+      renderOpenPoint();
+    };
+  });
+  el.querySelectorAll('.fu-del').forEach(btn => {
+    btn.onclick = async () => {
+      if(!confirm('Hapus open point ini?')) return;
+      openPointItems = openPointItems.filter(i => i.id !== btn.dataset.id);
+      await saveOpenPoint();
+      showToast('Open point dihapus.', 'success');
+      renderOpenPoint();
+    };
+  });
+}
+
+async function renderOpenPoint(){
+  await siteManager.load();
+  siteManager.renderOptions();
+  await opVendorManager.load();
+  opVendorManager.renderOptions();
+  await loadOpenPoint();
+  renderOpSummary();
+  renderOpFilterBar();
+  renderOpList();
+}
+
+/* ================= INIT ================= */
+renderOpenPoint();
+</script>
+</body>
+</html>
