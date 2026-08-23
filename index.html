@@ -540,6 +540,7 @@
   .pobr-src-icon i{font-size:16px;color:var(--text-secondary);}
   .pobr-src-icon .pobr-src-tip{position:absolute;top:36px;right:0;background:var(--navy);color:#fff;font-size:10.5px;font-weight:600;padding:6px 10px;border-radius:8px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .12s ease;z-index:5;}
   .pobr-src-icon:hover .pobr-src-tip{opacity:1;}
+  .pobr-src-icon.pobr-syncing i{animation:apSpin .8s linear infinite;}
   .pobr-legend{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;}
   .pobr-legend-chip{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;padding:5px 12px;border-radius:999px;}
   .pobr-legend-chip .dot{width:8px;height:8px;border-radius:50%;}
@@ -1365,9 +1366,9 @@
           <h3><i class="ti ti-users"></i> Digitech Team Attendance Status</h3>
           <p class="pobr-subtitle" style="margin:0;"><span id="pobrPersonCount">10</span> personel, kode ON/OFF/HO/Leave sesuai roster resmi</p>
         </div>
-        <div class="pobr-src-icon" title="Sumber: Rooster_BIB.xlsx">
+        <div class="pobr-src-icon" id="pobrSrcIcon" title="Klik untuk sync dari Rooster_BIB.xlsx (Google Sheets)">
           <i class="ti ti-file-spreadsheet"></i>
-          <span class="pobr-src-tip">Sumber: Rooster_BIB.xlsx</span>
+          <span class="pobr-src-tip" id="pobrSrcTip">Sumber: Rooster_BIB.xlsx — klik untuk sync</span>
         </div>
       </div>
 
@@ -3942,6 +3943,184 @@ let apAssetsData = [];
 let apEditingIdx = null;
 const DSO_POB_KEY = 'dso:pob';
 const DSO_POBR_KEY = 'dso:pob-roster'; // status kehadiran tim Digitech (dari Rooster_BIB.xlsx)
+const DSO_POBR_LASTSYNC_KEY = 'dso:pob-roster-lastsync';
+/* ================= POB ROSTER: LIVE SYNC DARI GOOGLE SHEETS "Rooster BIB.xlsx" =================
+   Sheet: https://docs.google.com/spreadsheets/d/1H1guBoPhZVvJXnIOYN8AoM5Ktpotb7xq/edit?gid=2059245906
+   Struktur sheet (per tab tahun, mis. "Rooster 2026"):
+     - baris header berisi "No." dan "Personnel"
+     - baris tepat di atasnya berisi tanggal-anchor tiap awal minggu (mis. "29-Des-25"), merge 7 kolom
+     - baris tepat di bawah header berisi angka tanggal (1..31) satu per kolom hari
+     - baris personel: No. | Personnel | ... | kode 1/2/3/4 per hari (1=ON,2=OFF,3=HO,4=Leave)
+   gid diambil langsung dari link yang diberikan supaya tidak perlu menebak nama tab (tiap tahun
+   ada tab terpisah: Rooster 2026/2025/2024/2023 dst). */
+const POBR_SHEET_ID = '1H1guBoPhZVvJXnIOYN8AoM5Ktpotb7xq';
+const POBR_SHEET_GID = '2059245906';
+const POBR_MONTHS_ID = { Jan:0, Feb:1, Peb:1, Mar:2, Apr:3, Mei:4, May:4, Jun:5, Jul:6, Agu:7, Aug:7, Sep:8, Okt:9, Oct:9, Nov:10, Des:11, Dec:11 };
+function pobrParseDateCell(cell){
+  if(!cell) return null;
+  const f = (cell.f !== undefined && cell.f !== null ? String(cell.f) : '').trim();
+  const m = f.match(/^(\d{1,2})-([A-Za-z]{3})-(\d{2,4})$/); // 29-Des-25 / 1-Jan-26 (format lokal ID sheet-nya)
+  if(m){
+    const mon = POBR_MONTHS_ID[m[2]];
+    if(mon !== undefined){
+      let year = parseInt(m[3],10); if(year < 100) year += 2000;
+      return new Date(year, mon, parseInt(m[1],10));
+    }
+  }
+  return parseGvizCellDate(cell); // fallback ke format umum (Date object / ISO / M-D-YYYY)
+}
+function pobrIsoDate(d){
+  const pad = n => String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+}
+function pobrBuildRows(dt){
+  const numRows = dt.getNumberOfRows();
+  const numCols = dt.getNumberOfColumns();
+  const rows = [];
+  for(let r=0;r<numRows;r++){
+    const row = [];
+    for(let c=0;c<numCols;c++){
+      const v = dt.getValue(r,c);
+      const f = dt.getFormattedValue(r,c);
+      row.push(v===null && !f ? null : { v, f });
+    }
+    rows.push(row);
+  }
+  return rows;
+}
+function pobrFindHeaderRow(rows){
+  for(let r=0;r<rows.length;r++){
+    const row = rows[r];
+    for(let c=0;c<row.length;c++){
+      const t = gvizCellText(row[c]).trim().toLowerCase();
+      if(t === 'no.' || t === 'no'){
+        for(let c2=c+1;c2<Math.min(row.length,c+4);c2++){
+          const t2 = gvizCellText(row[c2]).trim().toLowerCase();
+          if(t2 === 'personnel' || t2 === 'nama' || t2 === 'name'){
+            return { r, noCol:c, nameCol:c2 };
+          }
+        }
+      }
+    }
+  }
+  return null;
+}
+/* Parse seluruh tabel sheet jadi bentuk {dates:[...ISO], people:[{name,photo,statuses:[...]}]}
+   - persis mengikuti struktur data yang sudah dipakai pobrRenderTable/pobrRenderAvatars dst. */
+function parsePobrSheet(rows){
+  const head = pobrFindHeaderRow(rows);
+  if(!head) throw new Error('baris header "No." / "Personnel" tidak ditemukan di sheet');
+  const { r: rHeader, noCol, nameCol } = head;
+  const dayNumRow = rows[rHeader+1] || [];
+  const dateAnchorRow = rows[rHeader-1] || [];
+
+  // Kumpulkan kolom-kolom hari: mulai dari kolom pertama setelah nameCol yang berisi angka 1-31,
+  // lalu ambil semua kolom berikutnya secara berurutan selama masih berisi angka 1-31 (tanpa jeda).
+  const dayCols = [];
+  let started = false;
+  for(let c=nameCol+1; c<dayNumRow.length; c++){
+    const txt = gvizCellText(dayNumRow[c]).trim();
+    const n = parseInt(txt,10);
+    const valid = txt !== '' && Number.isInteger(n) && n>=1 && n<=31;
+    if(valid){ started = true; dayCols.push(c); }
+    else if(started){ break; } // kolom kosong setelah data mulai = akhir tabel tanggal
+  }
+  if(dayCols.length === 0) throw new Error('kolom tanggal harian tidak ditemukan di sheet');
+
+  // Tentukan tanggal kalender tiap kolom: pakai anchor tanggal di awal tiap blok minggu (merge cell),
+  // lalu increment 1 hari untuk kolom-kolom berikutnya sampai anchor baru ditemukan.
+  const colDates = [];
+  let running = null;
+  dayCols.forEach(c => {
+    const anchor = pobrParseDateCell(dateAnchorRow[c]);
+    if(anchor){ running = anchor; }
+    else if(running){ running = new Date(running.getFullYear(), running.getMonth(), running.getDate()+1); }
+    colDates.push(running ? new Date(running) : null);
+  });
+  const dates = colDates.map(d => d ? pobrIsoDate(d) : null);
+
+  // Baris personel: No. berupa angka urut, kolom Personnel berisi nama. Berhenti setelah 3 baris
+  // berturut-turut gagal (menandakan sudah lewat akhir tabel), supaya baris kosong di tengah
+  // (mis. baris yang sengaja disembunyikan) tidak memutus proses lebih awal.
+  const people = [];
+  let miss = 0;
+  for(let r=rHeader+1; r<rows.length; r++){
+    const row = rows[r];
+    const noTxt = gvizCellText(row[noCol]).trim();
+    const name = gvizCellText(row[nameCol]).trim();
+    const noOk = /^\d+$/.test(noTxt);
+    if(noOk && name){
+      miss = 0;
+      const statuses = dayCols.map(c => {
+        const code = parseInt(gvizCellText(row[c]).trim(),10);
+        return Number.isInteger(code) ? code : 0;
+      });
+      people.push({ name, photo:null, statuses });
+    }else if(people.length){
+      miss++;
+      if(miss >= 3) break;
+    }
+  }
+  if(people.length === 0) throw new Error('baris data personel tidak ditemukan di sheet');
+
+  return { dates, people };
+}
+async function fetchPobrSheetData(){
+  await loadGoogleChartsOnce();
+  const url = `https://docs.google.com/spreadsheets/d/${POBR_SHEET_ID}/gviz/tq?gid=${POBR_SHEET_GID}`;
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    const timer = setTimeout(() => {
+      if(settled) return;
+      settled = true;
+      reject(new Error('timeout memuat data Rooster BIB dari Google Sheet'));
+    }, 15000);
+    try{
+      const query = new google.visualization.Query(url);
+      query.send(response => {
+        if(settled) return;
+        settled = true;
+        clearTimeout(timer);
+        if(response.isError()){
+          reject(new Error('sheet Rooster BIB tidak ditemukan (' + response.getMessage() + ')'));
+          return;
+        }
+        try{ resolve(parsePobrSheet(pobrBuildRows(response.getDataTable()))); }
+        catch(err){ reject(err); }
+      });
+    }catch(err){
+      if(settled) return;
+      settled = true;
+      clearTimeout(timer);
+      reject(err);
+    }
+  });
+}
+async function syncPobrFromSheet(showAlert){
+  const iconEl = document.getElementById('pobrSrcIcon');
+  const tipEl = document.getElementById('pobrSrcTip');
+  if(iconEl) iconEl.classList.add('pobr-syncing');
+  try{
+    const fresh = await fetchPobrSheetData();
+    await dsoSave(DSO_POBR_KEY, fresh);
+    const now = new Date();
+    await dsoSave(DSO_POBR_LASTSYNC_KEY, now.toISOString());
+    if(tipEl) tipEl.textContent = 'Live-sync dari Rooster_BIB.xlsx · terakhir ' + now.toLocaleString('id-ID');
+    pobrData = fresh;
+    const countEl = document.getElementById('pobrPersonCount');
+    if(countEl) countEl.textContent = pobrData.people.length;
+    const q = (document.getElementById('pobrSearchInput')||{}).value || '';
+    pobrRenderMiniKpi();
+    pobrRenderAvatars(q.toLowerCase().trim());
+    pobrRenderTable(q.toLowerCase().trim());
+  }catch(e){
+    console.error('gagal sync Status Kehadiran dari Rooster BIB', e);
+    if(tipEl) tipEl.textContent = 'Gagal sync: ' + e.message + ' (klik untuk coba lagi)';
+    if(showAlert) alert('Gagal sync Status Kehadiran Tim Digitech dari Google Sheet: ' + e.message);
+  }finally{
+    if(iconEl) iconEl.classList.remove('pobr-syncing');
+  }
+}
 const STOCK_SHEET_ID = '1w3rlXybBify-dOTs26n83WrlO5FzlWvQUbLq21pp4n4';
 const STOCK_SHEET_NAME = 'Summary Stok';
 const DSO_STOCK_LASTSYNC_KEY = 'dso:stock-lastsync';
@@ -5210,6 +5389,17 @@ async function renderPobRoster(){
   pobrRenderMiniKpi();
   pobrRenderAvatars('');
   pobrRenderTable('');
+
+  // Sync otomatis di background tiap kali menu POB dibuka, supaya jadwal selalu mengikuti
+  // Google Sheet Rooster BIB terbaru tanpa perlu klik manual (tampilan awal tetap pakai cache
+  // dulu di atas biar instan, lalu di-refresh diam-diam begitu data live selesai diambil).
+  syncPobrFromSheet(false);
+
+  const srcIcon = document.getElementById('pobrSrcIcon');
+  if(srcIcon && !srcIcon.dataset.bound){
+    srcIcon.dataset.bound = '1';
+    srcIcon.addEventListener('click', () => syncPobrFromSheet(true));
+  }
 
   const modeSelect = document.getElementById('pobrModeSelect');
   if(modeSelect && !modeSelect.dataset.bound){
