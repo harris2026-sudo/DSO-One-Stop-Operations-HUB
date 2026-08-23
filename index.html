@@ -2714,14 +2714,19 @@ const headerFields = {
   storageBadge: document.getElementById('storageBadge')
 };
 let headerSaveTimer = null;
-function scheduleHeaderSave(){ clearTimeout(headerSaveTimer); headerSaveTimer = setTimeout(saveHeaderConfig, 500); }
-async function saveHeaderConfig(){
-  const data = {
+let headerSavePending = false; // true kalau ada perubahan yang belum selesai terkirim ke backend
+function scheduleHeaderSave(){ clearTimeout(headerSaveTimer); headerSavePending = true; headerSaveTimer = setTimeout(saveHeaderConfig, 500); }
+function headerConfigPayload(){
+  return JSON.stringify({
     title: headerFields.headerTitle.textContent,
     subtitle: headerFields.headerSubtitle.textContent,
     badge: headerFields.storageBadge.textContent
-  };
-  try{ await store.set(HEADER_KEY, JSON.stringify(data)); }
+  });
+}
+async function saveHeaderConfig(){
+  clearTimeout(headerSaveTimer);
+  const payload = headerConfigPayload();
+  try{ await store.set(HEADER_KEY, payload); headerSavePending = false; }
   catch(e){ console.error('Gagal menyimpan header', e); }
 }
 async function loadHeaderConfig(){
@@ -2737,10 +2742,25 @@ async function loadHeaderConfig(){
 }
 Object.values(headerFields).forEach(el => {
   el.addEventListener('input', scheduleHeaderSave);
-  el.addEventListener('blur', scheduleHeaderSave);
+  // Saat kolom kehilangan fokus (klik di luar / pindah field), simpan SEGERA -
+  // tidak perlu menunggu debounce 500ms lagi, supaya kalau user langsung
+  // refresh setelah selesai edit, perubahan sudah keburu terkirim.
+  el.addEventListener('blur', saveHeaderConfig);
   el.addEventListener('keydown', (e) => { if(e.key === 'Enter'){ e.preventDefault(); el.blur(); } });
 });
 loadHeaderConfig();
+
+// Pengaman terakhir: kalau tab ditutup/refresh SAAT masih ada perubahan yang
+// belum selesai terkirim (mis. refresh super cepat sebelum blur/network selesai),
+// paksa kirim lewat sendBeacon (lebih andal saat halaman sedang unload
+// dibanding fetch() biasa yang bisa dibatalkan browser di tengah jalan).
+window.addEventListener('beforeunload', () => {
+  if(!headerSavePending) return;
+  try{
+    const url = `${APPS_SCRIPT_URL}?action=set&key=${encodeURIComponent(HEADER_KEY)}&value=${encodeURIComponent(headerConfigPayload())}&_t=${Date.now()}`;
+    navigator.sendBeacon(url);
+  }catch(e){ /* browser lama tanpa sendBeacon - abaikan, sudah best effort */ }
+});
 
 /* ---------------- ROSTER: LABEL YANG BISA DIEDIT ---------------- */
 const ROSTER_LABELS_KEY = 'app:rosterLabels';
