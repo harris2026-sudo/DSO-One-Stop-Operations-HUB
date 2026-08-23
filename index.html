@@ -1805,14 +1805,10 @@
         </div>
         <div class="grow"><label>Lokasi Pemasangan</label><input type="text" id="aebsFLokasi" style="width:100%;"></div>
         <div class="grow"><label>Alasan OFF</label>
-          <select id="aebsFAlasan" style="width:100%;">
-            <option>Belum POC</option>
-            <option>Issue Unit</option>
-            <option>Menunggu Aktivasi</option>
-            <option>Trouble Unit</option>
-            <option>AEBS</option>
-            <option>Lainnya</option>
-          </select>
+          <div class="select-with-actions">
+            <select id="aebsFAlasan" style="width:100%;"></select>
+            <button type="button" class="icon-btn icon-btn-add" id="aebsAlasanManageBtn" title="Kelola daftar alasan (tambah/ubah/hapus)">⚙️</button>
+          </div>
         </div>
         <div class="grow"><label>Catatan Non-Aktif</label><textarea id="aebsFCatatan" rows="2" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:13px;font-family:var(--font-body);"></textarea></div>
         <div class="grow">
@@ -1853,6 +1849,23 @@
       <div class="vendor-item-list" id="aebsPicModalList"></div>
       <div style="text-align:right;margin-top:14px;">
         <button type="button" class="btn btn-ghost" id="aebsPicModalDoneBtn">Selesai</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL: KELOLA ALASAN OFF AEBS ================= -->
+  <div class="modal-overlay" id="aebsAlasanModalOverlay">
+    <div class="modal-box">
+      <button type="button" class="modal-close-x" id="aebsAlasanModalCloseBtn" title="Tutup">✕</button>
+      <h3>🏷️ Kelola Daftar Alasan OFF</h3>
+      <div class="vendor-add-row">
+        <input type="text" id="aebsAlasanModalInput" placeholder="Alasan baru...">
+        <button type="button" class="btn btn-primary" id="aebsAlasanModalAddBtn">+ Tambah</button>
+      </div>
+      <div id="aebsAlasanModalMsg" style="display:none;font-size:11.5px;color:var(--red-fg);font-weight:bold;margin-bottom:8px;"></div>
+      <div class="vendor-item-list" id="aebsAlasanModalList"></div>
+      <div style="text-align:right;margin-top:14px;">
+        <button type="button" class="btn btn-ghost" id="aebsAlasanModalDoneBtn">Selesai</button>
       </div>
     </div>
   </div>
@@ -6534,6 +6547,28 @@ const aebsPicManager = createManagedList({
 async function loadAebsPicList(){ await aebsPicManager.load(); }
 function renderAebsPicOptions(v){ aebsPicManager.renderOptions(v); }
 
+const aebsAlasanManager = createManagedList({
+  storageKey: 'aebs:alasan',
+  defaults: ['Belum POC','Issue Unit','Menunggu Aktivasi','Trouble Unit','AEBS','Lainnya'],
+  selectId: 'aebsFAlasan',
+  manageBtnId: 'aebsAlasanManageBtn',
+  modalOverlayId: 'aebsAlasanModalOverlay',
+  modalInputId: 'aebsAlasanModalInput',
+  modalAddBtnId: 'aebsAlasanModalAddBtn',
+  modalCloseBtnId: 'aebsAlasanModalCloseBtn',
+  modalDoneBtnId: 'aebsAlasanModalDoneBtn',
+  modalListId: 'aebsAlasanModalList',
+  modalMsgId: 'aebsAlasanModalMsg',
+  itemLabel: 'alasan',
+  onRename: async (oldName, newName) => {
+    let changed = false;
+    aebsData.forEach(r => { if(r.alasanOff === oldName){ r.alasanOff = newName; changed = true; } });
+    if(changed){ await aebsSave(); aebsPopulateFilterOptions(); aebsRenderSummary(); aebsRenderTable(); }
+  }
+});
+async function loadAebsAlasanList(){ await aebsAlasanManager.load(); }
+function renderAebsAlasanOptions(v){ aebsAlasanManager.renderOptions(v); }
+
 /* ================= AEBS OFFLINE ENGINE ================= */
 const DSO_AEBS_KEY = 'dso:aebs-offline';
 const DSO_AEBS_LASTSYNC_KEY = 'dso:aebs-lastsync';
@@ -6768,7 +6803,7 @@ function aebsOpenModal(id){
   document.getElementById('aebsFMerk').value = rec ? rec.merk||'' : '';
   document.getElementById('aebsFModel').value = rec ? rec.model||'' : '';
   document.getElementById('aebsFLokasi').value = rec ? rec.lokasi||'' : '';
-  document.getElementById('aebsFAlasan').value = rec ? rec.alasanOff||'Belum POC' : 'Belum POC';
+  renderAebsAlasanOptions(rec ? rec.alasanOff||'Belum POC' : 'Belum POC');
   document.getElementById('aebsFCatatan').value = rec ? rec.catatanNonAktif||'' : '';
   renderAebsPicOptions(rec ? rec.pic||'' : '');
   document.getElementById('aebsFStatus').value = rec ? rec.statusTL||'offline' : 'offline';
@@ -6962,6 +6997,8 @@ async function renderAebs(){
   await aebsLoad();
   await loadAebsPicList();
   renderAebsPicOptions('');
+  await loadAebsAlasanList();
+  renderAebsAlasanOptions('');
   aebsPopulateFilterOptions();
   aebsRenderSummary();
   aebsRenderTable();
