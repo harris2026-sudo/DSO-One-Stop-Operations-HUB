@@ -1600,6 +1600,31 @@
     </div>
   </div>
 
+  <div class="modal-overlay" id="tlStatusModalOverlay">
+    <div class="modal-box">
+      <button type="button" class="modal-close-x" id="tlStatusModalCloseBtn" title="Tutup">✕</button>
+      <h3>🏷️ Kelola Daftar Status Task</h3>
+      <div class="vendor-add-row" style="align-items:flex-start;">
+        <input type="text" id="tlStatusModalInput" placeholder="Nama status baru...">
+        <select id="tlStatusModalColor" style="border:1px solid #c7d3e0;border-radius:6px;padding:9px 8px;font-size:13px;font-family:Arial;">
+          <option value="red">🔴 Merah</option>
+          <option value="yellow">🟡 Kuning</option>
+          <option value="blue">🔵 Biru</option>
+          <option value="green">🟢 Hijau</option>
+          <option value="purple">🟣 Ungu</option>
+          <option value="grey">⚪ Abu-abu</option>
+        </select>
+        <button type="button" class="btn btn-primary" id="tlStatusModalAddBtn">+ Tambah</button>
+      </div>
+      <div id="tlStatusModalMsg" style="display:none;font-size:11.5px;color:var(--red-fg);font-weight:bold;margin-bottom:8px;"></div>
+      <div class="vendor-item-list" id="tlStatusModalList"></div>
+      <div style="font-size:11px;color:#889;margin-top:10px;">Tandai satu status sebagai "status selesai" agar task dengan status itu tidak lagi dianggap overdue meski deadline lewat. Status "Overdue" sendiri dihitung otomatis dari deadline dan tidak muncul di sini.</div>
+      <div style="text-align:right;margin-top:14px;">
+        <button type="button" class="btn btn-ghost" id="tlStatusModalDoneBtn">Selesai</button>
+      </div>
+    </div>
+  </div>
+
 
   <!-- ================= MODAL: DETAIL STATUS REKAP (klik card ringkasan) ================= -->
   <div class="modal-overlay" id="rekapStatusModalOverlay">
@@ -2004,11 +2029,10 @@
       </div>
       <div class="f-small">
         <label>Status</label>
-        <select id="tlStatus">
-          <option value="BelumMulai">Belum Mulai</option>
-          <option value="Proses">Proses</option>
-          <option value="Selesai">Selesai</option>
-        </select>
+        <div class="select-with-actions">
+          <select id="tlStatus"></select>
+          <button type="button" class="icon-btn icon-btn-add" id="tlStatusManageBtn" title="Kelola daftar status (tambah/ubah/hapus)">⚙️</button>
+        </div>
       </div>
       <div class="f-grow">
         <label>Catatan</label>
@@ -4994,9 +5018,13 @@ async function wimaGatherOverviewData(){
   const inspectionActive = followUpItems.filter(it => it.status === 'Open' || it.status === 'Onprogress').length;
   const inspectionTotal = followUpItems.length;
 
-  const taskCounts = { BelumMulai:0, Proses:0, Selesai:0, Overdue:0 };
-  taskListItems.forEach(it => { taskCounts[tlEffectiveStatus(it)]++; });
-  const taskActive = taskCounts.BelumMulai + taskCounts.Proses + taskCounts.Overdue;
+  const taskCounts = { Overdue:0 };
+  let taskActive = 0;
+  taskListItems.forEach(it => {
+    const eff = tlEffectiveStatus(it);
+    taskCounts[eff] = (taskCounts[eff] || 0) + 1;
+    if(eff === 'Overdue' || !taskStatusManager.isDone(it.status)) taskActive++;
+  });
 
   const opCounts = { Kritis:0, MenungguVendor:0, Normal:0, Closed:0 };
   openPointItems.forEach(it => { if(opCounts[it.status] !== undefined) opCounts[it.status]++; });
@@ -6722,6 +6750,178 @@ function createManagedList(opts){
   return { load, renderOptions, getList: () => list };
 }
 
+/* ==================================================================
+   USC -- "Universal Status Config": standar modal untuk kelola daftar
+   status/label yang bisa ditambah/ubah/hapus, tiap entri punya warna
+   sendiri, dan SATU entri bisa ditandai sebagai "status selesai"
+   (dipakai untuk logika sembunyikan dari filter "Semua" / anggap
+   tidak aktif lagi). Awalnya dibuat khusus untuk Open Point (lihat
+   opStatus* di bawah), sekarang digeneralisasi supaya dipakai ulang
+   di menu lain (mis. Task List) tanpa tulis ulang dari nol. Warna
+   dipakai dari palet global OP_STATUS_COLORS/opStatusColor().
+   ================================================================== */
+function createUscManager(opts){
+  const { storageKey, defaults, selectId, manageBtnId, modalOverlayId, modalInputId, modalColorId,
+          modalAddBtnId, modalCloseBtnId, modalDoneBtnId, modalListId, modalMsgId, itemLabel,
+          onRename, onListChanged } = opts;
+  let list = defaults.map(s => ({...s}));
+
+  async function load(){
+    try{
+      const res = await store.get(storageKey);
+      const parsed = (res && res.value) ? JSON.parse(res.value) : null;
+      list = (Array.isArray(parsed) && parsed.length > 0) ? parsed : defaults.map(s => ({...s}));
+    }catch(e){ list = defaults.map(s => ({...s})); }
+  }
+  async function save(){
+    try{ await store.set(storageKey, JSON.stringify(list)); }
+    catch(e){ console.error('Gagal menyimpan daftar ' + itemLabel, e); }
+  }
+  function find(name){ return list.find(s => s.name === name); }
+  function isDone(name){ const s = find(name); return !!(s && s.done); }
+  function renderOptions(selectedValue){
+    const sel = document.getElementById(selectId);
+    if(!sel) return;
+    const current = selectedValue !== undefined ? selectedValue : sel.value;
+    sel.innerHTML = list.map(s => `<option value="${s.name}" ${s.name===current?'selected':''}>${s.name}</option>`).join('');
+  }
+  function showMsg(text){
+    const msg = document.getElementById(modalMsgId);
+    msg.textContent = text;
+    msg.style.display = 'block';
+    clearTimeout(showMsg._t);
+    showMsg._t = setTimeout(() => { msg.style.display = 'none'; }, 3500);
+  }
+  function renderModalList(){
+    const el = document.getElementById(modalListId);
+    if(list.length === 0){
+      el.innerHTML = `<div class="vendor-empty-note">Belum ada ${itemLabel}. Tambahkan lewat kolom di atas.</div>`;
+      return;
+    }
+    el.innerHTML = list.map(s => {
+      const c = opStatusColor(s.color);
+      return `
+      <div class="vendor-item" data-v="${s.name}">
+        <span class="op-status-item-label"><span class="op-status-swatch" style="background:${c.fg}"></span>${escapeHtml(s.name)}</span>
+        <div style="display:flex;gap:4px;flex-shrink:0;align-items:center;">
+          <button type="button" class="op-status-done-toggle ${s.done?'on':''}" data-v="${s.name}" title="Tandai sebagai status selesai">${s.done ? 'Selesai ✓' : 'Tandai selesai'}</button>
+          <button type="button" class="wim-icon-btn edit usc-item-edit" data-v="${s.name}" title="Ubah nama"><i class="ti ti-edit"></i></button>
+          <button type="button" class="vendor-item-del usc-item-del" data-v="${s.name}">Hapus</button>
+        </div>
+      </div>`;
+    }).join('');
+
+    el.querySelectorAll('.op-status-done-toggle').forEach(btn => {
+      btn.onclick = async () => {
+        const s = find(btn.dataset.v);
+        if(!s) return;
+        s.done = !s.done;
+        await save();
+        renderModalList();
+        if(typeof onListChanged === 'function') await onListChanged();
+      };
+    });
+    el.querySelectorAll('.usc-item-edit').forEach(btn => {
+      btn.onclick = () => {
+        const item = btn.closest('.vendor-item');
+        const label = item.querySelector('.op-status-item-label');
+        const oldName = btn.dataset.v;
+        if(item.querySelector('.vendor-item-rename-input')) return;
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = oldName;
+        input.className = 'vendor-item-rename-input';
+        input.style.cssText = 'flex:1;font-size:13px;border:1px solid var(--accent);border-radius:6px;padding:4px 8px;';
+        label.replaceWith(input);
+        input.focus();
+        input.select();
+        const commit = async () => {
+          const newName = input.value.trim();
+          if(!newName || newName === oldName){ renderModalList(); return; }
+          if(list.some(s => s.name.toLowerCase() === newName.toLowerCase() && s.name !== oldName)){
+            showMsg(`${itemLabel.charAt(0).toUpperCase() + itemLabel.slice(1)} "${newName}" sudah ada di daftar.`);
+            renderModalList();
+            return;
+          }
+          const s = find(oldName);
+          if(s) s.name = newName;
+          await save();
+          if(typeof onRename === 'function') await onRename(oldName, newName);
+          renderOptions(newName);
+          renderModalList();
+        };
+        input.addEventListener('keydown', (e) => {
+          if(e.key === 'Enter'){ e.preventDefault(); commit(); }
+          if(e.key === 'Escape'){ e.preventDefault(); renderModalList(); }
+        });
+        input.addEventListener('blur', commit);
+      };
+    });
+    el.querySelectorAll('.usc-item-del').forEach(btn => {
+      btn.onclick = async () => {
+        if(!btn.classList.contains('confirming')){
+          el.querySelectorAll('.usc-item-del.confirming').forEach(b => { b.classList.remove('confirming'); b.textContent = 'Hapus'; });
+          btn.classList.add('confirming');
+          btn.textContent = 'Yakin?';
+          clearTimeout(btn._resetT);
+          btn._resetT = setTimeout(() => { btn.classList.remove('confirming'); btn.textContent = 'Hapus'; }, 2500);
+          return;
+        }
+        const name = btn.dataset.v;
+        list = list.filter(s => s.name !== name);
+        await save();
+        renderOptions('');
+        renderModalList();
+        if(typeof onListChanged === 'function') await onListChanged();
+      };
+    });
+  }
+  async function submitNew(){
+    const input = document.getElementById(modalInputId);
+    const colorSel = document.getElementById(modalColorId);
+    const trimmed = input.value.trim();
+    if(!trimmed){ input.focus(); return; }
+    if(list.some(s => s.name.toLowerCase() === trimmed.toLowerCase())){
+      showMsg(`${itemLabel.charAt(0).toUpperCase() + itemLabel.slice(1)} "${trimmed}" sudah ada di daftar.`);
+      input.value = '';
+      input.focus();
+      return;
+    }
+    list.push({ name:trimmed, color: colorSel ? colorSel.value : 'grey', done:false });
+    await save();
+    renderOptions(trimmed);
+    renderModalList();
+    input.value = '';
+    input.focus();
+  }
+  function openModal(){
+    document.getElementById(modalOverlayId).classList.add('active');
+    renderModalList();
+    document.getElementById(modalInputId).value = '';
+    document.getElementById(modalMsgId).style.display = 'none';
+    setTimeout(() => document.getElementById(modalInputId).focus(), 50);
+  }
+  function closeModal(){
+    document.getElementById(modalOverlayId).classList.remove('active');
+  }
+
+  document.getElementById(manageBtnId).onclick = openModal;
+  document.getElementById(modalCloseBtnId).onclick = closeModal;
+  document.getElementById(modalDoneBtnId).onclick = async () => { closeModal(); if(typeof onListChanged === 'function') await onListChanged(); };
+  document.getElementById(modalAddBtnId).onclick = submitNew;
+  document.getElementById(modalInputId).addEventListener('keydown', (e) => {
+    if(e.key === 'Enter'){ e.preventDefault(); submitNew(); }
+  });
+  document.getElementById(modalOverlayId).addEventListener('click', (e) => {
+    if(e.target.id === modalOverlayId) closeModal();
+  });
+  document.addEventListener('keydown', (e) => {
+    if(e.key === 'Escape' && document.getElementById(modalOverlayId).classList.contains('active')) closeModal();
+  });
+
+  return { load, renderOptions, getList: () => list, find, isDone };
+}
+
 const vendorManager = createManagedList({
   storageKey: 'followup:vendors',
   defaults: ['MVM','VGT','Vixmo','BGS','Internal'],
@@ -7459,11 +7659,19 @@ async function renderFollowUp(){
 /* ==================================================================
    TASK LIST -- daftar pekerjaan internal Digitech (bukan checklist
    harian rutin). Berdiri sendiri, key/storage terpisah dari Follow Up.
-   Status "Overdue" dihitung otomatis dari deadline, tidak dipilih manual.
-   ================================================================== */
+   Status "Overdue" dihitung otomatis dari deadline, tidak dipilih manual
+   dan tidak ikut di daftar status yang bisa dikelola (lihat taskStatusManager
+   di bawah -- pola "Universal Status Config (USC)", sama seperti Open Point). */
 const TASKLIST_KEY = 'tasklist:list';
-const TASKLIST_STATUS = ["BelumMulai","Proses","Selesai"];
-const TASKLIST_STATUS_LABEL = { BelumMulai:'Belum Mulai', Proses:'Proses', Selesai:'Selesai', Overdue:'Overdue' };
+const TASKLIST_STATUS_DEFAULTS = [
+  { name:'Belum Mulai', color:'grey',  done:false },
+  { name:'Proses',      color:'blue',  done:false },
+  { name:'Selesai',     color:'green', done:true  }
+];
+/* Migrasi satu-kali dari value lama tanpa spasi (BelumMulai/Proses/Selesai,
+   dipakai sebelum status jadi bisa dikelola user) ke value baru = nama status
+   USC apa adanya, supaya task yang sudah pernah disimpan tidak "hilang" statusnya. */
+const TASKLIST_STATUS_LEGACY_MAP = { BelumMulai:'Belum Mulai', Proses:'Proses', Selesai:'Selesai' };
 let taskListItems = [];
 let taskListFilter = 'All';
 
@@ -7482,6 +7690,28 @@ const tlPicManager = createManagedList({
   itemLabel: 'PIC'
 });
 
+const taskStatusManager = createUscManager({
+  storageKey: 'tasklist:statuses',
+  defaults: TASKLIST_STATUS_DEFAULTS,
+  selectId: 'tlStatus',
+  manageBtnId: 'tlStatusManageBtn',
+  modalOverlayId: 'tlStatusModalOverlay',
+  modalInputId: 'tlStatusModalInput',
+  modalColorId: 'tlStatusModalColor',
+  modalAddBtnId: 'tlStatusModalAddBtn',
+  modalCloseBtnId: 'tlStatusModalCloseBtn',
+  modalDoneBtnId: 'tlStatusModalDoneBtn',
+  modalListId: 'tlStatusModalList',
+  modalMsgId: 'tlStatusModalMsg',
+  itemLabel: 'status',
+  onRename: async (oldName, newName) => {
+    let migrated = false;
+    taskListItems.forEach(it => { if(it.status === oldName){ it.status = newName; migrated = true; } });
+    if(migrated) await saveTaskList();
+  },
+  onListChanged: async () => { await renderTaskList(); }
+});
+
 function tlId(){ return 'tl' + Date.now() + Math.floor(Math.random()*1000); }
 
 async function loadTaskList(){
@@ -7489,23 +7719,37 @@ async function loadTaskList(){
     const res = await store.get(TASKLIST_KEY);
     taskListItems = (res && res.value) ? JSON.parse(res.value) : [];
   }catch(e){ taskListItems = []; }
+  let migrated = false;
+  taskListItems.forEach(it => {
+    if(TASKLIST_STATUS_LEGACY_MAP[it.status]){ it.status = TASKLIST_STATUS_LEGACY_MAP[it.status]; migrated = true; }
+  });
+  if(migrated) await saveTaskList();
 }
 async function saveTaskList(){
   try{ await store.set(TASKLIST_KEY, JSON.stringify(taskListItems)); }
   catch(e){ console.error('Gagal menyimpan task list', e); }
 }
 
-/* Task dianggap Overdue kalau deadline sudah lewat & statusnya belum Selesai.
-   Ini status TURUNAN (computed), bukan disimpan manual, supaya selalu akurat
-   tiap kali app dibuka -- tidak perlu diingat-ingat untuk diubah manual. */
+/* Task dianggap Overdue kalau deadline sudah lewat & statusnya BUKAN status
+   yang ditandai "selesai" di taskStatusManager (defaultnya "Selesai", tapi
+   bisa diganti user lewat tombol ⚙️). Ini status TURUNAN (computed), bukan
+   disimpan manual, supaya selalu akurat tiap kali app dibuka. */
 function tlEffectiveStatus(it){
-  if(it.status !== 'Selesai' && it.deadline && it.deadline < todayStr()) return 'Overdue';
+  if(!taskStatusManager.isDone(it.status) && it.deadline && it.deadline < todayStr()) return 'Overdue';
   return it.status;
+}
+function tlStatusLabel(name){ return name === 'Overdue' ? 'Overdue' : name; }
+function tlStatusColorStyle(name){
+  if(name === 'Overdue') return `background:${OP_STATUS_COLORS.red.bg};color:${OP_STATUS_COLORS.red.fg};`;
+  const s = taskStatusManager.find(name);
+  const c = opStatusColor(s ? s.color : 'grey');
+  return `background:${c.bg};color:${c.fg};`;
 }
 
 document.getElementById('tlAddBtn').onclick = async () => {
   const desc = document.getElementById('tlDesc').value.trim();
   if(!desc){ alert('Nama task wajib diisi.'); return; }
+  const firstNotDone = taskStatusManager.getList().find(s => !s.done) || taskStatusManager.getList()[0];
   const item = {
     id: tlId(),
     date: todayStr(),
@@ -7523,20 +7767,24 @@ document.getElementById('tlAddBtn').onclick = async () => {
   document.getElementById('tlVendor').value = '';
   document.getElementById('tlDeadline').value = '';
   document.getElementById('tlNote').value = '';
-  document.getElementById('tlStatus').value = 'BelumMulai';
+  if(firstNotDone) document.getElementById('tlStatus').value = firstNotDone.name;
   renderTaskList();
 };
 
 function tlSummaryCounts(){
-  const counts = { BelumMulai:0, Proses:0, Selesai:0, Overdue:0 };
-  taskListItems.forEach(it => { counts[tlEffectiveStatus(it)]++; });
+  const counts = { Overdue:0 };
+  taskStatusManager.getList().forEach(s => { counts[s.name] = 0; });
+  taskListItems.forEach(it => {
+    const eff = tlEffectiveStatus(it);
+    counts[eff] = (counts[eff] || 0) + 1;
+  });
   return counts;
 }
 
 function renderTlSummary(){
   const counts = tlSummaryCounts();
-  const order = ['BelumMulai','Proses','Selesai','Overdue'];
-  const html = order.map(s => `<div class="card"><div class="num" data-count="${counts[s]}">0</div><div class="lab">${TASKLIST_STATUS_LABEL[s]}</div></div>`).join('')
+  const order = [...taskStatusManager.getList().map(s => s.name), 'Overdue'];
+  const html = order.map(s => `<div class="card"><div class="num" data-count="${counts[s]||0}">0</div><div class="lab">${tlStatusLabel(s)}</div></div>`).join('')
     + `<div class="card"><div class="num" data-count="${taskListItems.length}">0</div><div class="lab">Total</div></div>`;
   document.getElementById('tlSummaryCards').innerHTML = html;
   animateCountsIn(document.getElementById('tlSummaryCards'));
@@ -7544,8 +7792,8 @@ function renderTlSummary(){
 
 function renderTlFilterBar(){
   const bar = document.getElementById('tlFilterBar');
-  const opts = ['All', ...TASKLIST_STATUS, 'Overdue'];
-  bar.innerHTML = opts.map(o => `<button class="fu-filter ${taskListFilter===o?'active':''}" data-f="${o}">${o === 'All' ? 'Semua' : TASKLIST_STATUS_LABEL[o]}</button>`).join('');
+  const opts = ['All', ...taskStatusManager.getList().map(s => s.name), 'Overdue'];
+  bar.innerHTML = opts.map(o => `<button class="fu-filter ${taskListFilter===o?'active':''}" data-f="${o}">${o === 'All' ? 'Semua' : tlStatusLabel(o)}</button>`).join('');
   bar.querySelectorAll('.fu-filter').forEach(btn => {
     btn.onclick = () => { taskListFilter = btn.dataset.f; renderTaskList(); };
   });
@@ -7563,18 +7811,18 @@ function renderTlList(){
   el.innerHTML = items.map(it => {
     const eff = tlEffectiveStatus(it);
     return `
-    <div class="fu-card status-${eff}" data-id="${it.id}">
+    <div class="fu-card" style="border-left-color:${eff==='Overdue'?'var(--red-fg)':(opStatusColor((taskStatusManager.find(it.status)||{}).color).fg)};" data-id="${it.id}">
       <div class="fu-top">
         <div>
           <div class="fu-desc">${escapeHtml(it.desc)}</div>
           <div class="fu-meta">${formatDateID(it.date)}${it.pic ? ' · PIC: ' + it.pic : ''}${it.vendor ? ' · Vendor: ' + it.vendor : ''}${it.deadline ? ' · Deadline: ' + formatDateID(it.deadline) : ''}</div>
         </div>
-        <span class="fu-badge ${eff}">${TASKLIST_STATUS_LABEL[eff]}</span>
+        <span class="fu-badge" style="${tlStatusColorStyle(eff)}">${tlStatusLabel(eff)}</span>
       </div>
       ${it.note ? `<div class="fu-note">${escapeHtml(it.note)}</div>` : ''}
       <div class="fu-actions">
         <select data-id="${it.id}" class="tl-status-select">
-          ${TASKLIST_STATUS.map(s => `<option value="${s}" ${s===it.status?'selected':''}>${TASKLIST_STATUS_LABEL[s]}</option>`).join('')}
+          ${taskStatusManager.getList().map(s => `<option value="${s.name}" ${s.name===it.status?'selected':''}>${s.name}</option>`).join('')}
         </select>
         <button class="fu-del" data-id="${it.id}">Hapus</button>
       </div>
@@ -7601,6 +7849,8 @@ function renderTlList(){
 async function renderTaskList(){
   await tlPicManager.load();
   tlPicManager.renderOptions();
+  await taskStatusManager.load();
+  taskStatusManager.renderOptions();
   await loadTaskList();
   renderTlSummary();
   renderTlFilterBar();
