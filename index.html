@@ -545,7 +545,10 @@
   .pobr-legend-chip{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;padding:5px 12px;border-radius:999px;}
   .pobr-legend-chip .dot{width:8px;height:8px;border-radius:50%;}
   .pobr-mini-kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px;}
-  .pobr-mini-kpi{border-radius:10px;padding:12px 14px;text-align:center;transition:transform .15s ease;}
+  .pobr-mini-kpi{border-radius:10px;padding:12px 14px;text-align:center;transition:transform .15s ease,box-shadow .15s ease;cursor:pointer;border:2px solid transparent;user-select:none;}
+  .pobr-mini-kpi:hover{transform:translateY(-2px);}
+  .pobr-mini-kpi:active{transform:translateY(0) scale(.98);}
+  .pobr-mini-kpi.active{border-color:currentColor;box-shadow:0 0 0 3px rgba(0,0,0,.06);}
   .pobr-mini-kpi:hover{transform:translateY(-2px);}
   .pobr-mini-kpi .n{font-family:var(--font-display);font-size:22px;font-weight:700;}
   .pobr-mini-kpi .l{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;margin-top:2px;}
@@ -5432,6 +5435,7 @@ const POBR_STATUS_MAP = {
 const POBR_DAY_ID = ['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
 let pobrMode = 'week';
 let pobrData = null;
+let pobrStatusFilter = 0; // 0 = tampilkan semua; 1/2/3/4 = filter sesuai status hari ini (ON/OFF/HO/Leave)
 
 function pobrInitials(name){
   return String(name||'').trim().split(/\s+/).slice(0,2).map(w => w[0]).join('').toUpperCase();
@@ -5514,8 +5518,19 @@ function pobrRenderMiniKpi(){
   if(!el) return;
   el.innerHTML = defs.map(d => {
     const st = POBR_STATUS_MAP[d.k];
-    return `<div class="pobr-mini-kpi" style="background:${st.bg};color:${st.fg};"><div class="n">${counts[d.k]||0}</div><div class="l">${d.l}</div></div>`;
+    const active = pobrStatusFilter === d.k;
+    return `<div class="pobr-mini-kpi ${active?'active':''}" data-status="${d.k}" style="background:${st.bg};color:${st.fg};" title="Klik untuk filter personel dengan status ${st.label} hari ini"><div class="n">${counts[d.k]||0}</div><div class="l">${d.l}</div></div>`;
   }).join('');
+
+  el.querySelectorAll('.pobr-mini-kpi').forEach(card => {
+    card.onclick = () => {
+      const k = parseInt(card.dataset.status, 10);
+      pobrStatusFilter = (pobrStatusFilter === k) ? 0 : k; // klik lagi kartu yang sama = matikan filter
+      const q = (document.getElementById('pobrSearchInput')||{}).value || '';
+      pobrRenderMiniKpi();
+      pobrRenderAvatars(q.toLowerCase().trim());
+    };
+  });
 }
 
 function pobrRenderAvatars(filterQ){
@@ -5523,8 +5538,15 @@ function pobrRenderAvatars(filterQ){
   const idx = pobrTodayIdx(pobrData.dates);
   const el = document.getElementById('pobrAvatarGrid');
   if(!el) return;
-  const people = pobrData.people.filter(p => !filterQ || p.name.toLowerCase().includes(filterQ));
-  if(!people.length){ el.innerHTML = '<div class="pobr-empty">Tidak ada personel yang cocok.</div>'; return; }
+  let people = pobrData.people.filter(p => !filterQ || p.name.toLowerCase().includes(filterQ));
+  if(pobrStatusFilter){
+    people = people.filter(p => p.statuses[idx] === pobrStatusFilter);
+  }
+  if(!people.length){
+    const st = pobrStatusFilter ? POBR_STATUS_MAP[pobrStatusFilter] : null;
+    el.innerHTML = `<div class="pobr-empty">Tidak ada personel${st ? ' dengan status ' + st.label + ' hari ini' : ' yang cocok'}.</div>`;
+    return;
+  }
   el.innerHTML = people.map(p => {
     const v = p.statuses[idx];
     const st = POBR_STATUS_MAP[v] || POBR_STATUS_MAP[0];
