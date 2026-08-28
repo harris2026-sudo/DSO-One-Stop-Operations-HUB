@@ -643,6 +643,25 @@
     border-bottom:1.5px dashed rgba(31,56,100,.35);
     transition:color .18s ease, border-color .18s ease;
   }
+  /* ---- Overview: Highlight Roster (versi lite, di dalam kartu grid) ---- */
+  .ov-roster-card{display:flex;flex-direction:column;height:100%;}
+  .ov-roster-card-top{display:flex;justify-content:space-between;align-items:center;}
+  .ov-roster-card-lab{font-size:12px;color:var(--text-secondary);}
+  .ov-roster-card-badge{font-size:9px;font-weight:700;padding:2px 8px;border-radius:999px;background:#1E7A34;color:#fff;display:inline-flex;align-items:center;gap:4px;white-space:nowrap;}
+  .ov-roster-card-badge .dot{width:5px;height:5px;border-radius:50%;background:#fff;animation:rosterPulse 1.4s infinite;}
+  .ov-roster-card-badge.none{background:var(--zebra);color:var(--text-secondary);}
+  .ov-roster-card-person{display:flex;align-items:center;gap:9px;margin-top:10px;}
+  .ov-roster-card-name{font-size:13px;font-weight:700;color:var(--navy);line-height:1.2;}
+  .ov-roster-card-sub{font-size:10px;color:var(--text-secondary);margin-top:1px;}
+  .ov-roster-card-shiftrow{text-align:center;padding:6px 3px;border-radius:7px;background:var(--zebra);border:1.3px solid transparent;}
+  .ov-roster-card-shiftrow.live{background:#D6E9DA;border-color:#1E7A34;}
+  .ov-roster-card-shiftrow .tag{font-size:7.5px;font-weight:700;color:var(--text-muted);}
+  .ov-roster-card-shiftrow.live .tag{color:#1E7A34;}
+  .ov-roster-card-shiftrow .roster-avatar{margin:4px auto 3px;font-size:9px;}
+  .ov-roster-card-shiftrow .nm{font-size:9.5px;font-weight:700;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .ov-roster-card-shiftrow .tm{font-size:7.5px;color:var(--text-muted);}
+  .ov-roster-card-shifts{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:10px;}
+  .ov-roster-card-empty{font-size:11px;color:var(--text-muted);margin-top:8px;font-weight:600;}
   .roster-name-tip:hover{
     color:var(--accent);
     border-color:var(--accent);
@@ -1150,9 +1169,7 @@
         <div class="ov-sub" id="ovInspectionSub">--</div>
       </div>
       <div class="card clickable" id="ovCardRoster">
-        <div class="num" id="ovRosterNum">--</div>
-        <div class="lab">Roster</div>
-        <div class="ov-sub" id="ovRosterSub">--</div>
+        <div class="ov-roster-card" id="ovRosterCard"></div>
       </div>
       <div class="card clickable" id="ovCardTasklist">
         <div class="num" id="ovTasklistNum">--</div>
@@ -3683,6 +3700,7 @@ async function loadRoster(){
     banner.textContent = '✓ Sync-on';
     banner.title = 'Live-sync dari Google Sheets · terakhir sinkron ' + rosterLastSync.toLocaleTimeString('id-ID');
     banner.className = 'roster-sync-banner ok';
+    if(document.getElementById('view-overview') && document.getElementById('view-overview').classList.contains('active')) renderOverviewRosterCard();
   }catch(e){
     banner.textContent = '✗ Sync-off';
     banner.title = e.message;
@@ -3909,6 +3927,9 @@ document.getElementById('rosterRefreshBtn').onclick = () => loadRoster();
 setInterval(() => {
   if(rosterLoaded && rosterMode === 'today' && document.getElementById('view-roster').classList.contains('active')){
     renderRoster(); // cukup re-render (tanpa fetch ulang) supaya badge LIVE ikut update jam berjalan
+  }
+  if(rosterLoaded && document.getElementById('view-overview') && document.getElementById('view-overview').classList.contains('active')){
+    renderOverviewRosterCard(); // sinkronkan badge ON DUTY di Overview tiap menit tanpa fetch ulang
   }
 }, 60000);
 // Auto-sync data roster dari Google Sheets secara berkala (silent), supaya tidak perlu klik "Sinkron Ulang" manual
@@ -5097,8 +5118,7 @@ async function renderOverview(){
   document.getElementById('ovInspectionSub').textContent = d.inspectionActive > 0 ? d.inspectionActive + ' masih berjalan' : 'Semua selesai';
   document.getElementById('ovInspectionSub').className = 'ov-sub ' + (d.inspectionActive > 0 ? 'warn' : 'ok');
 
-  document.getElementById('ovRosterNum').textContent = d.rosterOnDuty.length ? d.rosterOnDuty.join(', ') : '--';
-  document.getElementById('ovRosterSub').textContent = d.rosterOnDuty.length ? 'Bertugas sekarang' : 'Belum ada data shift aktif';
+  renderOverviewRosterCard();
 
   document.getElementById('ovTasklistNum').textContent = d.taskActive + ' aktif';
   document.getElementById('ovTasklistSub').textContent = d.taskOverdue > 0 ? d.taskOverdue + ' overdue' : 'Tidak ada overdue';
@@ -5114,6 +5134,50 @@ async function renderOverview(){
   document.getElementById('ovCardRoster').onclick = () => document.querySelector('.tab[data-view="roster"]').click();
   document.getElementById('ovCardTasklist').onclick = () => document.querySelector('.tab[data-view="tasklist"]').click();
   document.getElementById('ovCardOpenpoint').onclick = () => document.querySelector('.tab[data-view="openpoint"]').click();
+}
+
+function renderOverviewRosterCard(){
+  const box = document.getElementById('ovRosterCard');
+  if(!box) return;
+  if(!rosterLoaded || !Array.isArray(rosterDays) || !rosterDays.length){
+    box.innerHTML = `<div class="ov-roster-card-top"><span class="ov-roster-card-lab">Roster</span></div>
+      <div class="ov-roster-card-empty">Belum ada data shift aktif</div>`;
+    return;
+  }
+  const today = new Date(); today.setHours(0,0,0,0);
+  const now = new Date();
+  const rec = rosterDays.find(d => sameDay(d.date, today));
+
+  const shiftInfo = ROSTER_SHIFT_DEFS.map((def, i) => {
+    const code = rec ? rec[def.key] : '-';
+    const hasPerson = code && code !== '-';
+    return { def, code, hasPerson, live: hasPerson && isShiftActiveNow(def.key, now), tag: 'S' + (i+1) };
+  });
+  const liveShifts = shiftInfo.filter(s => s.live);
+
+  const badgeHtml = liveShifts.length
+    ? `<span class="ov-roster-card-badge"><span class="dot"></span>${liveShifts.length} ON DUTY</span>`
+    : `<span class="ov-roster-card-badge none">Tidak ada shift live</span>`;
+
+  const shiftsHtml = shiftInfo.map(s => {
+    const fullName = s.hasPerson ? rosterPersonName(s.code) : '–';
+    const firstName = s.hasPerson ? fullName.split(' ')[0] : '–';
+    const tipText = s.hasPerson ? `${escapeHtml(fullName)} \u00b7 ${s.def.label} \u00b7 ${s.def.start}\u2013${s.def.end}` : '';
+    return `
+    <div class="ov-roster-card-shiftrow ${s.live ? 'live' : ''}" title="${tipText}">
+      <div class="tag">${s.tag}${s.live ? ' LIVE' : ''}</div>
+      ${s.hasPerson ? rosterAvatarHTML(s.code, 22) : rosterAvatarHTML('-', 22)}
+      <div class="nm">${escapeHtml(firstName)}</div>
+      <div class="tm">${s.def.start}</div>
+    </div>`;
+  }).join('');
+
+  box.innerHTML = `
+    <div class="ov-roster-card-top">
+      <span class="ov-roster-card-lab">Roster</span>
+      ${badgeHtml}
+    </div>
+    <div class="ov-roster-card-shifts">${shiftsHtml}</div>`;
 }
 
 const chipCycleDso = ['green','yellow','blue','red','grey','gold'];
