@@ -559,6 +559,10 @@
   .pobr-avatar-circle img{width:100%;height:100%;object-fit:cover;display:block;}
   .pobr-avatar-name{font-size:11.5px;font-weight:700;color:var(--navy);margin-bottom:5px;line-height:1.25;min-height:28px;display:flex;align-items:center;justify-content:center;}
   .pobr-avatar-status{display:inline-block;font-size:10px;font-weight:700;padding:3px 10px;border-radius:999px;}
+  .pobr-avatar-extra{display:flex;flex-direction:column;gap:4px;margin-top:7px;}
+  .pobr-avatar-countdown{display:flex;align-items:center;justify-content:center;gap:4px;font-size:9.5px;font-weight:700;padding:3px 8px;border-radius:999px;background:#DCEAF7;color:#0C447C;}
+  .pobr-avatar-countdown i{font-size:11px;}
+  .pobr-avatar-leave{font-size:9.5px;color:var(--text-secondary);}
   .pobr-toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
   .pobr-mode-select{display:flex;gap:6px;background:var(--surface-alt);padding:4px;border-radius:9px;}
   .pobr-mode-select button{border:none;background:transparent;padding:7px 14px;border-radius:7px;font-size:11.5px;font-weight:700;color:var(--text-secondary);cursor:pointer;}
@@ -5551,6 +5555,26 @@ function pobrRenderMiniKpi(){
   });
 }
 
+function pobrLeaveCountThisMonth(person, dates){
+  const ym = pobrTodayIso().slice(0,7);
+  let n = 0;
+  for(let i=0;i<dates.length;i++){
+    if(dates[i] && dates[i].slice(0,7) === ym && person.statuses[i] === 4) n++;
+  }
+  return n;
+}
+function pobrNextTransition(person, dates, idx){
+  const cur = person.statuses[idx];
+  for(let i=idx+1;i<dates.length;i++){
+    if(!dates[i]) continue;
+    const v = person.statuses[i];
+    if(v !== cur && (v === 1 || (cur === 1 && v !== 1))){
+      const days = Math.round((new Date(dates[i]).getTime() - new Date(dates[idx]).getTime()) / 86400000);
+      return { days, toOn: v === 1 };
+    }
+  }
+  return null;
+}
 function pobrRenderAvatars(filterQ){
   if(!pobrData) return;
   const idx = pobrTodayIdx(pobrData.dates);
@@ -5570,10 +5594,18 @@ function pobrRenderAvatars(filterQ){
     const st = POBR_STATUS_MAP[v] || POBR_STATUS_MAP[0];
     const resolvedPhoto = pobrResolvePhoto(p.name);
     const avatarInner = resolvedPhoto ? `<img src="${resolvedPhoto}" alt="${escapeHtml(p.name)}">` : pobrInitials(p.name);
+    const leaveCount = pobrLeaveCountThisMonth(p, pobrData.dates);
+    const trans = pobrNextTransition(p, pobrData.dates, idx);
+    const countdownHtml = trans
+      ? `<span class="pobr-avatar-countdown"><i class="ti ti-clock" aria-hidden="true"></i>H-${trans.days} menuju ${trans.toOn ? 'ON site' : 'OFF'}</span>`
+      : '';
+    const leaveHtml = leaveCount > 0 ? `<span class="pobr-avatar-leave">Cuti bulan ini: ${leaveCount} hari</span>` : '';
+    const extraHtml = (countdownHtml || leaveHtml) ? `<div class="pobr-avatar-extra">${countdownHtml}${leaveHtml}</div>` : '';
     return `<div class="pobr-avatar-card">
       <div class="pobr-avatar-circle" style="--ring:${st.fg};">${avatarInner}</div>
       <div class="pobr-avatar-name">${escapeHtml(p.name)}</div>
       <span class="pobr-avatar-status" style="background:${st.bg};color:${st.fg};">${st.label}</span>
+      ${extraHtml}
     </div>`;
   }).join('');
 }
