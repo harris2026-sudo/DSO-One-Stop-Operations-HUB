@@ -3508,7 +3508,7 @@ function loadGoogleChartsOnce(){
 }
 async function fetchRosterSheetByName(sheetName){
   await loadGoogleChartsOnce();
-  const url = `https://docs.google.com/spreadsheets/d/${ROSTER_SHEET_ID}/gviz/tq?sheet=${encodeURIComponent(sheetName)}`;
+  const url = `https://docs.google.com/spreadsheets/d/${ROSTER_SHEET_ID}/gviz/tq?sheet=${encodeURIComponent(sheetName)}&_t=${Date.now()}`;
   return new Promise((resolve, reject) => {
     let settled = false;
     const timer = setTimeout(() => {
@@ -3592,7 +3592,7 @@ function parseHelperCutiRows(rows){
 }
 async function fetchHelperRosterData(){
   await loadGoogleChartsOnce();
-  const url = `https://docs.google.com/spreadsheets/d/${ROSTER_HELPER_SHEET_ID}/gviz/tq?gid=${ROSTER_HELPER_GID}`;
+  const url = `https://docs.google.com/spreadsheets/d/${ROSTER_HELPER_SHEET_ID}/gviz/tq?gid=${ROSTER_HELPER_GID}&_t=${Date.now()}`;
   return new Promise((resolve, reject) => {
     let settled = false;
     const timer = setTimeout(() => {
@@ -3720,6 +3720,11 @@ function checkRosterGapAlert(){
     if(helperEmpty) missingHelper.push(d);
   }
   if(missingMain.length === 0 && missingHelper.length === 0) return;
+  console.warn('Roster gap terdeteksi.', {
+    missingMain: missingMain.map(d => d.toDateString()),
+    missingHelper: missingHelper.map(d => d.toDateString()),
+    rosterHelperDaysTersedia: (rosterHelperDays||[]).map(r => r.date.toDateString() + ' -> shift1:' + r.shift1 + ', shift2:' + r.shift2)
+  });
   const fmt = d => d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
   const parts = [];
   if(missingMain.length) parts.push('Tim Utama: ' + missingMain.map(fmt).join(', '));
@@ -4132,7 +4137,7 @@ function parsePobrSheet(rows){
 }
 async function fetchPobrSheetData(){
   await loadGoogleChartsOnce();
-  const url = `https://docs.google.com/spreadsheets/d/${POBR_SHEET_ID}/gviz/tq?gid=${POBR_SHEET_GID}`;
+  const url = `https://docs.google.com/spreadsheets/d/${POBR_SHEET_ID}/gviz/tq?gid=${POBR_SHEET_GID}&_t=${Date.now()}`;
   return new Promise((resolve, reject) => {
     let settled = false;
     const timer = setTimeout(() => {
@@ -4615,7 +4620,7 @@ function apMatchHeader(headerText){
 async function fetchStockSheetData(){
   await loadGoogleChartsOnce();
   const sheetId = await apGetEffectiveSheetId();
-  const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?sheet=${encodeURIComponent(STOCK_SHEET_NAME)}`;
+  const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?sheet=${encodeURIComponent(STOCK_SHEET_NAME)}&_t=${Date.now()}`;
   return new Promise((resolve, reject) => {
     let settled = false;
     const timer = setTimeout(() => {
@@ -7352,7 +7357,7 @@ async function fetchAebsSheetData(){
     throw new Error('AEBS_SHEET_ID belum diisi. Lihat catatan di kode (dekat konstanta AEBS_SHEET_ID) untuk cara menyambungkan Sheet mirror dari SharePoint.');
   }
   await loadGoogleChartsOnce();
-  const url = `https://docs.google.com/spreadsheets/d/${AEBS_SHEET_ID}/gviz/tq?sheet=${encodeURIComponent(AEBS_SHEET_NAME)}`;
+  const url = `https://docs.google.com/spreadsheets/d/${AEBS_SHEET_ID}/gviz/tq?sheet=${encodeURIComponent(AEBS_SHEET_NAME)}&_t=${Date.now()}`;
   return new Promise((resolve, reject) => {
     let settled = false;
     const timer = setTimeout(() => {
