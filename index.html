@@ -643,28 +643,6 @@
     border-bottom:1.5px dashed rgba(31,56,100,.35);
     transition:color .18s ease, border-color .18s ease;
   }
-  /* ---- Overview: Highlight Summary Roster ---- */
-  .ov-roster-hero{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px;margin-top:16px;cursor:pointer;transition:border-color .15s ease,box-shadow .15s ease,transform .15s ease;}
-  .ov-roster-hero:hover{border-color:var(--accent);box-shadow:0 8px 18px rgba(15,27,44,.08);transform:translateY(-2px);}
-  .ov-roster-hero-top{display:flex;justify-content:space-between;align-items:flex-start;}
-  .ov-roster-hero-title{font-family:var(--font-display);font-size:14.5px;font-weight:700;color:var(--navy);display:flex;align-items:center;gap:8px;}
-  .ov-roster-hero-title i{color:var(--accent);font-size:17px;}
-  .ov-roster-hero-badge{font-size:10px;font-weight:700;padding:4px 12px;border-radius:999px;background:#1E7A34;color:#fff;display:inline-flex;align-items:center;gap:5px;white-space:nowrap;}
-  .ov-roster-hero-badge .dot{width:6px;height:6px;border-radius:50%;background:#fff;animation:rosterPulse 1.4s infinite;}
-  .ov-roster-hero-badge.none{background:var(--zebra);color:var(--text-secondary);}
-  .ov-roster-hero-live{display:flex;align-items:center;gap:12px;margin-top:14px;padding:10px 12px;border-radius:10px;background:var(--surface-alt,var(--zebra));}
-  .ov-roster-hero-live-name{font-size:13.5px;font-weight:700;color:var(--navy);}
-  .ov-roster-hero-live-sub{font-size:10.5px;color:var(--text-secondary);margin-top:2px;}
-  .ov-roster-hero-tl-label{font-size:11px;color:var(--text-secondary);margin:14px 0 8px;}
-  .ov-roster-hero-tl{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
-  .ov-roster-hero-chip{text-align:center;padding:9px 6px;border-radius:8px;background:var(--surface-alt,var(--zebra));border:1.5px solid transparent;}
-  .ov-roster-hero-chip.live{background:#D6E9DA;border-color:#1E7A34;}
-  .ov-roster-hero-chip .k{font-size:9.5px;font-weight:700;color:var(--text-muted);}
-  .ov-roster-hero-chip.live .k{color:#1E7A34;}
-  .ov-roster-hero-chip .nm{font-size:12px;font-weight:700;color:var(--navy);margin-top:3px;}
-  .ov-roster-hero-chip .tm{font-size:9px;color:var(--text-muted);margin-top:1px;}
-  .ov-roster-hero-footer{border-top:1px solid var(--border);margin-top:12px;padding-top:10px;display:flex;gap:16px;flex-wrap:wrap;font-size:10.5px;color:var(--text-secondary);}
-  .ov-roster-hero-footer i{font-size:12px;vertical-align:-1px;margin-right:3px;}
   .roster-name-tip:hover{
     color:var(--accent);
     border-color:var(--accent);
@@ -1187,8 +1165,6 @@
         <div class="ov-sub" id="ovOpenpointSub">--</div>
       </div>
     </div>
-    <div class="ov-roster-hero" id="ovRosterHero"></div>
-
     <div class="progress-wrap">
       <div class="top"><span>System Availability</span><span id="ovUptimeLabel">--%</span></div>
       <div class="progress-bar"><div class="progress-fill" id="ovUptimeBar" style="width:0%;"></div></div>
@@ -3707,7 +3683,6 @@ async function loadRoster(){
     banner.textContent = '✓ Sync-on';
     banner.title = 'Live-sync dari Google Sheets · terakhir sinkron ' + rosterLastSync.toLocaleTimeString('id-ID');
     banner.className = 'roster-sync-banner ok';
-    if(document.getElementById('view-overview') && document.getElementById('view-overview').classList.contains('active')) renderOverviewRosterHero();
   }catch(e){
     banner.textContent = '✗ Sync-off';
     banner.title = e.message;
@@ -3934,9 +3909,6 @@ document.getElementById('rosterRefreshBtn').onclick = () => loadRoster();
 setInterval(() => {
   if(rosterLoaded && rosterMode === 'today' && document.getElementById('view-roster').classList.contains('active')){
     renderRoster(); // cukup re-render (tanpa fetch ulang) supaya badge LIVE ikut update jam berjalan
-  }
-  if(rosterLoaded && document.getElementById('view-overview') && document.getElementById('view-overview').classList.contains('active')){
-    renderOverviewRosterHero(); // sinkronkan badge ON DUTY di Overview tiap menit tanpa fetch ulang
   }
 }, 60000);
 // Auto-sync data roster dari Google Sheets secara berkala (silent), supaya tidak perlu klik "Sinkron Ulang" manual
@@ -5136,76 +5108,12 @@ async function renderOverview(){
   document.getElementById('ovOpenpointSub').textContent = d.opKritis > 0 ? d.opKritis + ' kritis' : 'Tidak ada yang kritis';
   document.getElementById('ovOpenpointSub').className = 'ov-sub ' + (d.opKritis > 0 ? 'warn' : 'ok');
 
-  renderOverviewRosterHero();
-
   document.getElementById('ovCardStock').onclick = () => document.querySelector('.tab[data-view="assetplant"]').click();
   document.getElementById('ovCardPob').onclick = () => document.querySelector('.tab[data-view="pob"]').click();
   document.getElementById('ovCardInspection').onclick = () => document.querySelector('.tab[data-view="harian"]').click();
   document.getElementById('ovCardRoster').onclick = () => document.querySelector('.tab[data-view="roster"]').click();
   document.getElementById('ovCardTasklist').onclick = () => document.querySelector('.tab[data-view="tasklist"]').click();
   document.getElementById('ovCardOpenpoint').onclick = () => document.querySelector('.tab[data-view="openpoint"]').click();
-}
-
-function renderOverviewRosterHero(){
-  const box = document.getElementById('ovRosterHero');
-  if(!box) return;
-  if(!rosterLoaded || !Array.isArray(rosterDays) || !rosterDays.length){
-    box.innerHTML = `<div class="ov-roster-hero-title"><i class="ti ti-users-group"></i>Roster hari ini</div>
-      <div class="ov-roster-hero-tl-label" style="margin-top:10px;">Belum ada data roster untuk hari ini.</div>`;
-    box.onclick = () => document.querySelector('.tab[data-view="roster"]').click();
-    return;
-  }
-  const today = new Date(); today.setHours(0,0,0,0);
-  const now = new Date();
-  const rec = rosterDays.find(d => sameDay(d.date, today));
-
-  const shiftInfo = ROSTER_SHIFT_DEFS.map(def => {
-    const code = rec ? rec[def.key] : '-';
-    const hasPerson = code && code !== '-';
-    return { def, code, hasPerson, live: hasPerson && isShiftActiveNow(def.key, now) };
-  });
-  const liveShifts = shiftInfo.filter(s => s.live);
-
-  const badgeHtml = liveShifts.length
-    ? `<span class="ov-roster-hero-badge"><span class="dot"></span>${liveShifts.length} ON DUTY</span>`
-    : `<span class="ov-roster-hero-badge none">Tidak ada shift live</span>`;
-
-  const liveHtml = liveShifts.map(s => `
-    <div class="ov-roster-hero-live">
-      ${rosterAvatarHTML(s.code, 48)}
-      <div>
-        <div class="ov-roster-hero-live-name">${escapeHtml(rosterPersonName(s.code))}</div>
-        <div class="ov-roster-hero-live-sub">${s.def.label} &middot; ${s.def.start}&ndash;${s.def.end} &middot; sedang berlangsung</div>
-      </div>
-    </div>`).join('');
-
-  const tlHtml = shiftInfo.map(s => `
-    <div class="ov-roster-hero-chip ${s.live ? 'live' : ''}">
-      <div class="k">${s.def.label.toUpperCase()}${s.live ? ' &middot; LIVE' : ''}</div>
-      <div class="nm">${s.hasPerson ? escapeHtml(rosterPersonName(s.code)) : '–'}</div>
-      <div class="tm">${s.def.start}&ndash;${s.def.end}</div>
-    </div>`).join('');
-
-  const footerParts = [];
-  if(rec && rec.backup && rec.backup !== '-'){
-    footerParts.push(`<span><i class="ti ti-user-shield"></i>Backup: ${escapeHtml(rosterPersonName(rec.backup))}</span>`);
-  }
-  if(rec && rec.cuti && rec.cuti !== '-'){
-    footerParts.push(`<span><i class="ti ti-calendar-off"></i>Day-off: ${escapeHtml(rosterPersonName(rec.cuti))}</span>`);
-  }
-  const footerHtml = footerParts.length ? `<div class="ov-roster-hero-footer">${footerParts.join('')}</div>` : '';
-
-  box.innerHTML = `
-    <div class="ov-roster-hero-top">
-      <div class="ov-roster-hero-title"><i class="ti ti-users-group"></i>Roster hari ini</div>
-      ${badgeHtml}
-    </div>
-    ${liveHtml}
-    <div class="ov-roster-hero-tl-label">Timeline shift</div>
-    <div class="ov-roster-hero-tl">${tlHtml}</div>
-    ${footerHtml}`;
-
-  box.onclick = () => document.querySelector('.tab[data-view="roster"]').click();
 }
 
 const chipCycleDso = ['green','yellow','blue','red','grey','gold'];
