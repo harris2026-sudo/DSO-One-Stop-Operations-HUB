@@ -2406,12 +2406,10 @@ function orderformCsvUrl(){
 const WA_NOTIF_ENABLED = true; // set false untuk mematikan notifikasi WA tanpa hapus konfigurasi
 const WA_RECIPIENTS = [
   { name: "Harris", phone: "6282158107539" }, // <-- WAJIB diisi nomor WA tujuan (62xxx, tanpa tanda +)
-  //{ name: "Sony Salubongga", phone: "6281392040909" } // <-- WAJIB diisi nomor WA tujuan (62xxx, tanpa tanda +)
-  { name: "Nico", phone: "6282142656289" }, // <-- WAJIB diisi nomor WA tujuan (62xxx, tanpa tanda +)
-  { name: "Lukman Gunawan", phone: "6285393750696" }, // <-- WAJIB diisi nomor WA tujuan (62xxx, tanpa tanda +)
-  { name: "Adhe", phone: "6282155547898" }, // <-- WAJIB diisi nomor WA tujuan (62xxx, tanpa tanda +)
-  { name: "Taufik", phone: "6285320308959" } // <-- WAJIB diisi nomor WA tujuan (62xxx, tanpa tanda +)
-  // Tambah baris lain kalau mau kirim ke nomor lain juga (mis. setelah tahap testing selesai), contoh:
+  { name: "Nico", phone: "6282142656289" } // <-- WAJIB diisi nomor WA tujuan (62xxx, tanpa tanda +)
+  // Sengaja dibatasi hanya 2 penerima (Harris & Nico) untuk mengurangi risiko
+  // device Fonnte terdeteksi spam/di-banned WhatsApp. Kalau mau nambah lagi,
+  // tambah baris lain di sini, contoh:
   // { name: "Nico", phone: "62812xxxxxxx" },
 ];
 
@@ -2469,11 +2467,17 @@ async function sendWhatsAppNotif(items){
   }
   const message = waFormatMessage(items);
   const results = [];
+  let isFirstSend = true;
   for(const r of WA_RECIPIENTS){
     if(!r.phone){
       console.warn(`WA notif dilewati untuk "${r.name}": phone belum diisi di WA_RECIPIENTS.`);
       continue;
     }
+    // JEDA ANTAR PENGIRIMAN: tunggu 2 detik sebelum nomor berikutnya (kecuali
+    // nomor pertama) supaya pengiriman tidak terlihat seperti burst/spam oleh
+    // WhatsApp, yang berisiko membuat device Fonnte kena banned.
+    if(!isFirstSend) await new Promise(resolve => setTimeout(resolve, 2000));
+    isFirstSend = false;
     try{
       const url = `${APPS_SCRIPT_URL}?action=send_wa&phone=${encodeURIComponent(r.phone)}&message=${encodeURIComponent(message)}&_t=${Date.now()}`;
       // TAMBAHAN KEAMANAN: sertakan API key (send_wa sekarang wajib otentikasi juga).
