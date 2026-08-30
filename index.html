@@ -676,6 +676,22 @@
   .ov-pob-card-avrow .st{font-size:7.5px;font-weight:700;color:#1E7A34;}
   .ov-pob-card-avrow.more .nm{color:var(--text-secondary);}
   .ov-pob-card-empty{font-size:11px;color:var(--text-muted);margin-top:8px;font-weight:600;}
+  .ov-stock-card{display:flex;flex-direction:column;height:100%;}
+  .ov-stock-card-top{display:flex;justify-content:space-between;align-items:center;}
+  .ov-stock-card-lab{font-size:12px;color:var(--text-secondary);}
+  .ov-stock-card-badge{font-size:9px;font-weight:700;padding:2px 8px;border-radius:999px;background:#B23A3A;color:#fff;display:inline-flex;align-items:center;gap:4px;white-space:nowrap;}
+  .ov-stock-card-badge .dot{width:5px;height:5px;border-radius:50%;background:#fff;animation:rosterPulse 1.4s infinite;}
+  .ov-stock-card-badge.ok{background:#1E7A34;}
+  .ov-stock-card-items{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:10px;}
+  .ov-stock-card-item{text-align:center;padding:6px 3px;border-radius:7px;background:#F4CCCC;border:1.3px solid #B23A3A;}
+  .ov-stock-card-item .ic{font-size:14px;margin-bottom:3px;color:#B23A3A;}
+  .ov-stock-card-item .nm{font-size:9.5px;font-weight:700;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .ov-stock-card-item .st{font-size:7.5px;color:#B23A3A;}
+  .ov-stock-card-item.more{background:var(--zebra);border-color:transparent;}
+  .ov-stock-card-item.more .ic{color:var(--text-secondary);}
+  .ov-stock-card-item.more .nm{color:var(--text-secondary);}
+  .ov-stock-card-item.more .st{color:var(--text-muted);}
+  .ov-stock-card-empty{font-size:11px;color:var(--text-muted);margin-top:8px;font-weight:600;}
   .roster-name-tip:hover{
     color:var(--accent);
     border-color:var(--accent);
@@ -1168,9 +1184,7 @@
   <div class="view active" id="view-overview">
     <div class="summary" style="grid-template-columns:repeat(3,1fr);">
       <div class="card clickable" id="ovCardStock">
-        <div class="num" id="ovStockNum">--</div>
-        <div class="lab">Stock Management</div>
-        <div class="ov-sub" id="ovStockSub">--</div>
+        <div class="ov-stock-card" id="ovStockCard"></div>
       </div>
       <div class="card clickable" id="ovCardPob">
         <div class="ov-pob-card" id="ovPobCard"></div>
@@ -5122,9 +5136,7 @@ async function renderOverview(){
   document.getElementById('ovUptimeLabel').textContent = d.avail.uptime + '%';
   document.getElementById('ovUptimeBar').style.width = d.avail.uptime + '%';
 
-  document.getElementById('ovStockNum').textContent = d.assets.length;
-  document.getElementById('ovStockSub').textContent = d.stockOut > 0 ? d.stockOut + ' kategori habis' : 'Semua tersedia';
-  document.getElementById('ovStockSub').className = 'ov-sub ' + (d.stockOut > 0 ? 'warn' : 'ok');
+  renderOverviewStockCard(d.assets);
 
   renderOverviewPobCard();
 
@@ -5248,6 +5260,52 @@ function renderOverviewPobCard(){
       ${badgeHtml}
     </div>
     <div class="ov-pob-card-people">${peopleHtml}</div>`;
+}
+
+function renderOverviewStockCard(assets){
+  const box = document.getElementById('ovStockCard');
+  if(!box) return;
+  if(!Array.isArray(assets) || !assets.length){
+    box.innerHTML = `<div class="ov-stock-card-top"><span class="ov-stock-card-lab">Stock</span></div>
+      <div class="ov-stock-card-empty">Belum ada data stock</div>`;
+    return;
+  }
+  // prioritaskan kategori 'red' (habis) dulu, lalu 'grey' (belum ada data),
+  // sisanya (mis. 'green'/Ready) ditumpuk jadi tile "Lainnya"
+  const urgent = assets.filter(a => a.status === 'red' || a.status === 'grey');
+  const rest = assets.filter(a => a.status !== 'red' && a.status !== 'grey');
+  const habisCount = assets.filter(a => a.status === 'red').length;
+
+  const badgeHtml = habisCount > 0
+    ? `<span class="ov-stock-card-badge"><span class="dot"></span>${habisCount} Habis</span>`
+    : `<span class="ov-stock-card-badge ok">Semua Tersedia</span>`;
+
+  const MAX_SHOW = 2;
+  const shown = urgent.slice(0, MAX_SHOW);
+  const remaining = assets.length - shown.length;
+
+  let itemsHtml = shown.map(a => `
+    <div class="ov-stock-card-item" title="${escapeHtml(a.cat)} \u00b7 ${escapeHtml(a.label||'')}">
+      <div class="ic"><i class="ti ti-alert-triangle" aria-hidden="true"></i></div>
+      <div class="nm">${escapeHtml(a.cat)}</div>
+      <div class="st">${a.real||0} pcs</div>
+    </div>`).join('');
+
+  if(remaining > 0){
+    itemsHtml += `
+    <div class="ov-stock-card-item more">
+      <div class="ic"><i class="ti ti-check" aria-hidden="true"></i></div>
+      <div class="nm">${remaining} Lainnya</div>
+      <div class="st">Ready</div>
+    </div>`;
+  }
+
+  box.innerHTML = `
+    <div class="ov-stock-card-top">
+      <span class="ov-stock-card-lab">Stock</span>
+      ${badgeHtml}
+    </div>
+    <div class="ov-stock-card-items">${itemsHtml}</div>`;
 }
 
 const chipCycleDso = ['green','yellow','blue','red','grey','gold'];
