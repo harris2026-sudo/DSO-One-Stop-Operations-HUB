@@ -662,6 +662,20 @@
   .ov-roster-card-shiftrow .tm{font-size:7.5px;color:var(--text-muted);}
   .ov-roster-card-shifts{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:10px;}
   .ov-roster-card-empty{font-size:11px;color:var(--text-muted);margin-top:8px;font-weight:600;}
+  .ov-pob-card{display:flex;flex-direction:column;height:100%;}
+  .ov-pob-card-top{display:flex;justify-content:space-between;align-items:center;}
+  .ov-pob-card-lab{font-size:12px;color:var(--text-secondary);}
+  .ov-pob-card-badge{font-size:9px;font-weight:700;padding:2px 8px;border-radius:999px;background:#1E7A34;color:#fff;display:inline-flex;align-items:center;gap:4px;white-space:nowrap;}
+  .ov-pob-card-badge .dot{width:5px;height:5px;border-radius:50%;background:#fff;animation:rosterPulse 1.4s infinite;}
+  .ov-pob-card-badge.none{background:var(--zebra);color:var(--text-secondary);}
+  .ov-pob-card-people{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:10px;}
+  .ov-pob-card-avrow{text-align:center;padding:6px 3px;border-radius:7px;background:#D6E9DA;border:1.3px solid #1E7A34;}
+  .ov-pob-card-avrow.more{background:var(--zebra);border-color:transparent;}
+  .ov-pob-card-avrow .roster-avatar{margin:0 auto 3px;font-size:9px;}
+  .ov-pob-card-avrow .nm{font-size:9.5px;font-weight:700;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .ov-pob-card-avrow .st{font-size:7.5px;font-weight:700;color:#1E7A34;}
+  .ov-pob-card-avrow.more .nm{color:var(--text-secondary);}
+  .ov-pob-card-empty{font-size:11px;color:var(--text-muted);margin-top:8px;font-weight:600;}
   .roster-name-tip:hover{
     color:var(--accent);
     border-color:var(--accent);
@@ -1159,9 +1173,7 @@
         <div class="ov-sub" id="ovStockSub">--</div>
       </div>
       <div class="card clickable" id="ovCardPob">
-        <div class="num" id="ovPobNum">--</div>
-        <div class="lab">Personnel On Board</div>
-        <div class="ov-sub" id="ovPobSub">--</div>
+        <div class="ov-pob-card" id="ovPobCard"></div>
       </div>
       <div class="card clickable" id="ovCardInspection">
         <div class="num" id="ovInspectionNum">--</div>
@@ -5114,9 +5126,7 @@ async function renderOverview(){
   document.getElementById('ovStockSub').textContent = d.stockOut > 0 ? d.stockOut + ' kategori habis' : 'Semua tersedia';
   document.getElementById('ovStockSub').className = 'ov-sub ' + (d.stockOut > 0 ? 'warn' : 'ok');
 
-  document.getElementById('ovPobNum').textContent = d.pobTotal.toLocaleString('id-ID');
-  document.getElementById('ovPobSub').textContent = d.pob.musterSafe ? 'Muster aman' : 'Perlu perhatian';
-  document.getElementById('ovPobSub').className = 'ov-sub ' + (d.pob.musterSafe ? 'ok' : 'warn');
+  renderOverviewPobCard();
 
   document.getElementById('ovInspectionNum').textContent = d.inspectionActive + '/' + d.inspectionTotal;
   document.getElementById('ovInspectionSub').textContent = d.inspectionActive > 0 ? d.inspectionActive + ' masih berjalan' : 'Semua selesai';
@@ -5182,6 +5192,62 @@ function renderOverviewRosterCard(){
       ${badgeHtml}
     </div>
     <div class="ov-roster-card-shifts">${shiftsHtml}</div>`;
+}
+
+function renderOverviewPobCard(){
+  const box = document.getElementById('ovPobCard');
+  if(!box) return;
+  if(!pobrData || !Array.isArray(pobrData.people) || !pobrData.people.length){
+    box.innerHTML = `<div class="ov-pob-card-top"><span class="ov-pob-card-lab">POB</span></div>
+      <div class="ov-pob-card-empty">Belum ada data kehadiran</div>`;
+    return;
+  }
+  const idx = pobrTodayIdx(pobrData.dates);
+  const onToday = pobrData.people.filter(p => p.statuses[idx] === 1);
+
+  const badgeHtml = onToday.length
+    ? `<span class="ov-pob-card-badge"><span class="dot"></span>${onToday.length} ON \u2014 Site</span>`
+    : `<span class="ov-pob-card-badge none">Tidak ada yang ON</span>`;
+
+  if(!onToday.length){
+    box.innerHTML = `<div class="ov-pob-card-top"><span class="ov-pob-card-lab">POB</span>${badgeHtml}</div>
+      <div class="ov-pob-card-empty">Tidak ada personel ON hari ini</div>`;
+    return;
+  }
+
+  const MAX_SHOW = 2;
+  const shown = onToday.slice(0, MAX_SHOW);
+  const remaining = onToday.length - shown.length;
+
+  let peopleHtml = shown.map(p => {
+    const firstName = String(p.name || '').trim().split(' ')[0] || '-';
+    const photo = pobrResolvePhoto(p.name);
+    const avatarHtml = photo
+      ? `<div class="roster-avatar" style="width:22px;height:22px;border-color:#1E7A34;"><img src="${photo}" alt="${escapeHtml(firstName)}"></div>`
+      : `<div class="roster-avatar roster-avatar-initial" style="width:22px;height:22px;background:#1E7A34;border-color:#1E7A34;">${pobrInitials(p.name)}</div>`;
+    return `
+    <div class="ov-pob-card-avrow" title="${escapeHtml(p.name)} \u00b7 ON hari ini">
+      ${avatarHtml}
+      <div class="nm">${escapeHtml(firstName)}</div>
+      <div class="st">ON</div>
+    </div>`;
+  }).join('');
+
+  if(remaining > 0){
+    peopleHtml += `
+    <div class="ov-pob-card-avrow more">
+      <div class="roster-avatar roster-avatar-initial" style="width:22px;height:22px;background:var(--zebra);color:var(--text-secondary);border-color:transparent;">+${remaining}</div>
+      <div class="nm">Lainnya</div>
+      <div class="st">&nbsp;</div>
+    </div>`;
+  }
+
+  box.innerHTML = `
+    <div class="ov-pob-card-top">
+      <span class="ov-pob-card-lab">POB</span>
+      ${badgeHtml}
+    </div>
+    <div class="ov-pob-card-people">${peopleHtml}</div>`;
 }
 
 const chipCycleDso = ['green','yellow','blue','red','grey','gold'];
@@ -5739,6 +5805,18 @@ function pobrRenderTable(filterQ){
   tbody += '</tbody>';
   table.innerHTML = thead + tbody;
 }
+
+// Muat data kehadiran POB (Digitech Team Attendance) di awal juga -- sama seperti pola
+// loadRoster() di atas -- supaya kartu lite POB di Overview langsung terisi tanpa perlu
+// buka menu POB dulu. Kegagalan di sini tidak boleh menggagalkan Overview lainnya.
+(async () => {
+  try{
+    pobrData = await dsoLoad(DSO_POBR_KEY, POBR_SEED);
+  }catch(e){
+    console.warn('Overview: gagal memuat data kehadiran POB awal:', e && e.message);
+  }
+  if(document.getElementById('view-overview') && document.getElementById('view-overview').classList.contains('active')) renderOverviewPobCard();
+})();
 
 // muat Overview begitu app dibuka karena ini tab default
 renderOverview();
