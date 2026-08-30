@@ -707,6 +707,22 @@
   .ov-inspect-card-item .fu-badge{font-size:7.5px;padding:1px 6px;flex-shrink:0;}
   .ov-inspect-card-more{text-align:center;font-size:9.5px;color:var(--text-secondary);}
   .ov-inspect-card-empty{font-size:11px;color:var(--text-muted);margin-top:8px;font-weight:600;}
+  .ov-mini-card{display:flex;flex-direction:column;height:100%;}
+  .ov-mini-card-top{display:flex;justify-content:space-between;align-items:center;gap:6px;}
+  .ov-mini-card-lab{font-size:12px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .ov-mini-card-badge{font-size:9px;font-weight:700;padding:2px 8px;border-radius:999px;background:#B23A3A;color:#fff;display:inline-flex;align-items:center;gap:4px;white-space:nowrap;flex-shrink:0;}
+  .ov-mini-card-badge .dot{width:5px;height:5px;border-radius:50%;background:#fff;animation:rosterPulse 1.4s infinite;}
+  .ov-mini-card-badge.warn{background:#95700B;}
+  .ov-mini-card-badge.ok{background:#1E7A34;}
+  .ov-mini-card-list{display:flex;flex-direction:column;gap:5px;margin-top:10px;}
+  .ov-mini-card-item{display:flex;align-items:center;gap:7px;padding:5px 7px;border-radius:7px;background:var(--zebra);}
+  .ov-mini-card-item .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+  .ov-mini-card-item .body{flex:1;min-width:0;}
+  .ov-mini-card-item .desc{font-size:9.5px;font-weight:700;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .ov-mini-card-item .pic{font-size:8px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .ov-mini-card-item .tag{font-size:7.5px;font-weight:700;padding:1px 6px;border-radius:999px;flex-shrink:0;}
+  .ov-mini-card-more{text-align:center;font-size:9.5px;color:var(--text-secondary);}
+  .ov-mini-card-empty{font-size:11px;color:var(--text-muted);margin-top:8px;font-weight:600;}
   .roster-name-tip:hover{
     color:var(--accent);
     border-color:var(--accent);
@@ -1211,14 +1227,10 @@
         <div class="ov-roster-card" id="ovRosterCard"></div>
       </div>
       <div class="card clickable" id="ovCardTasklist">
-        <div class="num" id="ovTasklistNum">--</div>
-        <div class="lab">Task List</div>
-        <div class="ov-sub" id="ovTasklistSub">--</div>
+        <div class="ov-mini-card" id="ovTasklistCard"></div>
       </div>
       <div class="card clickable" id="ovCardOpenpoint">
-        <div class="num" id="ovOpenpointNum">--</div>
-        <div class="lab">Open Point</div>
-        <div class="ov-sub" id="ovOpenpointSub">--</div>
+        <div class="ov-mini-card" id="ovOpenpointCard"></div>
       </div>
     </div>
     <div class="progress-wrap">
@@ -5157,13 +5169,9 @@ async function renderOverview(){
 
   renderOverviewRosterCard();
 
-  document.getElementById('ovTasklistNum').textContent = d.taskActive + ' aktif';
-  document.getElementById('ovTasklistSub').textContent = d.taskOverdue > 0 ? d.taskOverdue + ' overdue' : 'Tidak ada overdue';
-  document.getElementById('ovTasklistSub').className = 'ov-sub ' + (d.taskOverdue > 0 ? 'warn' : 'ok');
+  renderOverviewTasklistCard();
 
-  document.getElementById('ovOpenpointNum').textContent = d.opActive;
-  document.getElementById('ovOpenpointSub').textContent = d.opKritis > 0 ? d.opKritis + ' kritis' : 'Tidak ada yang kritis';
-  document.getElementById('ovOpenpointSub').className = 'ov-sub ' + (d.opKritis > 0 ? 'warn' : 'ok');
+  renderOverviewOpenpointCard();
 
   document.getElementById('ovCardStock').onclick = () => document.querySelector('.tab[data-view="assetplant"]').click();
   document.getElementById('ovCardPob').onclick = () => document.querySelector('.tab[data-view="pob"]').click();
@@ -5362,6 +5370,103 @@ function renderOverviewInspectionCard(){
       ${badgeHtml}
     </div>
     <div class="ov-inspect-card-list">${listHtml}</div>`;
+}
+
+function renderOverviewTasklistCard(){
+  const box = document.getElementById('ovTasklistCard');
+  if(!box) return;
+  const withEff = taskListItems.map(it => ({ it, eff: tlEffectiveStatus(it) }));
+  const overdue = withEff.filter(x => x.eff === 'Overdue');
+  const active = withEff.filter(x => x.eff !== 'Overdue' && !taskStatusManager.isDone(x.it.status));
+  const combined = [...overdue, ...active];
+
+  const badgeHtml = overdue.length
+    ? `<span class="ov-mini-card-badge"><span class="dot"></span>${overdue.length} Overdue</span>`
+    : (active.length
+      ? `<span class="ov-mini-card-badge warn">${active.length} Aktif</span>`
+      : `<span class="ov-mini-card-badge ok">Semua Selesai</span>`);
+
+  if(!combined.length){
+    box.innerHTML = `<div class="ov-mini-card-top"><span class="ov-mini-card-lab">Task List</span>${badgeHtml}</div>
+      <div class="ov-mini-card-empty">Tidak ada task aktif</div>`;
+    return;
+  }
+
+  const MAX_SHOW = 2;
+  const shown = combined.slice(0, MAX_SHOW);
+  const remaining = combined.length - shown.length;
+
+  let listHtml = shown.map(({it, eff}) => {
+    const c = eff === 'Overdue' ? OP_STATUS_COLORS.red : opStatusColor((taskStatusManager.find(eff) || {}).color);
+    return `
+    <div class="ov-mini-card-item" title="${escapeHtml(it.desc||'')}">
+      <span class="dot" style="background:${c.fg}"></span>
+      <div class="body">
+        <div class="desc">${escapeHtml(it.desc||'-')}</div>
+        <div class="pic">${it.pic ? 'PIC: ' + escapeHtml(it.pic) : '\u2014'}</div>
+      </div>
+      <span class="tag" style="background:${c.bg};color:${c.fg};">${escapeHtml(tlStatusLabel(eff))}</span>
+    </div>`;
+  }).join('');
+
+  if(remaining > 0){
+    listHtml += `<div class="ov-mini-card-more">+${remaining} lainnya</div>`;
+  }
+
+  box.innerHTML = `
+    <div class="ov-mini-card-top">
+      <span class="ov-mini-card-lab">Task List</span>
+      ${badgeHtml}
+    </div>
+    <div class="ov-mini-card-list">${listHtml}</div>`;
+}
+
+function renderOverviewOpenpointCard(){
+  const box = document.getElementById('ovOpenpointCard');
+  if(!box) return;
+  const kritis = openPointItems.filter(it => it.status === 'Kritis');
+  const activeOthers = openPointItems.filter(it => it.status !== 'Kritis' && !opStatusIsDone(it.status));
+  const combined = [...kritis, ...activeOthers];
+
+  const badgeHtml = kritis.length
+    ? `<span class="ov-mini-card-badge"><span class="dot"></span>${kritis.length} Kritis</span>`
+    : (combined.length
+      ? `<span class="ov-mini-card-badge warn">${combined.length} Aktif</span>`
+      : `<span class="ov-mini-card-badge ok">Semua Closed</span>`);
+
+  if(!combined.length){
+    box.innerHTML = `<div class="ov-mini-card-top"><span class="ov-mini-card-lab">Open Point</span>${badgeHtml}</div>
+      <div class="ov-mini-card-empty">Tidak ada open point aktif</div>`;
+    return;
+  }
+
+  const MAX_SHOW = 2;
+  const shown = combined.slice(0, MAX_SHOW);
+  const remaining = combined.length - shown.length;
+
+  let listHtml = shown.map(it => {
+    const c = opStatusColor((opStatusFind(it.status) || {}).color);
+    return `
+    <div class="ov-mini-card-item" title="${escapeHtml(it.desc||'')}">
+      <span class="dot" style="background:${c.fg}"></span>
+      <div class="body">
+        <div class="desc">${escapeHtml(it.desc||'-')}</div>
+        <div class="pic">${it.site ? 'Site: ' + escapeHtml(it.site) : '\u2014'}</div>
+      </div>
+      <span class="tag" style="background:${c.bg};color:${c.fg};">${escapeHtml(it.status)}</span>
+    </div>`;
+  }).join('');
+
+  if(remaining > 0){
+    listHtml += `<div class="ov-mini-card-more">+${remaining} lainnya</div>`;
+  }
+
+  box.innerHTML = `
+    <div class="ov-mini-card-top">
+      <span class="ov-mini-card-lab">Open Point</span>
+      ${badgeHtml}
+    </div>
+    <div class="ov-mini-card-list">${listHtml}</div>`;
 }
 
 const chipCycleDso = ['green','yellow','blue','red','grey','gold'];
