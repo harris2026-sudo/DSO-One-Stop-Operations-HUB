@@ -692,6 +692,21 @@
   .ov-stock-card-item.more .nm{color:var(--text-secondary);}
   .ov-stock-card-item.more .st{color:var(--text-muted);}
   .ov-stock-card-empty{font-size:11px;color:var(--text-muted);margin-top:8px;font-weight:600;}
+  .ov-inspect-card{display:flex;flex-direction:column;height:100%;}
+  .ov-inspect-card-top{display:flex;justify-content:space-between;align-items:center;gap:6px;}
+  .ov-inspect-card-lab{font-size:12px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .ov-inspect-card-badge{font-size:9px;font-weight:700;padding:2px 8px;border-radius:999px;background:#95700B;color:#fff;display:inline-flex;align-items:center;gap:4px;white-space:nowrap;flex-shrink:0;}
+  .ov-inspect-card-badge .dot{width:5px;height:5px;border-radius:50%;background:#fff;animation:rosterPulse 1.4s infinite;}
+  .ov-inspect-card-badge.ok{background:#1E7A34;}
+  .ov-inspect-card-list{display:flex;flex-direction:column;gap:5px;margin-top:10px;}
+  .ov-inspect-card-item{display:flex;align-items:center;gap:7px;padding:5px 7px;border-radius:7px;background:var(--zebra);}
+  .ov-inspect-card-item .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+  .ov-inspect-card-item .body{flex:1;min-width:0;}
+  .ov-inspect-card-item .desc{font-size:9.5px;font-weight:700;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .ov-inspect-card-item .pic{font-size:8px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .ov-inspect-card-item .fu-badge{font-size:7.5px;padding:1px 6px;flex-shrink:0;}
+  .ov-inspect-card-more{text-align:center;font-size:9.5px;color:var(--text-secondary);}
+  .ov-inspect-card-empty{font-size:11px;color:var(--text-muted);margin-top:8px;font-weight:600;}
   .roster-name-tip:hover{
     color:var(--accent);
     border-color:var(--accent);
@@ -1190,9 +1205,7 @@
         <div class="ov-pob-card" id="ovPobCard"></div>
       </div>
       <div class="card clickable" id="ovCardInspection">
-        <div class="num" id="ovInspectionNum">--</div>
-        <div class="lab">Inspection &amp; Control</div>
-        <div class="ov-sub" id="ovInspectionSub">--</div>
+        <div class="ov-inspect-card" id="ovInspectionCard"></div>
       </div>
       <div class="card clickable" id="ovCardRoster">
         <div class="ov-roster-card" id="ovRosterCard"></div>
@@ -5140,9 +5153,7 @@ async function renderOverview(){
 
   renderOverviewPobCard();
 
-  document.getElementById('ovInspectionNum').textContent = d.inspectionActive + '/' + d.inspectionTotal;
-  document.getElementById('ovInspectionSub').textContent = d.inspectionActive > 0 ? d.inspectionActive + ' masih berjalan' : 'Semua selesai';
-  document.getElementById('ovInspectionSub').className = 'ov-sub ' + (d.inspectionActive > 0 ? 'warn' : 'ok');
+  renderOverviewInspectionCard();
 
   renderOverviewRosterCard();
 
@@ -5306,6 +5317,51 @@ function renderOverviewStockCard(assets){
       ${badgeHtml}
     </div>
     <div class="ov-stock-card-items">${itemsHtml}</div>`;
+}
+
+function renderOverviewInspectionCard(){
+  const box = document.getElementById('ovInspectionCard');
+  if(!box) return;
+  const active = (followUpItems || [])
+    .filter(it => it.status === 'Open' || it.status === 'Onprogress')
+    .slice()
+    .sort((a,b) => String(b.date||'').localeCompare(String(a.date||'')));
+
+  const badgeHtml = active.length
+    ? `<span class="ov-inspect-card-badge"><span class="dot"></span>${active.length} Berjalan</span>`
+    : `<span class="ov-inspect-card-badge ok">Semua Selesai</span>`;
+
+  if(!active.length){
+    box.innerHTML = `<div class="ov-inspect-card-top"><span class="ov-inspect-card-lab">Inspection &amp; Control</span>${badgeHtml}</div>
+      <div class="ov-inspect-card-empty">Tidak ada item yang berjalan</div>`;
+    return;
+  }
+
+  const MAX_SHOW = 2;
+  const shown = active.slice(0, MAX_SHOW);
+  const remaining = active.length - shown.length;
+  const dotColor = { Open: 'var(--blue-fg)', Onprogress: 'var(--yellow-fg)' };
+
+  let listHtml = shown.map(it => `
+    <div class="ov-inspect-card-item" title="${escapeHtml(it.desc||'')}">
+      <span class="dot" style="background:${dotColor[it.status] || 'var(--text-muted)'}"></span>
+      <div class="body">
+        <div class="desc">${escapeHtml(it.desc||'-')}</div>
+        <div class="pic">${it.pic ? 'PIC: ' + escapeHtml(it.pic) : '\u2014'}</div>
+      </div>
+      <span class="fu-badge ${it.status}">${it.status}</span>
+    </div>`).join('');
+
+  if(remaining > 0){
+    listHtml += `<div class="ov-inspect-card-more">+${remaining} lainnya</div>`;
+  }
+
+  box.innerHTML = `
+    <div class="ov-inspect-card-top">
+      <span class="ov-inspect-card-lab">Inspection &amp; Control</span>
+      ${badgeHtml}
+    </div>
+    <div class="ov-inspect-card-list">${listHtml}</div>`;
 }
 
 const chipCycleDso = ['green','yellow','blue','red','grey','gold'];
