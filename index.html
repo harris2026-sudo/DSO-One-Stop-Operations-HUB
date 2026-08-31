@@ -3317,8 +3317,8 @@ let rosterLoaded = false;
 /* ---- Roster HELPER (sheet terpisah dari roster utama, dikelola oleh PT Lintech / Harris) ----
    File Helper dibuat per-bulan (contoh nama file: "07. Roster Helper_Juli_2026.xlsx"), jadi
    ID spreadsheet & gid di bawah HARUS diperbarui setiap kali file bulan baru dibuat oleh Harris/Lintech. */
-const ROSTER_HELPER_SHEET_ID = '1IDGCYdgEzWkoeFTloMCqxWA9Sgn-0aRZ'; // "09. Roster Helper_September_2026.xlsx" - file diganti tiap bulan oleh tim, ID ini perlu di-update manual tiap kali file baru dibuat
-const ROSTER_HELPER_GID = '2120640525';
+const ROSTER_HELPER_SHEET_ID = '1a4DsId2nrTx2WduXFkCPVySAuEOQLSScR2RAqv4gAkM'; // "09. Roster Helper_September_2026" - dikonversi ke Google Sheets NATIVE (bukan .xlsx) agar gviz/tq stabil. File .xlsx asli menyebabkan error CORS/timeout berulang tiap bulan karena endpoint gviz tidak reliabel untuk file format Office. ID & gid ini tetap perlu di-update manual tiap kali file bulan baru dibuat oleh Harris/Lintech - PASTIKAN file baru juga dikonversi ke Google Sheets native (File > Save as Google Sheets), bukan dibiarkan sebagai .xlsx.
+const ROSTER_HELPER_GID = '0';
 const ROSTER_HELPER_PERSONNEL = [
   { code:'Ferdy', shortCode:'FJS', name:'Ferdy Julian Siregar',      color:'#B45309', photo: ROSTER_HELPER_PHOTO_FJS, role:'Monitoring Field Support' },
   { code:'Wahyu', shortCode:'WH',  name:'Wahyu',                     color:'#0F766E', photo: ROSTER_HELPER_PHOTO_WH,  role:'Monitoring Field Support' },
