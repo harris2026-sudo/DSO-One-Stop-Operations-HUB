@@ -8318,8 +8318,12 @@ function renderTlFilterBar(){
 
 function renderTlList(){
   const el = document.getElementById('tlList');
+  /* Task berstatus "selesai" (done=true, lihat taskStatusManager) disembunyikan
+     dari tab "Semua" -- sama seperti Closed di Open Point/Follow Up -- supaya
+     daftar ringkas dan cuma isi task yang masih perlu dikerjakan. Task Done
+     tidak hilang permanen, tetap bisa dibuka lewat tab filter "Done". */
   const items = taskListFilter === 'All'
-    ? taskListItems
+    ? taskListItems.filter(it => !taskStatusManager.isDone(it.status))
     : taskListItems.filter(it => tlEffectiveStatus(it) === taskListFilter);
   if(items.length === 0){
     el.innerHTML = '<div class="empty-note">Belum ada task pada filter ini.</div>';
@@ -8327,6 +8331,7 @@ function renderTlList(){
   }
   el.innerHTML = items.map(it => {
     const eff = tlEffectiveStatus(it);
+    const isDoneNow = taskStatusManager.isDone(it.status);
     return `
     <div class="fu-card" style="border-left-color:${eff==='Overdue'?'var(--red-fg)':(opStatusColor((taskStatusManager.find(it.status)||{}).color).fg)};" data-id="${it.id}">
       <div class="fu-top">
@@ -8342,6 +8347,13 @@ function renderTlList(){
           ${taskStatusManager.getList().map(s => `<option value="${s.name}" ${s.name===it.status?'selected':''}>${s.name}</option>`).join('')}
         </select>
         <button class="fu-del" data-id="${it.id}">Hapus</button>
+        <span class="tl-remark-saved" data-id="${it.id}" style="display:none;font-size:10.5px;color:var(--green-fg,var(--text-success));align-items:center;gap:3px;"><i class="ti ti-check" style="font-size:13px;"></i> Tersimpan otomatis</span>
+      </div>
+      <div class="tl-remark-box" data-id="${it.id}" style="display:${isDoneNow ? 'block':'none'};margin-top:8px;background:#fff;border:1px dashed var(--green-fg,var(--text-success));border-radius:8px;padding:8px 10px;">
+        <div style="font-size:10.5px;color:var(--green-fg,var(--text-success));font-weight:600;margin-bottom:5px;">
+          <i class="ti ti-archive" style="font-size:12px;vertical-align:-2px;"></i> Remark
+        </div>
+        <input type="text" class="tl-remark-input" data-id="${it.id}" value="${escapeHtml(it.remark||'')}" placeholder="Keterangan penyelesaian task ini (opsional)..." style="width:100%;font-size:11.5px;padding:6px 8px;border-radius:6px;border:0.5px solid var(--border);">
       </div>
     </div>`;
   }).join('');
@@ -8349,8 +8361,25 @@ function renderTlList(){
   el.querySelectorAll('.tl-status-select').forEach(sel => {
     sel.onchange = async () => {
       const item = taskListItems.find(i => i.id === sel.dataset.id);
-      if(item){ item.status = sel.value; await saveTaskList(); }
-      renderTaskList();
+      if(!item) return;
+      item.status = sel.value;
+      await saveTaskList();
+      renderTlSummary();
+      renderTlFilterBar();
+      /* Update kartu ini di tempat (tanpa render ulang seluruh list) supaya kalau
+         status baru saja diganti ke Done sambil masih di tab "Semua", kartunya
+         TIDAK langsung hilang sebelum sempat isi Remark. Auto-hide dari "Semua"
+         baru benar-benar berlaku saat list di-render ulang (ganti tab/filter,
+         tambah task baru, atau buka menu ini lagi). */
+      const card = sel.closest('.fu-card');
+      const eff = tlEffectiveStatus(item);
+      const isDoneNow = taskStatusManager.isDone(item.status);
+      card.style.borderLeftColor = eff==='Overdue' ? 'var(--red-fg)' : opStatusColor((taskStatusManager.find(item.status)||{}).color).fg;
+      const badge = card.querySelector('.fu-badge');
+      badge.textContent = tlStatusLabel(eff);
+      badge.setAttribute('style', tlStatusColorStyle(eff));
+      const remarkBox = card.querySelector('.tl-remark-box');
+      if(remarkBox) remarkBox.style.display = isDoneNow ? 'block' : 'none';
     };
   });
   el.querySelectorAll('.fu-del').forEach(btn => {
@@ -8360,6 +8389,30 @@ function renderTlList(){
       await saveTaskList();
       renderTaskList();
     };
+  });
+  /* Remark: TANPA tombol simpan terpisah -- otomatis tersimpan begitu user
+     berhenti mengetik (debounce) atau keluar dari kolom (blur). Kotak Remark
+     ini muncul begitu status = Done (lihat tl-remark-box di atas), jadi ganti
+     status ke Done sudah cukup untuk mulai mencatat, tanpa langkah tambahan. */
+  let tlRemarkTimer = null;
+  el.querySelectorAll('.tl-remark-input').forEach(inp => {
+    const doSave = async () => {
+      const item = taskListItems.find(i => i.id === inp.dataset.id);
+      if(!item) return;
+      item.remark = inp.value.trim();
+      await saveTaskList();
+      const tag = el.querySelector(`.tl-remark-saved[data-id="${inp.dataset.id}"]`);
+      if(tag){
+        tag.style.display = 'inline-flex';
+        clearTimeout(tag._hideTimer);
+        tag._hideTimer = setTimeout(() => { tag.style.display = 'none'; }, 2000);
+      }
+    };
+    inp.addEventListener('input', () => {
+      clearTimeout(tlRemarkTimer);
+      tlRemarkTimer = setTimeout(doSave, 700);
+    });
+    inp.addEventListener('blur', doSave);
   });
 }
 
