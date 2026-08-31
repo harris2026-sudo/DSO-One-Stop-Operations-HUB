@@ -1289,13 +1289,15 @@
           </div>
         </div>
         <div class="ap-table-scroll">
-        <table style="width:100%;border-collapse:collapse;font-size:12px;min-width:900px;">
+        <table style="width:100%;border-collapse:collapse;font-size:12px;min-width:1020px;">
           <thead><tr style="text-align:left;background:var(--navy);color:#fff;">
             <th style="padding:10px 8px;font-weight:600;">No</th>
             <th style="padding:10px 8px;font-weight:600;">Description</th>
             <th style="padding:10px 8px;font-weight:600;">Category</th>
             <th style="padding:10px 8px;font-weight:600;">Source</th>
-            <th style="padding:10px 8px;font-weight:600;">Breakdown Stok (Baru / Second / Rusak)</th>
+            <th style="padding:10px 8px;font-weight:600;text-align:center;">Baru</th>
+            <th style="padding:10px 8px;font-weight:600;text-align:center;">Second</th>
+            <th style="padding:10px 8px;font-weight:600;text-align:center;">Rusak</th>
             <th style="padding:10px 8px;font-weight:600;">Desc</th>
             <th style="padding:10px 8px;font-weight:600;text-align:right;">Aksi</th>
           </tr></thead>
@@ -5631,30 +5633,29 @@ function apRenderChart(assets){
   });
 }
 
-/* ---- Tabel: 1 "chip" breakdown stok untuk 1 kategori (Baru/Second/Broken).
-   Tiap chip berdiri sendiri dengan label kategori + jumlah + badge Jenis MILIK
-   kategori itu sendiri -- supaya tidak ada lagi 1 badge Jenis yang harus dibaca
-   untuk 3 kategori stok sekaligus (akar masalah tampilan lama). Chip dengan
-   jumlah 0 dibuat pudar (abu-abu) supaya kategori yang benar-benar ada isinya
-   lebih menonjol. */
-function apChip(label, qty, unit, jenisVal, accentColor){
+/* ---- Tabel: 1 SEL breakdown stok untuk 1 kategori (Baru/Second/Rusak).
+   Beda dari versi chip sebelumnya: ini <td> tabel biasa yang sejajar vertikal
+   sebagai sub-kolom tetap di semua baris (bukan lagi inline-flex yang bebas
+   membungkus dan bikin tinggi baris tidak seragam). Jumlah + Jenis ditumpuk
+   di dalam 1 kotak kecil per sel supaya tetap ringkas. */
+function apStockCell(qty, jenisVal){
   const n = Number(qty)||0;
   const hasStock = n > 0;
-  const bg = hasStock ? `var(--${accentColor}-bg)` : 'var(--hilite)';
-  const fg = hasStock ? `var(--${accentColor}-fg)` : '#889';
-  const jenisBadge = jenisVal ? apBadge(jenisVal, AP_JENIS_COLOR, '') : '';
-  return `<div style="display:inline-flex;align-items:center;gap:6px;background:${bg};border-radius:8px;padding:4px 9px;margin:2px 4px 2px 0;">
-    <span style="font-size:10px;color:${fg};font-weight:600;">${label}</span>
-    <b style="font-size:12px;color:${fg};">${n} ${unit||''}</b>
-    ${jenisBadge}
-  </div>`;
+  const bg = hasStock ? 'var(--green-bg)' : 'var(--hilite)';
+  const fg = hasStock ? 'var(--green-fg)' : '#889';
+  return `<td style="padding:6px 6px;text-align:center;">
+    <div style="background:${bg};border-radius:8px;padding:5px 4px;">
+      <b style="font-size:12.5px;color:${fg};">${n}</b>
+      <div style="font-size:9.5px;color:${fg};">${jenisVal || '—'}</div>
+    </div>
+  </td>`;
 }
 /* ---- Tabel: render body dari list {item, idx} ---- */
 function apRenderBody(list){
   const body = document.getElementById('apBody');
   body.innerHTML = '';
   if(!list.length){
-    body.innerHTML = `<tr><td colspan="7" style="padding:30px 10px;text-align:center;color:var(--text-muted);">
+    body.innerHTML = `<tr><td colspan="9" style="padding:30px 10px;text-align:center;color:var(--text-muted);">
       <i class="ti ti-package-off" style="font-size:22px;display:block;margin-bottom:6px;"></i>
       Tidak ada item part yang cocok dengan pencarian/filter ini.
     </td></tr>`;
@@ -5666,15 +5667,14 @@ function apRenderBody(list){
     tr.className = 'ap-row';
     const isWarn = a.category === 'Critical' && (Number(a.newStock)||0) === 0;
     tr.style.background = isWarn ? 'var(--red-bg)' : (rowNo%2 ? '#f7f9f8' : '#fff');
-    const breakdown = apChip('Baru', a.newStock, a.unit, a.jenisNew, 'green')
-      + apChip('Second', a.exSecond, a.unit, a.jenisSecond, 'blue')
-      + apChip('Rusak', a.broken, a.unit, a.jenisBroken, 'red');
     tr.innerHTML = `
       <td style="padding:8px 6px;color:#889;">${rowNo+1}</td>
       <td style="padding:8px 6px;font-weight:bold;color:var(--navy);">${a.description||'-'}</td>
       <td style="padding:8px 6px;">${apBadge(a.category, AP_CATEGORY_COLOR, '')}</td>
       <td style="padding:8px 6px;">${apBadge(a.source, AP_SOURCE_COLOR, '')}</td>
-      <td style="padding:8px 6px;">${breakdown}</td>
+      ${apStockCell(a.newStock, a.jenisNew)}
+      ${apStockCell(a.exSecond, a.jenisSecond)}
+      ${apStockCell(a.broken, a.jenisBroken)}
       <td style="padding:8px 6px;color:#556;">${a.desc||''}</td>
       <td style="padding:8px 6px;text-align:right;white-space:nowrap;">
         <i class="ti ti-edit ap-row-edit" data-idx="${i}" title="Edit" style="font-size:16px;color:var(--text-secondary);cursor:pointer;margin-right:6px;"></i>
