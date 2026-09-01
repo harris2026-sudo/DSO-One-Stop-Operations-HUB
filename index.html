@@ -466,6 +466,11 @@
   .fu-card .fu-desc{font-size:13px;color:#222;font-weight:bold;margin-bottom:4px;}
   .fu-card .fu-meta{font-size:11px;color:#667;}
   .fu-card .fu-note{font-size:12px;color:#556;margin-top:6px;}
+  .fu-detail-box{background:var(--zebra);border-radius:8px;padding:8px 12px;margin-top:8px;}
+  .fu-detail-row{display:flex;justify-content:space-between;gap:12px;padding:4px 0;border-bottom:1px solid rgba(0,0,0,.06);}
+  .fu-detail-row:last-child{border-bottom:none;}
+  .fu-detail-label{font-size:11.5px;color:#667;flex-shrink:0;}
+  .fu-detail-value{font-size:12.5px;color:#223;text-align:right;}
   .select-with-actions{display:flex;gap:4px;}
   .select-with-actions select{flex:1;min-width:0;}
   .icon-btn{border:none;border-radius:6px;font-size:13px;font-weight:bold;cursor:pointer;padding:0 9px;font-family:Arial;flex-shrink:0;transition:transform .15s ease,box-shadow .15s ease;}
@@ -8072,6 +8077,30 @@ function renderFuFilterBar(){
   });
 }
 
+// Menyusun daftar baris detail (label + nilai) untuk satu item Follow Up. Item dengan
+// data lengkap (mis. dari Order Form) menampilkan beberapa baris; item biasa yang cuma
+// punya catatan singkat tetap ditampilkan sebagai satu baris "Catatan", supaya gaya
+// tampilannya konsisten di semua jenis item Follow Up.
+function fuDetailRows(it){
+  const rows = [];
+  if(it.detail){
+    const d = it.detail;
+    if(d.jumlah) rows.push(['Jumlah RFID', d.jumlah]);
+    if(d.posisi) rows.push(['Posisi Pemasangan', d.posisi]);
+    if(d.lambungLama || d.lambungBaru) rows.push(['No Lambung Lama → Baru', `${d.lambungLama || '-'} → ${d.lambungBaru || '-'}`]);
+    if(d.keterangan) rows.push(['Keterangan', d.keterangan]);
+    if(d.catatan) rows.push(['Catatan', d.catatan]);
+  } else if(it.note){
+    rows.push(['Catatan', it.note]);
+  }
+  return rows;
+}
+function fuRenderDetailBox(it){
+  const rows = fuDetailRows(it);
+  if(!rows.length) return '';
+  return `<div class="fu-detail-box">${rows.map(([label, val]) => `<div class="fu-detail-row"><span class="fu-detail-label">${escapeHtml(label)}</span><span class="fu-detail-value">${escapeHtml(String(val))}</span></div>`).join('')}</div>`;
+}
+
 function renderFuList(){
   const el = document.getElementById('fuList');
   // Item berstatus "Close" otomatis tersimpan tapi disembunyikan dari tampilan "Semua"
@@ -8105,7 +8134,7 @@ function renderFuList(){
           </div>
           <span class="fu-badge ${it.status}">${it.status}</span>
         </div>
-        ${it.note ? `<div class="fu-note">${escapeHtml(it.note)}</div>` : ''}
+        ${fuRenderDetailBox(it)}
         <div class="fu-actions">
           <select data-id="${it.id}" data-kind="manual" class="fu-status-select">
             ${FOLLOWUP_STATUS.map(s => `<option value="${s}" ${s===it.status?'selected':''}>${s}</option>`).join('')}
@@ -8127,7 +8156,7 @@ function renderFuList(){
           </div>
           <span class="fu-badge ${it.trackStatus}">${it.trackStatus}</span>
         </div>
-        ${it.note ? `<div class="fu-note">${escapeHtml(it.note)}</div>` : ''}
+        ${fuRenderDetailBox(it)}
         <div class="fu-actions">
           <select data-key="${it.key}" data-kind="checklist" class="fu-status-select">
             ${FOLLOWUP_STATUS.map(s => `<option value="${s}" ${s===it.trackStatus?'selected':''}>${s}</option>`).join('')}
@@ -8850,7 +8879,8 @@ function mapOrderFormStatus(s){
 // 9 Posisi Pemasangan RFID Tag, 10 Status Pemberian
 function orderRowToFollowUp(row, rowNum){
   const timestamp = row[0], requester = row[1], mitra = row[2], permintaan = row[3],
-        jumlah = row[4], statusPemberian = row[10];
+        jumlah = row[4], lambungLama = row[5], lambungBaru = row[6], keterangan = row[7],
+        catatan = row[8], posisi = row[9], statusPemberian = row[10];
 
   let dateVal = todayStr();
   if(timestamp){
@@ -8858,8 +8888,6 @@ function orderRowToFollowUp(row, rowNum){
     if(!isNaN(d)) dateVal = new Date(d - d.getTimezoneOffset()*60000).toISOString().slice(0,10);
   }
 
-  // Sesuai permintaan: tampilan Follow Up dari Order Form cukup 4 data ini saja
-  // (Nama Requestor, Nama Mitra, Permintaan Tag, Jumlah RFID).
   const desc = `Permintaan Tag: ${permintaan || '-'}`;
 
   return {
@@ -8871,6 +8899,17 @@ function orderRowToFollowUp(row, rowNum){
     due: '',
     status: mapOrderFormStatus(statusPemberian),
     note: `Jumlah RFID: ${jumlah || '-'}`,
+    // Detail lengkap dari Order Form (Keterangan, Catatan, No Lambung, Posisi Pemasangan)
+    // ditampilkan di kartu Follow Up lewat kotak detail (fuDetailRows), tidak lagi
+    // hanya "Jumlah RFID" saja.
+    detail: {
+      jumlah: jumlah || '',
+      posisi: posisi || '',
+      lambungLama: lambungLama || '',
+      lambungBaru: lambungBaru || '',
+      keterangan: keterangan || '',
+      catatan: catatan || ''
+    },
     source: 'orderform',
     unread: true
   };
