@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Data Penilaian — DSO Ops HUB Standalone</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<style>
+  :root{
+    --bg:#F4F6F4;
+    --surface:#FFFFFF;
+    --surface-alt:#EEF1EE;
+    --border:#DCE1DD;
+    --text:#152029;
+    --text-secondary:#5B6B70;
+    --text-muted:#8C9A9E;
+    --navy:#0F1B2C;
+    --navy-light:#1B2F47;
+    --accent:#2E6690;
+    --hilite:#E6EEF4;
+    --zebra:#EEF1EE;
+    --green:#1C8A6E;
+    --green-bg:#E0F2EC;
+    --green-fg:#1C8A6E;
+    --yellow-bg:#FAEFDA;
+    --yellow-fg:#DE9A34;
+    --blue-bg:#E6EEF4;
+    --blue-fg:#2E6690;
+    --red-bg:#FAE6E1;
+    --red-fg:#CF5138;
+    --grey-bg:#EEF1EE;
+    --grey-fg:#5B6B70;
+    --gold-bg:#FAEFDA;
+    --gold-fg:#DE9A34;
+    --radius:10px;
+    --font-display:'Space Grotesk',sans-serif;
+    --font-body:'Inter',Arial,sans-serif;
+    --font-mono:'JetBrains Mono',monospace;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:var(--font-body);background:var(--bg);color:var(--text);padding-bottom:40px;}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 18px;}
+
+  header.top{background:var(--navy);color:#DDE6EC;padding:18px 18px 20px;}
+  header.top .inner{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:12px;}
+  header.top .brand-icon{width:38px;height:38px;border-radius:10px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+  header.top h1{font-family:var(--font-display);font-size:17px;font-weight:600;margin:0;}
+  header.top .sub{font-size:11px;color:#9FB0C2;margin-top:2px;}
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px;margin-top:18px;}
+  .card h2{font-family:var(--font-display);font-size:15px;margin:0 0 3px;display:flex;align-items:center;gap:7px;}
+  .card .sub{font-size:12px;color:var(--text-secondary);margin:0 0 14px;}
+
+  .toolbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px;}
+  .role-tabs{display:flex;gap:6px;flex-wrap:wrap;}
+  .role-tab{background:var(--surface-alt);color:var(--text-secondary);border:none;border-radius:20px;padding:7px 16px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:var(--font-body);transition:background .15s,color .15s;}
+  .role-tab.active{background:var(--navy);color:#fff;}
+  .month-input{border:1px solid var(--border);border-radius:8px;padding:7px 12px;font-size:13px;font-family:var(--font-body);background:#fff;color:var(--text);}
+
+  .methodology-note{background:var(--hilite);border-radius:10px;padding:10px 12px;font-size:11.5px;color:var(--text-secondary);margin-bottom:14px;line-height:1.5;}
+  .methodology-note b{color:var(--navy);}
+
+  table.pen-table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  table.pen-table thead th{background:var(--navy);color:#fff;text-align:left;padding:10px 8px;font-weight:600;}
+  table.pen-table thead th.center{text-align:center;}
+  table.pen-table tbody td{padding:9px 8px;border-top:1px solid var(--border);}
+  table.pen-table tbody td.center{text-align:center;}
+  table.pen-table tbody tr:nth-child(even){background:var(--zebra);}
+  .rank-medal{font-size:15px;}
+  .name-cell{font-weight:600;color:var(--navy);}
+  .score-total{font-weight:700;font-size:13.5px;}
+  .score-good{color:var(--green-fg);}
+  .score-mid{color:var(--yellow-fg);}
+  .score-bad{color:var(--red-fg);}
+  .subscore-bar-wrap{background:var(--surface-alt);border-radius:4px;height:5px;width:64px;margin:0 auto 3px;}
+  .subscore-bar-fill{height:5px;border-radius:4px;}
+  .subscore-num{font-size:11px;color:var(--text-secondary);}
+
+  .empty-note{padding:24px 10px;text-align:center;color:var(--text-muted);font-size:13px;}
+  .loading-note{padding:24px 10px;text-align:center;color:var(--text-muted);font-size:13px;}
+  #connBanner{display:none;background:var(--red-bg);color:var(--red-fg);padding:9px 14px;border-radius:8px;font-size:12px;margin-bottom:14px;}
+  footer{text-align:center;font-size:11.5px;color:var(--text-muted);font-style:italic;margin-top:28px;}
+  @media (max-width:720px){
+    table.pen-table{font-size:11px;}
+    table.pen-table thead th, table.pen-table tbody td{padding:7px 5px;}
+    .subscore-bar-wrap{width:44px;}
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="inner">
+    <div class="brand-icon"><i class="ti ti-chart-bar"></i></div>
+    <div>
+      <h1>Data Penilaian — Inspection &amp; Control</h1>
+      <div class="sub">Rekap skor checklist harian per PIC — metode Plan · Do · Check · Action</div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div id="connBanner"></div>
+
+  <div class="card">
+    <h2><i class="ti ti-users"></i> Leaderboard Penilaian</h2>
+    <p class="sub">Cari dan bandingkan performa tim berdasarkan checklist harian yang mereka isi.</p>
+
+    <div class="toolbar">
+      <div class="role-tabs">
+        <button type="button" class="role-tab active" data-role="dfe">Digitech Field Engineer</button>
+        <button type="button" class="role-tab" data-role="mfs">Monitoring Field Support</button>
+      </div>
+      <input type="month" id="periodMonth" class="month-input">
+    </div>
+
+    <div class="methodology-note">
+      <b>Metode PDCA:</b> Skor Total = (Plan × 25%) + (Do × 35%) + (Check × 15%) + (Action × 25%).
+      <b>Plan</b> = konsistensi submit checklist pada periode berjalan.
+      <b>Do</b> = % item "Checked" dari total item yang berlaku (item "n/a"/"Information" dikecualikan).
+      <b>Check</b> = % temuan (Follow up/Not yet) yang disertai catatan/keterangan.
+      <b>Action</b> = % temuan yang berhasil ditutup jadi "Checked" pada submission berikutnya.
+      Kalau tidak ada temuan sama sekali pada periode ini, Check &amp; Action otomatis dianggap 100%.
+    </div>
+
+    <div id="tableWrap">
+      <div class="loading-note">Memuat data checklist...</div>
+    </div>
+  </div>
+</div>
+
+<footer>Maintain. Monitor. Improve. — Digitech Monitoring Team</footer>
+
+<script>
+/* ================= KONFIGURASI — HARUS SAMA PERSIS DENGAN HUB UTAMA ================= */
+const APPS_SCRIPT_URL = "https://dcva-backend.meharrisborneo.workers.dev";
+const DSO_API_KEY = "jNiEM1vRHpdTBnimKIX7b7FBDHiSCcQhl5nhJ4KXq0k";
+
+/* ================= BACKEND: sama persis dengan store.get/set/list/listValues di HUB utama ================= */
+async function gsGet(key){
+  const res = await fetch(`${APPS_SCRIPT_URL}?action=get&key=${encodeURIComponent(key)}&_t=${Date.now()}`, { cache: 'no-store', headers: { 'X-Dso-Api-Key': DSO_API_KEY } });
+  if(!res.ok) throw new Error('HTTP ' + res.status);
+  const data = await res.json();
+  if(data.error === 'not_found') throw new Error('not found');
+  if(data.error) throw new Error(data.message || data.error);
+  return { key: data.key, value: data.value };
+}
+async function gsList(prefix){
+  const res = await fetch(`${APPS_SCRIPT_URL}?action=list&prefix=${encodeURIComponent(prefix)}&_t=${Date.now()}`, { cache: 'no-store', headers: { 'X-Dso-Api-Key': DSO_API_KEY } });
+  if(!res.ok) throw new Error('HTTP ' + res.status);
+  const data = await res.json();
+  if(data.error) throw new Error(data.message || data.error);
+  return { keys: data.keys || [] };
+}
+/* Bulk fetch (1 request untuk semua key+value checklist) -- sama seperti dipakai Rekap di HUB
+   utama, supaya tidak menembak ratusan request get() satu-per-satu (penyebab HTTP 404 menumpuk
+   kalau riwayat checklist sudah banyak). Fallback otomatis ke list+get kalau backend belum
+   mendukung action=listValues. */
+async function gsListValues(prefix){
+  const res = await fetch(`${APPS_SCRIPT_URL}?action=listValues&prefix=${encodeURIComponent(prefix)}&_t=${Date.now()}`, { cache: 'no-store', headers: { 'X-Dso-Api-Key': DSO_API_KEY } });
+  if(!res.ok) throw new Error('HTTP ' + res.status);
+  const data = await res.json();
+  if(data.error) throw new Error(data.message || data.error);
+  if(!data.items) throw new Error('backend belum mendukung action=listValues');
+  return data.items;
+}
+function showConnBanner(msg){
+  const el = document.getElementById('connBanner');
+  el.textContent = '⚠️ Gagal terhubung ke backend: ' + msg + '. Coba muat ulang halaman ini.';
+  el.style.display = 'block';
+}
+
+/* ================= TIM YANG DINILAI (sesuai scope permintaan) ================= */
+const TEAM_BY_ROLE = {
+  dfe: ["Nico Fahryan Sandy", "Lukman Gunawan", "Taufik Wirayudha", "Adhe Setiawan"],
+  mfs: ["Ferdy", "Wahyu", "Muhammad Rizki Alamsyah"]
+};
+const ROLE_LABEL = { dfe: 'Digitech Field Engineer', mfs: 'Monitoring Field Support' };
+
+let currentRole = 'dfe';
+let allChecklistEntries = null; // cache: [{key, dateStr, shiftKey, isMfs, data}]
+
+/* ================= AMBIL SEMUA ENTRI CHECKLIST DARI BACKEND (1x, lalu di-cache) ================= */
+async function loadAllChecklistEntries(){
+  if(allChecklistEntries) return allChecklistEntries;
+  const entries = [];
+  try{
+    const items = await gsListValues('checklist:');
+    items.forEach(it => {
+      if(it.key.includes('::backup')) return;
+      try{
+        const rest = it.key.replace('checklist:', '');
+        const parts = rest.split(':');
+        const dateStr = parts[0];
+        const shiftKey = parts[1] || 'legacy';
+        const isMfs = it.key.endsWith('_mfs');
+        const data = JSON.parse(it.value);
+        entries.push({ key: it.key, dateStr, shiftKey, isMfs, data });
+      }catch(e){ /* lewati item yang korup, jangan gagalkan semua */ }
+    });
+  }catch(bulkErr){
+    console.warn('Bulk fetch gagal, fallback ke list+get satu-per-satu:', bulkErr.message);
+    try{
+      const res = await gsList('checklist:');
+      for(const k of (res.keys || [])){
+        if(k.includes('::backup')) continue;
+        try{
+          const r = await gsGet(k);
+          const rest = k.replace('checklist:', '');
+          const parts = rest.split(':');
+          const dateStr = parts[0];
+          const shiftKey = parts[1] || 'legacy';
+          const isMfs = k.endsWith('_mfs');
+          const data = JSON.parse(r.value);
+          entries.push({ key: k, dateStr, shiftKey, isMfs, data });
+        }catch(e){ /* skip */ }
+      }
+    }catch(listErr){
+      showConnBanner(listErr.message || 'network error');
+      throw listErr;
+    }
+  }
+  allChecklistEntries = entries;
+  return entries;
+}
+
+/* ================= HITUNG SKOR PDCA PER ORANG ================= */
+/* Bobot sesuai kesepakatan: Plan 25%, Do 35%, Check 15%, Action 25%. */
+const WEIGHT = { plan: 0.25, do: 0.35, check: 0.15, action: 0.25 };
+
+function daysInMonthElapsed(year, month /*1-12*/){
+  const totalDays = new Date(year, month, 0).getDate();
+  const today = new Date();
+  const isCurrentMonth = (today.getFullYear() === year && (today.getMonth()+1) === month);
+  return isCurrentMonth ? today.getDate() : totalDays;
+}
+
+function computeScoresForPeriod(entries, role, year, month){
+  const monthPrefix = `${year}-${String(month).padStart(2,'0')}`;
+  const roleEntries = entries.filter(e => (role === 'mfs') === e.isMfs && e.dateStr.startsWith(monthPrefix));
+
+  const byPic = {};
+  TEAM_BY_ROLE[role].forEach(name => { byPic[name] = []; });
+  roleEntries.forEach(e => {
+    const pic = e.data && e.data.pic;
+    if(pic && byPic[pic]) byPic[pic].push(e);
+  });
+
+  const totalDaysPeriod = daysInMonthElapsed(year, month);
+  const results = [];
+
+  Object.keys(byPic).forEach(name => {
+    const subs = byPic[name].slice().sort((a,b) => {
+      if(a.dateStr !== b.dateStr) return a.dateStr < b.dateStr ? -1 : 1;
+      return (a.shiftKey || '').localeCompare(b.shiftKey || '');
+    });
+
+    // P - Plan: konsistensi submit (hari unik yang ada checklist / total hari periode berjalan)
+    const uniqueDays = new Set(subs.map(s => s.dateStr));
+    const P = totalDaysPeriod > 0 ? Math.min(100, (uniqueDays.size / totalDaysPeriod) * 100) : 0;
+
+    // D - Do: % item Checked dari total item berlaku (exclude n/a & Information)
+    let checkedCount = 0, applicableCount = 0;
+    // C - Check: % temuan (Follow up/Not yet) yang disertai catatan
+    let problemCount = 0, documentedCount = 0;
+
+    subs.forEach(sub => {
+      const status = (sub.data && sub.data.status) || {};
+      const notes = (sub.data && sub.data.notes) || {};
+      Object.keys(status).forEach(taskId => {
+        const s = status[taskId];
+        if(!s || s === 'n/a' || s === 'Information') return;
+        applicableCount++;
+        if(s === 'Checked') checkedCount++;
+        if(s === 'Follow up' || s === 'Not yet'){
+          problemCount++;
+          if(notes[taskId] && String(notes[taskId]).trim()) documentedCount++;
+        }
+      });
+    });
+    const D = applicableCount > 0 ? (checkedCount / applicableCount) * 100 : 0;
+    const C = problemCount > 0 ? (documentedCount / problemCount) * 100 : 100;
+
+    // A - Action: dari temuan (Follow up/Not yet) pada submission ke-i, apakah task yang SAMA
+    // sudah "Checked" pada submission berikutnya (kronologis) oleh orang yang sama. Temuan pada
+    // submission TERAKHIR periode ini dikecualikan (belum ada submission berikutnya utk dinilai).
+    let opened = 0, resolved = 0;
+    for(let i=0; i<subs.length-1; i++){
+      const cur = (subs[i].data && subs[i].data.status) || {};
+      const next = (subs[i+1].data && subs[i+1].data.status) || {};
+      Object.keys(cur).forEach(taskId => {
+        const s = cur[taskId];
+        if(s === 'Follow up' || s === 'Not yet'){
+          opened++;
+          if(next[taskId] === 'Checked') resolved++;
+        }
+      });
+    }
+    const A = opened > 0 ? (resolved / opened) * 100 : 100;
+
+    const total = (P*WEIGHT.plan) + (D*WEIGHT.do) + (C*WEIGHT.check) + (A*WEIGHT.action);
+
+    results.push({
+      name, P: Math.round(P), D: Math.round(D), C: Math.round(C), A: Math.round(A),
+      total: Math.round(total), submitCount: subs.length,
+      checkedCount, applicableCount, problemCount, opened, resolved
+    });
+  });
+
+  results.sort((a,b) => b.total - a.total);
+  return results;
+}
+
+/* ================= RENDER ================= */
+function scoreColorClass(v){
+  if(v >= 85) return 'score-good';
+  if(v >= 70) return 'score-mid';
+  return 'score-bad';
+}
+function barColor(v){
+  if(v >= 85) return 'var(--green-fg)';
+  if(v >= 70) return 'var(--yellow-fg)';
+  return 'var(--red-fg)';
+}
+function subCell(v){
+  return `<td class="center">
+    <div class="subscore-bar-wrap"><div class="subscore-bar-fill" style="width:${v}%;background:${barColor(v)};"></div></div>
+    <span class="subscore-num">${v}%</span>
+  </td>`;
+}
+const MEDALS = ['🥇','🥈','🥉'];
+
+async function renderPenilaian(){
+  const wrap = document.getElementById('tableWrap');
+  wrap.innerHTML = '<div class="loading-note">Memuat data checklist...</div>';
+  let entries;
+  try{
+    entries = await loadAllChecklistEntries();
+  }catch(e){
+    wrap.innerHTML = '<div class="empty-note">Gagal memuat data. Cek koneksi lalu muat ulang halaman.</div>';
+    return;
+  }
+  const [year, month] = document.getElementById('periodMonth').value.split('-').map(Number);
+  const results = computeScoresForPeriod(entries, currentRole, year, month);
+
+  if(results.every(r => r.submitCount === 0)){
+    wrap.innerHTML = `<div class="empty-note"><i class="ti ti-mood-empty" style="font-size:22px;display:block;margin-bottom:6px;"></i>
+      Belum ada checklist yang disubmit tim ${ROLE_LABEL[currentRole]} pada periode ini.</div>`;
+    return;
+  }
+
+  let rows = '';
+  results.forEach((r, idx) => {
+    const medal = MEDALS[idx] ? `<span class="rank-medal">${MEDALS[idx]}</span>` : (idx+1);
+    rows += `<tr>
+      <td class="center">${medal}</td>
+      <td class="name-cell">${r.name}</td>
+      ${subCell(r.P)}
+      ${subCell(r.D)}
+      ${subCell(r.C)}
+      ${subCell(r.A)}
+      <td class="center"><span class="score-total ${scoreColorClass(r.total)}">${r.total}%</span></td>
+      <td class="center">${r.submitCount} shift</td>
+    </tr>`;
+  });
+
+  wrap.innerHTML = `<div style="overflow-x:auto;"><table class="pen-table">
+    <thead><tr>
+      <th class="center">#</th>
+      <th>Nama</th>
+      <th class="center">Plan</th>
+      <th class="center">Do</th>
+      <th class="center">Check</th>
+      <th class="center">Action</th>
+      <th class="center">Total</th>
+      <th class="center">Submit</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table></div>`;
+}
+
+/* ================= INIT ================= */
+document.querySelectorAll('.role-tab').forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll('.role-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentRole = btn.dataset.role;
+    renderPenilaian();
+  };
+});
+document.getElementById('periodMonth').addEventListener('change', renderPenilaian);
+
+(function initDefaultMonth(){
+  const now = new Date();
+  const val = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  document.getElementById('periodMonth').value = val;
+})();
+
+renderPenilaian();
+</script>
+</body>
+</html>
