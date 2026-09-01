@@ -59,8 +59,21 @@
   .role-tab.active{background:var(--navy);color:#fff;}
   .month-input{border:1px solid var(--border);border-radius:8px;padding:7px 12px;font-size:13px;font-family:var(--font-body);background:#fff;color:var(--text);}
 
-  .methodology-note{background:var(--hilite);border-radius:10px;padding:10px 12px;font-size:11.5px;color:var(--text-secondary);margin-bottom:14px;line-height:1.5;}
+  .methodology-note{background:var(--hilite);border-radius:10px;padding:10px 12px;font-size:11.5px;color:var(--text-secondary);margin-bottom:12px;line-height:1.5;}
   .methodology-note b{color:var(--navy);}
+  .scope-note{background:var(--surface-alt);border-radius:10px;padding:9px 12px;font-size:11px;color:var(--text-secondary);margin-bottom:14px;line-height:1.5;}
+  .scope-note b{color:var(--navy);}
+  .fallback-note{background:var(--yellow-bg);color:var(--yellow-fg);border-radius:8px;padding:8px 12px;font-size:11.5px;margin-bottom:12px;}
+
+  .kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}
+  .kpi-card{background:var(--surface-alt);border-radius:10px;padding:11px 13px;}
+  .kpi-card .lab{font-size:10.5px;color:var(--text-muted);margin-bottom:2px;}
+  .kpi-card .val{font-size:20px;font-weight:700;font-family:var(--font-display);}
+  .kpi-card .val .unit{font-size:11px;font-weight:400;color:var(--text-secondary);}
+  @media (max-width:640px){ .kpi-row{grid-template-columns:1fr;} }
+
+  .trend-bars{display:flex;align-items:end;gap:3px;height:26px;}
+  .trend-bar{width:7px;border-radius:2px;background:var(--surface-alt);}
 
   table.pen-table{width:100%;border-collapse:collapse;font-size:12.5px;}
   table.pen-table thead th{background:var(--navy);color:#fff;text-align:left;padding:10px 8px;font-weight:600;}
@@ -116,6 +129,8 @@
       <input type="month" id="periodMonth" class="month-input">
     </div>
 
+    <div id="fallbackNote"></div>
+
     <div class="methodology-note">
       <b>Metode PDCA:</b> Skor Total = (Plan × 25%) + (Do × 35%) + (Check × 15%) + (Action × 25%).
       <b>Plan</b> = konsistensi submit checklist pada periode berjalan.
@@ -124,6 +139,10 @@
       <b>Action</b> = % temuan yang berhasil ditutup jadi "Checked" pada submission berikutnya.
       Kalau tidak ada temuan sama sekali pada periode ini, Check &amp; Action otomatis dianggap 100%.
     </div>
+
+    <div id="scopeNote" class="scope-note"></div>
+
+    <div id="kpiRow"></div>
 
     <div id="tableWrap">
       <div class="loading-note">Memuat data checklist...</div>
@@ -178,6 +197,14 @@ const TEAM_BY_ROLE = {
   mfs: ["Ferdy", "Wahyu", "Muhammad Rizki Alamsyah"]
 };
 const ROLE_LABEL = { dfe: 'Digitech Field Engineer', mfs: 'Monitoring Field Support' };
+/* Ringkasan cakupan checklist harian nyata yang diisi tiap role (jumlah kategori & item tugas),
+   supaya skor di halaman ini kelihatan jelas dasarnya diambil dari mana. Angka ini statis
+   (bukan hasil fetch) karena struktur checklist DFE/MFS sudah baku, sesuai definisi STRUCTURE_DFE
+   / STRUCTURE_MFS di HUB utama -- kalau strukturnya diubah di HUB, sesuaikan juga teks ini. */
+const SCOPE_REFERENCE = {
+  dfe: '<b>Cakupan checklist yang dinilai (Digitech Field Engineer):</b> 9 kategori — Daily Report, Raport Penilaian DTFE, Check Report Harian Helper, Check Report Harian Team VISI, Checking Monitoring Tools Grafana &amp; PRTG, Request RFID, Standby Monitoring, VISIT, Remark — total 34 item tugas per shift.',
+  mfs: '<b>Cakupan checklist yang dinilai (Monitoring Field Support):</b> 7 kategori — Informasi &amp; Sosialisasi WAG, Barikade, Pemantauan &amp; Sosialisasi Radio, Standby WIM, Log Book WIM, Kebersihan Area WIM, Monitoring WIM &amp; UCan — total 9 item tugas per shift.'
+};
 
 let currentRole = 'dfe';
 let allChecklistEntries = null; // cache: [{key, dateStr, shiftKey, isMfs, data}]
@@ -305,12 +332,39 @@ function computeScoresForPeriod(entries, role, year, month){
     results.push({
       name, P: Math.round(P), D: Math.round(D), C: Math.round(C), A: Math.round(A),
       total: Math.round(total), submitCount: subs.length,
-      checkedCount, applicableCount, problemCount, opened, resolved
+      checkedCount, applicableCount, problemCount, opened, resolved, subs
     });
   });
 
   results.sort((a,b) => b.total - a.total);
   return results;
+}
+
+/* Tren 4 minggu: rata-rata % "Checked" (versi sederhana dari komponen Do) per kuartal-bulan,
+   sekadar untuk memberi gambaran naik/turun -- bukan skor PDCA penuh per minggu (Action/Check
+   butuh rentang lebih panjang supaya bermakna). */
+function weeklyTrend(subs, year, month){
+  const totalDays = new Date(year, month, 0).getDate();
+  const bucketSize = Math.ceil(totalDays / 4);
+  const buckets = [[],[],[],[]];
+  subs.forEach(s => {
+    const day = parseInt(s.dateStr.split('-')[2], 10);
+    const idx = Math.min(3, Math.floor((day-1) / bucketSize));
+    buckets[idx].push(s);
+  });
+  return buckets.map(bucket => {
+    let checked=0, applicable=0;
+    bucket.forEach(sub => {
+      const status = (sub.data && sub.data.status) || {};
+      Object.keys(status).forEach(id => {
+        const s = status[id];
+        if(!s || s==='n/a' || s==='Information') return;
+        applicable++;
+        if(s==='Checked') checked++;
+      });
+    });
+    return applicable>0 ? Math.round((checked/applicable)*100) : null;
+  });
 }
 
 /* ================= RENDER ================= */
@@ -332,9 +386,36 @@ function subCell(v){
 }
 const MEDALS = ['🥇','🥈','🥉'];
 
+function trendBarsHtml(weekVals){
+  return `<div class="trend-bars">` + weekVals.map(v => {
+    if(v === null) return `<div class="trend-bar" style="height:4px;" title="Tidak ada data"></div>`;
+    const h = Math.max(4, Math.round(v/100*26));
+    return `<div class="trend-bar" style="height:${h}px;background:${barColor(v)};" title="${v}%"></div>`;
+  }).join('') + `</div>`;
+}
+
+/* Cari bulan (YYYY-MM) terbaru yang punya minimal 1 entri untuk role tertentu, dipakai untuk
+   auto-fallback kalau bulan yang sedang dipilih di date-picker masih kosong (mis. awal bulan
+   berjalan yang belum ada submission sama sekali). */
+function latestMonthWithData(entries, role){
+  const months = new Set();
+  entries.forEach(e => {
+    if((role === 'mfs') === e.isMfs) months.add(e.dateStr.slice(0,7));
+  });
+  if(months.size === 0) return null;
+  return Array.from(months).sort().pop();
+}
+
 async function renderPenilaian(){
   const wrap = document.getElementById('tableWrap');
+  const kpiRow = document.getElementById('kpiRow');
+  const fallbackNote = document.getElementById('fallbackNote');
+  const scopeNote = document.getElementById('scopeNote');
+  scopeNote.innerHTML = SCOPE_REFERENCE[currentRole];
   wrap.innerHTML = '<div class="loading-note">Memuat data checklist...</div>';
+  kpiRow.innerHTML = '';
+  fallbackNote.innerHTML = '';
+
   let entries;
   try{
     entries = await loadAllChecklistEntries();
@@ -342,18 +423,62 @@ async function renderPenilaian(){
     wrap.innerHTML = '<div class="empty-note">Gagal memuat data. Cek koneksi lalu muat ulang halaman.</div>';
     return;
   }
-  const [year, month] = document.getElementById('periodMonth').value.split('-').map(Number);
-  const results = computeScoresForPeriod(entries, currentRole, year, month);
+
+  let periodVal = document.getElementById('periodMonth').value;
+  let [year, month] = periodVal.split('-').map(Number);
+  let results = computeScoresForPeriod(entries, currentRole, year, month);
+  const hasAnyData = results.some(r => r.submitCount > 0);
+
+  // Auto-fallback: kalau periode yang dipilih kosong, cari & pindah otomatis ke bulan
+  // terakhir yang benar-benar ada data, supaya halaman tidak langsung kosong begitu saja.
+  if(!hasAnyData){
+    const fallback = latestMonthWithData(entries, currentRole);
+    if(fallback && fallback !== periodVal){
+      const [fy, fm] = fallback.split('-').map(Number);
+      const fallbackResults = computeScoresForPeriod(entries, currentRole, fy, fm);
+      if(fallbackResults.some(r => r.submitCount > 0)){
+        fallbackNote.innerHTML = `<div class="fallback-note"><i class="ti ti-info-circle" style="font-size:13px;vertical-align:-2px;"></i>
+          Belum ada data pada periode ${periodVal} — menampilkan periode terakhir yang ada data: <b>${fallback}</b>.</div>`;
+        document.getElementById('periodMonth').value = fallback;
+        year = fy; month = fm; periodVal = fallback;
+        results = fallbackResults;
+      }
+    }
+  }
 
   if(results.every(r => r.submitCount === 0)){
     wrap.innerHTML = `<div class="empty-note"><i class="ti ti-mood-empty" style="font-size:22px;display:block;margin-bottom:6px;"></i>
-      Belum ada checklist yang disubmit tim ${ROLE_LABEL[currentRole]} pada periode ini.</div>`;
+      Belum ada checklist yang disubmit tim ${ROLE_LABEL[currentRole]} sama sekali.</div>`;
     return;
   }
 
+  // Ringkasan KPI tim (hanya menghitung orang yang benar-benar submit periode ini,
+  // supaya rata-rata tidak dicemari oleh orang yang belum mengisi sama sekali).
+  const active = results.filter(r => r.submitCount > 0);
+  const totalSubmission = active.reduce((a,r) => a + r.submitCount, 0);
+  const avgScore = active.length ? Math.round(active.reduce((a,r) => a + r.total, 0) / active.length) : 0;
+  const top = active[0]; // sudah ter-sort desc by total
+  kpiRow.innerHTML = `<div class="kpi-row">
+    <div class="kpi-card"><div class="lab">Total Submission Tim</div><div class="val">${totalSubmission} <span class="unit">shift</span></div></div>
+    <div class="kpi-card"><div class="lab">Rata-rata Skor Tim</div><div class="val ${scoreColorClass(avgScore)}">${avgScore}%</div></div>
+    <div class="kpi-card"><div class="lab">Top Performer</div><div class="val" style="font-size:14px;">🥇 ${top ? top.name.split(' ')[0] : '—'} <span class="unit score-good">${top ? top.total+'%' : ''}</span></div></div>
+  </div>`;
+
   let rows = '';
   results.forEach((r, idx) => {
+    if(r.submitCount === 0){
+      rows += `<tr>
+        <td class="center">—</td>
+        <td class="name-cell">${r.name}</td>
+        <td class="center" colspan="4" style="color:var(--text-muted);font-style:italic;">Belum ada submission pada periode ini</td>
+        <td class="center">—</td>
+        <td class="center">0 shift</td>
+        <td></td>
+      </tr>`;
+      return;
+    }
     const medal = MEDALS[idx] ? `<span class="rank-medal">${MEDALS[idx]}</span>` : (idx+1);
+    const trend = weeklyTrend(r.subs, year, month);
     rows += `<tr>
       <td class="center">${medal}</td>
       <td class="name-cell">${r.name}</td>
@@ -363,6 +488,7 @@ async function renderPenilaian(){
       ${subCell(r.A)}
       <td class="center"><span class="score-total ${scoreColorClass(r.total)}">${r.total}%</span></td>
       <td class="center">${r.submitCount} shift</td>
+      <td>${trendBarsHtml(trend)}</td>
     </tr>`;
   });
 
@@ -376,6 +502,7 @@ async function renderPenilaian(){
       <th class="center">Action</th>
       <th class="center">Total</th>
       <th class="center">Submit</th>
+      <th>Tren 4 minggu</th>
     </tr></thead>
     <tbody>${rows}</tbody>
   </table></div>`;
