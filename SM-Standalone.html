@@ -340,17 +340,15 @@
         </div>
       </div>
       <div class="ap-table-scroll">
-      <table style="width:100%;border-collapse:collapse;font-size:12px;min-width:900px;">
+      <table style="width:100%;border-collapse:collapse;font-size:12px;min-width:1020px;">
         <thead><tr style="text-align:left;background:var(--navy);color:#fff;">
           <th style="padding:10px 8px;font-weight:600;">No</th>
           <th style="padding:10px 8px;font-weight:600;">Description</th>
           <th style="padding:10px 8px;font-weight:600;">Category</th>
           <th style="padding:10px 8px;font-weight:600;">Source</th>
-          <th style="padding:10px 8px;font-weight:600;">New Stock Spare</th>
-          <th style="padding:10px 8px;font-weight:600;">Ex / Second</th>
-          <th style="padding:10px 8px;font-weight:600;">Unit</th>
-          <th style="padding:10px 8px;font-weight:600;">Broken</th>
-          <th style="padding:10px 8px;font-weight:600;">Jenis</th>
+          <th style="padding:10px 8px;font-weight:600;text-align:center;">Baru</th>
+          <th style="padding:10px 8px;font-weight:600;text-align:center;">Second</th>
+          <th style="padding:10px 8px;font-weight:600;text-align:center;">Rusak</th>
           <th style="padding:10px 8px;font-weight:600;">Desc</th>
           <th style="padding:10px 8px;font-weight:600;text-align:right;">Aksi</th>
         </tr></thead>
@@ -399,24 +397,26 @@
         </div>
         <div style="display:flex;gap:10px;">
           <div class="grow"><label>New Stock Spare</label><input type="number" id="apFNewStock" style="width:100%;"></div>
-          <div class="grow"><label>Ex / Second</label><input type="number" id="apFExSecond" style="width:100%;"></div>
-        </div>
-        <div style="display:flex;gap:10px;">
-          <div class="grow"><label>Unit</label><input type="text" id="apFUnit" style="width:100%;" placeholder="Pcs"></div>
-          <div class="grow"><label>Broken</label><input type="number" id="apFBroken" style="width:100%;"></div>
-        </div>
-        <div class="grow"><label>Jenis</label>
-          <div class="select-with-actions">
-            <select id="apFJenis" style="width:100%;">
-              <option value="">-</option>
-              <option>Bekas</option>
-              <option>Rusak</option>
-              <option>Aus</option>
-              <option>Dummy</option>
-            </select>
-            <button type="button" class="icon-btn icon-btn-add" id="apJenisManageBtn" title="Kelola daftar jenis (tambah/ubah/hapus)">⚙️</button>
+          <div class="grow"><label>Jenis (Baru)</label>
+            <select id="apFJenisNew" style="width:100%;"><option value="">-</option></select>
           </div>
         </div>
+        <div style="display:flex;gap:10px;">
+          <div class="grow"><label>Ex / Second</label><input type="number" id="apFExSecond" style="width:100%;"></div>
+          <div class="grow"><label>Jenis (Second)</label>
+            <select id="apFJenisSecond" style="width:100%;"><option value="">-</option></select>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;">
+          <div class="grow"><label>Broken</label><input type="number" id="apFBroken" style="width:100%;"></div>
+          <div class="grow"><label>Jenis (Broken/Rusak/Aus/Dummy)</label>
+            <div class="select-with-actions">
+              <select id="apFJenisBroken" style="width:100%;"><option value="">-</option></select>
+              <button type="button" class="icon-btn icon-btn-add" id="apJenisManageBtn" title="Kelola daftar jenis (tambah/ubah/hapus)">⚙️</button>
+            </div>
+          </div>
+        </div>
+        <div class="grow"><label>Unit</label><input type="text" id="apFUnit" style="width:100%;" placeholder="Pcs"></div>
         <div class="grow"><label>Desc</label><textarea id="apFDesc" rows="2" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:13px;font-family:var(--font-body);"></textarea></div>
       </div>
       <div style="display:flex;justify-content:space-between;margin-top:14px;">
@@ -1200,6 +1200,22 @@ function apMatchHeader(headerText){
   }
   return null;
 }
+/* Sheet "Summary Asset" punya 3 kolom yang SAMA-SAMA berlabel "Jenis": satu nempel di
+   New Stock, satu di Ex/Second, satu di Broken. apMatchHeader() di atas cuma bisa
+   mengenali namanya ("jenis") tanpa tahu itu Jenis yang mana -- kalau dibiarkan,
+   isi kolom Jenis terakhir (milik Broken) akan menimpa isi kolom Jenis sebelumnya.
+   Fungsi ini mengubah field 'jenis' yang berulang jadi jenisNew/jenisSecond/jenisBroken
+   berdasarkan URUTAN kemunculannya di baris header (sesuai urutan kolom di sheet). */
+function apResolveJenisColumns(colField){
+  const seq = ['jenisNew','jenisSecond','jenisBroken'];
+  let seen = 0;
+  return colField.map(f => {
+    if(f !== 'jenis') return f;
+    const role = seq[seen] || null;
+    seen++;
+    return role;
+  });
+}
 async function fetchStockSheetData(){
   await loadGoogleChartsOnce();
   const sheetId = await apGetEffectiveSheetId();
@@ -1224,7 +1240,7 @@ async function fetchStockSheetData(){
         const dt = response.getDataTable();
         const numRows = dt.getNumberOfRows();
         const numCols = dt.getNumberOfColumns();
-        const colField = [];
+        let colField = [];
         for(let c=0;c<numCols;c++){
           colField.push(apMatchHeader(dt.getColumnLabel(c)));
         }
@@ -1236,6 +1252,7 @@ async function fetchStockSheetData(){
             if(test.some(f => f==='description')){ headerRowIdx = r; colField.splice(0, colField.length, ...test); break; }
           }
         }
+        colField = apResolveJenisColumns(colField);
         const rows = [];
         for(let r=headerRowIdx+1;r<numRows;r++){
           const rec = {};
@@ -1267,20 +1284,36 @@ async function fetchStockSheetData(){
    supaya data lama tidak hilang saat pertama kali membuka tampilan baru ini.
    Riwayat pergantian & serial number (replacements/serial) TETAP dipertahankan apa adanya. */
 function apMigrateAsset(a){
-  if(a.description !== undefined) return a;
-  return {
-    description: a.cat || '',
-    category: '',
-    source: '',
-    newStock: a.real || 0,
-    exSecond: 0,
-    unit: 'Pcs',
-    broken: a.dummy || 0,
-    jenis: a.jenis || '',
-    desc: '',
-    replacements: a.replacements || [],
-    serial: a.serial || []
-  };
+  let rec = a;
+  if(rec.description === undefined){
+    rec = {
+      description: a.cat || '',
+      category: '',
+      source: '',
+      newStock: a.real || 0,
+      exSecond: 0,
+      unit: 'Pcs',
+      broken: a.dummy || 0,
+      jenis: a.jenis || '',
+      desc: '',
+      replacements: a.replacements || [],
+      serial: a.serial || []
+    };
+  }
+  /* Migrasi v2 -> v3: dulu cuma ada 1 field "jenis" (isinya kebetulan nilai dari kolom
+     Jenis milik Broken karena itu yang terakhir menimpa saat parsing sheet -- lihat
+     apResolveJenisColumns). Sekarang dipecah jadi 3 field supaya Jenis New/Second/Broken
+     tidak lagi campur aduk. Data lama otomatis dipetakan ke jenisBroken sebagai
+     tebakan terbaik, TANPA menghapus field "jenis" asli (untuk jaga-jaga/rollback). */
+  if(rec.jenisNew === undefined){
+    rec = {
+      ...rec,
+      jenisNew: rec.jenisNew || '',
+      jenisSecond: rec.jenisSecond || '',
+      jenisBroken: rec.jenisBroken || rec.jenis || ''
+    };
+  }
+  return rec;
 }
 function apMigrateAll(assets){
   return assets.map(apMigrateAsset);
@@ -1299,7 +1332,9 @@ function apMergeSheetData(existingAssets, sheetRows){
       merged[i].exSecond = ('exSecond' in row) ? row.exSecond : merged[i].exSecond;
       merged[i].unit = row.unit || merged[i].unit;
       merged[i].broken = ('broken' in row) ? row.broken : merged[i].broken;
-      merged[i].jenis = row.jenis || merged[i].jenis;
+      merged[i].jenisNew = row.jenisNew || merged[i].jenisNew;
+      merged[i].jenisSecond = row.jenisSecond || merged[i].jenisSecond;
+      merged[i].jenisBroken = row.jenisBroken || merged[i].jenisBroken;
       merged[i].desc = row.desc || merged[i].desc;
     }else{
       merged.push({
@@ -1308,7 +1343,8 @@ function apMergeSheetData(existingAssets, sheetRows){
         exSecond: ('exSecond' in row) ? row.exSecond : 0,
         unit: row.unit,
         broken: ('broken' in row) ? row.broken : 0,
-        jenis: row.jenis, desc: row.desc,
+        jenisNew: row.jenisNew || '', jenisSecond: row.jenisSecond || '', jenisBroken: row.jenisBroken || '',
+        desc: row.desc,
         replacements: [], serial: []
       });
       indexByName.set(key, merged.length-1);
@@ -1394,7 +1430,7 @@ const AP_SOURCE_CYCLE = ['Impor','Local'];
 const AP_JENIS_CYCLE = ['Bekas','Rusak','Aus','Dummy'];
 const AP_CATEGORY_COLOR = { Low:'blue', Medium:'green', Critical:'red' };
 const AP_SOURCE_COLOR = { Impor:'blue', Local:'purple' };
-const AP_JENIS_COLOR = { Bekas:'gold', Rusak:'red', Aus:'yellow', Dummy:'grey' };
+const AP_JENIS_COLOR = { Baru:'green', Bekas:'gold', Rusak:'red', Aus:'yellow', Dummy:'grey' };
 function apBadge(val, colorMap, cls){
   if(!val) return `<span class="${cls}" data-empty="1" style="cursor:pointer;color:#aab;font-size:11px;">— pilih</span>`;
   const c = colorMap[val] || 'grey';
@@ -1470,11 +1506,28 @@ function apRenderChart(assets){
 }
 
 /* ---- Tabel: render body dari list {item, idx} ---- */
+/* ---- Tabel: 1 SEL breakdown stok untuk 1 kategori (Baru/Second/Rusak).
+   Ini <td> tabel biasa yang sejajar vertikal sebagai sub-kolom tetap di semua
+   baris (bukan inline-flex yang bebas membungkus dan bikin tinggi baris tidak
+   seragam). Jumlah + Jenis ditumpuk di dalam 1 kotak kecil per sel supaya
+   tetap ringkas. */
+function apStockCell(qty, jenisVal){
+  const n = Number(qty)||0;
+  const hasStock = n > 0;
+  const bg = hasStock ? 'var(--green-bg)' : 'var(--hilite)';
+  const fg = hasStock ? 'var(--green-fg)' : '#889';
+  return `<td style="padding:6px 6px;text-align:center;">
+    <div style="background:${bg};border-radius:8px;padding:5px 4px;">
+      <b style="font-size:12.5px;color:${fg};">${n}</b>
+      <div style="font-size:9.5px;color:${fg};">${jenisVal || '—'}</div>
+    </div>
+  </td>`;
+}
 function apRenderBody(list){
   const body = document.getElementById('apBody');
   body.innerHTML = '';
   if(!list.length){
-    body.innerHTML = `<tr><td colspan="11" style="padding:30px 10px;text-align:center;color:var(--text-muted);">
+    body.innerHTML = `<tr><td colspan="9" style="padding:30px 10px;text-align:center;color:var(--text-muted);">
       <i class="ti ti-package-off" style="font-size:22px;display:block;margin-bottom:6px;"></i>
       Tidak ada item part yang cocok dengan pencarian/filter ini.
     </td></tr>`;
@@ -1491,11 +1544,9 @@ function apRenderBody(list){
       <td style="padding:8px 6px;font-weight:bold;color:var(--navy);">${a.description||'-'}</td>
       <td style="padding:8px 6px;">${apBadge(a.category, AP_CATEGORY_COLOR, '')}</td>
       <td style="padding:8px 6px;">${apBadge(a.source, AP_SOURCE_COLOR, '')}</td>
-      <td style="padding:8px 6px;">${a.newStock}</td>
-      <td style="padding:8px 6px;">${a.exSecond||0}</td>
-      <td style="padding:8px 6px;">${a.unit||''}</td>
-      <td style="padding:8px 6px;">${a.broken}</td>
-      <td style="padding:8px 6px;">${apBadge(a.jenis, AP_JENIS_COLOR, '')}</td>
+      ${apStockCell(a.newStock, a.jenisNew)}
+      ${apStockCell(a.exSecond, a.jenisSecond)}
+      ${apStockCell(a.broken, a.jenisBroken)}
       <td style="padding:8px 6px;color:#556;">${a.desc||''}</td>
       <td style="padding:8px 6px;text-align:right;white-space:nowrap;">
         <i class="ti ti-edit ap-row-edit" data-idx="${i}" title="Edit" style="font-size:16px;color:var(--text-secondary);cursor:pointer;margin-right:6px;"></i>
@@ -1591,7 +1642,11 @@ function apOpenModal(idx){
   document.getElementById('apFExSecond').value = rec ? rec.exSecond||0 : 0;
   document.getElementById('apFUnit').value = rec ? rec.unit||'Pcs' : 'Pcs';
   document.getElementById('apFBroken').value = rec ? rec.broken||0 : 0;
-  renderJenisOptions(rec ? rec.jenis||'' : '');
+  renderJenisOptionsAll({
+    jenisNew: rec ? rec.jenisNew||'' : '',
+    jenisSecond: rec ? rec.jenisSecond||'' : '',
+    jenisBroken: rec ? rec.jenisBroken||'' : ''
+  });
   document.getElementById('apFDesc').value = rec ? rec.desc||'' : '';
   document.getElementById('apDeleteBtn').style.display = rec ? 'inline-block' : 'none';
   document.getElementById('apModalOverlay').classList.add('active');
@@ -1608,7 +1663,9 @@ async function apSaveModal(){
     exSecond: Number(document.getElementById('apFExSecond').value) || 0,
     unit: document.getElementById('apFUnit').value.trim() || 'Pcs',
     broken: Number(document.getElementById('apFBroken').value) || 0,
-    jenis: document.getElementById('apFJenis').value,
+    jenisNew: document.getElementById('apFJenisNew').value,
+    jenisSecond: document.getElementById('apFJenisSecond').value,
+    jenisBroken: document.getElementById('apFJenisBroken').value,
     desc: document.getElementById('apFDesc').value.trim()
   };
   if(apEditingIdx !== null && apAssetsData[apEditingIdx]){
@@ -1786,8 +1843,8 @@ function createManagedList(opts){
 
 const jenisManager = createManagedList({
   storageKey: 'stock:jenis-list',
-  defaults: ['Bekas','Rusak','Aus','Dummy'],
-  selectId: 'apFJenis',
+  defaults: ['Baru','Bekas','Rusak','Aus','Dummy'],
+  selectId: 'apFJenisBroken',
   manageBtnId: 'apJenisManageBtn',
   modalOverlayId: 'jenisModalOverlay',
   modalInputId: 'jenisModalInput',
@@ -1798,7 +1855,31 @@ const jenisManager = createManagedList({
   modalMsgId: 'jenisModalMsg',
   itemLabel: 'jenis'
 });
+async function loadJenisList(){ await jenisManager.load(); }
 function renderJenisOptions(v){ jenisManager.renderOptions(v); }
+/* Field Jenis (Baru)/(Second) berbagi daftar yang sama dengan Jenis (Broken) di atas
+   (jenisManager, tombol kelola ⚙️ nempel di Jenis Broken), tapi masing-masing perlu
+   mengingat nilai terpilihnya sendiri -- makanya diisi manual di sini, bukan lewat
+   jenisManager.renderOptions() yang cuma tahu 1 selectId. */
+function apPopulateJenisSelect(selId, selectedValue){
+  const sel = document.getElementById(selId);
+  if(!sel) return;
+  sel.innerHTML = '<option value="">-</option>' + jenisManager.getList().map(v =>
+    `<option ${v === selectedValue ? 'selected' : ''}>${v}</option>`
+  ).join('');
+}
+function renderJenisOptionsAll(vals){
+  apPopulateJenisSelect('apFJenisNew', vals.jenisNew||'');
+  apPopulateJenisSelect('apFJenisSecond', vals.jenisSecond||'');
+  renderJenisOptions(vals.jenisBroken||'');
+}
+/* Kalau daftar jenis diubah (tambah/ubah/hapus) lewat modal "Kelola Jenis" yang dibuka
+   dari field Broken, refresh juga pilihan di 2 select lain (New & Second) supaya
+   tetap sinkron dan tidak ketinggalan opsi baru, tanpa harus tutup-buka modal item. */
+document.getElementById('jenisModalDoneBtn').addEventListener('click', () => {
+  apPopulateJenisSelect('apFJenisNew', document.getElementById('apFJenisNew')?.value || '');
+  apPopulateJenisSelect('apFJenisSecond', document.getElementById('apFJenisSecond')?.value || '');
+});
 
 /* ================= INIT ================= */
 renderAssetPlant();
