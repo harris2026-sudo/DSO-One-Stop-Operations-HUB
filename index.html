@@ -987,6 +987,67 @@
   .pjp-sim-result .val{font-family:var(--font-display);font-size:38px;font-weight:700;color:var(--accent);margin:4px 0;}
   .pjp-legend-row{display:flex;justify-content:space-between;align-items:center;font-size:11.5px;padding:4px 0;}
   .pjp-manage-list .vendor-item-label{font-size:12px;}
+
+  /* ================= WORKLOAD ANALYSIS ================= */
+  .wla-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;margin-bottom:18px;}
+  .wla-panel-title{margin:0 0 14px;font-size:15px;font-weight:700;color:var(--navy);display:flex;align-items:center;gap:8px;}
+  .wla-badge-count{background:var(--blue-bg);color:var(--blue-fg);font-size:11px;padding:2px 9px;border-radius:20px;font-weight:700;}
+  .wla-settings-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;}
+  .wla-field label{display:block;font-size:11px;font-weight:700;color:var(--text-secondary);margin-bottom:5px;text-transform:uppercase;letter-spacing:.03em;}
+  .wla-field input{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--surface-alt);font-family:var(--font-body);color:var(--text);}
+  .wla-field input:focus{outline:2px solid var(--accent);outline-offset:1px;background:var(--surface);}
+  .wla-cap-display{font-size:13px;font-weight:700;color:var(--accent);background:var(--blue-bg);padding:8px 10px;border-radius:8px;}
+  .wla-table-scroll{overflow-x:auto;border-radius:10px;border:1px solid var(--border);}
+  .wla-task-table{width:100%;border-collapse:collapse;min-width:1180px;font-size:12.5px;}
+  .wla-task-table thead th{background:var(--surface-alt);color:var(--text-secondary);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.02em;padding:9px 8px;border-bottom:2px solid var(--border);white-space:nowrap;}
+  .wla-task-table tbody td{padding:6px 8px;border-bottom:1px solid var(--border);vertical-align:middle;}
+  .wla-task-table tbody tr:hover{background:var(--surface-alt);}
+  .wla-task-table tbody tr.wla-excluded-row{opacity:.45;background:var(--red-bg);}
+  .wla-task-table tbody tr.wla-sub-row{background:var(--surface-alt);}
+  .wla-task-table tbody tr.wla-sub-row.wla-excluded-row{background:var(--grey-bg);}
+  .wla-task-table tbody tr.wla-sub-row .wla-no-cell{color:var(--text-muted);font-weight:500;font-size:11.5px;}
+  .wla-no-cell{text-align:center;color:var(--text-secondary);font-weight:700;width:32px;}
+  .wla-sub-name-cell{padding-left:8px !important;display:flex;align-items:center;gap:6px;}
+  .wla-sub-arrow{color:var(--text-muted);font-size:13px;flex-shrink:0;}
+  .wla-cell-input{width:100%;border:1px solid transparent;background:transparent;padding:6px;border-radius:6px;font-size:12.5px;color:var(--text);font-family:var(--font-body);}
+  .wla-cell-input:hover{border-color:var(--border);}
+  .wla-cell-input:focus{border-color:var(--accent);background:var(--surface);outline:none;}
+  .wla-cell-input.wla-num{text-align:right;width:70px;}
+  select.wla-cell-input{min-width:88px;cursor:pointer;}
+  .wla-computed-cell{text-align:right;font-weight:700;color:var(--accent);white-space:nowrap;}
+  .wla-pct-sum{text-align:center;font-weight:700;color:var(--green-fg);}
+  .wla-pct-sum.wla-pct-warn{color:var(--red-fg);}
+  .wla-center{text-align:center;}
+  .wla-btn-del{border:none;background:var(--red-bg);color:var(--red-fg);width:26px;height:26px;border-radius:6px;cursor:pointer;font-weight:700;font-size:13px;line-height:1;}
+  .wla-btn-del:hover{background:var(--red-fg);color:#fff;}
+  .wla-task-table input[type=checkbox]{width:16px;height:16px;cursor:pointer;}
+  .wla-table-actions{display:flex;justify-content:space-between;align-items:center;margin-top:12px;flex-wrap:wrap;gap:10px;}
+  .wla-table-total{font-size:12.5px;color:var(--text-secondary);}
+  .wla-table-total b{color:var(--navy);}
+  .wla-cards-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;}
+  .wla-p-card{border:1px solid var(--border);border-radius:12px;padding:16px;background:var(--surface-alt);display:flex;flex-direction:column;gap:8px;}
+  .wla-p-card .wla-p-name{font-size:14px;font-weight:700;color:var(--navy);}
+  .wla-p-card .wla-p-metric{display:flex;justify-content:space-between;font-size:12px;color:var(--text-secondary);}
+  .wla-p-card .wla-p-metric b{color:var(--text);}
+  .wla-bar-bg{height:10px;background:var(--border);border-radius:6px;overflow:hidden;}
+  .wla-bar-fill{height:100%;border-radius:6px;transition:width .25s;}
+  .wla-status-low{background:var(--blue-fg);}
+  .wla-status-ok{background:var(--green-fg);}
+  .wla-status-warn{background:var(--gold-fg);}
+  .wla-status-danger{background:var(--red-fg);}
+  .wla-status-pill{align-self:flex-start;font-size:10.5px;font-weight:700;padding:3px 10px;border-radius:20px;color:#fff;}
+  .wla-p-card .wla-big{font-size:24px;font-weight:700;font-family:var(--font-mono);}
+  .wla-chart-wrap{display:flex;align-items:flex-end;gap:26px;height:200px;padding:20px 10px 0;border-bottom:2px solid var(--border);margin-top:6px;}
+  .wla-chart-bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;height:100%;justify-content:flex-end;}
+  .wla-chart-bar{width:52px;border-radius:8px 8px 0 0;transition:height .3s;min-height:2px;}
+  .wla-chart-label{font-size:11.5px;text-align:center;color:var(--text-secondary);font-weight:600;}
+  .wla-chart-value{font-size:12.5px;font-weight:700;}
+  .wla-notes{background:var(--gold-bg);border:1px solid var(--gold-fg);border-radius:10px;padding:14px 16px;font-size:12px;color:var(--text);line-height:1.6;}
+  .wla-notes ul{margin:6px 0 0;padding-left:18px;}
+  .wla-toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;}
+  @media print{
+    #view-workload .wla-btn-del, #view-workload .wla-toolbar, .sidebar, .topbar{display:none !important;}
+  }
 </style>
 </head>
 <body>
@@ -1182,6 +1243,7 @@
       <div class="tab" data-view="roster" data-label="Roster"><i class="ti ti-users"></i><span>Roster</span></div>
       <div class="tab" data-view="sop" data-label="Standard Operational Procedure"><i class="ti ti-book-2"></i><span>SOP</span></div>
       <div class="tab" data-view="tasklist" data-label="Task List"><i class="ti ti-clipboard-list"></i><span>Task List</span></div>
+      <div class="tab" data-view="workload" data-label="Workload Analysis"><i class="ti ti-gauge"></i><span>Workload Analysis</span></div>
       <div class="tab" data-view="openpoint" data-label="Open Point"><i class="ti ti-alert-triangle"></i><span>Open Point</span></div>
       <div class="tab" data-view="pjp" data-label="Penilaian Jasa Pertambangan"><i class="ti ti-building-factory-2"></i><span>Penilaian Jasa Pertambangan</span></div>
     </div>
@@ -2127,6 +2189,107 @@
 
     <div class="fu-toolbar" id="tlFilterBar"></div>
     <div id="tlList"></div>
+  </div>
+
+  <!-- ================= VIEW: WORKLOAD ANALYSIS ================= -->
+  <div class="view" id="view-workload">
+    <div class="wla-panel">
+      <div class="wla-panel-title"><i class="ti ti-settings"></i> Pengaturan Tim &amp; Kapasitas Kerja</div>
+      <div class="wla-settings-grid">
+        <div class="wla-field"><label>Nama Personel 1</label><input type="text" id="wlaName0" class="wla-name-input"></div>
+        <div class="wla-field"><label>Nama Personel 2</label><input type="text" id="wlaName1" class="wla-name-input"></div>
+        <div class="wla-field"><label>Nama Personel 3</label><input type="text" id="wlaName2" class="wla-name-input"></div>
+        <div class="wla-field"><label>Nama Personel 4</label><input type="text" id="wlaName3" class="wla-name-input"></div>
+        <div class="wla-field"><label>Hari Kerja / Bulan</label><input type="number" id="wlaWorkDays" min="1" max="31"></div>
+        <div class="wla-field"><label>Jam Kerja / Hari</label><input type="number" id="wlaWorkHours" min="1" max="24"></div>
+        <div class="wla-field"><label>Kapasitas / Bulan</label><div class="wla-cap-display"><span id="wlaCapacityDisplay">0</span> jam</div></div>
+      </div>
+    </div>
+
+    <div class="wla-panel">
+      <div class="wla-panel-title"><i class="ti ti-list-check"></i> Task Rutin (Daily / Weekly / Monthly) <span class="wla-badge-count" id="wlaCountRutin">0 task</span></div>
+      <div class="wla-table-scroll">
+        <table class="wla-task-table">
+          <thead>
+            <tr>
+              <th>No</th>
+              <th style="min-width:220px;">Nama Task</th>
+              <th>Periode</th>
+              <th>Durasi<br>(menit)</th>
+              <th>Frekuensi<br>/Bulan</th>
+              <th>Beban Bulanan<br>(menit)</th>
+              <th>% <span class="wla-person-label-0"></span></th>
+              <th>% <span class="wla-person-label-1"></span></th>
+              <th>% <span class="wla-person-label-2"></span></th>
+              <th>% <span class="wla-person-label-3"></span></th>
+              <th>Total %</th>
+              <th title="Sertakan dalam total?">Hitung?</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="wlaRutinBody"></tbody>
+        </table>
+      </div>
+      <div class="wla-table-actions">
+        <div class="wla-table-total">Total Beban Kategori Rutin: <b id="wlaRutinTableTotal">0 menit (0 jam)</b></div>
+        <button class="btn btn-primary" id="wlaAddRutinBtn">+ Tambah Task Rutin</button>
+      </div>
+    </div>
+
+    <div class="wla-panel">
+      <div class="wla-panel-title"><i class="ti ti-target-arrow"></i> Task Adhoc <span class="wla-badge-count" id="wlaCountAdhoc">0 task</span></div>
+      <div class="wla-table-scroll">
+        <table class="wla-task-table">
+          <thead>
+            <tr>
+              <th>No</th>
+              <th style="min-width:220px;">Nama Task</th>
+              <th>Periode</th>
+              <th>Durasi<br>(menit)</th>
+              <th>Est. Frekuensi<br>/Bulan</th>
+              <th>Beban Bulanan<br>(menit)</th>
+              <th>% <span class="wla-person-label-0"></span></th>
+              <th>% <span class="wla-person-label-1"></span></th>
+              <th>% <span class="wla-person-label-2"></span></th>
+              <th>% <span class="wla-person-label-3"></span></th>
+              <th>Total %</th>
+              <th title="Sertakan dalam total?">Hitung?</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="wlaAdhocBody"></tbody>
+        </table>
+      </div>
+      <div class="wla-table-actions">
+        <div class="wla-table-total">Total Beban Kategori Adhoc: <b id="wlaAdhocTableTotal">0 menit (0 jam)</b></div>
+        <button class="btn btn-primary" id="wlaAddAdhocBtn">+ Tambah Task Adhoc</button>
+      </div>
+    </div>
+
+    <div class="wla-panel">
+      <div class="wla-panel-title"><i class="ti ti-chart-pie"></i> Ringkasan Workload per Personel</div>
+      <div class="wla-cards-grid" id="wlaCardsGrid"></div>
+      <div class="wla-panel-title" style="margin-top:22px;"><i class="ti ti-chart-bar"></i> Perbandingan WLA %</div>
+      <div class="wla-chart-wrap" id="wlaChartWrap"></div>
+    </div>
+
+    <div class="wla-panel">
+      <div class="wla-panel-title"><i class="ti ti-info-circle"></i> Catatan Penggunaan</div>
+      <div class="wla-notes">
+        <b>Cara pakai:</b> Semua kolom bisa diedit langsung di tabel (durasi, frekuensi, dan pembagian % beban ke tiap personel). Kolom <i>Beban Bulanan</i> dihitung otomatis = Durasi &times; Frekuensi/Bulan. Beban tiap personel = Beban Bulanan &times; persentase alokasinya.
+        <ul>
+          <li><b>Total % per task</b> idealnya berjumlah 100% (menunjukkan seluruh beban task tersebut sudah terbagi habis ke tim). Jika belum, angka akan berwarna merah.</li>
+          <li>Centang <b>"Hitung?"</b> untuk menyertakan task ke dalam total. Uncheck jika sebuah task bersifat tumpang-tindih (concurrent) dengan task lain, agar tidak dihitung ganda (double count). Task Revisi Check Report Helper di Log Book, Check Log Book, Check HTTP Status Code di Grafana, Check SSL Expiry di Grafana, Check Device Status di PRTG, dan Check Device Status di Pingpulse ditampilkan sebagai <b>sub-list</b> di bawah Task Daily Monitoring karena sudah tercakup pada durasi task tersebut.</li>
+          <li>Angka durasi &amp; frekuensi awal pada tabel adalah <b>estimasi default</b> dari deskripsi pekerjaan. Sesuaikan dengan kondisi riil tim Anda.</li>
+          <li><b>WLA % = (Total beban personel / Kapasitas kerja per bulan) &times; 100.</b> Status: &lt;70% Kapasitas Longgar, 70-100% Optimal, 100-120% Sedikit Overload, &gt;120% Overload.</li>
+          <li>Semua perubahan tersimpan otomatis ke backend DSO Hub (data bersama, sama seperti modul lain).</li>
+        </ul>
+      </div>
+      <div class="wla-toolbar">
+        <button class="btn" id="wlaPrintBtn"><i class="ti ti-printer"></i> Cetak / Simpan PDF</button>
+        <button class="btn" id="wlaResetBtn" style="color:var(--red-fg);border-color:var(--red-fg);"><i class="ti ti-refresh"></i> Reset Data Default</button>
+      </div>
+    </div>
   </div>
 
   <!-- ================= VIEW: OPEN POINT ================= -->
@@ -4037,6 +4200,7 @@ document.querySelectorAll('.tab').forEach(tab => {
     if(tab.dataset.view === 'roster') loadRoster();
     if(tab.dataset.view === 'sop') renderSop();
     if(tab.dataset.view === 'tasklist') renderTaskList();
+    if(tab.dataset.view === 'workload') renderWorkload();
     if(tab.dataset.view === 'openpoint') renderOpenPoint();
     if(tab.dataset.view === 'pjp') renderPJP();
     if(tab.dataset.view === 'overview') renderOverview();
@@ -4676,6 +4840,320 @@ async function dsoLoad(key, fallback){
 }
 async function dsoSave(key, val){
   try{ await store.set(key, JSON.stringify(val), true); }catch(e){ console.error('gagal simpan', key, e); }
+}
+
+/* ================= WORKLOAD ANALYSIS (WLA) ================= */
+const WLA_SETTINGS_KEY = 'dso:workload:settings';
+const WLA_RUTIN_KEY = 'dso:workload:rutin';
+const WLA_ADHOC_KEY = 'dso:workload:adhoc';
+
+const WLA_DEFAULT_SETTINGS = {
+  names: ['Nyco Fahryan','Taufik Wirayudha','Adhe Setiawan','Lukman Gunawan'],
+  workDays: 28,
+  workHours: 12
+};
+
+const WLA_DEFAULT_RUTIN = [
+  {name:"P5M", period:"Daily", duration:45, freq:224, pct:[25,25,25,25]},
+  {name:"Daily Monitoring (WIM, Ucan, Famous, dll)", period:"Daily", duration:480, freq:112, pct:[25,25,25,25]},
+  {name:"Check Report Helper di Log Book", period:"Daily", duration:10, freq:22, pct:[25,25,25,25], included:false, isSub:true},
+  {name:"Check Log Book", period:"Daily", duration:5, freq:22, pct:[25,25,25,25], included:false, isSub:true},
+  {name:"Check HTTP Status Code di Grafana (per jam/shift)", period:"Daily", duration:5, freq:176, pct:[25,25,25,25], included:false, isSub:true},
+  {name:"Check SSL Expiry di Grafana", period:"Daily", duration:5, freq:22, pct:[25,25,25,25], included:false, isSub:true},
+  {name:"Check Device Status di PRTG (8 jam/shift)", period:"Daily", duration:480, freq:22, pct:[25,25,25,25], included:false, isSub:true},
+  {name:"Check Device Status di Pingpulse (8 jam/shift)", period:"Daily", duration:480, freq:22, pct:[25,25,25,25], included:false, isSub:true},
+  {name:"Report Tonase Under Over", period:"Daily", duration:15, freq:56, pct:[25,25,25,25]},
+  {name:"Report Monitoring Daily", period:"Daily", duration:15, freq:56, pct:[25,25,25,25]},
+  {name:"Report Monitoring Charging Station", period:"Daily", duration:10, freq:56, pct:[25,25,25,25]},
+  {name:"Report Monitoring Server", period:"Daily", duration:20, freq:56, pct:[25,25,25,25]},
+  {name:"Report Monitoring Redzone", period:"Daily", duration:60, freq:56, pct:[25,25,25,25]},
+  {name:"Check Daily Report VISI", period:"Daily", duration:15, freq:28, pct:[25,25,25,25]},
+  {name:"Check Weekly Report VISI", period:"Weekly", duration:30, freq:4, pct:[25,25,25,25]},
+  {name:"Check Asset on Site with VISI", period:"Weekly", duration:240, freq:4, pct:[30,30,30,10]},
+  {name:"Meeting Weekly WIM (2-4 jam x 2/minggu)", period:"Weekly", duration:180, freq:8, pct:[40,40,20,0]},
+  {name:"Check Monthly Report VISI", period:"Monthly", duration:30, freq:1, pct:[25,25,25,25]},
+  {name:"Perhitungan SLA VISI", period:"Monthly", duration:180, freq:1, pct:[100,0,0,0]},
+];
+
+const WLA_DEFAULT_ADHOC = [
+  {name:"Request RFID Unit Baru / Replace", period:"Adhoc", duration:60, freq:2, pct:[30,20,20,30]},
+  {name:"WICan Support (as request)", period:"Adhoc", duration:30, freq:28, pct:[30,25,25,20]},
+  {name:"Confirmation Redzone ke Minergo", period:"Adhoc", duration:60, freq:10, pct:[25,25,25,25]},
+  {name:"Support Lapangan (1 shift monitoring)", period:"Adhoc", duration:480, freq:4, pct:[10,30,30,30]},
+  {name:"Support Mobilisasi Tamu", period:"Adhoc", duration:720, freq:1, pct:[0,0,0,100]},
+];
+
+let wlaSettings = null;
+let wlaRutin = null;
+let wlaAdhoc = null;
+let wlaLoaded = false;
+let wlaSaveTimer = null;
+
+function wlaRowHTML(data){
+  const nameCell = data.isSub
+    ? `<td class="wla-sub-name-cell"><span class="wla-sub-arrow">&#8618;</span><input type="text" class="wla-cell-input wla-inp-name" value="${escapeHtml(data.name)}"></td>`
+    : `<td><input type="text" class="wla-cell-input wla-inp-name" value="${escapeHtml(data.name)}"></td>`;
+  return `
+    <td class="wla-no-cell">0</td>
+    ${nameCell}
+    <td>
+      <select class="wla-cell-input wla-inp-period">
+        <option ${data.period==='Daily'?'selected':''}>Daily</option>
+        <option ${data.period==='Weekly'?'selected':''}>Weekly</option>
+        <option ${data.period==='Monthly'?'selected':''}>Monthly</option>
+        <option ${data.period==='Adhoc'?'selected':''}>Adhoc</option>
+      </select>
+    </td>
+    <td><input type="number" min="0" step="1" class="wla-cell-input wla-num wla-inp-duration" value="${data.duration}"></td>
+    <td><input type="number" min="0" step="0.1" class="wla-cell-input wla-num wla-inp-freq" value="${data.freq}"></td>
+    <td class="wla-beban-cell wla-computed-cell">0</td>
+    <td><input type="number" min="0" max="100" step="1" class="wla-cell-input wla-num wla-inp-pct" value="${data.pct[0]}"></td>
+    <td><input type="number" min="0" max="100" step="1" class="wla-cell-input wla-num wla-inp-pct" value="${data.pct[1]}"></td>
+    <td><input type="number" min="0" max="100" step="1" class="wla-cell-input wla-num wla-inp-pct" value="${data.pct[2]}"></td>
+    <td><input type="number" min="0" max="100" step="1" class="wla-cell-input wla-num wla-inp-pct" value="${data.pct[3]}"></td>
+    <td class="wla-pct-sum wla-computed-cell">100%</td>
+    <td class="wla-center"><input type="checkbox" class="wla-chk-include" ${data.included===false?'':'checked'}></td>
+    <td class="wla-center"><button class="wla-btn-del" data-action="wla-del">&#10005;</button></td>
+  `;
+}
+
+function wlaBuildTbody(tbodyId, dataArr){
+  const tbody = document.getElementById(tbodyId);
+  tbody.innerHTML = "";
+  dataArr.forEach(d=>{
+    const tr = document.createElement('tr');
+    if(d.isSub) tr.classList.add('wla-sub-row');
+    tr.innerHTML = wlaRowHTML(d);
+    tbody.appendChild(tr);
+  });
+  wlaRenumber(tbody);
+}
+
+function wlaRenumber(tbody){
+  let mainCount = 0;
+  let subCount = 0;
+  Array.from(tbody.children).forEach(tr=>{
+    if(tr.classList.contains('wla-sub-row')){
+      subCount++;
+      tr.querySelector('.wla-no-cell').textContent = mainCount + '.' + subCount;
+    } else {
+      mainCount++;
+      subCount = 0;
+      tr.querySelector('.wla-no-cell').textContent = mainCount;
+    }
+  });
+  document.getElementById('wlaCountRutin').textContent = document.getElementById('wlaRutinBody').children.length + " task";
+  document.getElementById('wlaCountAdhoc').textContent = document.getElementById('wlaAdhocBody').children.length + " task";
+}
+
+function wlaAddRow(tbodyId){
+  const tbody = document.getElementById(tbodyId);
+  const tr = document.createElement('tr');
+  tr.innerHTML = wlaRowHTML({name:"Task Baru", period:"Daily", duration:0, freq:1, pct:[25,25,25,25]});
+  tbody.appendChild(tr);
+  wlaRenumber(tbody);
+  wlaSyncPersonLabels();
+  wlaRecalc();
+  wlaQueueSave();
+}
+
+function wlaSyncPersonLabels(){
+  for(let i=0;i<4;i++){
+    const val = document.getElementById('wlaName'+i).value || ("Personel "+String.fromCharCode(65+i));
+    document.querySelectorAll('.wla-person-label-'+i).forEach(el=> el.textContent = val);
+  }
+}
+
+function wlaStatusFor(wla){
+  if(wla < 70) return {label:"Kapasitas Longgar", cls:"wla-status-low"};
+  if(wla <= 100) return {label:"Optimal", cls:"wla-status-ok"};
+  if(wla <= 120) return {label:"Sedikit Overload", cls:"wla-status-warn"};
+  return {label:"Overload", cls:"wla-status-danger"};
+}
+
+function wlaReadTbody(tbodyId){
+  const tbody = document.getElementById(tbodyId);
+  return Array.from(tbody.children).map(tr=>{
+    const pctInputs = tr.querySelectorAll('.wla-inp-pct');
+    return {
+      name: tr.querySelector('.wla-inp-name').value,
+      period: tr.querySelector('.wla-inp-period').value,
+      duration: parseFloat(tr.querySelector('.wla-inp-duration').value) || 0,
+      freq: parseFloat(tr.querySelector('.wla-inp-freq').value) || 0,
+      pct: Array.from(pctInputs).map(i=>parseFloat(i.value)||0),
+      included: tr.querySelector('.wla-chk-include').checked,
+      isSub: tr.classList.contains('wla-sub-row')
+    };
+  });
+}
+
+function wlaProcessTable(tbodyId, totals){
+  const tbody = document.getElementById(tbodyId);
+  let tableMinutes = 0;
+  Array.from(tbody.children).forEach(tr=>{
+    const duration = parseFloat(tr.querySelector('.wla-inp-duration').value) || 0;
+    const freq = parseFloat(tr.querySelector('.wla-inp-freq').value) || 0;
+    const beban = duration * freq;
+    tr.querySelector('.wla-beban-cell').textContent = beban.toLocaleString('id-ID',{maximumFractionDigits:1});
+
+    const pctInputs = tr.querySelectorAll('.wla-inp-pct');
+    const pcts = Array.from(pctInputs).map(i=>parseFloat(i.value)||0);
+    const pctSum = pcts.reduce((a,b)=>a+b,0);
+    const sumCell = tr.querySelector('.wla-pct-sum');
+    sumCell.textContent = pctSum.toLocaleString('id-ID',{maximumFractionDigits:1}) + "%";
+    sumCell.classList.toggle('wla-pct-warn', Math.abs(pctSum-100) > 0.5);
+
+    const include = tr.querySelector('.wla-chk-include').checked;
+    tr.classList.toggle('wla-excluded-row', !include);
+
+    if(include){
+      tableMinutes += beban;
+      pcts.forEach((p,i)=> totals[i] += beban * p / 100);
+    }
+  });
+  return tableMinutes;
+}
+
+function wlaRecalc(){
+  const days = parseFloat(document.getElementById('wlaWorkDays').value) || 22;
+  const hours = parseFloat(document.getElementById('wlaWorkHours').value) || 8;
+  const capacityHours = days * hours;
+  document.getElementById('wlaCapacityDisplay').textContent = capacityHours.toLocaleString('id-ID',{maximumFractionDigits:1});
+
+  const totals = [0,0,0,0];
+  const rutinMin = wlaProcessTable('wlaRutinBody', totals);
+  const adhocMin = wlaProcessTable('wlaAdhocBody', totals);
+
+  document.getElementById('wlaRutinTableTotal').textContent =
+    rutinMin.toLocaleString('id-ID',{maximumFractionDigits:0}) + " menit (" + (rutinMin/60).toLocaleString('id-ID',{maximumFractionDigits:1}) + " jam)";
+  document.getElementById('wlaAdhocTableTotal').textContent =
+    adhocMin.toLocaleString('id-ID',{maximumFractionDigits:0}) + " menit (" + (adhocMin/60).toLocaleString('id-ID',{maximumFractionDigits:1}) + " jam)";
+
+  wlaRenderCards(totals, capacityHours);
+  wlaRenderChart(totals, capacityHours);
+}
+
+function wlaRenderCards(totals, capacityHours){
+  const grid = document.getElementById('wlaCardsGrid');
+  grid.innerHTML = "";
+  totals.forEach((mins,i)=>{
+    const hrs = mins/60;
+    const wla = capacityHours>0 ? (hrs/capacityHours*100) : 0;
+    const st = wlaStatusFor(wla);
+    const name = document.getElementById('wlaName'+i).value || ("Personel "+String.fromCharCode(65+i));
+    const barWidth = Math.min(wla,150)/150*100;
+    const valColor = st.cls==='wla-status-ok' ? 'var(--green-fg)' : st.cls==='wla-status-warn' ? 'var(--gold-fg)' : st.cls==='wla-status-danger' ? 'var(--red-fg)' : 'var(--accent)';
+    const card = document.createElement('div');
+    card.className = 'wla-p-card';
+    card.innerHTML = `
+      <div class="wla-p-name">${escapeHtml(name)}</div>
+      <div class="wla-big" style="color:${valColor}">${wla.toFixed(1)}%</div>
+      <span class="wla-status-pill ${st.cls}">${st.label}</span>
+      <div class="wla-bar-bg"><div class="wla-bar-fill ${st.cls}" style="width:${barWidth}%"></div></div>
+      <div class="wla-p-metric"><span>Total Beban</span><b>${hrs.toFixed(1)} jam/bulan</b></div>
+      <div class="wla-p-metric"><span>Kapasitas</span><b>${capacityHours.toFixed(1)} jam/bulan</b></div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function wlaRenderChart(totals, capacityHours){
+  const wrap = document.getElementById('wlaChartWrap');
+  wrap.innerHTML = "";
+  totals.forEach((mins,i)=>{
+    const hrs = mins/60;
+    const wla = capacityHours>0 ? (hrs/capacityHours*100) : 0;
+    const st = wlaStatusFor(wla);
+    const name = document.getElementById('wlaName'+i).value || ("Personel "+String.fromCharCode(65+i));
+    const heightPct = Math.min(wla,150)/150*100;
+    const valColor = st.cls==='wla-status-ok' ? 'var(--green-fg)' : st.cls==='wla-status-warn' ? 'var(--gold-fg)' : st.cls==='wla-status-danger' ? 'var(--red-fg)' : 'var(--accent)';
+    const col = document.createElement('div');
+    col.className = 'wla-chart-bar-col';
+    col.innerHTML = `
+      <div class="wla-chart-value" style="color:${valColor}">${wla.toFixed(0)}%</div>
+      <div class="wla-chart-bar ${st.cls}" style="height:${heightPct}%"></div>
+      <div class="wla-chart-label">${escapeHtml(name)}</div>
+    `;
+    wrap.appendChild(col);
+  });
+}
+
+function wlaQueueSave(){
+  if(wlaSaveTimer) clearTimeout(wlaSaveTimer);
+  wlaSaveTimer = setTimeout(wlaSaveAll, 600);
+}
+
+async function wlaSaveAll(){
+  const settings = {
+    names: [0,1,2,3].map(i => document.getElementById('wlaName'+i).value || ("Personel "+String.fromCharCode(65+i))),
+    workDays: parseFloat(document.getElementById('wlaWorkDays').value) || 22,
+    workHours: parseFloat(document.getElementById('wlaWorkHours').value) || 8
+  };
+  await dsoSave(WLA_SETTINGS_KEY, settings);
+  await dsoSave(WLA_RUTIN_KEY, wlaReadTbody('wlaRutinBody'));
+  await dsoSave(WLA_ADHOC_KEY, wlaReadTbody('wlaAdhocBody'));
+}
+
+function wlaBindEvents(){
+  const view = document.getElementById('view-workload');
+  if(view.dataset.wlaBound) return;
+  view.dataset.wlaBound = '1';
+
+  view.addEventListener('input', (e)=>{
+    if(e.target.classList.contains('wla-name-input')){ wlaSyncPersonLabels(); }
+    wlaRecalc();
+    wlaQueueSave();
+  });
+  view.addEventListener('change', ()=>{ wlaRecalc(); wlaQueueSave(); });
+
+  view.addEventListener('click', (e)=>{
+    const delBtn = e.target.closest('[data-action="wla-del"]');
+    if(delBtn){
+      const tr = delBtn.closest('tr');
+      const tbody = tr.parentElement;
+      tr.remove();
+      wlaRenumber(tbody);
+      wlaRecalc();
+      wlaQueueSave();
+    }
+  });
+
+  document.getElementById('wlaAddRutinBtn').onclick = () => wlaAddRow('wlaRutinBody');
+  document.getElementById('wlaAddAdhocBtn').onclick = () => wlaAddRow('wlaAdhocBody');
+  document.getElementById('wlaPrintBtn').onclick = () => window.print();
+  document.getElementById('wlaResetBtn').onclick = () => {
+    if(!confirm('Reset semua data Workload Analysis ke default? Perubahan yang sudah disimpan akan ditimpa.')) return;
+    wlaBuildTbody('wlaRutinBody', JSON.parse(JSON.stringify(WLA_DEFAULT_RUTIN)));
+    wlaBuildTbody('wlaAdhocBody', JSON.parse(JSON.stringify(WLA_DEFAULT_ADHOC)));
+    document.getElementById('wlaWorkDays').value = WLA_DEFAULT_SETTINGS.workDays;
+    document.getElementById('wlaWorkHours').value = WLA_DEFAULT_SETTINGS.workHours;
+    WLA_DEFAULT_SETTINGS.names.forEach((n,i)=> document.getElementById('wlaName'+i).value = n);
+    wlaSyncPersonLabels();
+    wlaRecalc();
+    wlaQueueSave();
+  };
+}
+
+async function renderWorkload(){
+  wlaBindEvents();
+  if(!wlaLoaded){
+    wlaSettings = await dsoLoad(WLA_SETTINGS_KEY, WLA_DEFAULT_SETTINGS);
+    wlaRutin = await dsoLoad(WLA_RUTIN_KEY, WLA_DEFAULT_RUTIN);
+    wlaAdhoc = await dsoLoad(WLA_ADHOC_KEY, WLA_DEFAULT_ADHOC);
+    wlaLoaded = true;
+
+    (wlaSettings.names||WLA_DEFAULT_SETTINGS.names).forEach((n,i)=>{
+      const el = document.getElementById('wlaName'+i);
+      if(el) el.value = n;
+    });
+    document.getElementById('wlaWorkDays').value = wlaSettings.workDays || WLA_DEFAULT_SETTINGS.workDays;
+    document.getElementById('wlaWorkHours').value = wlaSettings.workHours || WLA_DEFAULT_SETTINGS.workHours;
+
+    wlaBuildTbody('wlaRutinBody', wlaRutin);
+    wlaBuildTbody('wlaAdhocBody', wlaAdhoc);
+    wlaSyncPersonLabels();
+  }
+  wlaRecalc();
 }
 
 /* ================= STOCK MANAGEMENT: SYNC DARI GOOGLE SHEET ================= */
