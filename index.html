@@ -3836,7 +3836,9 @@ function parseHelperCutiRows(rows){
 }
 async function fetchHelperRosterData(){
   await loadGoogleChartsOnce();
-  const url = `https://docs.google.com/spreadsheets/d/${ROSTER_HELPER_SHEET_ID}/gviz/tq?gid=${ROSTER_HELPER_GID}&_t=${Date.now()}`;
+  // headers=0 WAJIB: tanpa ini, Google gviz otomatis menebak baris awal sebagai header
+  // dan membuang blok tanggal pertama (mis. minggu berjalan) dari hasil - lihat diagnosis 8 Sep 2026.
+  const url = `https://docs.google.com/spreadsheets/d/${ROSTER_HELPER_SHEET_ID}/gviz/tq?gid=${ROSTER_HELPER_GID}&headers=0&_t=${Date.now()}`;
   return new Promise((resolve, reject) => {
     let settled = false;
     const timer = setTimeout(() => {
