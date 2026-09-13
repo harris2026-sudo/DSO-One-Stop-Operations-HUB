@@ -1572,8 +1572,8 @@
           <option>Harris</option>
           <option>Nico Fahryan Sandy</option>
           <option>Lukman Gunawan</option>
-          <option>Taufik Wirayudha</option>
-          <option>Adhe Setiawan</option>
+          <option>Dani Cahya</option>
+          <option>Afyus Raka</option>
         </select>
       </div>
       <div style="align-self:flex-end;display:flex;gap:8px;">
@@ -2534,7 +2534,7 @@ function animateCountsIn(container){
    (fitur khusus Claude.ai) tidak tersedia. Sebagai gantinya, semua
    data (checklist harian, follow up, label, dsb) disimpan ke Google
    Sheets lewat Google Apps Script Web App — supaya sinkron antar
-   device & antar personil tim (Nico, Lukman, Taufik, Adhe).
+   device & antar personil tim (Nico, Lukman, Dani, Afyus).
 
    CARA ISI:
    1. Deploy backend "Code.gs" sebagai Web App (lihat panduan di file itu).
@@ -3198,7 +3198,7 @@ function roleSuffix(){ return harianRole === 'mfs' ? '_mfs' : ''; }
 
 /* ---------------- PIC & SHIFT: OPSI PER ROLE ---------------- */
 const PIC_OPTIONS_BY_ROLE = {
-  dfe: ["Harris", "Nico Fahryan Sandy", "Lukman Gunawan", "Taufik Wirayudha", "Adhe Setiawan"],
+  dfe: ["Harris", "Nico Fahryan Sandy", "Lukman Gunawan", "Dani Cahya", "Afyus Raka"],
   mfs: ["Ferdy", "Wahyu", "Muhammad Rizki Alamsyah"],
 };
 const SHIFT_OPTIONS_BY_ROLE = {
@@ -3464,8 +3464,8 @@ const ROSTER_SHEET_ID = '1GO4bxREj-BN45e5XFll-mrov23hSTFokKjtby1LiwJg';
 const ROSTER_PERSONNEL = [
   { code:'NFS', name:'Nico Fahryan Sandy', color:'#1F4E79', photo: ROSTER_PHOTO_NFS, role:'Digitech Field Engineer' },
   { code:'LG',  name:'Lukman Gunawan',     color:'#1E7A34', photo: ROSTER_PHOTO_LG,  role:'Digitech Field Engineer' },
-  { code:'TW',  name:'Taufik Wirayudha',   color:'#7F6000', photo: null,             role:'Digitech Field Engineer' },
-  { code:'AS',  name:'Adhe Setiawan',      color:'#9C0006', photo: ROSTER_PHOTO_AS,  role:'Digitech Field Engineer' }
+  { code:'DC',  name:'Dani Cahya',         color:'#7F6000', photo: null,             role:'Digitech Field Engineer (Diperbantukan)' },
+  { code:'AR',  name:'Afyus Raka',         color:'#9C0006', photo: null,             role:'Digitech Field Engineer (Diperbantukan)' }
 ];
 /* Jam shift aktual (dikonfirmasi Harris) - dipakai untuk deteksi "sedang bertugas sekarang".
    Shift saling overlap by design (buffer serah-terima), jadi bisa lebih dari 1 shift aktif bersamaan. */
@@ -4518,9 +4518,9 @@ const POBR_PHOTO_DIRECTORY = [
   { aliases:['Nyco','Nico','Nico Fahryan Sandy','NFS'], photo:POBR_PHOTO_NICO },
   { aliases:['Adhe Setiawan','Adhe','AS'], photo:POBR_PHOTO_ADHE },
   { aliases:['Abdillah'], photo:POBR_PHOTO_ABDILLAH },
-  { aliases:['Dani Suryanda','Dani'], photo:POBR_PHOTO_DANI },
+  { aliases:['Dani Suryanda','Dani','Dani Cahya'], photo:POBR_PHOTO_DANI },
   { aliases:['Ishaq Arifin','Ishaq'], photo:POBR_PHOTO_ISHAQ },
-  { aliases:['Raka'], photo:POBR_PHOTO_RAKA },
+  { aliases:['Raka','Afyus Raka','Afyus'], photo:POBR_PHOTO_RAKA },
   { aliases:['Sony Salubongga','Sony'], photo:POBR_PHOTO_SONY },
   { aliases:['Taufik'], photo:POBR_PHOTO_TAUFIK }
 ];
@@ -4850,7 +4850,7 @@ const WLA_RUTIN_KEY = 'dso:workload:rutin';
 const WLA_ADHOC_KEY = 'dso:workload:adhoc';
 
 const WLA_DEFAULT_SETTINGS = {
-  names: ['Nyco Fahryan','Taufik Wirayudha','Adhe Setiawan','Lukman Gunawan'],
+  names: ['Nyco Fahryan','Dani Cahya','Afyus Raka','Lukman Gunawan'],
   workDays: 28,
   workHours: 12
 };
@@ -7921,7 +7921,7 @@ function renderVendorOptions(v){ vendorManager.renderOptions(v); }
 
 const picManager = createManagedList({
   storageKey: 'followup:pics',
-  defaults: ['Harris','Nico Fahryan Sandy','Lukman Gunawan','Taufik Wirayudha','Adhe Setiawan'],
+  defaults: ['Harris','Nico Fahryan Sandy','Lukman Gunawan','Dani Cahya','Afyus Raka'],
   selectId: 'fuPic',
   manageBtnId: 'fuPicManageBtn',
   modalOverlayId: 'picModalOverlay',
@@ -7978,7 +7978,7 @@ document.getElementById('jenisModalDoneBtn').addEventListener('click', () => {
 
 const aebsPicManager = createManagedList({
   storageKey: 'aebs:pics',
-  defaults: ['Harris','Nico Fahryan Sandy','Lukman Gunawan','Taufik Wirayudha','Adhe Setiawan'],
+  defaults: ['Harris','Nico Fahryan Sandy','Lukman Gunawan','Dani Cahya','Afyus Raka'],
   selectId: 'aebsFPic',
   manageBtnId: 'aebsPicManageBtn',
   modalOverlayId: 'aebsPicModalOverlay',
@@ -8704,7 +8704,7 @@ let taskListFilter = 'All';
 
 const tlPicManager = createManagedList({
   storageKey: 'followup:pics',
-  defaults: ['Harris','Nico Fahryan Sandy','Lukman Gunawan','Taufik Wirayudha','Adhe Setiawan'],
+  defaults: ['Harris','Nico Fahryan Sandy','Lukman Gunawan','Dani Cahya','Afyus Raka'],
   selectId: 'tlPic',
   manageBtnId: 'tlPicManageBtn',
   modalOverlayId: 'picModalOverlay',
