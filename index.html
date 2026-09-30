@@ -494,6 +494,30 @@
   .gt-undo button{border:none;background:transparent;color:#fff;text-decoration:underline;cursor:pointer;font-size:13px;}
   @media (max-width:640px){ .gt-grid,.gt-detail{grid-template-columns:1fr;} .gt-detail .full,.gt-saved{grid-column:1;} }
   @media (prefers-reduced-motion:reduce){ .gt-ck,.gt-sec i,.gt-saved{transition:none;} }
+  /* ===== Task List: Sub Task ===== */
+  .gt-chip.warn{background:var(--yellow-bg);color:var(--yellow-fg);border-color:transparent;}
+  .gt-chip.ok{background:var(--green-bg);color:var(--green-fg);border-color:transparent;}
+  .gt-pb{height:3px;border-radius:2px;background:var(--border);margin-top:8px;overflow:hidden;max-width:220px;}
+  .gt-pb div{height:100%;background:var(--accent);transition:width .25s;}
+  .gt-warn{margin-top:6px;font-size:12px;color:var(--red-fg);display:flex;gap:4px;align-items:center;}
+  .gt-subs{grid-column:1/3;margin-top:4px;border-top:1px solid var(--border);padding-top:10px;}
+  .gt-subs h4{margin:0 0 6px;font-size:13px;font-weight:500;color:var(--text-secondary);}
+  .gt-sub{display:flex;gap:10px;align-items:flex-start;padding:6px 0 6px 6px;}
+  .gt-sub .gt-title{font-size:13px;}
+  .gt-sub.is-done .gt-title{text-decoration:line-through;color:var(--text-muted);}
+  .gt-ck.sm{width:16px;height:16px;border-width:1.5px;margin-top:2px;}
+  .gt-ck.sm i{font-size:10px;}
+  .gt-subdel{margin-left:auto;border:none;background:transparent;color:var(--text-muted);cursor:pointer;opacity:0;font-size:14px;padding:2px;}
+  .gt-sub:hover .gt-subdel,.gt-subdel:focus-visible{opacity:1;}
+  .gt-subdel:hover{color:var(--red-fg);}
+  .gt-subadd{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:6px;padding-left:6px;}
+  .gt-subadd input[type=text]{flex:1;min-width:150px;}
+  .gt-subadd select,.gt-subadd input[type=date]{width:auto;max-width:140px;}
+  .gt-subadd label{font-size:12px;color:var(--text-secondary);display:flex;align-items:center;gap:4px;white-space:nowrap;}
+  .gt-subadd input,.gt-subadd select{box-sizing:border-box;font-size:13px;padding:6px 8px;border:1px solid var(--border);border-radius:8px;font-family:inherit;background:#fff;}
+  .gt-subadd input[type=checkbox]{padding:0;}
+  @media (max-width:640px){ .gt-subs{grid-column:1;} }
+  @media (prefers-reduced-motion:reduce){ .gt-pb div{transition:none;} }
   .fu-toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;}
   .fu-filter{border:1.5px solid var(--hilite);background:#fff;color:var(--navy);border-radius:14px;padding:6px 12px;font-size:12px;font-weight:bold;cursor:pointer;}
   .fu-filter.active{background:var(--accent);color:#fff;border-color:var(--accent);}
@@ -5789,7 +5813,7 @@ function renderOverviewTasklistCard(){
       <span class="dot" style="background:${c.fg}"></span>
       <div class="body">
         <div class="desc">${escapeHtml(it.desc||'-')}</div>
-        <div class="pic">${it.pic ? 'PIC: ' + escapeHtml(it.pic) : '\u2014'}</div>
+        <div class="pic">${(it.pic ? 'PIC: ' + escapeHtml(it.pic) : '\u2014') + (tlSubProgressText(it) ? ' \u00b7 ' + tlSubProgressText(it) : '')}</div>
       </div>
       <span class="tag" style="background:${c.bg};color:${c.fg};">${escapeHtml(tlStatusLabel(eff))}</span>
     </div>`;
@@ -8629,6 +8653,7 @@ async function saveTaskList(){
    Daftar status tetap dikelola lewat tombol gear (taskStatusManager).
    ================================================================== */
 let tlOpenId = null, tlShowDone = false, tlUndoId = null, tlUndoTimer = null, tlInputTimer = null;
+let tlWarnId = null, tlWarnTimer = null, tlFocusSub = null;
 const TL_MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
 function tlIsHold(name){ return String(name || '').trim().toLowerCase() === 'hold'; }
@@ -8765,21 +8790,50 @@ function renderTlFilterBar(){
   bar.innerHTML = opts.map(o => `<button type="button" class="fu-filter ${taskListFilter===o?'active':''}" data-f="${escapeHtml(o)}">${escapeHtml(label(o))}</button>`).join('');
 }
 
+function tlSubStats(it){
+  const a = it.subs || [];
+  return { n:a.length, d:a.filter(x => x.done).length, rq:a.filter(x => x.required && !x.done).length, hasReq:a.some(x => x.required) };
+}
+function tlSubProgressText(it){
+  const g = tlSubStats(it);
+  return g.n ? g.d + '/' + g.n + ' sub tasks' : '';
+}
+function tlSubRowHtml(p, sb){
+  const od = !sb.done && sb.deadline && sb.deadline < todayStr() && !tlIsHold(p.status);
+  const late = sb.deadline && p.deadline && sb.deadline > p.deadline;
+  let meta = '';
+  if(sb.required) meta += '<span class="gt-chip warn"><i class="ti ti-lock"></i>Required</span>';
+  if(sb.deadline) meta += `<span class="gt-chip ${od?'od':(late?'warn':'')}"><i class="ti ti-calendar"></i>${tlFmtDate(sb.deadline)}${late ? ' · after task deadline' : ''}</span>`;
+  if(sb.pic) meta += `<span class="gt-chip"><i class="ti ti-user"></i>${escapeHtml(sb.pic)}</span>`;
+  return `<div class="gt-sub ${sb.done?'is-done':''}">
+    <button type="button" class="gt-ck sm ${sb.done?'on':''}" data-sck="${p.id}:${sb.id}" aria-label="${sb.done?'Mark sub task as not done':'Mark sub task as done'}"><i class="ti ti-check"></i></button>
+    <div class="gt-body"><div class="gt-title">${escapeHtml(sb.title)}</div>${meta ? `<div class="gt-meta">${meta}</div>` : ''}</div>
+    <button type="button" class="gt-subdel" data-sdel="${p.id}:${sb.id}" aria-label="Delete sub task"><i class="ti ti-x"></i></button>
+  </div>`;
+}
+
 function tlRowHtml(it){
   const done = tlIsDone(it), hold = tlIsHold(it.status), eff = tlEffectiveStatus(it), od = eff === 'Overdue';
   const first = taskStatusManager.getList()[0];
+  const g = tlSubStats(it);
   let meta = '';
   if(it.deadline) meta += `<span class="gt-chip ${od?'od':''}"><i class="ti ti-calendar"></i>${tlFmtDate(it.deadline)}${od ? ' · overdue' : ''}</span>`;
   if(it.pic) meta += `<span class="gt-chip"><i class="ti ti-user"></i>${escapeHtml(it.pic)}</span>`;
   if(it.vendor) meta += `<span class="gt-chip"><i class="ti ti-building"></i>${escapeHtml(it.vendor)}</span>`;
+  if(g.n) meta += `<span class="gt-chip"><i class="ti ti-subtask"></i>${g.d}/${g.n}</span>`;
+  if(!done && g.rq > 0) meta += `<span class="gt-chip warn"><i class="ti ti-lock"></i>${g.rq} required left</span>`;
+  if(!done && !hold && g.hasReq && g.rq === 0) meta += '<span class="gt-chip ok"><i class="ti ti-circle-check"></i>Ready to complete</span>';
   if(!done && first && it.status !== first.name){
     meta += `<span class="gt-chip" style="${tlStatusColorStyle(it.status)}border-color:transparent;">${hold ? '<i class="ti ti-player-pause"></i>' : ''}${escapeHtml(it.status)}</span>`;
   }
   if(it.note && tlOpenId !== it.id) meta += `<span>${escapeHtml(it.note)}</span>`;
+  const bar = g.n ? `<div class="gt-pb" aria-hidden="true"><div style="width:${Math.round(g.d / g.n * 100)}%"></div></div>` : '';
+  const warn = (tlWarnId === it.id && g.rq > 0) ? `<div class="gt-warn"><i class="ti ti-alert-triangle"></i>Finish ${g.rq} required sub task${g.rq > 1 ? 's' : ''} first</div>` : '';
   let detail = '';
   if(tlOpenId === it.id){
     const pics = Array.from(document.getElementById('tlPic').options).map(o => o.value).filter(Boolean);
     if(it.pic && !pics.includes(it.pic)) pics.push(it.pic);
+    const picOpts = pics.map(p => `<option value="${escapeHtml(p)}">${escapeHtml(p)}</option>`).join('');
     detail = `<div class="gt-detail" data-stop="1">
       <select data-f="status" data-id="${it.id}" aria-label="Status">${taskStatusManager.getList().map(s => `<option value="${escapeHtml(s.name)}" ${s.name===it.status?'selected':''}>${escapeHtml(s.name)}</option>`).join('')}</select>
       <input type="date" data-f="deadline" data-id="${it.id}" value="${escapeHtml(it.deadline||'')}" aria-label="Deadline">
@@ -8787,13 +8841,24 @@ function tlRowHtml(it){
       <input type="text" data-f="vendor" data-id="${it.id}" value="${escapeHtml(it.vendor||'')}" placeholder="Vendor (optional)" aria-label="Vendor">
       <input class="full" type="text" data-f="note" data-id="${it.id}" value="${escapeHtml(it.note||'')}" placeholder="${hold ? 'Reason for hold' : 'Add a note'}" aria-label="Note">
       ${done ? `<input class="full" type="text" data-f="remark" data-id="${it.id}" value="${escapeHtml(it.remark||'')}" placeholder="Completion remark (optional)" aria-label="Remark">` : ''}
+      <div class="gt-subs">
+        <h4>Sub tasks${g.n ? ' · ' + g.d + ' of ' + g.n + ' done' : ''}</h4>
+        ${(it.subs || []).map(sb => tlSubRowHtml(it, sb)).join('')}
+        <div class="gt-subadd">
+          <input type="text" id="tlSubT_${it.id}" placeholder="Add sub task" aria-label="Sub task name">
+          <select id="tlSubP_${it.id}" aria-label="Sub task PIC"><option value="">No PIC</option>${picOpts}</select>
+          <input type="date" id="tlSubD_${it.id}" aria-label="Sub task deadline">
+          <label><input type="checkbox" id="tlSubR_${it.id}"> Required</label>
+          <button type="button" class="btn btn-ghost" data-sadd="${it.id}">Add</button>
+        </div>
+      </div>
       <span class="gt-saved" data-saved="${it.id}"><i class="ti ti-check"></i> Saved</span>
     </div>`;
   }
   const remarkLine = (done && it.remark && tlOpenId !== it.id) ? `<div class="gt-meta"><i class="ti ti-archive"></i>${escapeHtml(it.remark)}</div>` : '';
   return `<div class="gt-row ${done?'is-done':''} ${hold?'is-hold':''}" data-row="${it.id}" tabindex="0">
     <button type="button" class="gt-ck ${done?'on':''}" data-ck="${it.id}" aria-label="${done?'Mark as not done':'Mark as done'}"><i class="ti ti-check"></i></button>
-    <div class="gt-body"><div class="gt-title">${escapeHtml(it.desc)}</div>${meta ? `<div class="gt-meta">${meta}</div>` : ''}${detail}${remarkLine}</div>
+    <div class="gt-body"><div class="gt-title">${escapeHtml(it.desc)}</div>${meta ? `<div class="gt-meta">${meta}</div>` : ''}${bar}${warn}${detail}${remarkLine}</div>
     <button type="button" class="gt-del" data-del="${it.id}" aria-label="Delete task"><i class="ti ti-trash"></i></button>
   </div>`;
 }
@@ -8808,6 +8873,7 @@ function renderTlList(){
     return (a.deadline || '9999').localeCompare(b.deadline || '9999');
   });
   listEl.innerHTML = vis.length ? vis.map(tlRowHtml).join('') : '<div class="gt-empty">No tasks in this filter.</div>';
+  if(tlFocusSub){ const fe = document.getElementById('tlSubT_' + tlFocusSub); if(fe) fe.focus(); tlFocusSub = null; }
 
   const undoIt = tlUndoId ? taskListItems.find(i => i.id === tlUndoId) : null;
   document.getElementById('tlUndo').innerHTML = undoIt ? '<div class="gt-undo"><span>Task marked as done</span><button type="button" data-undo="1">Undo</button></div>' : '';
@@ -8818,6 +8884,13 @@ function renderTlList(){
   dw.innerHTML = `<div class="gt-sec ${tlShowDone?'open':''}" data-sec="1" role="button" tabindex="0"><i class="ti ti-chevron-right"></i>Done (${done.length})</div>` + (tlShowDone ? done.map(tlRowHtml).join('') : '');
 }
 
+function tlBlockDone(id){
+  tlOpenId = id;
+  tlWarnId = id;
+  clearTimeout(tlWarnTimer);
+  tlWarnTimer = setTimeout(() => { tlWarnId = null; renderTlList(); }, 3200);
+  renderTlList();
+}
 async function tlToggleDone(id){
   const it = taskListItems.find(i => i.id === id);
   if(!it) return;
@@ -8826,6 +8899,7 @@ async function tlToggleDone(id){
     it.status = prev;
     tlUndoId = null;
   } else {
+    if(tlSubStats(it).rq > 0){ tlBlockDone(id); return; }
     const d = tlFirstDoneStatus();
     if(!d){ alert('No "done" status is set. Mark one as done in the status manager (gear icon) first.'); return; }
     it.prevStatus = it.status;
@@ -8851,13 +8925,63 @@ async function tlPersist(id){
 (function tlBindEvents(){
   const view = document.getElementById('view-tasklist');
   view.addEventListener('click', async (e) => {
-    const t = e.target.closest('[data-ck],[data-del],[data-undo],[data-sec],[data-f].fu-filter,[data-row],[data-stop]');
+    const t = e.target.closest('[data-ck],[data-sck],[data-sdel],[data-sadd],[data-del],[data-undo],[data-sec],[data-f].fu-filter,[data-row],[data-stop]');
     if(!t) return;
     if(t.dataset.stop) return;
     if(t.dataset.ck){ e.stopPropagation(); await tlToggleDone(t.dataset.ck); return; }
+    if(t.dataset.sck){
+      e.stopPropagation();
+      const [pid, sid] = t.dataset.sck.split(':');
+      const p = taskListItems.find(i => i.id === pid);
+      const sb = p && (p.subs || []).find(x => x.id === sid);
+      if(!sb) return;
+      sb.done = !sb.done;
+      if(sb.done && !tlIsDone(p)){
+        const list = taskStatusManager.getList();
+        const ip = list.find(x => String(x.name).trim().toLowerCase() === 'in progress');
+        if(ip && list[0] && p.status === list[0].name) p.status = ip.name;
+      }
+      await saveTaskList();
+      renderTlSummary(); renderTlFilterBar(); renderTlList();
+      return;
+    }
+    if(t.dataset.sdel){
+      e.stopPropagation();
+      const [pid, sid] = t.dataset.sdel.split(':');
+      const p = taskListItems.find(i => i.id === pid);
+      if(!p) return;
+      p.subs = (p.subs || []).filter(x => x.id !== sid);
+      await saveTaskList();
+      renderTlList();
+      return;
+    }
+    if(t.dataset.sadd){
+      e.stopPropagation();
+      const pid = t.dataset.sadd;
+      const p = taskListItems.find(i => i.id === pid);
+      if(!p) return;
+      const inp = document.getElementById('tlSubT_' + pid);
+      const title = inp.value.trim();
+      if(!title){ inp.style.borderColor = 'var(--red-fg)'; inp.placeholder = 'Sub task name is required'; inp.focus(); return; }
+      p.subs = p.subs || [];
+      p.subs.push({
+        id: 'ts' + Date.now() + Math.floor(Math.random() * 1000),
+        title,
+        required: document.getElementById('tlSubR_' + pid).checked,
+        done: false,
+        pic: document.getElementById('tlSubP_' + pid).value,
+        deadline: document.getElementById('tlSubD_' + pid).value
+      });
+      await saveTaskList();
+      tlFocusSub = pid;
+      renderTlList();
+      return;
+    }
     if(t.dataset.del){
       e.stopPropagation();
-      if(!confirm('Delete this task?')) return;
+      const target = taskListItems.find(i => i.id === t.dataset.del);
+      const nSub = target && target.subs ? target.subs.length : 0;
+      if(!confirm('Delete this task' + (nSub ? ' and its ' + nSub + ' sub task' + (nSub > 1 ? 's' : '') : '') + '?')) return;
       taskListItems = taskListItems.filter(i => i.id !== t.dataset.del);
       if(tlOpenId === t.dataset.del) tlOpenId = null;
       await saveTaskList();
@@ -8876,6 +9000,12 @@ async function tlPersist(id){
     if(t.dataset.row){ tlOpenId = (tlOpenId === t.dataset.row) ? null : t.dataset.row; renderTlList(); }
   });
   view.addEventListener('keydown', (e) => {
+    if(e.key === 'Enter' && e.target.id && e.target.id.indexOf('tlSubT_') === 0){
+      e.preventDefault();
+      const b = view.querySelector('[data-sadd="' + e.target.id.slice(7) + '"]');
+      if(b) b.click();
+      return;
+    }
     if(e.key !== 'Enter' && e.key !== ' ') return;
     const row = e.target.closest('[data-row]');
     if(row && e.target === row){ e.preventDefault(); tlOpenId = (tlOpenId === row.dataset.row) ? null : row.dataset.row; renderTlList(); }
@@ -8887,6 +9017,7 @@ async function tlPersist(id){
     if(!t.dataset || !t.dataset.f || !t.dataset.id || t.classList.contains('fu-filter')) return;
     const it = taskListItems.find(i => i.id === t.dataset.id);
     if(!it) return;
+    if(t.dataset.f === 'status' && taskStatusManager.isDone(t.value) && !tlIsDone(it) && tlSubStats(it).rq > 0){ tlBlockDone(it.id); return; }
     if(t.dataset.f === 'status' && it.status !== t.value && !taskStatusManager.isDone(it.status)) it.prevStatus = it.status;
     it[t.dataset.f] = t.value;
     await saveTaskList();
