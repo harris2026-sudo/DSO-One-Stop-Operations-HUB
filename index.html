@@ -516,14 +516,7 @@
   .gt-subadd label{font-size:12px;color:var(--text-secondary);display:flex;align-items:center;gap:4px;white-space:nowrap;}
   .gt-subadd input,.gt-subadd select{box-sizing:border-box;font-size:13px;padding:6px 8px;border:1px solid var(--border);border-radius:8px;font-family:inherit;background:#fff;}
   .gt-subadd input[type=checkbox]{padding:0;}
-  .gt-picbox{flex-basis:100%;}
-  .gt-picbox:empty{display:none;}
-  .gt-picnew{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
-  .gt-detail .gt-picnew input,.gt-subadd .gt-picnew input{width:190px;flex:none;min-width:0;}
-  .gt-pic-err{font-size:12px;color:var(--red-fg);min-height:0;margin-top:2px;}
-  .gt-pic-err:empty{display:none;}
-  .gt-detail .gt-picbox{grid-column:1/3;}
-  @media (max-width:640px){ .gt-subs{grid-column:1;} .gt-detail .gt-picbox{grid-column:1;} }
+  @media (max-width:640px){ .gt-subs{grid-column:1;} }
   @media (prefers-reduced-motion:reduce){ .gt-pb div{transition:none;} }
   .fu-toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;}
   .fu-filter{border:1.5px solid var(--hilite);background:#fff;color:var(--navy);border-radius:14px;padding:6px 12px;font-size:12px;font-weight:bold;cursor:pointer;}
@@ -7481,7 +7474,7 @@ let followUpFilter = 'All';
 /* ---- Daftar terkelola (dropdown + modal tambah/hapus) untuk Vendor & PIC ---- */
 function createManagedList(opts){
   const { storageKey, defaults, selectId, manageBtnId, modalOverlayId, modalInputId, modalAddBtnId,
-          modalCloseBtnId, modalDoneBtnId, modalListId, modalMsgId, itemLabel, onRename,
+          modalCloseBtnId, modalDoneBtnId, modalListId, modalMsgId, itemLabel, onRename, onClose,
           includeEmptyOption = true } = opts;
   let list = [...defaults];
 
@@ -7606,6 +7599,7 @@ function createManagedList(opts){
   }
   function closeModal(){
     document.getElementById(modalOverlayId).classList.remove('active');
+    if(typeof onClose === 'function') onClose();
   }
 
   document.getElementById(manageBtnId).onclick = openModal;
@@ -8609,7 +8603,8 @@ const tlPicManager = createManagedList({
   modalDoneBtnId: 'picModalDoneBtn',
   modalListId: 'picModalList',
   modalMsgId: 'picModalMsg',
-  itemLabel: 'PIC'
+  itemLabel: 'PIC',
+  onClose: () => { if(typeof tlOnPicModalClosed === 'function') tlOnPicModalClosed(); }
 });
 
 const taskStatusManager = createUscManager({
@@ -8804,19 +8799,6 @@ function tlPicOptionsHtml(selected){
     names.map(n => `<option value="${escapeHtml(n)}" ${n === selected ? 'selected' : ''}>${escapeHtml(n)}</option>`).join('') +
     '<option value="__add">+ Add new name...</option>';
 }
-/* Tambah nama ke daftar PIC bersama (dipakai form Add task, detail task, sub task). */
-async function tlAddPicName(raw){
-  const v = String(raw || '').replace(/[<>]/g, '').trim().replace(/\s+/g, ' ');
-  if(!v) return { err: 'Name is required' };
-  const list = tlPicManager.getList();
-  const ex = list.find(n => String(n).toLowerCase() === v.toLowerCase());
-  if(ex) return { name: ex };
-  list.push(v);
-  await tlPicManager.save();
-  const main = document.getElementById('tlPic');
-  tlPicManager.renderOptions(main ? main.value : '');
-  return { name: v };
-}
 function tlRefreshPicSelects(target, name){
   document.querySelectorAll('#view-tasklist select[data-picsel]').forEach(el => {
     let cur = el === target ? name : (el.value === '__add' ? (el.dataset.prev || '') : el.value);
@@ -8825,37 +8807,36 @@ function tlRefreshPicSelects(target, name){
     el.dataset.prev = cur;
   });
 }
-function tlOpenPicAdd(sel){
+/* "+ Add new name..." membuka modal "Kelola Daftar PIC" yang sama dengan tombol gear.
+   Saat modal ditutup: nama yang baru ditambahkan otomatis terpilih. */
+let tlPicPending = null;
+function tlOpenPicModal(sel){
   const isTask = !!sel.dataset.f;
   const id = isTask ? sel.dataset.id : sel.dataset.pid;
   const it = taskListItems.find(i => i.id === id);
-  const box = document.getElementById((isTask ? 'tlPicEd_' : 'tlSubPicEd_') + id);
-  if(!it || !box) return;
+  if(!it) return;
   const prev = isTask ? (it.pic || '') : (sel.dataset.prev || '');
-  box.innerHTML = '<div class="gt-picnew"><input type="text" placeholder="Full name" aria-label="New PIC name"><button type="button" class="btn btn-primary">Add</button><button type="button" class="btn btn-ghost">Cancel</button></div><div class="gt-pic-err"></div>';
-  const inp = box.querySelector('input'), err = box.querySelector('.gt-pic-err');
-  const [okBtn, noBtn] = box.querySelectorAll('button');
-  const close = () => { box.innerHTML = ''; sel.value = prev; };
-  const commit = async () => {
-    const r = await tlAddPicName(inp.value);
-    if(r.err){ err.textContent = r.err; inp.focus(); return; }
-    box.innerHTML = '';
-    if(isTask){
-      it.pic = r.name;
-      await saveTaskList();
-      renderTlList();
-      tlPersist(it.id);
-    } else {
-      tlRefreshPicSelects(sel, r.name);
-    }
-  };
-  okBtn.onclick = commit;
-  noBtn.onclick = close;
-  inp.addEventListener('keydown', e => {
-    if(e.key === 'Enter'){ e.preventDefault(); commit(); }
-    if(e.key === 'Escape'){ e.preventDefault(); close(); }
-  });
-  inp.focus();
+  tlPicPending = { isTask, id, prev, snapshot: tlPicManager.getList().slice() };
+  sel.value = prev;
+  document.getElementById('tlPicManageBtn').click();
+}
+async function tlOnPicModalClosed(){
+  const p = tlPicPending;
+  if(!p) return;
+  tlPicPending = null;
+  const list = tlPicManager.getList();
+  const added = list.filter(n => !p.snapshot.includes(n));
+  const chosen = added.length ? added[added.length - 1] : '';
+  if(p.isTask){
+    const it = taskListItems.find(i => i.id === p.id);
+    if(!it) return;
+    if(chosen){ it.pic = chosen; await saveTaskList(); }
+    renderTlList();
+    if(chosen) tlPersist(it.id);
+  } else {
+    const sel = document.getElementById('tlSubP_' + p.id);
+    if(sel) tlRefreshPicSelects(sel, chosen || (list.includes(p.prev) ? p.prev : ''));
+  }
 }
 
 function tlSubStats(it){
@@ -8904,7 +8885,6 @@ function tlRowHtml(it){
       <input type="date" data-f="deadline" data-id="${it.id}" value="${escapeHtml(it.deadline||'')}" aria-label="Deadline">
       <select data-f="pic" data-picsel="1" data-id="${it.id}" aria-label="PIC">${tlPicOptionsHtml(it.pic || '')}</select>
       <input type="text" data-f="vendor" data-id="${it.id}" value="${escapeHtml(it.vendor||'')}" placeholder="Vendor (optional)" aria-label="Vendor">
-      <div class="gt-picbox" id="tlPicEd_${it.id}"></div>
       <input class="full" type="text" data-f="note" data-id="${it.id}" value="${escapeHtml(it.note||'')}" placeholder="${hold ? 'Reason for hold' : 'Add a note'}" aria-label="Note">
       ${done ? `<input class="full" type="text" data-f="remark" data-id="${it.id}" value="${escapeHtml(it.remark||'')}" placeholder="Completion remark (optional)" aria-label="Remark">` : ''}
       <div class="gt-subs">
@@ -8916,7 +8896,6 @@ function tlRowHtml(it){
           <input type="date" id="tlSubD_${it.id}" aria-label="Sub task deadline">
           <label><input type="checkbox" id="tlSubR_${it.id}"> Required</label>
           <button type="button" class="btn btn-ghost" data-sadd="${it.id}">Add</button>
-          <div class="gt-picbox" id="tlSubPicEd_${it.id}"></div>
         </div>
       </div>
       <span class="gt-saved" data-saved="${it.id}"><i class="ti ti-check"></i> Saved</span>
@@ -9102,7 +9081,7 @@ async function tlPersist(id){
   view.addEventListener('change', async (e) => {
     const t = e.target;
     if(t.dataset && t.dataset.picsel){
-      if(t.value === '__add'){ tlOpenPicAdd(t); return; }
+      if(t.value === '__add'){ tlOpenPicModal(t); return; }
       t.dataset.prev = t.value;
     }
     if(!t.dataset || !t.dataset.f || !t.dataset.id || t.classList.contains('fu-filter')) return;
