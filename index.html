@@ -520,6 +520,50 @@
   .gt-subadd input[type=checkbox]{padding:0;}
   @media (max-width:640px){ .gt-subs{grid-column:1;} }
   @media (prefers-reduced-motion:reduce){ .gt-pb div{transition:none;} }
+  /* ===== Task List: Notes & activity (kartu, edit langsung) ===== */
+  .gt-notes{grid-column:1/3;margin-top:4px;border-top:1px solid var(--border);padding-top:10px;}
+  .gt-notes h4{margin:0 0 8px;font-size:13px;font-weight:500;color:var(--text-secondary);}
+  .gt-comp{border:1px solid var(--border);border-radius:12px;background:#fff;overflow:hidden;}
+  .gt-comp:focus-within{border-color:var(--accent);}
+  .gt-comp textarea{width:100%;border:none;outline:none;background:transparent;resize:none;font:inherit;font-size:13px;color:var(--text);padding:10px 12px;min-height:56px;box-sizing:border-box;}
+  .gt-cbar{display:flex;gap:8px;align-items:center;padding:8px 10px;border-top:1px solid var(--border);flex-wrap:wrap;}
+  .gt-sp{flex:1;}
+  .gt-seg{display:inline-flex;border:1px solid var(--border);border-radius:16px;overflow:hidden;}
+  .gt-seg button{border:none;border-radius:0;background:transparent;font-size:12px;padding:4px 12px;color:var(--text-secondary);cursor:pointer;font-family:inherit;}
+  .gt-seg button.on{background:var(--hilite);color:var(--accent);}
+  .gt-seg button.on.hold{background:var(--yellow-bg);color:var(--yellow-fg);}
+  .gt-cbar select{font-size:12.5px;padding:5px 8px;border:1px solid var(--border);border-radius:8px;background:#fff;max-width:170px;font-family:inherit;}
+  .gt-nc{border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:10px;padding:10px 12px 8px;margin-top:10px;background:#fff;position:relative;}
+  .gt-nc.hold{border-left-color:var(--yellow-fg);background:var(--yellow-bg);}
+  .gt-nc.upd{border-left-color:var(--green-fg);}
+  .gt-ntop{display:flex;gap:8px;align-items:center;margin-bottom:3px;font-size:12.5px;padding-right:70px;flex-wrap:wrap;}
+  .gt-ntop b{font-weight:600;}
+  .gt-av{flex:none;width:24px;height:24px;border-radius:50%;color:#fff;font-size:10px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;}
+  .gt-av.x{background:var(--text-muted);}
+  .gt-nlbl{font-size:11px;padding:1px 8px;border-radius:10px;background:var(--zebra);color:var(--text-secondary);border:none;cursor:pointer;font-family:inherit;}
+  .gt-nlbl:hover{color:var(--accent);}
+  .gt-ntm{font-size:11.5px;color:var(--text-muted);}
+  .gt-ned{display:block;width:calc(100% + 12px);border:1px solid transparent;border-radius:6px;background:transparent;resize:none;overflow:hidden;font:inherit;font-size:13px;line-height:1.5;color:var(--text);padding:3px 6px;margin:0 -6px;box-sizing:border-box;cursor:text;}
+  .gt-ned:hover{background:rgba(127,127,127,.08);}
+  .gt-ned:focus{outline:none;border-color:var(--accent);background:#fff;}
+  .gt-nact{position:absolute;right:8px;top:7px;display:flex;gap:2px;align-items:center;}
+  .gt-nact button{border:none;background:transparent;color:var(--text-muted);cursor:pointer;font-size:15px;padding:3px;border-radius:6px;font-family:inherit;}
+  .gt-nact button:hover{color:var(--accent);}
+  .gt-nact .gt-npin.on{color:var(--accent);}
+  .gt-nact .gt-ndel{opacity:0;}
+  .gt-nc:hover .gt-ndel,.gt-nc:focus-within .gt-ndel,.gt-nact .gt-ndel.conf{opacity:1;}
+  .gt-nact .gt-ndel:hover{color:var(--red-fg);}
+  .gt-nact .gt-ndel.conf{font-size:12px;padding:3px 8px;background:var(--red-bg);color:var(--red-fg);}
+  .gt-sv{font-size:11px;color:var(--green-fg);opacity:0;transition:opacity .25s;margin-right:4px;}
+  .gt-sv.show{opacity:1;}
+  .gt-sv.err{color:var(--red-fg);}
+  .gt-actft{margin-top:12px;}
+  .gt-actft button{border:none;background:transparent;color:var(--accent);cursor:pointer;padding:0;font-size:12px;font-family:inherit;}
+  .gt-ev{display:flex;gap:8px;align-items:center;padding:5px 2px;font-size:12.5px;color:var(--text-secondary);}
+  .gt-ev i{font-size:14px;}
+  .gt-nhint{font-size:11.5px;color:var(--text-muted);margin-top:10px;}
+  @media (max-width:640px){ .gt-notes{grid-column:1;} }
+  @media (prefers-reduced-motion:reduce){ .gt-sv{transition:none;} }
   .fu-toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;}
   .fu-filter{border:1.5px solid var(--hilite);background:#fff;color:var(--navy);border-radius:14px;padding:6px 12px;font-size:12px;font-weight:bold;cursor:pointer;}
   .fu-filter.active{background:var(--accent);color:#fff;border-color:var(--accent);}
@@ -8674,6 +8718,20 @@ async function loadTaskList(){
   taskListItems.forEach(it => {
     if(TASKLIST_STATUS_LEGACY_MAP[it.status]){ it.status = TASKLIST_STATUS_LEGACY_MAP[it.status]; migrated = true; }
   });
+  /* Catatan & aktivitas: field `note` lama (1 string) -> kartu catatan pertama.
+     Field `note` lama dibiarkan apa adanya (tidak ditampilkan lagi). */
+  taskListItems.forEach(it => {
+    if(!Array.isArray(it.activity)) it.activity = [];
+    if(!Array.isArray(it.notes)){
+      it.notes = [];
+      const legacy = String(it.note || '').trim();
+      if(legacy){
+        const d = Date.parse((it.date || '') + 'T00:00:00');
+        it.notes.push({ id: tlNid(), ty: 'note', by: '', tx: legacy, ts: isNaN(d) ? Date.now() : d });
+      }
+      migrated = true;
+    }
+  });
   if(migrated) await saveTaskList();
 }
 async function saveTaskList(){
@@ -8691,6 +8749,128 @@ async function saveTaskList(){
 let tlOpenId = null, tlShowDone = false, tlUndoId = null, tlUndoTimer = null, tlInputTimer = null;
 let tlWarnId = null, tlWarnTimer = null, tlFocusSub = null;
 const TL_MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+/* ---------- Notes & activity (kartu catatan, edit langsung, log otomatis) ---------- */
+const TL_NOTE_TYPES = ['note', 'hold', 'upd'];
+const TL_NOTE_LABEL = { note: 'Note', hold: 'Hold reason', upd: 'Update' };
+const TL_ACT_CAP = 100;
+const TL_AV_COLORS = ['#2E6690', '#5B3A8C', '#2D7A3E', '#B7791F', '#B3382C', '#0E7C86'];
+let tlAuthor = '', tlNoteType = 'note', tlShowAct = false, tlNoteDelId = null, tlNoteDelTimer = null;
+const tlNoteTimers = {};
+function tlNid(){ return 'tn' + Date.now() + Math.floor(Math.random() * 1000); }
+function tlRel(ts){
+  const m = Math.round((Date.now() - ts) / 60000);
+  if(m < 1) return 'just now';
+  if(m < 60) return m + 'm ago';
+  const h = Math.round(m / 60);
+  if(h < 24) return h + 'h ago';
+  return Math.round(h / 24) + 'd ago';
+}
+function tlAvatar(name){
+  let h = 0;
+  for(const ch of String(name)) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  const ini = String(name).split(' ').filter(Boolean).map(x => x[0]).slice(0, 2).join('').toUpperCase();
+  return `<span class="gt-av" style="background:${TL_AV_COLORS[h % TL_AV_COLORS.length]}" title="${escapeHtml(name)}">${escapeHtml(ini)}</span>`;
+}
+async function tlLoadAuthor(){
+  try{ const r = await store.get('tasklist:author'); tlAuthor = (r && r.value) ? r.value : ''; }
+  catch(e){ tlAuthor = ''; }
+}
+async function tlSetAuthor(n){
+  tlAuthor = n;
+  try{ await store.set('tasklist:author', n); }catch(e){}
+}
+function tlAuthorName(){ return tlAuthor || (tlPicManager.getList()[0] || ''); }
+function tlLog(it, text){
+  if(!Array.isArray(it.activity)) it.activity = [];
+  it.activity.push({ id: tlNid(), ts: Date.now(), by: tlAuthorName(), tx: text });
+  if(it.activity.length > TL_ACT_CAP) it.activity = it.activity.slice(-TL_ACT_CAP);
+}
+function tlShortDate(ds){
+  if(!ds) return '';
+  const p = ds.split('-');
+  if(p.length !== 3) return ds;
+  return TL_MONTHS[+p[1] - 1] + ' ' + (+p[2]) + (p[0] !== todayStr().slice(0, 4) ? ' ' + p[0] : '');
+}
+function tlDeadlineLog(oldD, newD){
+  if(!oldD && newD) return 'Deadline set: ' + tlShortDate(newD);
+  if(oldD && !newD) return 'Deadline removed (was ' + tlShortDate(oldD) + ')';
+  const d = Math.round((Date.parse(newD + 'T00:00:00') - Date.parse(oldD + 'T00:00:00')) / 86400000);
+  return 'Deadline moved: ' + tlShortDate(oldD) + ' → ' + tlShortDate(newD) + ' (' + (d > 0 ? '+' : '') + d + ' day' + (Math.abs(d) === 1 ? '' : 's') + ')';
+}
+function tlClip(s, n){ s = String(s).replace(/\s+/g, ' ').trim(); return s.length > n ? s.slice(0, n - 1) + '…' : s; }
+function tlSortedNotes(it){ return (it.notes || []).slice().sort((a, b) => (b.pin ? 1 : 0) - (a.pin ? 1 : 0) || b.ts - a.ts); }
+function tlNoteMeta(n){ return tlRel(n.ts) + (n.edited ? ' · edited ' + tlRel(n.edited) : ''); }
+function tlGrow(t){ t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; }
+function tlFlash(nid, txt, err){
+  const el = document.querySelector('[data-nsv="' + nid + '"]');
+  if(!el) return;
+  el.textContent = txt;
+  el.className = 'gt-sv show' + (err ? ' err' : '');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => { el.className = 'gt-sv'; }, 1600);
+}
+function tlNoteCardHtml(it, n){
+  const cls = n.ty === 'hold' ? ' hold' : (n.ty === 'upd' ? ' upd' : '');
+  const confirming = tlNoteDelId === n.id;
+  return `<div class="gt-nc${cls}" data-ncard="${n.id}">
+    <div class="gt-nact"><span class="gt-sv" data-nsv="${n.id}" aria-live="polite"></span>
+      <button type="button" class="gt-npin ${n.pin ? 'on' : ''}" data-npin="${it.id}:${n.id}" aria-label="${n.pin ? 'Unpin note' : 'Pin note'}"><i class="ti ti-pin${n.pin ? '-filled' : ''}"></i></button>
+      <button type="button" class="gt-ndel ${confirming ? 'conf' : ''}" data-ndel="${it.id}:${n.id}" aria-label="Delete note">${confirming ? 'Delete?' : '<i class="ti ti-trash"></i>'}</button></div>
+    <div class="gt-ntop">${n.by ? tlAvatar(n.by) : '<span class="gt-av x">?</span>'}<b>${escapeHtml(n.by || 'Earlier note')}</b><button type="button" class="gt-nlbl" data-ncyc="${it.id}:${n.id}" title="Click to change type">${TL_NOTE_LABEL[n.ty] || 'Note'}</button><span class="gt-ntm" data-ntm="${n.id}">${tlNoteMeta(n)}</span></div>
+    <textarea class="gt-ned" rows="1" data-ned="${it.id}:${n.id}" aria-label="Edit note text">${escapeHtml(n.tx)}</textarea>
+  </div>`;
+}
+function tlNotesHtml(it){
+  const notes = tlSortedNotes(it);
+  const act = (it.activity || []).slice().sort((a, b) => b.ts - a.ts);
+  const authors = tlPicManager.getList().slice();
+  const cur = tlAuthorName();
+  if(cur && !authors.includes(cur)) authors.unshift(cur);
+  const seg = TL_NOTE_TYPES.map(t => `<button type="button" data-ntype="${t}" class="${tlNoteType === t ? 'on' + (t === 'hold' ? ' hold' : '') : ''}">${TL_NOTE_LABEL[t]}</button>`).join('');
+  return `<div class="gt-notes">
+    <h4>Notes &amp; activity</h4>
+    <div class="gt-comp">
+      <textarea id="tlNoteT_${it.id}" placeholder="Add a note" aria-label="Add a note"></textarea>
+      <div class="gt-cbar"><div class="gt-seg" role="group" aria-label="Note type">${seg}</div><span class="gt-sp"></span>
+        <select id="tlNoteBy_${it.id}" aria-label="Posting as">${authors.map(a => `<option value="${escapeHtml(a)}" ${a === cur ? 'selected' : ''}>${escapeHtml(a)}</option>`).join('')}</select>
+        <button type="button" class="btn btn-primary" id="tlNotePost_${it.id}" data-npost="${it.id}" disabled>Post</button></div>
+    </div>
+    ${notes.map(n => tlNoteCardHtml(it, n)).join('')}
+    ${act.length ? `<div class="gt-actft"><button type="button" data-nact="1">${tlShowAct ? 'Hide' : 'Show'} activity (${act.length})</button></div>` : ''}
+    ${tlShowAct ? act.map(e => `<div class="gt-ev"><i class="ti ti-arrows-exchange"></i><span>${escapeHtml(e.tx)} · ${escapeHtml(e.by || '-')} · ${tlRel(e.ts)}</span></div>`).join('') : ''}
+    <div class="gt-nhint">Click any note text to edit it. Changes save automatically.</div>
+  </div>`;
+}
+async function tlPostNote(tid){
+  const it = taskListItems.find(i => i.id === tid);
+  if(!it) return;
+  const ta = document.getElementById('tlNoteT_' + tid), sel = document.getElementById('tlNoteBy_' + tid);
+  const tx = ta ? ta.value.trim() : '';
+  if(!tx){ if(ta) ta.focus(); return; }
+  const by = sel ? sel.value : tlAuthorName();
+  if(by !== tlAuthor) await tlSetAuthor(by);
+  if(!Array.isArray(it.notes)) it.notes = [];
+  it.notes.push({ id: tlNid(), ty: tlNoteType, by, tx, ts: Date.now() });
+  ta.value = '';
+  await saveTaskList();
+  renderTlList();
+}
+async function tlCommitNote(ta){
+  const parts = String(ta.dataset.ned).split(':');
+  const it = taskListItems.find(i => i.id === parts[0]);
+  const n = it && (it.notes || []).find(x => x.id === parts[1]);
+  if(!n) return;
+  const v = ta.value.trim();
+  if(!v){ ta.value = n.tx; tlGrow(ta); tlFlash(n.id, "Note can't be empty", true); return; }
+  if(v === n.tx) return;
+  n.tx = v;
+  n.edited = Date.now();
+  const tm = document.querySelector('[data-ntm="' + n.id + '"]');
+  if(tm) tm.textContent = tlNoteMeta(n);
+  await saveTaskList();
+  tlFlash(n.id, 'Saved');
+}
+
 
 function tlIsHold(name){ return String(name || '').trim().toLowerCase() === 'hold'; }
 function tlIsDone(it){ return taskStatusManager.isDone(it.status); }
@@ -8794,8 +8974,13 @@ document.getElementById('tlAddBtn').onclick = async () => {
     vendor: document.getElementById('tlVendor').value.trim(),
     deadline: document.getElementById('tlDeadline').value,
     status: document.getElementById('tlStatus').value,
-    note: document.getElementById('tlNote').value.trim()
+    note: '',
+    notes: [],
+    activity: []
   };
+  const firstNote = document.getElementById('tlNote').value.trim();
+  if(firstNote) item.notes.push({ id: tlNid(), ty: 'note', by: tlAuthorName(), tx: firstNote, ts: Date.now() });
+  tlLog(item, 'Task created');
   taskListItems.unshift(item);
   await saveTaskList();
   ['tlDesc','tlVendor','tlDeadline','tlNote'].forEach(id => { document.getElementById(id).value = ''; });
@@ -8865,7 +9050,7 @@ async function tlOnPicModalClosed(){
   if(p.isTask){
     const it = taskListItems.find(i => i.id === p.id);
     if(!it) return;
-    if(chosen){ it.pic = chosen; await saveTaskList(); }
+    if(chosen){ tlLog(it, 'PIC changed: ' + (it.pic || 'none') + ' → ' + chosen); it.pic = chosen; await saveTaskList(); }
     renderTlList();
     if(chosen) tlPersist(it.id);
   } else {
@@ -8910,7 +9095,8 @@ function tlRowHtml(it){
   if(!done && first && it.status !== first.name){
     meta += `<span class="gt-chip" style="${tlStatusColorStyle(it.status)}border-color:transparent;">${hold ? '<i class="ti ti-player-pause"></i>' : ''}${escapeHtml(it.status)}</span>`;
   }
-  if(it.note && tlOpenId !== it.id) meta += `<span>${escapeHtml(it.note)}</span>`;
+  const topNote = tlSortedNotes(it)[0];
+  if(topNote && tlOpenId !== it.id) meta += `<span>${topNote.ty === 'hold' ? '<i class="ti ti-player-pause"></i> ' : ''}${escapeHtml(tlClip(topNote.tx, 70))}</span>`;
   const bar = g.n ? `<div class="gt-pb" aria-hidden="true"><div style="width:${Math.round(g.d / g.n * 100)}%"></div></div>` : '';
   const warn = (tlWarnId === it.id && g.rq > 0) ? `<div class="gt-warn"><i class="ti ti-alert-triangle"></i>Finish ${g.rq} required sub task${g.rq > 1 ? 's' : ''} first</div>` : '';
   let detail = '';
@@ -8920,7 +9106,6 @@ function tlRowHtml(it){
       <input type="date" data-f="deadline" data-id="${it.id}" value="${escapeHtml(it.deadline||'')}" aria-label="Deadline">
       <select data-f="pic" data-picsel="1" data-id="${it.id}" aria-label="PIC">${tlPicOptionsHtml(it.pic || '')}</select>
       <input type="text" data-f="vendor" data-id="${it.id}" value="${escapeHtml(it.vendor||'')}" placeholder="Vendor (optional)" aria-label="Vendor">
-      <input class="full" type="text" data-f="note" data-id="${it.id}" value="${escapeHtml(it.note||'')}" placeholder="${hold ? 'Reason for hold' : 'Add a note'}" aria-label="Note">
       ${done ? `<input class="full" type="text" data-f="remark" data-id="${it.id}" value="${escapeHtml(it.remark||'')}" placeholder="Completion remark (optional)" aria-label="Remark">` : ''}
       <div class="gt-subs">
         <h4>Sub tasks${g.n ? ' · ' + g.d + ' of ' + g.n + ' done' : ''}</h4>
@@ -8933,6 +9118,7 @@ function tlRowHtml(it){
           <button type="button" class="btn btn-ghost" data-sadd="${it.id}">Add</button>
         </div>
       </div>
+      ${tlNotesHtml(it)}
       <span class="gt-saved" data-saved="${it.id}"><i class="ti ti-check"></i> Saved</span>
     </div>`;
   }
@@ -8953,6 +9139,11 @@ function renderTlList(){
     if(ha !== hb) return ha - hb;
     return (a.deadline || '9999').localeCompare(b.deadline || '9999');
   });
+  let ndraft = null;
+  if(tlOpenId){
+    const nt = document.getElementById('tlNoteT_' + tlOpenId);
+    if(nt && nt.value) ndraft = { id: tlOpenId, v: nt.value };
+  }
   let draft = null;
   if(tlOpenId){
     const dT = document.getElementById('tlSubT_' + tlOpenId);
@@ -8974,6 +9165,11 @@ function renderTlList(){
       document.getElementById('tlSubR_' + draft.id).checked = draft.r;
     }
   }
+  if(ndraft){
+    const nn = document.getElementById('tlNoteT_' + ndraft.id);
+    if(nn){ nn.value = ndraft.v; const nb = document.getElementById('tlNotePost_' + ndraft.id); if(nb) nb.disabled = false; }
+  }
+  listEl.querySelectorAll('.gt-ned').forEach(tlGrow);
   if(tlFocusSub){ const fe = document.getElementById('tlSubT_' + tlFocusSub); if(fe) fe.focus(); tlFocusSub = null; }
 
   const undoIt = tlUndoId ? taskListItems.find(i => i.id === tlUndoId) : null;
@@ -8997,6 +9193,7 @@ async function tlToggleDone(id){
   if(!it) return;
   if(tlIsDone(it)){
     const prev = it.prevStatus && taskStatusManager.find(it.prevStatus) && !taskStatusManager.isDone(it.prevStatus) ? it.prevStatus : (tlFirstOpenStatus() || {}).name;
+    tlLog(it, 'Status: ' + it.status + ' → ' + prev);
     it.status = prev;
     tlUndoId = null;
   } else {
@@ -9004,6 +9201,7 @@ async function tlToggleDone(id){
     const d = tlFirstDoneStatus();
     if(!d){ alert('No "done" status is set. Mark one as done in the status manager (gear icon) first.'); return; }
     it.prevStatus = it.status;
+    tlLog(it, 'Status: ' + it.status + ' → ' + d.name);
     it.status = d.name;
     tlUndoId = id;
     clearTimeout(tlUndoTimer);
@@ -9026,10 +9224,35 @@ async function tlPersist(id){
 (function tlBindEvents(){
   const view = document.getElementById('view-tasklist');
   view.addEventListener('click', async (e) => {
-    const t = e.target.closest('[data-ck],[data-sck],[data-sdel],[data-sadd],[data-del],[data-undo],[data-sec],[data-manage],[data-f].fu-filter,[data-row],[data-stop]');
+    const t = e.target.closest('[data-ck],[data-sck],[data-sdel],[data-sadd],[data-npin],[data-ndel],[data-ncyc],[data-npost],[data-ntype],[data-nact],[data-del],[data-undo],[data-sec],[data-manage],[data-f].fu-filter,[data-row],[data-stop]');
     if(!t) return;
     if(t.dataset.stop) return;
     if(t.dataset.ck){ e.stopPropagation(); await tlToggleDone(t.dataset.ck); return; }
+    if(t.dataset.ntype){ tlNoteType = t.dataset.ntype; renderTlList(); return; }
+    if(t.dataset.nact){ tlShowAct = !tlShowAct; renderTlList(); return; }
+    if(t.dataset.npost){ e.stopPropagation(); await tlPostNote(t.dataset.npost); return; }
+    if(t.dataset.npin || t.dataset.ndel || t.dataset.ncyc){
+      e.stopPropagation();
+      const parts = (t.dataset.npin || t.dataset.ndel || t.dataset.ncyc).split(':');
+      const it = taskListItems.find(i => i.id === parts[0]);
+      const n = it && (it.notes || []).find(x => x.id === parts[1]);
+      if(!n) return;
+      if(t.dataset.npin){ n.pin = !n.pin; await saveTaskList(); renderTlList(); return; }
+      if(t.dataset.ncyc){ n.ty = TL_NOTE_TYPES[(TL_NOTE_TYPES.indexOf(n.ty) + 1) % TL_NOTE_TYPES.length]; await saveTaskList(); renderTlList(); return; }
+      if(tlNoteDelId === n.id){
+        it.notes = it.notes.filter(x => x.id !== n.id);
+        tlNoteDelId = null;
+        clearTimeout(tlNoteDelTimer);
+        await saveTaskList();
+        renderTlList();
+        return;
+      }
+      tlNoteDelId = n.id;
+      renderTlList();
+      clearTimeout(tlNoteDelTimer);
+      tlNoteDelTimer = setTimeout(() => { tlNoteDelId = null; renderTlList(); }, 2500);
+      return;
+    }
     if(t.dataset.sck){
       e.stopPropagation();
       const [pid, sid] = t.dataset.sck.split(':');
@@ -9037,10 +9260,14 @@ async function tlPersist(id){
       const sb = p && (p.subs || []).find(x => x.id === sid);
       if(!sb) return;
       sb.done = !sb.done;
+      {
+        const st = tlSubStats(p);
+        tlLog(p, (sb.done ? 'Completed' : 'Reopened') + ' sub task "' + sb.title + '" (' + st.d + '/' + st.n + ')');
+      }
       if(sb.done && !tlIsDone(p)){
         const list = taskStatusManager.getList();
         const ip = list.find(x => String(x.name).trim().toLowerCase() === 'in progress');
-        if(ip && list[0] && p.status === list[0].name) p.status = ip.name;
+        if(ip && list[0] && p.status === list[0].name){ tlLog(p, 'Status: ' + p.status + ' → ' + ip.name + ' (auto)'); p.status = ip.name; }
       }
       await saveTaskList();
       renderTlSummary(); renderTlFilterBar(); renderTlList();
@@ -9051,7 +9278,9 @@ async function tlPersist(id){
       const [pid, sid] = t.dataset.sdel.split(':');
       const p = taskListItems.find(i => i.id === pid);
       if(!p) return;
+      const gone = (p.subs || []).find(x => x.id === sid);
       p.subs = (p.subs || []).filter(x => x.id !== sid);
+      if(gone) tlLog(p, 'Removed sub task "' + gone.title + '"');
       await saveTaskList();
       renderTlList();
       return;
@@ -9073,6 +9302,7 @@ async function tlPersist(id){
         pic: document.getElementById('tlSubP_' + pid).value,
         deadline: document.getElementById('tlSubD_' + pid).value
       });
+      { const added = p.subs[p.subs.length - 1]; tlLog(p, 'Added sub task "' + added.title + '"' + (added.required ? ' (required)' : '')); }
       await saveTaskList();
       tlFocusSub = pid;
       renderTlList();
@@ -9091,7 +9321,12 @@ async function tlPersist(id){
     }
     if(t.dataset.undo){
       const it = taskListItems.find(i => i.id === tlUndoId);
-      if(it){ it.status = (it.prevStatus && taskStatusManager.find(it.prevStatus)) ? it.prevStatus : (tlFirstOpenStatus() || {}).name; await saveTaskList(); }
+      if(it){
+        const was = it.status;
+        it.status = (it.prevStatus && taskStatusManager.find(it.prevStatus)) ? it.prevStatus : (tlFirstOpenStatus() || {}).name;
+        tlLog(it, 'Status: ' + was + ' → ' + it.status);
+        await saveTaskList();
+      }
       tlUndoId = null;
       renderTlSummary(); renderTlFilterBar(); renderTlList();
       return;
@@ -9125,7 +9360,13 @@ async function tlPersist(id){
     if(!it) return;
     if(t.dataset.f === 'status' && taskStatusManager.isDone(t.value) && !tlIsDone(it) && tlSubStats(it).rq > 0){ tlBlockDone(it.id); return; }
     if(t.dataset.f === 'status' && it.status !== t.value && !taskStatusManager.isDone(it.status)) it.prevStatus = it.status;
+    const oldVal = it[t.dataset.f];
     it[t.dataset.f] = t.value;
+    if(oldVal !== t.value){
+      if(t.dataset.f === 'status') tlLog(it, 'Status: ' + oldVal + ' → ' + t.value);
+      else if(t.dataset.f === 'deadline') tlLog(it, tlDeadlineLog(oldVal, t.value));
+      else if(t.dataset.f === 'pic') tlLog(it, 'PIC changed: ' + (oldVal || 'none') + ' → ' + (t.value || 'none'));
+    }
     await saveTaskList();
     renderTlSummary(); renderTlFilterBar(); renderTlList();
     tlPersist(it.id);
@@ -9139,8 +9380,48 @@ async function tlPersist(id){
     clearTimeout(tlInputTimer);
     tlInputTimer = setTimeout(() => tlPersist(it.id), 700);
   });
+  view.addEventListener('input', (e) => {
+    const t = e.target;
+    if(t.dataset && t.dataset.ned){
+      tlGrow(t);
+      const nid = t.dataset.ned.split(':')[1];
+      tlFlash(nid, 'Saving...');
+      clearTimeout(tlNoteTimers[nid]);
+      tlNoteTimers[nid] = setTimeout(() => tlCommitNote(t), 700);
+      return;
+    }
+    if(t.id && t.id.indexOf('tlNoteT_') === 0){
+      const b = document.getElementById('tlNotePost_' + t.id.slice(8));
+      if(b) b.disabled = !t.value.trim();
+    }
+  });
+  view.addEventListener('keydown', (e) => {
+    const t = e.target;
+    if(t.dataset && t.dataset.ned && e.key === 'Escape'){
+      const parts = t.dataset.ned.split(':');
+      const it = taskListItems.find(i => i.id === parts[0]);
+      const n = it && (it.notes || []).find(x => x.id === parts[1]);
+      clearTimeout(tlNoteTimers[parts[1]]);
+      if(n){ t.value = n.tx; tlGrow(t); }
+      t.blur();
+      return;
+    }
+    if(t.id && t.id.indexOf('tlNoteT_') === 0 && (e.ctrlKey || e.metaKey) && e.key === 'Enter'){
+      e.preventDefault();
+      tlPostNote(t.id.slice(8));
+    }
+  });
+  view.addEventListener('change', (e) => {
+    const t = e.target;
+    if(t.id && t.id.indexOf('tlNoteBy_') === 0) tlSetAuthor(t.value);
+  });
   view.addEventListener('focusout', (e) => {
     const t = e.target;
+    if(t.dataset && t.dataset.ned){
+      clearTimeout(tlNoteTimers[t.dataset.ned.split(':')[1]]);
+      tlCommitNote(t);
+      return;
+    }
     if(!t.dataset || !t.dataset.f || !t.dataset.id || t.tagName === 'SELECT' || t.type === 'date') return;
     clearTimeout(tlInputTimer);
     tlPersist(t.dataset.id);
@@ -9153,6 +9434,7 @@ async function renderTaskList(){
   await taskStatusManager.load();
   await loadTaskList();
   await tlEnsureStatuses();
+  await tlLoadAuthor();
   taskStatusManager.renderOptions();
   renderTlSummary();
   renderTlFilterBar();
