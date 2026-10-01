@@ -455,6 +455,8 @@
   .gt-count{font-size:12.5px;color:var(--text-secondary);}
   .gt-filters{display:flex;flex-wrap:wrap;gap:6px;padding:4px 20px 12px;}
   .gt-filters .fu-filter{font-weight:500;font-size:12.5px;padding:5px 12px;}
+  .gt-filters .fu-filter.gt-manage{border-style:dashed;display:inline-flex;align-items:center;gap:5px;color:var(--text-secondary);}
+  .gt-filters .fu-filter.gt-manage:hover{border-color:var(--accent);color:var(--accent);}
   .gt-add{display:flex;align-items:center;gap:14px;padding:11px 20px;color:var(--accent);cursor:pointer;border-top:1px solid var(--border);border-bottom:1px solid var(--border);font-size:14px;}
   .gt-add:hover{background:var(--zebra);}
   .gt-add i{font-size:20px;}
@@ -7632,8 +7634,10 @@ function createManagedList(opts){
 function createUscManager(opts){
   const { storageKey, defaults, selectId, manageBtnId, modalOverlayId, modalInputId, modalColorId,
           modalAddBtnId, modalCloseBtnId, modalDoneBtnId, modalListId, modalMsgId, itemLabel,
-          onRename, onListChanged } = opts;
+          onRename, onListChanged, reservedNames = [] } = opts;
   let list = defaults.map(s => ({...s}));
+  let dirty = false;
+  const isReserved = (n) => reservedNames.some(r => String(r).toLowerCase() === String(n).toLowerCase());
 
   async function load(){
     try{
@@ -7671,7 +7675,7 @@ function createUscManager(opts){
       const c = opStatusColor(s.color);
       return `
       <div class="vendor-item" data-v="${s.name}">
-        <span class="op-status-item-label"><span class="op-status-swatch" style="background:${c.fg}"></span>${escapeHtml(s.name)}</span>
+        <span class="op-status-item-label"><button type="button" class="op-status-swatch op-status-swatch-btn" data-v="${s.name}" title="Klik untuk ganti warna" aria-label="Ganti warna ${escapeHtml(s.name)}" style="background:${c.fg};border:0;padding:0;cursor:pointer;"></button>${escapeHtml(s.name)}</span>
         <div style="display:flex;gap:4px;flex-shrink:0;align-items:center;">
           <button type="button" class="op-status-done-toggle ${s.done?'on':''}" data-v="${s.name}" title="Tandai sebagai status selesai">${s.done ? 'Selesai ✓' : 'Tandai selesai'}</button>
           <button type="button" class="wim-icon-btn edit usc-item-edit" data-v="${s.name}" title="Ubah nama"><i class="ti ti-edit"></i></button>
@@ -7680,6 +7684,18 @@ function createUscManager(opts){
       </div>`;
     }).join('');
 
+    el.querySelectorAll('.op-status-swatch-btn').forEach(btn => {
+      btn.onclick = async (ev) => {
+        ev.stopPropagation();
+        const s = find(btn.dataset.v);
+        if(!s) return;
+        const keys = Object.keys(OP_STATUS_COLORS);
+        s.color = keys[(Math.max(0, keys.indexOf(s.color)) + 1) % keys.length];
+        await save();
+        dirty = true;
+        renderModalList();
+      };
+    });
     el.querySelectorAll('.op-status-done-toggle').forEach(btn => {
       btn.onclick = async () => {
         const s = find(btn.dataset.v);
@@ -7712,9 +7728,15 @@ function createUscManager(opts){
             renderModalList();
             return;
           }
+          if(isReserved(newName)){
+            showMsg(`Nama "${newName}" dipakai sistem dan tidak bisa dijadikan ${itemLabel}.`);
+            renderModalList();
+            return;
+          }
           const s = find(oldName);
           if(s) s.name = newName;
           await save();
+          dirty = true;
           if(typeof onRename === 'function') await onRename(oldName, newName);
           renderOptions(newName);
           renderModalList();
@@ -7750,6 +7772,11 @@ function createUscManager(opts){
     const colorSel = document.getElementById(modalColorId);
     const trimmed = input.value.trim();
     if(!trimmed){ input.focus(); return; }
+    if(isReserved(trimmed)){
+      showMsg(`Nama "${trimmed}" dipakai sistem dan tidak bisa dijadikan ${itemLabel}.`);
+      input.focus();
+      return;
+    }
     if(list.some(s => s.name.toLowerCase() === trimmed.toLowerCase())){
       showMsg(`${itemLabel.charAt(0).toUpperCase() + itemLabel.slice(1)} "${trimmed}" sudah ada di daftar.`);
       input.value = '';
@@ -7758,6 +7785,7 @@ function createUscManager(opts){
     }
     list.push({ name:trimmed, color: colorSel ? colorSel.value : 'grey', done:false });
     await save();
+    dirty = true;
     renderOptions(trimmed);
     renderModalList();
     input.value = '';
@@ -7772,6 +7800,7 @@ function createUscManager(opts){
   }
   function closeModal(){
     document.getElementById(modalOverlayId).classList.remove('active');
+    if(dirty){ dirty = false; if(typeof onListChanged === 'function') onListChanged(); }
   }
 
   document.getElementById(manageBtnId).onclick = openModal;
@@ -8621,9 +8650,14 @@ const taskStatusManager = createUscManager({
   modalListId: 'tlStatusModalList',
   modalMsgId: 'tlStatusModalMsg',
   itemLabel: 'status',
+  reservedNames: ['All', 'Overdue'],
   onRename: async (oldName, newName) => {
     let migrated = false;
-    taskListItems.forEach(it => { if(it.status === oldName){ it.status = newName; migrated = true; } });
+    taskListItems.forEach(it => {
+      if(it.status === oldName){ it.status = newName; migrated = true; }
+      if(it.prevStatus === oldName){ it.prevStatus = newName; migrated = true; }
+    });
+    if(taskListFilter === oldName) taskListFilter = newName;
     if(migrated) await saveTaskList();
   },
   onListChanged: async () => { await renderTaskList(); }
@@ -8789,7 +8823,8 @@ function renderTlFilterBar(){
     if(tlIsHold(o)){ const n = taskListItems.filter(it => it.status === o).length; if(n) return o + ' (' + n + ')'; }
     return o;
   };
-  bar.innerHTML = opts.map(o => `<button type="button" class="fu-filter ${taskListFilter===o?'active':''}" data-f="${escapeHtml(o)}">${escapeHtml(label(o))}</button>`).join('');
+  bar.innerHTML = opts.map(o => `<button type="button" class="fu-filter ${taskListFilter===o?'active':''}" data-f="${escapeHtml(o)}">${escapeHtml(label(o))}</button>`).join('') +
+    '<button type="button" class="fu-filter gt-manage" data-manage="1" title="Manage status list" aria-label="Manage status list"><i class="ti ti-settings"></i>Manage</button>';
 }
 
 function tlPicOptionsHtml(selected){
@@ -8991,7 +9026,7 @@ async function tlPersist(id){
 (function tlBindEvents(){
   const view = document.getElementById('view-tasklist');
   view.addEventListener('click', async (e) => {
-    const t = e.target.closest('[data-ck],[data-sck],[data-sdel],[data-sadd],[data-del],[data-undo],[data-sec],[data-f].fu-filter,[data-row],[data-stop]');
+    const t = e.target.closest('[data-ck],[data-sck],[data-sdel],[data-sadd],[data-del],[data-undo],[data-sec],[data-manage],[data-f].fu-filter,[data-row],[data-stop]');
     if(!t) return;
     if(t.dataset.stop) return;
     if(t.dataset.ck){ e.stopPropagation(); await tlToggleDone(t.dataset.ck); return; }
@@ -9061,6 +9096,7 @@ async function tlPersist(id){
       renderTlSummary(); renderTlFilterBar(); renderTlList();
       return;
     }
+    if(t.dataset.manage){ document.getElementById('tlStatusManageBtn').click(); return; }
     if(t.dataset.sec){ tlShowDone = !tlShowDone; renderTlList(); return; }
     if(t.classList.contains('fu-filter')){ taskListFilter = t.dataset.f; renderTlFilterBar(); renderTlList(); return; }
     if(t.dataset.row){ tlOpenId = (tlOpenId === t.dataset.row) ? null : t.dataset.row; renderTlList(); }
