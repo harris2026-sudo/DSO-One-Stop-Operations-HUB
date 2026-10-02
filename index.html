@@ -8749,14 +8749,117 @@ const taskStatusManager = createUscManager({
 
 function tlId(){ return 'tl' + Date.now() + Math.floor(Math.random()*1000); }
 
-async function loadTaskList(){
+/* ==================================================================
+   PENYIMPANAN TASK LIST v2 -- satu key per task
+   Penyebab bug lama: seluruh daftar dikirim sebagai SATU nilai di URL (GET ?action=set&value=...).
+   Batas URL Cloudflare ~8.192 karakter, dan JSON yang di-encode membengkak ~1,6x, jadi sekitar
+   20 task saja sudah melewati batas (apalagi dengan catatan & aktivitas) -> request gagal
+   ("CORS request did not succeed", status null) dan perubahan tidak tersimpan.
+   Sekarang: tiap task disimpan di key sendiri (dipecah lagi bila satu task terlalu panjang),
+   hanya task yang BERUBAH yang dikirim, dan load memakai SATU request listValues.
+   Blob lama (key 'tasklist:list') TIDAK diubah/dihapus, sehingga berfungsi sebagai cadangan.
+   ================================================================== */
+const TASKLIST_V2_ROOT = TASKLIST_KEY + ':v2';
+const TASKLIST_V2_PREFIX = TASKLIST_KEY + ':v2:i:';
+const TL_PART_ENC_MAX = 4500;   // panjang value (setelah encode) per request, jauh di bawah batas URL
+let tlLastSaved = {}, tlLoadFailed = false, tlRootReady = false, tlSaveChain = Promise.resolve();
+
+function tlHash(str){
+  let h = 0x811c9dc5;
+  for(let i = 0; i < str.length; i++){ h ^= str.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }
+  return h.toString(36);
+}
+function tlEncLen(ch){ return /[A-Za-z0-9\-_.!~*'()]/.test(ch) ? 1 : encodeURIComponent(ch).length; }
+function tlPartKey(id, k){ return TASKLIST_V2_PREFIX + id + ':' + k; }
+/* Pecah teks menjadi bagian-bagian dengan header "k/n:" supaya bisa dirangkai & divalidasi saat dibaca. */
+function tlSplitParts(str){
+  const parts = [];
+  let cur = '', len = 0;
+  for(const ch of str){
+    const l = tlEncLen(ch);
+    if(len + l > TL_PART_ENC_MAX && cur){ parts.push(cur); cur = ''; len = 0; }
+    cur += ch; len += l;
+  }
+  if(cur || !parts.length) parts.push(cur);
+  return parts.map((p, k) => k + '/' + parts.length + ':' + p);
+}
+function tlAssemble(rows){
+  const byId = {};
+  (rows || []).forEach(r => {
+    const key = String(r.key || '');
+    if(!key.startsWith(TASKLIST_V2_PREFIX) || key.endsWith('::backup')) return;
+    const rest = key.slice(TASKLIST_V2_PREFIX.length);
+    const ix = rest.lastIndexOf(':');
+    if(ix < 0) return;
+    const id = rest.slice(0, ix), k = +rest.slice(ix + 1);
+    const m = /^(\d+)\/(\d+):([\s\S]*)$/.exec(String(r.value || ''));
+    if(!m) return;
+    const e = byId[id] = byId[id] || { n: +m[2], parts: {} };
+    e.parts[k] = m[3];
+  });
+  const items = [], saved = {};
+  Object.keys(byId).forEach(id => {
+    const e = byId[id];
+    let raw = '';
+    for(let k = 0; k < e.n; k++){
+      if(e.parts[k] === undefined){ raw = null; break; }
+      raw += e.parts[k];
+    }
+    if(raw === null){ console.warn('Task List: bagian task tidak lengkap, dilewati:', id); return; }
+    try{
+      const it = JSON.parse(raw);
+      if(it && it.id){ items.push(it); saved[it.id] = { h: tlHash(raw), p: e.n }; }
+    }catch(err){ console.warn('Task List: data task rusak, dilewati:', id); }
+  });
+  items.sort((a, b) => String(b.id).localeCompare(String(a.id)));   // terbaru dulu
+  return { items, saved };
+}
+function tlIsNotFound(e){ return /not found/i.test(String((e && e.message) || e)); }
+
+/* Muat daftar. true = berhasil. false = gagal konek -> daftar di memori TIDAK diubah dan
+   penyimpanan dinonaktifkan (supaya kegagalan jaringan tidak pernah menimpa data di server). */
+async function tlFetchAll(){
+  try{ await tlSaveChain; }catch(e){}
+  let parsed;
   try{
-    const res = await store.get(TASKLIST_KEY);
-    taskListItems = (res && res.value) ? JSON.parse(res.value) : [];
-  }catch(e){ taskListItems = []; }
-  let migrated = false;
+    parsed = tlAssemble(await store.listValues(TASKLIST_V2_PREFIX));
+  }catch(e){
+    console.error('Gagal memuat Task List:', e);
+    tlLoadFailed = true;
+    return false;
+  }
+  let rootExists = parsed.items.length > 0;
+  if(!rootExists){
+    try{ const r = await store.get(TASKLIST_V2_ROOT); rootExists = !!(r && r.value); }
+    catch(e){ if(!tlIsNotFound(e)){ tlLoadFailed = true; return false; } }
+  }
+  if(rootExists){
+    taskListItems = parsed.items;
+    tlLastSaved = parsed.saved;
+    tlRootReady = true;
+    tlLoadFailed = false;
+    return true;
+  }
+  /* Belum pernah memakai layout v2: ambil dari blob lama (hanya dibaca). */
+  let legacy = [];
+  try{
+    const r = await store.get(TASKLIST_KEY);
+    legacy = (r && r.value) ? JSON.parse(r.value) : [];
+  }catch(e){
+    if(!tlIsNotFound(e)){ console.error('Gagal memuat Task List (blob lama):', e); tlLoadFailed = true; return false; }
+    legacy = [];
+  }
+  taskListItems = Array.isArray(legacy) ? legacy : [];
+  tlLastSaved = {};
+  tlRootReady = false;
+  tlLoadFailed = false;
+  return true;
+}
+
+async function loadTaskList(){
+  if(!(await tlFetchAll())) return;
   taskListItems.forEach(it => {
-    if(TASKLIST_STATUS_LEGACY_MAP[it.status]){ it.status = TASKLIST_STATUS_LEGACY_MAP[it.status]; migrated = true; }
+    if(TASKLIST_STATUS_LEGACY_MAP[it.status]) it.status = TASKLIST_STATUS_LEGACY_MAP[it.status];
   });
   /* Catatan & aktivitas: field `note` lama (1 string) -> kartu catatan pertama.
      Field `note` lama dibiarkan apa adanya (tidak ditampilkan lagi). */
@@ -8769,15 +8872,74 @@ async function loadTaskList(){
         const d = Date.parse((it.date || '') + 'T00:00:00');
         it.notes.push({ id: tlNid(), ty: 'note', by: '', tx: legacy, ts: isNaN(d) ? Date.now() : d });
       }
-      migrated = true;
     }
   });
-  if(migrated) await saveTaskList();
+  await saveTaskList();   // hanya mengirim task yang berubah / belum ada di layout v2
 }
-async function saveTaskList(){
-  try{ await store.set(TASKLIST_KEY, JSON.stringify(taskListItems)); }
-  catch(e){ console.error('Gagal menyimpan task list', e); }
+
+function saveTaskList(){
+  tlSaveChain = tlSaveChain.then(tlDoSave, tlDoSave);
+  return tlSaveChain;
 }
+async function tlDoSave(){
+  if(tlLoadFailed){
+    if(typeof showConnectionErrorBanner === 'function') showConnectionErrorBanner('tasklist', 'Task List belum berhasil dimuat dari server, perubahan belum disimpan. Muat ulang halaman.');
+    return;
+  }
+  const snapshot = taskListItems.filter(it => it && it.id);
+  const ids = new Set(snapshot.map(it => it.id));
+  const next = {};
+  let failures = 0;
+
+  const jobs = snapshot.map(async (it) => {
+    const raw = JSON.stringify(it), h = tlHash(raw), prev = tlLastSaved[it.id];
+    if(prev && prev.h === h){ next[it.id] = prev; return; }
+    const parts = tlSplitParts(raw);
+    try{
+      await Promise.all(parts.map((p, k) => store.set(tlPartKey(it.id, k), p)));
+      if(prev && prev.p > parts.length){
+        for(let k = parts.length; k < prev.p; k++){ try{ await store.delete(tlPartKey(it.id, k)); }catch(e){} }
+      }
+      next[it.id] = { h, p: parts.length };
+    }catch(err){
+      failures++;
+      console.error('Gagal menyimpan task', it.id, err);
+      if(prev) next[it.id] = prev;
+    }
+  });
+  const removals = Object.keys(tlLastSaved).filter(id => !ids.has(id)).map(async (id) => {
+    const old = tlLastSaved[id];
+    try{
+      for(let k = 0; k < old.p; k++) await store.delete(tlPartKey(id, k));
+    }catch(err){
+      failures++;
+      next[id] = old;   // coba lagi pada penyimpanan berikutnya
+    }
+  });
+  await Promise.all([...jobs, ...removals]);
+
+  if(!tlRootReady && failures === 0){
+    try{ await store.set(TASKLIST_V2_ROOT, JSON.stringify({ v: 2, t: Date.now() })); tlRootReady = true; }
+    catch(err){ failures++; console.error('Gagal menulis penanda Task List v2', err); }
+  }
+  tlLastSaved = next;
+  if(failures) console.error('Task List: ' + failures + ' item gagal disimpan, akan dicoba lagi pada penyimpanan berikutnya.');
+}
+
+/* Pemulihan manual: tempel hasil copy(JSON.stringify(taskListItems)) dari halaman lama. */
+window.tlRestoreFromJson = async function(text){
+  const arr = JSON.parse(text);
+  if(!Array.isArray(arr)) throw new Error('Data harus berupa array task');
+  let added = 0, replaced = 0;
+  arr.forEach(it => {
+    if(!it || !it.id) return;
+    const ix = taskListItems.findIndex(x => x.id === it.id);
+    if(ix >= 0){ taskListItems[ix] = it; replaced++; } else { taskListItems.push(it); added++; }
+  });
+  await saveTaskList();
+  renderTaskList();
+  return { added, replaced };
+};
 
 /* ==================================================================
    TASK LIST -- gaya Google Tasks: centang bulat, tambah task inline,
