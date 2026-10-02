@@ -585,6 +585,17 @@
   .gt-hl{font-size:11.5px;color:var(--text-muted);margin-left:6px;}
   .gt-ract{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}
   @media (max-width:640px){ .gt-repeat{grid-column:1;} }
+  /* ===== Task List: jam ===== */
+  .gt-chip.soon{background:var(--yellow-bg);color:var(--yellow-fg);border-color:transparent;}
+  .gt-timerow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px;}
+  .gt-tlbl{font-size:12px;color:var(--text-secondary);}
+  .gt-form .gt-timerow input[type=time]{width:auto;margin:0;box-sizing:border-box;font-size:13px;padding:7px 10px;border:1px solid var(--border);border-radius:8px;background:#fff;font-family:inherit;}
+  .gt-lnk{border:none;background:transparent;color:var(--accent);cursor:pointer;font-size:12.5px;padding:0;font-family:inherit;}
+  .gt-err{font-size:12px;color:var(--red-fg);margin:-2px 0 8px;}
+  .gt-err:empty{display:none;}
+  .gt-timefld{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12.5px;color:var(--text-secondary);}
+  .gt-detail .gt-timefld input{width:auto;}
+  .gt-tnote{font-size:11.5px;color:var(--text-muted);}
   .fu-toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;}
   .fu-filter{border:1.5px solid var(--hilite);background:#fff;color:var(--navy);border-radius:14px;padding:6px 12px;font-size:12px;font-weight:bold;cursor:pointer;}
   .fu-filter.active{background:var(--accent);color:#fff;border-color:var(--accent);}
@@ -2130,6 +2141,13 @@
           </div>
           <input type="text" id="tlVendor" placeholder="Vendor (optional)" aria-label="Vendor">
         </div>
+        <div class="gt-timerow">
+          <label class="gt-tlbl" for="tlTime">Time (optional)</label>
+          <input type="time" id="tlTime" aria-label="Time">
+          <button type="button" class="gt-lnk" id="tlEndLink">+ End time</button>
+          <span id="tlEndWrap" style="display:none;"><label class="gt-tlbl" for="tlTimeEnd">to</label> <input type="time" id="tlTimeEnd" aria-label="End time"></span>
+        </div>
+        <div class="gt-err" id="tlTimeErr"></div>
         <input type="text" id="tlNote" placeholder="Note (optional)" aria-label="Note">
         <div class="gt-rep" id="tlRepBox"></div>
         <div class="gt-actions">
@@ -5881,7 +5899,7 @@ function renderOverviewTasklistCard(){
       <span class="dot" style="background:${c.fg}"></span>
       <div class="body">
         <div class="desc">${escapeHtml(it.desc||'-')}</div>
-        <div class="pic">${(it.pic ? 'PIC: ' + escapeHtml(it.pic) : '\u2014') + (tlSubProgressText(it) ? ' \u00b7 ' + tlSubProgressText(it) : '') + (it.rec ? ' \u00b7 Weekly' : '')}</div>
+        <div class="pic">${(it.pic ? 'PIC: ' + escapeHtml(it.pic) : '\u2014') + (tlSubProgressText(it) ? ' \u00b7 ' + tlSubProgressText(it) : '') + (it.rec ? ' \u00b7 Weekly' : '') + (it.time ? ' \u00b7 ' + tlFmtDate(it.deadline) + ' ' + it.time : '')}</div>
       </div>
       <span class="tag" style="background:${c.bg};color:${c.fg};">${escapeHtml(tlStatusLabel(eff))}</span>
     </div>`;
@@ -8813,11 +8831,12 @@ function tlShortDate(ds){
   if(p.length !== 3) return ds;
   return TL_MONTHS[+p[1] - 1] + ' ' + (+p[2]) + (p[0] !== todayStr().slice(0, 4) ? ' ' + p[0] : '');
 }
-function tlDeadlineLog(oldD, newD){
-  if(!oldD && newD) return 'Deadline set: ' + tlShortDate(newD);
-  if(oldD && !newD) return 'Deadline removed (was ' + tlShortDate(oldD) + ')';
+function tlDeadlineLog(oldD, newD, tm){
+  const t = tm ? ' ' + tm : '';
+  if(!oldD && newD) return 'Deadline set: ' + tlShortDate(newD) + t;
+  if(oldD && !newD) return 'Deadline removed (was ' + tlShortDate(oldD) + t + ')';
   const d = Math.round((Date.parse(newD + 'T00:00:00') - Date.parse(oldD + 'T00:00:00')) / 86400000);
-  return 'Deadline moved: ' + tlShortDate(oldD) + ' → ' + tlShortDate(newD) + ' (' + (d > 0 ? '+' : '') + d + ' day' + (Math.abs(d) === 1 ? '' : 's') + ')';
+  return 'Deadline moved: ' + tlShortDate(oldD) + t + ' → ' + tlShortDate(newD) + t + ' (' + (d > 0 ? '+' : '') + d + ' day' + (Math.abs(d) === 1 ? '' : 's') + ')';
 }
 function tlClip(s, n){ s = String(s).replace(/\s+/g, ' ').trim(); return s.length > n ? s.slice(0, n - 1) + '…' : s; }
 function tlSortedNotes(it){ return (it.notes || []).slice().sort((a, b) => (b.pin ? 1 : 0) - (a.pin ? 1 : 0) || b.ts - a.ts); }
@@ -8830,6 +8849,40 @@ function tlFlash(nid, txt, err){
   el.className = 'gt-sv show' + (err ? ' err' : '');
   clearTimeout(el._t);
   el._t = setTimeout(() => { el.className = 'gt-sv'; }, 1600);
+}
+/* ---------- Jam (waktu) pada deadline ----------
+   Field opsional: it.time ('HH:MM') dan it.timeEnd ('HH:MM'). Tanpa jam = jatuh tempo akhir hari
+   (perilaku lama tidak berubah). Memakai jam perangkat (WITA di Banjarmasin). */
+function tlTimeRange(it){ return it.time ? (it.timeEnd ? it.time + '–' + it.timeEnd : it.time) : ''; }
+function tlNowDiffMin(it){
+  if(!it.deadline) return null;
+  const p = it.deadline.split('-').map(Number);
+  const tm = it.time ? it.time.split(':').map(Number) : [23, 59];
+  const due = new Date(p[0], p[1] - 1, p[2], tm[0], tm[1], 0);
+  return Math.round((due - new Date()) / 60000);
+}
+function tlIsOverdue(it){
+  if(!it.deadline) return false;
+  if(!it.time) return it.deadline < todayStr();
+  const d = tlNowDiffMin(it);
+  return d !== null && d < 0;
+}
+function tlDur(m){
+  m = Math.abs(m);
+  if(m < 60) return m + ' min';
+  const h = Math.floor(m / 60), r = m % 60;
+  return h + 'h' + (r ? ' ' + r + 'm' : '');
+}
+function tlDeadlineChip(it, od, skipSoon){
+  const when = tlFmtDate(it.deadline) + (it.time ? ' · ' + tlTimeRange(it) : '');
+  const d = tlNowDiffMin(it);
+  if(od) return `<span class="gt-chip od"><i class="ti ti-calendar"></i>${when} · ${it.time && it.deadline === todayStr() ? tlDur(d) + ' late' : 'overdue'}</span>`;
+  if(!skipSoon && it.time && d !== null && d >= 0 && d <= 120) return `<span class="gt-chip soon"><i class="ti ti-clock"></i>${when} · in ${tlDur(d)}</span>`;
+  return `<span class="gt-chip"><i class="ti ti-calendar"></i>${when}</span>`;
+}
+function tlShowEnd(show){
+  document.getElementById('tlEndWrap').style.display = show ? 'inline' : 'none';
+  document.getElementById('tlEndLink').style.display = show ? 'none' : 'inline';
 }
 /* ---------- Weekly recurring ----------
    Task berulang = SATU task "hidup" yang terus maju. Saat dicentang selesai:
@@ -8874,7 +8927,8 @@ function tlRepFormHtml(){
       const rec = { days: f.days, every: f.every };
       const dl = (document.getElementById('tlDeadline') || {}).value;
       const first = dl || tlNextOcc(rec, tlAddDays(todayStr(), -1));
-      info = tlRecLabel(rec) + ' · First due: <b>' + tlDateLong(first) + '</b>';
+      const tmV = (document.getElementById('tlTime') || {}).value, teV = (document.getElementById('tlTimeEnd') || {}).value;
+      info = tlRecLabel(rec) + ' · First due: <b>' + tlDateLong(first) + (tmV ? ' · ' + tmV + (teV ? '–' + teV : '') : '') + '</b>';
     }
   }
   return `<span class="gt-replbl">Repeat</span>
@@ -8911,7 +8965,7 @@ async function tlCompleteRecurring(it){
   const today = todayStr();
   const base = (it.deadline && it.deadline > today) ? it.deadline : today;
   const nx = tlNextOcc(it.rec, base);
-  const res = (it.deadline && it.deadline < today) ? 'late' : 'ok';
+  const res = tlIsOverdue(it) ? 'late' : 'ok';
   tlLog(it, 'Status: ' + it.status + ' → ' + d.name);
   if(it.rec.end && nx > it.rec.end){
     it.prevStatus = it.status;
@@ -8936,7 +8990,7 @@ async function tlCompleteRecurring(it){
     it.activity = [];
     tlLog(it, 'Next occurrence created (previous due: ' + tlShortDate(snap.deadline) + ')');
     taskListItems.push(clone);
-    tlUndoRec = { snap, cloneId: clone.id, msg: 'Done · next occurrence: ' + tlDateLong(nx) };
+    tlUndoRec = { snap, cloneId: clone.id, msg: 'Done · next occurrence: ' + tlDateLong(nx) + (snap.time ? ' · ' + tlTimeRange(snap) : '') };
   }
   tlUndoId = null;
   tlArmUndo();
@@ -8952,7 +9006,7 @@ async function tlSkipRecurring(it){
   it.deadline = nx;
   (it.subs || []).forEach(sb => { sb.done = false; });
   tlUndoId = null;
-  tlUndoRec = { snap, cloneId: null, msg: 'Skipped · next occurrence: ' + tlDateLong(nx) };
+  tlUndoRec = { snap, cloneId: null, msg: 'Skipped · next occurrence: ' + tlDateLong(nx) + (snap.time ? ' · ' + tlTimeRange(snap) : '') };
   tlArmUndo();
   await saveTaskList();
   renderTlSummary(); renderTlFilterBar(); renderTlList();
@@ -9027,7 +9081,7 @@ function tlIsDone(it){ return taskStatusManager.isDone(it.status); }
    Status turunan (computed), tidak disimpan. */
 function tlEffectiveStatus(it){
   if(taskStatusManager.isDone(it.status) || tlIsHold(it.status)) return it.status;
-  if(it.deadline && it.deadline < todayStr()) return 'Overdue';
+  if(tlIsOverdue(it)) return 'Overdue';
   return it.status;
 }
 function tlStatusLabel(name){ return name; }
@@ -9083,6 +9137,10 @@ async function tlEnsureStatuses(){
 }
 
 function tlShowForm(show){
+  document.getElementById('tlTime').value = '';
+  document.getElementById('tlTimeEnd').value = '';
+  document.getElementById('tlTimeErr').textContent = '';
+  tlShowEnd(false);
   tlFormRep = { on:false, days:[1], every:1 };
   tlRenderRepForm();
   document.getElementById('tlAddForm').style.display = show ? 'block' : 'none';
@@ -9111,6 +9169,11 @@ document.getElementById('tlRepBox').addEventListener('change', (e) => {
   if(e.target.id === 'tlRepEvery'){ tlFormRep.every = +e.target.value; tlRenderRepForm(); }
 });
 document.getElementById('tlDeadline').addEventListener('change', () => { if(tlFormRep.on) tlRenderRepForm(); });
+['tlTime', 'tlTimeEnd'].forEach(id => document.getElementById(id).addEventListener('change', () => {
+  document.getElementById('tlTimeErr').textContent = '';
+  if(tlFormRep.on) tlRenderRepForm();
+}));
+document.getElementById('tlEndLink').onclick = () => { tlShowEnd(true); document.getElementById('tlTimeEnd').focus(); };
 document.getElementById('tlAddRow').onclick = () => tlShowForm(true);
 document.getElementById('tlAddRow').addEventListener('keydown', e => {
   if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); tlShowForm(true); }
@@ -9125,6 +9188,13 @@ document.getElementById('tlAddBtn').onclick = async () => {
   const descEl = document.getElementById('tlDesc');
   const desc = descEl.value.trim();
   if(tlFormRep.on && !tlFormRep.days.length) return;
+  {
+    const tmV = document.getElementById('tlTime').value, teV = document.getElementById('tlTimeEnd').value;
+    const terr = document.getElementById('tlTimeErr');
+    terr.textContent = '';
+    if(teV && !tmV){ terr.textContent = 'Set a start time before an end time.'; return; }
+    if(teV && tmV && teV <= tmV){ terr.textContent = 'End time must be after the start time.'; return; }
+  }
   if(!desc){
     descEl.style.borderColor = 'var(--red-fg)';
     descEl.placeholder = 'Task name is required';
@@ -9138,6 +9208,8 @@ document.getElementById('tlAddBtn').onclick = async () => {
     pic: document.getElementById('tlPic').value.trim(),
     vendor: document.getElementById('tlVendor').value.trim(),
     deadline: document.getElementById('tlDeadline').value,
+    time: document.getElementById('tlTime').value,
+    timeEnd: document.getElementById('tlTimeEnd').value,
     status: document.getElementById('tlStatus').value,
     note: '',
     notes: [],
@@ -9146,6 +9218,7 @@ document.getElementById('tlAddBtn').onclick = async () => {
   const firstNote = document.getElementById('tlNote').value.trim();
   if(firstNote) item.notes.push({ id: tlNid(), ty: 'note', by: tlAuthorName(), tx: firstNote, ts: Date.now() });
   tlLog(item, 'Task created');
+  if(!item.deadline && item.time && !tlFormRep.on) item.deadline = todayStr();
   if(tlFormRep.on){
     item.rec = { days: tlFormRep.days.slice(), every: tlFormRep.every, end: '' };
     item.seriesId = item.id;
@@ -9155,7 +9228,7 @@ document.getElementById('tlAddBtn').onclick = async () => {
   }
   taskListItems.unshift(item);
   await saveTaskList();
-  ['tlDesc','tlVendor','tlDeadline','tlNote'].forEach(id => { document.getElementById(id).value = ''; });
+  ['tlDesc','tlVendor','tlDeadline','tlNote','tlTime','tlTimeEnd'].forEach(id => { document.getElementById(id).value = ''; });
   document.getElementById('tlPic').value = '';
   tlShowForm(false);
   renderTaskList();
@@ -9260,10 +9333,10 @@ function tlRowHtml(it){
   const first = taskStatusManager.getList()[0];
   const g = tlSubStats(it);
   let meta = '';
-  if(it.deadline) meta += `<span class="gt-chip ${od?'od':''}"><i class="ti ti-calendar"></i>${tlFmtDate(it.deadline)}${od ? ' · overdue' : ''}</span>`;
+  if(it.deadline) meta += tlDeadlineChip(it, od, done || hold);
   if(it.pic) meta += `<span class="gt-chip"><i class="ti ti-user"></i>${escapeHtml(it.pic)}</span>`;
   if(it.vendor) meta += `<span class="gt-chip"><i class="ti ti-building"></i>${escapeHtml(it.vendor)}</span>`;
-  if(it.rec) meta += `<span class="gt-chip rc"><i class="ti ti-repeat"></i>${escapeHtml(tlRecLabel(it.rec))}</span>`;
+  if(it.rec) meta += `<span class="gt-chip rc"><i class="ti ti-repeat"></i>${escapeHtml(tlRecLabel(it.rec))}${it.time ? ' · ' + it.time : ''}</span>`;
   else if(it.seriesId) meta += '<span class="gt-chip rc"><i class="ti ti-repeat"></i>Recurring</span>';
   if(g.n) meta += `<span class="gt-chip"><i class="ti ti-subtask"></i>${g.d}/${g.n}</span>`;
   if(!done && g.rq > 0) meta += `<span class="gt-chip warn"><i class="ti ti-lock"></i>${g.rq} required left</span>`;
@@ -9282,6 +9355,7 @@ function tlRowHtml(it){
       <input type="date" data-f="deadline" data-id="${it.id}" value="${escapeHtml(it.deadline||'')}" aria-label="Deadline">
       <select data-f="pic" data-picsel="1" data-id="${it.id}" aria-label="PIC">${tlPicOptionsHtml(it.pic || '')}</select>
       <input type="text" data-f="vendor" data-id="${it.id}" value="${escapeHtml(it.vendor||'')}" placeholder="Vendor (optional)" aria-label="Vendor">
+      <div class="gt-timefld full"><label>Time</label><input type="time" data-f="time" data-id="${it.id}" value="${escapeHtml(it.time||'')}" aria-label="Time"><label>to</label><input type="time" data-f="timeEnd" data-id="${it.id}" value="${escapeHtml(it.timeEnd||'')}" ${it.time ? '' : 'disabled'} aria-label="End time">${it.time ? '' : '<span class="gt-tnote">No time: due at the end of the day</span>'}</div>
       ${done ? `<input class="full" type="text" data-f="remark" data-id="${it.id}" value="${escapeHtml(it.remark||'')}" placeholder="Completion remark (optional)" aria-label="Remark">` : ''}
       ${tlRepDetailHtml(it)}
       <div class="gt-subs">
@@ -9314,7 +9388,7 @@ function renderTlList(){
   vis.sort((a, b) => {
     const ha = tlIsHold(a.status) ? 1 : 0, hb = tlIsHold(b.status) ? 1 : 0;
     if(ha !== hb) return ha - hb;
-    return (a.deadline || '9999').localeCompare(b.deadline || '9999');
+    return (a.deadline || '9999').localeCompare(b.deadline || '9999') || (a.time || '99:99').localeCompare(b.time || '99:99');
   });
   let ndraft = null;
   if(tlOpenId){
@@ -9402,6 +9476,13 @@ async function tlPersist(id){
   }
 }
 
+setInterval(() => {
+  const v = document.getElementById('view-tasklist');
+  if(!v || !v.classList.contains('active')) return;
+  const a = document.activeElement;
+  if(a && v.contains(a) && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) return;
+  renderTlSummary(); renderTlFilterBar(); renderTlList();
+}, 60000);
 (function tlBindEvents(){
   const view = document.getElementById('view-tasklist');
   view.addEventListener('click', async (e) => {
@@ -9590,6 +9671,11 @@ async function tlPersist(id){
     if(!t.dataset || !t.dataset.f || !t.dataset.id || t.classList.contains('fu-filter')) return;
     const it = taskListItems.find(i => i.id === t.dataset.id);
     if(!it) return;
+    if(t.dataset.f === 'timeEnd' && t.value && (!it.time || t.value <= it.time)){ t.value = it.timeEnd || ''; return; }
+    if(t.dataset.f === 'time'){
+      if(!t.value) it.timeEnd = '';
+      else if(it.timeEnd && it.timeEnd <= t.value) it.timeEnd = '';
+    }
     if(t.dataset.f === 'status' && taskStatusManager.isDone(t.value) && !tlIsDone(it) && tlSubStats(it).rq > 0){ tlBlockDone(it.id); return; }
     if(t.dataset.f === 'status' && taskStatusManager.isDone(t.value) && !tlIsDone(it) && it.rec){ await tlCompleteRecurring(it); return; }
     if(t.dataset.f === 'status' && it.status !== t.value && !taskStatusManager.isDone(it.status)) it.prevStatus = it.status;
@@ -9597,7 +9683,9 @@ async function tlPersist(id){
     it[t.dataset.f] = t.value;
     if(oldVal !== t.value){
       if(t.dataset.f === 'status') tlLog(it, 'Status: ' + oldVal + ' → ' + t.value);
-      else if(t.dataset.f === 'deadline') tlLog(it, tlDeadlineLog(oldVal, t.value));
+      else if(t.dataset.f === 'deadline') tlLog(it, tlDeadlineLog(oldVal, t.value, it.time));
+      else if(t.dataset.f === 'time') tlLog(it, !oldVal ? 'Time set: ' + t.value : (!t.value ? 'Time removed (was ' + oldVal + ')' : 'Time changed: ' + oldVal + ' → ' + t.value));
+      else if(t.dataset.f === 'timeEnd') tlLog(it, !t.value ? 'End time removed' : 'End time: ' + t.value);
       else if(t.dataset.f === 'pic') tlLog(it, 'PIC changed: ' + (oldVal || 'none') + ' → ' + (t.value || 'none'));
     }
     await saveTaskList();
@@ -9606,7 +9694,7 @@ async function tlPersist(id){
   });
   view.addEventListener('input', (e) => {
     const t = e.target;
-    if(!t.dataset || !t.dataset.f || !t.dataset.id || t.tagName === 'SELECT' || t.type === 'date') return;
+    if(!t.dataset || !t.dataset.f || !t.dataset.id || t.tagName === 'SELECT' || t.type === 'date' || t.type === 'time') return;
     const it = taskListItems.find(i => i.id === t.dataset.id);
     if(!it) return;
     it[t.dataset.f] = t.value;
@@ -9655,7 +9743,7 @@ async function tlPersist(id){
       tlCommitNote(t);
       return;
     }
-    if(!t.dataset || !t.dataset.f || !t.dataset.id || t.tagName === 'SELECT' || t.type === 'date') return;
+    if(!t.dataset || !t.dataset.f || !t.dataset.id || t.tagName === 'SELECT' || t.type === 'date' || t.type === 'time') return;
     clearTimeout(tlInputTimer);
     tlPersist(t.dataset.id);
   });
