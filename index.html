@@ -596,6 +596,15 @@
   .gt-timefld{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12.5px;color:var(--text-secondary);}
   .gt-detail .gt-timefld input{width:auto;}
   .gt-tnote{font-size:11.5px;color:var(--text-muted);}
+  /* ===== Task List: dialog pilih status selesai ===== */
+  .gt-dp{font-size:13px;color:var(--text-secondary);line-height:1.5;margin:0 0 12px;}
+  .gt-dop{display:flex;align-items:center;gap:10px;background:var(--zebra);border-radius:10px;padding:0 12px;height:44px;margin-bottom:8px;cursor:pointer;border:1px solid transparent;font-size:14px;}
+  .gt-dop:hover{border-color:var(--border);}
+  .gt-dop.sel{border-color:var(--accent);background:var(--hilite);}
+  .gt-dop input{margin:0;}
+  .gt-dsw{width:10px;height:10px;border-radius:50%;flex:none;}
+  .gt-dsg{margin-left:auto;font-size:11.5px;color:var(--green-fg);background:var(--green-bg);padding:1px 8px;border-radius:10px;}
+  .gt-dfoot{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:14px;flex-wrap:wrap;}
   .fu-toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;}
   .fu-filter{border:1.5px solid var(--hilite);background:#fff;color:var(--navy);border-radius:14px;padding:6px 12px;font-size:12px;font-weight:bold;cursor:pointer;}
   .fu-filter.active{background:var(--accent);color:#fff;border-color:var(--accent);}
@@ -1671,6 +1680,19 @@
       <div class="vendor-item-list" id="picModalList"></div>
       <div style="text-align:right;margin-top:14px;">
         <button type="button" class="btn btn-ghost" id="picModalDoneBtn">Selesai</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL: PILIH STATUS SELESAI (Task List) ================= -->
+  <div class="modal-overlay" id="tlDoneOverlay">
+    <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="tlDoneTitle">
+      <h3 id="tlDoneTitle">Which status means "finished"?</h3>
+      <p class="gt-dp">No status is marked as done yet, so a task can't be completed. Pick the one that means finished. Tasks with this status move to the Done section.</p>
+      <div id="tlDoneOpts" role="radiogroup" aria-label="Done status"></div>
+      <div class="gt-dfoot">
+        <button type="button" class="gt-lnk" id="tlDoneManage">Open status manager</button>
+        <span><button type="button" class="btn btn-ghost" id="tlDoneCancel">Cancel</button> <button type="button" class="btn btn-primary" id="tlDoneOk">Use and complete</button></span>
       </div>
     </div>
   </div>
@@ -7718,7 +7740,7 @@ function createManagedList(opts){
 function createUscManager(opts){
   const { storageKey, defaults, selectId, manageBtnId, modalOverlayId, modalInputId, modalColorId,
           modalAddBtnId, modalCloseBtnId, modalDoneBtnId, modalListId, modalMsgId, itemLabel,
-          onRename, onListChanged, reservedNames = [] } = opts;
+          onRename, onListChanged, reservedNames = [], guardLastDone = false } = opts;
   let list = defaults.map(s => ({...s}));
   let dirty = false;
   const isReserved = (n) => reservedNames.some(r => String(r).toLowerCase() === String(n).toLowerCase());
@@ -7784,6 +7806,9 @@ function createUscManager(opts){
       btn.onclick = async () => {
         const s = find(btn.dataset.v);
         if(!s) return;
+        if(guardLastDone && s.done && list.filter(x => x.done).length === 1){
+          if(!confirm(`"${s.name}" adalah satu-satunya status selesai. Tanpa status selesai, task tidak bisa dicentang sampai Anda menandai status lain. Tetap lepas tanda selesai?`)) return;
+        }
         s.done = !s.done;
         await save();
         renderModalList();
@@ -7843,6 +7868,11 @@ function createUscManager(opts){
           return;
         }
         const name = btn.dataset.v;
+        const target = find(name);
+        if(guardLastDone && target && target.done && list.filter(x => x.done).length === 1){
+          btn.classList.remove('confirming'); btn.textContent = 'Hapus';
+          if(!confirm(`"${name}" adalah satu-satunya status selesai. Tanpa status selesai, task tidak bisa dicentang sampai Anda menandai status lain. Tetap hapus?`)) return;
+        }
         list = list.filter(s => s.name !== name);
         await save();
         renderOptions('');
@@ -8735,6 +8765,7 @@ const taskStatusManager = createUscManager({
   modalMsgId: 'tlStatusModalMsg',
   itemLabel: 'status',
   reservedNames: ['All', 'Overdue', 'Recurring'],
+  guardLastDone: true,
   onRename: async (oldName, newName) => {
     let migrated = false;
     taskListItems.forEach(it => {
@@ -9121,14 +9152,14 @@ function tlRepDetailHtml(it){
   </div>`;
 }
 async function tlCompleteRecurring(it){
-  const d = tlFirstDoneStatus();
-  if(!d){ alert('No "done" status is set. Mark one as done in the status manager (gear icon) first.'); return; }
+  const d = await tlEnsureDoneStatus();
+  if(!d) return;
   const snap = JSON.parse(JSON.stringify(it));
   const today = todayStr();
   const base = (it.deadline && it.deadline > today) ? it.deadline : today;
   const nx = tlNextOcc(it.rec, base);
   const res = tlIsOverdue(it) ? 'late' : 'ok';
-  tlLog(it, 'Status: ' + it.status + ' → ' + d.name);
+  if(it.status !== d.name) tlLog(it, 'Status: ' + it.status + ' → ' + d.name);
   if(it.rec.end && nx > it.rec.end){
     it.prevStatus = it.status;
     it.status = d.name;
@@ -9254,6 +9285,49 @@ function tlStatusColorStyle(name){
   return `background:${c.bg};color:${c.fg};`;
 }
 function tlFirstDoneStatus(){ return taskStatusManager.getList().find(s => s.done); }
+/* Dialog pemilih status "selesai": dipakai saat user mencentang task tetapi belum ada status
+   yang ditandai selesai (mis. status "Done" pernah dihapus). Mengembalikan objek status, atau
+   null bila dibatalkan. Pilihan disimpan permanen sebagai flag `done` pada status itu. */
+function tlPickDoneStatus(){
+  return new Promise(resolve => {
+    const list = taskStatusManager.getList();
+    if(!list.length){
+      alert('The status list is empty. Add a status in the status manager (gear icon) first.');
+      resolve(null);
+      return;
+    }
+    const guess = list.find(s => /^(done|closed|selesai|complete(d)?|resolved|finished)$/i.test(String(s.name).trim()));
+    let sel = (guess || list[list.length - 1]).name;
+    const ov = document.getElementById('tlDoneOverlay'), box = document.getElementById('tlDoneOpts');
+    const draw = () => {
+      box.innerHTML = list.map(s => `<label class="gt-dop ${s.name === sel ? 'sel' : ''}"><input type="radio" name="tlDonePick" value="${escapeHtml(s.name)}" ${s.name === sel ? 'checked' : ''}><span class="gt-dsw" style="background:${opStatusColor(s.color).fg}"></span><span>${escapeHtml(s.name)}</span>${guess && guess.name === s.name ? '<span class="gt-dsg">Suggested</span>' : ''}</label>`).join('');
+      box.querySelectorAll('input').forEach(r => { r.onchange = () => { sel = r.value; draw(); const c = box.querySelector('input:checked'); if(c) c.focus(); }; });
+    };
+    const finish = (val) => {
+      ov.classList.remove('active');
+      ov.onkeydown = null; ov.onmousedown = null;
+      document.getElementById('tlDoneOk').onclick = null;
+      document.getElementById('tlDoneCancel').onclick = null;
+      document.getElementById('tlDoneManage').onclick = null;
+      resolve(val);
+    };
+    draw();
+    document.getElementById('tlDoneOk').onclick = async () => {
+      const st = taskStatusManager.find(sel);
+      if(!st){ finish(null); return; }
+      st.done = true;
+      await taskStatusManager.save();
+      finish(st);
+    };
+    document.getElementById('tlDoneCancel').onclick = () => finish(null);
+    document.getElementById('tlDoneManage').onclick = () => { finish(null); document.getElementById('tlStatusManageBtn').click(); };
+    ov.onkeydown = (e) => { if(e.key === 'Escape') finish(null); };
+    ov.onmousedown = (e) => { if(e.target === ov) finish(null); };
+    ov.classList.add('active');
+    setTimeout(() => { const c = box.querySelector('input:checked'); if(c) c.focus(); }, 30);
+  });
+}
+async function tlEnsureDoneStatus(){ return tlFirstDoneStatus() || await tlPickDoneStatus(); }
 function tlFirstOpenStatus(){
   const l = taskStatusManager.getList();
   return l.find(s => !s.done && !tlIsHold(s.name)) || l.find(s => !s.done) || l[0];
@@ -9615,8 +9689,13 @@ async function tlToggleDone(id){
     if(tlSubStats(it).rq > 0){ tlBlockDone(id); return; }
     if(it.rec){ await tlCompleteRecurring(it); return; }
     tlUndoRec = null;
-    const d = tlFirstDoneStatus();
-    if(!d){ alert('No "done" status is set. Mark one as done in the status manager (gear icon) first.'); return; }
+    const d = await tlEnsureDoneStatus();
+    if(!d) return;
+    if(tlIsDone(it)){   // status task ini ternyata sudah menjadi status selesai yang baru dipilih
+      await saveTaskList();
+      renderTlSummary(); renderTlFilterBar(); renderTlList();
+      return;
+    }
     it.prevStatus = it.status;
     tlLog(it, 'Status: ' + it.status + ' → ' + d.name);
     it.status = d.name;
