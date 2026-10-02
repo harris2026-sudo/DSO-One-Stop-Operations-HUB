@@ -564,6 +564,27 @@
   .gt-nhint{font-size:11.5px;color:var(--text-muted);margin-top:10px;}
   @media (max-width:640px){ .gt-notes{grid-column:1;} }
   @media (prefers-reduced-motion:reduce){ .gt-sv{transition:none;} }
+  /* ===== Task List: Weekly recurring ===== */
+  .gt-chip.rc{background:var(--hilite);color:var(--accent);border-color:transparent;}
+  .gt-rep{border:1px solid var(--border);border-radius:10px;padding:10px 12px;background:#fff;margin:0 0 8px;}
+  .gt-replbl{display:block;font-size:12px;color:var(--text-secondary);margin-bottom:6px;}
+  .gt-dys{display:flex;gap:6px;margin:10px 0 8px;flex-wrap:wrap;}
+  .gt-dy{width:32px;height:32px;border-radius:50%;border:1px solid var(--border);background:transparent;color:var(--text-secondary);cursor:pointer;font-size:12.5px;padding:0;display:flex;align-items:center;justify-content:center;font-family:inherit;}
+  .gt-dy:hover{border-color:var(--accent);}
+  .gt-dy.on{background:var(--accent);border-color:var(--accent);color:#fff;}
+  .gt-rev{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12.5px;color:var(--text-secondary);}
+  .gt-detail .gt-rev select,.gt-detail .gt-rev input,.gt-rep .gt-rev select{width:auto;margin:0;}
+  .gt-repinfo{font-size:12px;color:var(--text-secondary);margin-top:8px;}
+  .gt-repeat{grid-column:1/3;margin-top:4px;border-top:1px solid var(--border);padding-top:10px;}
+  .gt-repeat h4{margin:0 0 6px;font-size:13px;font-weight:500;color:var(--text-secondary);}
+  .gt-hs{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+  .gt-dot{width:14px;height:14px;border-radius:50%;background:var(--text-muted);display:inline-block;}
+  .gt-dot.ok{background:var(--green-fg);}
+  .gt-dot.late{background:var(--yellow-fg);}
+  .gt-dot.skip{background:transparent;border:1.5px dashed var(--text-muted);box-sizing:border-box;}
+  .gt-hl{font-size:11.5px;color:var(--text-muted);margin-left:6px;}
+  .gt-ract{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}
+  @media (max-width:640px){ .gt-repeat{grid-column:1;} }
   .fu-toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;}
   .fu-filter{border:1.5px solid var(--hilite);background:#fff;color:var(--navy);border-radius:14px;padding:6px 12px;font-size:12px;font-weight:bold;cursor:pointer;}
   .fu-filter.active{background:var(--accent);color:#fff;border-color:var(--accent);}
@@ -2110,6 +2131,7 @@
           <input type="text" id="tlVendor" placeholder="Vendor (optional)" aria-label="Vendor">
         </div>
         <input type="text" id="tlNote" placeholder="Note (optional)" aria-label="Note">
+        <div class="gt-rep" id="tlRepBox"></div>
         <div class="gt-actions">
           <button type="button" class="btn btn-ghost" id="tlCancelBtn">Cancel</button>
           <button type="button" class="btn btn-primary" id="tlAddBtn">Save</button>
@@ -5859,7 +5881,7 @@ function renderOverviewTasklistCard(){
       <span class="dot" style="background:${c.fg}"></span>
       <div class="body">
         <div class="desc">${escapeHtml(it.desc||'-')}</div>
-        <div class="pic">${(it.pic ? 'PIC: ' + escapeHtml(it.pic) : '\u2014') + (tlSubProgressText(it) ? ' \u00b7 ' + tlSubProgressText(it) : '')}</div>
+        <div class="pic">${(it.pic ? 'PIC: ' + escapeHtml(it.pic) : '\u2014') + (tlSubProgressText(it) ? ' \u00b7 ' + tlSubProgressText(it) : '') + (it.rec ? ' \u00b7 Weekly' : '')}</div>
       </div>
       <span class="tag" style="background:${c.bg};color:${c.fg};">${escapeHtml(tlStatusLabel(eff))}</span>
     </div>`;
@@ -8694,7 +8716,7 @@ const taskStatusManager = createUscManager({
   modalListId: 'tlStatusModalList',
   modalMsgId: 'tlStatusModalMsg',
   itemLabel: 'status',
-  reservedNames: ['All', 'Overdue'],
+  reservedNames: ['All', 'Overdue', 'Recurring'],
   onRename: async (oldName, newName) => {
     let migrated = false;
     taskListItems.forEach(it => {
@@ -8808,6 +8830,132 @@ function tlFlash(nid, txt, err){
   el.className = 'gt-sv show' + (err ? ' err' : '');
   clearTimeout(el._t);
   el._t = setTimeout(() => { el.className = 'gt-sv'; }, 1600);
+}
+/* ---------- Weekly recurring ----------
+   Task berulang = SATU task "hidup" yang terus maju. Saat dicentang selesai:
+   (1) salinan arsip (lengkap dengan catatan & aktivitas) masuk ke Done,
+   (2) task hidup pindah ke jadwal berikutnya: sub task di-reset, catatan & aktivitas kosong.
+   Tidak ada penjadwal otomatis: instance baru dibuat saat yang lama selesai/dilewati. */
+const TL_DN = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const TL_DL = ['S','M','T','W','T','F','S'];
+const TL_DAY_ORDER = [1,2,3,4,5,6,0];
+let tlFormRep = { on:false, days:[1], every:1 };
+let tlUndoRec = null;
+function tlParseDate(s){ const p = String(s).split('-'); return new Date(+p[0], +p[1] - 1, +p[2]); }
+function tlIso(d){ const m = d.getMonth() + 1, x = d.getDate(); return d.getFullYear() + '-' + (m < 10 ? '0' : '') + m + '-' + (x < 10 ? '0' : '') + x; }
+function tlAddDays(ds, n){ const d = tlParseDate(ds); d.setDate(d.getDate() + n); return tlIso(d); }
+/* tanggal terjadwal pertama yang STRICTLY setelah `base` (minggu mulai Senin) */
+function tlNextOcc(rec, base){
+  const days = rec.days.map(x => (x + 6) % 7).sort((a, b) => a - b);
+  const d = tlParseDate(base), wd = (d.getDay() + 6) % 7;
+  const mon = new Date(d); mon.setDate(d.getDate() - wd);
+  for(const dw of days){
+    if(dw > wd){ const r = new Date(mon); r.setDate(mon.getDate() + dw); return tlIso(r); }
+  }
+  const r2 = new Date(mon); r2.setDate(mon.getDate() + rec.every * 7 + days[0]);
+  return tlIso(r2);
+}
+function tlRecLabel(rec){
+  const ds = rec.days.slice().sort((a, b) => ((a + 6) % 7) - ((b + 6) % 7)).map(x => TL_DN[x]).join(', ');
+  return (rec.every === 1 ? 'Weekly' : 'Every ' + rec.every + ' weeks') + ' · ' + ds;
+}
+function tlDateLong(ds){ if(!ds) return ''; const d = tlParseDate(ds); return TL_DN[d.getDay()] + ', ' + TL_MONTHS[d.getMonth()] + ' ' + d.getDate(); }
+function tlArmUndo(){
+  clearTimeout(tlUndoTimer);
+  tlUndoTimer = setTimeout(() => { tlUndoId = null; tlUndoRec = null; renderTlList(); }, 5000);
+}
+function tlRepFormHtml(){
+  const f = tlFormRep;
+  const chips = TL_DAY_ORDER.map(d => `<button type="button" class="gt-dy ${f.days.includes(d) ? 'on' : ''}" data-rfday="${d}" aria-pressed="${f.days.includes(d)}" aria-label="${TL_DN[d]}">${TL_DL[d]}</button>`).join('');
+  let info = '';
+  if(f.on){
+    if(!f.days.length) info = 'Pick at least one day';
+    else {
+      const rec = { days: f.days, every: f.every };
+      const dl = (document.getElementById('tlDeadline') || {}).value;
+      const first = dl || tlNextOcc(rec, tlAddDays(todayStr(), -1));
+      info = tlRecLabel(rec) + ' · First due: <b>' + tlDateLong(first) + '</b>';
+    }
+  }
+  return `<span class="gt-replbl">Repeat</span>
+    <div class="gt-seg" role="group" aria-label="Repeat"><button type="button" data-rfrep="0" class="${f.on ? '' : 'on'}">Does not repeat</button><button type="button" data-rfrep="1" class="${f.on ? 'on' : ''}">Weekly</button></div>
+    ${f.on ? `<div class="gt-dys" role="group" aria-label="Repeat on">${chips}</div>
+      <div class="gt-rev">Every <select id="tlRepEvery" aria-label="Every how many weeks">${[1,2,3,4].map(n => `<option ${n === f.every ? 'selected' : ''}>${n}</option>`).join('')}</select> week(s)</div>
+      <div class="gt-repinfo">${info}</div>` : ''}`;
+}
+function tlRenderRepForm(){ const b = document.getElementById('tlRepBox'); if(b) b.innerHTML = tlRepFormHtml(); }
+function tlRepDetailHtml(it){
+  if(!it.rec){
+    if(tlIsDone(it)) return '';
+    return `<div class="gt-repeat"><h4>Repeat</h4><button type="button" class="btn btn-ghost" data-rmk="${it.id}"><i class="ti ti-repeat"></i> Make weekly</button></div>`;
+  }
+  const r = it.rec;
+  const chips = TL_DAY_ORDER.map(d => `<button type="button" class="gt-dy ${r.days.includes(d) ? 'on' : ''}" data-rday="${it.id}:${d}" aria-pressed="${r.days.includes(d)}" aria-label="${TL_DN[d]}">${TL_DL[d]}</button>`).join('');
+  const hist = (it.hist || []).slice(-6);
+  const ok = hist.filter(h => h === 'ok').length;
+  const dots = hist.map(h => `<span class="gt-dot ${h}" title="${h === 'ok' ? 'Done on time' : (h === 'late' ? 'Done late' : 'Skipped')}"></span>`).join('');
+  return `<div class="gt-repeat">
+    <h4>Repeat · ${escapeHtml(tlRecLabel(r))}</h4>
+    <div class="gt-dys" role="group" aria-label="Repeat on">${chips}</div>
+    <div class="gt-rev">Every <select data-rev="${it.id}" aria-label="Every how many weeks">${[1,2,3,4].map(n => `<option ${n === r.every ? 'selected' : ''}>${n}</option>`).join('')}</select> week(s) · Ends
+      <select data-rendt="${it.id}" aria-label="Ends"><option value="n" ${r.end ? '' : 'selected'}>Never</option><option value="d" ${r.end ? 'selected' : ''}>On date</option></select>
+      ${r.end ? `<input type="date" data-rendv="${it.id}" value="${escapeHtml(r.end)}" aria-label="End date">` : ''}</div>
+    ${hist.length ? `<h4 style="margin-top:12px">Last ${hist.length} occurrence${hist.length > 1 ? 's' : ''} · ${ok} of ${hist.length} on time</h4><div class="gt-hs">${dots}<span class="gt-hl">green on time · amber late · dashed skipped</span></div>` : ''}
+    <div class="gt-ract"><button type="button" class="btn btn-ghost" data-rskip="${it.id}"><i class="ti ti-player-skip-forward"></i> Skip this occurrence</button><button type="button" class="btn btn-ghost" data-rstop="${it.id}">Stop repeating</button></div>
+  </div>`;
+}
+async function tlCompleteRecurring(it){
+  const d = tlFirstDoneStatus();
+  if(!d){ alert('No "done" status is set. Mark one as done in the status manager (gear icon) first.'); return; }
+  const snap = JSON.parse(JSON.stringify(it));
+  const today = todayStr();
+  const base = (it.deadline && it.deadline > today) ? it.deadline : today;
+  const nx = tlNextOcc(it.rec, base);
+  const res = (it.deadline && it.deadline < today) ? 'late' : 'ok';
+  tlLog(it, 'Status: ' + it.status + ' → ' + d.name);
+  if(it.rec.end && nx > it.rec.end){
+    it.prevStatus = it.status;
+    it.status = d.name;
+    it.rec = null;
+    tlUndoRec = { snap, cloneId: null, msg: 'Done · series ended' };
+  } else {
+    const clone = JSON.parse(JSON.stringify(it));
+    clone.id = tlId();
+    clone.status = d.name;
+    clone.rec = null;
+    delete clone.hist;
+    clone.seriesId = it.seriesId || it.id;
+    it.seriesId = clone.seriesId;
+    it.hist = (it.hist || []).concat(res).slice(-12);
+    it.deadline = nx;
+    it.status = (tlFirstOpenStatus() || {}).name;
+    it.prevStatus = '';
+    it.remark = '';
+    (it.subs || []).forEach(sb => { sb.done = false; });
+    it.notes = [];
+    it.activity = [];
+    tlLog(it, 'Next occurrence created (previous due: ' + tlShortDate(snap.deadline) + ')');
+    taskListItems.push(clone);
+    tlUndoRec = { snap, cloneId: clone.id, msg: 'Done · next occurrence: ' + tlDateLong(nx) };
+  }
+  tlUndoId = null;
+  tlArmUndo();
+  await saveTaskList();
+  renderTlSummary(); renderTlFilterBar(); renderTlList();
+}
+async function tlSkipRecurring(it){
+  const snap = JSON.parse(JSON.stringify(it));
+  const today = todayStr();
+  const nx = tlNextOcc(it.rec, (it.deadline && it.deadline > today) ? it.deadline : today);
+  it.hist = (it.hist || []).concat('skip').slice(-12);
+  tlLog(it, 'Skipped occurrence due ' + tlShortDate(snap.deadline) + ' → next: ' + tlShortDate(nx));
+  it.deadline = nx;
+  (it.subs || []).forEach(sb => { sb.done = false; });
+  tlUndoId = null;
+  tlUndoRec = { snap, cloneId: null, msg: 'Skipped · next occurrence: ' + tlDateLong(nx) };
+  tlArmUndo();
+  await saveTaskList();
+  renderTlSummary(); renderTlFilterBar(); renderTlList();
 }
 function tlNoteCardHtml(it, n){
   const cls = n.ty === 'hold' ? ' hold' : (n.ty === 'upd' ? ' upd' : '');
@@ -8935,6 +9083,8 @@ async function tlEnsureStatuses(){
 }
 
 function tlShowForm(show){
+  tlFormRep = { on:false, days:[1], every:1 };
+  tlRenderRepForm();
   document.getElementById('tlAddForm').style.display = show ? 'block' : 'none';
   document.getElementById('tlAddRow').style.display = show ? 'none' : 'flex';
   if(show){
@@ -8947,6 +9097,20 @@ function tlShowForm(show){
   }
 }
 
+document.getElementById('tlRepBox').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-rfrep],[data-rfday]');
+  if(!b) return;
+  if(b.dataset.rfrep !== undefined) tlFormRep.on = b.dataset.rfrep === '1';
+  else {
+    const d = +b.dataset.rfday, i = tlFormRep.days.indexOf(d);
+    if(i >= 0) tlFormRep.days.splice(i, 1); else tlFormRep.days.push(d);
+  }
+  tlRenderRepForm();
+});
+document.getElementById('tlRepBox').addEventListener('change', (e) => {
+  if(e.target.id === 'tlRepEvery'){ tlFormRep.every = +e.target.value; tlRenderRepForm(); }
+});
+document.getElementById('tlDeadline').addEventListener('change', () => { if(tlFormRep.on) tlRenderRepForm(); });
 document.getElementById('tlAddRow').onclick = () => tlShowForm(true);
 document.getElementById('tlAddRow').addEventListener('keydown', e => {
   if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); tlShowForm(true); }
@@ -8960,6 +9124,7 @@ document.getElementById('tlDesc').addEventListener('keydown', e => {
 document.getElementById('tlAddBtn').onclick = async () => {
   const descEl = document.getElementById('tlDesc');
   const desc = descEl.value.trim();
+  if(tlFormRep.on && !tlFormRep.days.length) return;
   if(!desc){
     descEl.style.borderColor = 'var(--red-fg)';
     descEl.placeholder = 'Task name is required';
@@ -8981,6 +9146,13 @@ document.getElementById('tlAddBtn').onclick = async () => {
   const firstNote = document.getElementById('tlNote').value.trim();
   if(firstNote) item.notes.push({ id: tlNid(), ty: 'note', by: tlAuthorName(), tx: firstNote, ts: Date.now() });
   tlLog(item, 'Task created');
+  if(tlFormRep.on){
+    item.rec = { days: tlFormRep.days.slice(), every: tlFormRep.every, end: '' };
+    item.seriesId = item.id;
+    item.hist = [];
+    if(!item.deadline) item.deadline = tlNextOcc(item.rec, tlAddDays(todayStr(), -1));
+    tlLog(item, 'Repeat set: ' + tlRecLabel(item.rec));
+  }
   taskListItems.unshift(item);
   await saveTaskList();
   ['tlDesc','tlVendor','tlDeadline','tlNote'].forEach(id => { document.getElementById(id).value = ''; });
@@ -8993,18 +9165,20 @@ function renderTlSummary(){
   const done = taskListItems.filter(tlIsDone).length;
   const hold = taskListItems.filter(it => !tlIsDone(it) && tlIsHold(it.status)).length;
   const active = taskListItems.length - done;
+  const rec = taskListItems.filter(it => it.rec).length;
   const el = document.getElementById('tlCount');
-  if(el) el.textContent = active + ' active' + (hold ? ' · ' + hold + ' on hold' : '') + ' · ' + done + ' done';
+  if(el) el.textContent = active + ' active' + (hold ? ' · ' + hold + ' on hold' : '') + (rec ? ' · ' + rec + ' recurring' : '') + ' · ' + done + ' done';
 }
 
 function renderTlFilterBar(){
   const bar = document.getElementById('tlFilterBar');
   const openStatuses = taskStatusManager.getList().filter(s => !s.done).map(s => s.name);
-  const opts = ['All', ...openStatuses, 'Overdue'];
+  const opts = ['All', ...openStatuses, 'Recurring', 'Overdue'];
   if(!opts.includes(taskListFilter)) taskListFilter = 'All';
   const overdueN = taskListItems.filter(it => tlEffectiveStatus(it) === 'Overdue').length;
   const label = o => {
     if(o === 'Overdue' && overdueN) return 'Overdue (' + overdueN + ')';
+    if(o === 'Recurring'){ const n = taskListItems.filter(it => it.rec).length; if(n) return 'Recurring (' + n + ')'; }
     if(tlIsHold(o)){ const n = taskListItems.filter(it => it.status === o).length; if(n) return o + ' (' + n + ')'; }
     return o;
   };
@@ -9089,6 +9263,8 @@ function tlRowHtml(it){
   if(it.deadline) meta += `<span class="gt-chip ${od?'od':''}"><i class="ti ti-calendar"></i>${tlFmtDate(it.deadline)}${od ? ' · overdue' : ''}</span>`;
   if(it.pic) meta += `<span class="gt-chip"><i class="ti ti-user"></i>${escapeHtml(it.pic)}</span>`;
   if(it.vendor) meta += `<span class="gt-chip"><i class="ti ti-building"></i>${escapeHtml(it.vendor)}</span>`;
+  if(it.rec) meta += `<span class="gt-chip rc"><i class="ti ti-repeat"></i>${escapeHtml(tlRecLabel(it.rec))}</span>`;
+  else if(it.seriesId) meta += '<span class="gt-chip rc"><i class="ti ti-repeat"></i>Recurring</span>';
   if(g.n) meta += `<span class="gt-chip"><i class="ti ti-subtask"></i>${g.d}/${g.n}</span>`;
   if(!done && g.rq > 0) meta += `<span class="gt-chip warn"><i class="ti ti-lock"></i>${g.rq} required left</span>`;
   if(!done && !hold && g.hasReq && g.rq === 0) meta += '<span class="gt-chip ok"><i class="ti ti-circle-check"></i>Ready to complete</span>';
@@ -9107,8 +9283,9 @@ function tlRowHtml(it){
       <select data-f="pic" data-picsel="1" data-id="${it.id}" aria-label="PIC">${tlPicOptionsHtml(it.pic || '')}</select>
       <input type="text" data-f="vendor" data-id="${it.id}" value="${escapeHtml(it.vendor||'')}" placeholder="Vendor (optional)" aria-label="Vendor">
       ${done ? `<input class="full" type="text" data-f="remark" data-id="${it.id}" value="${escapeHtml(it.remark||'')}" placeholder="Completion remark (optional)" aria-label="Remark">` : ''}
+      ${tlRepDetailHtml(it)}
       <div class="gt-subs">
-        <h4>Sub tasks${g.n ? ' · ' + g.d + ' of ' + g.n + ' done' : ''}</h4>
+        <h4>Sub tasks${g.n ? ' · ' + g.d + ' of ' + g.n + ' done' : ''}${it.rec ? ' · resets each occurrence' : ''}</h4>
         ${(it.subs || []).map(sb => tlSubRowHtml(it, sb)).join('')}
         <div class="gt-subadd">
           <input type="text" id="tlSubT_${it.id}" placeholder="Add sub task" aria-label="Sub task name">
@@ -9133,7 +9310,7 @@ function tlRowHtml(it){
 function renderTlList(){
   const listEl = document.getElementById('tlList');
   const open = taskListItems.filter(it => !tlIsDone(it));
-  const vis = open.filter(it => taskListFilter === 'All' || (taskListFilter === 'Overdue' ? tlEffectiveStatus(it) === 'Overdue' : it.status === taskListFilter));
+  const vis = open.filter(it => taskListFilter === 'All' || (taskListFilter === 'Overdue' ? tlEffectiveStatus(it) === 'Overdue' : (taskListFilter === 'Recurring' ? !!it.rec : it.status === taskListFilter)));
   vis.sort((a, b) => {
     const ha = tlIsHold(a.status) ? 1 : 0, hb = tlIsHold(b.status) ? 1 : 0;
     if(ha !== hb) return ha - hb;
@@ -9173,7 +9350,9 @@ function renderTlList(){
   if(tlFocusSub){ const fe = document.getElementById('tlSubT_' + tlFocusSub); if(fe) fe.focus(); tlFocusSub = null; }
 
   const undoIt = tlUndoId ? taskListItems.find(i => i.id === tlUndoId) : null;
-  document.getElementById('tlUndo').innerHTML = undoIt ? '<div class="gt-undo"><span>Task marked as done</span><button type="button" data-undo="1">Undo</button></div>' : '';
+  document.getElementById('tlUndo').innerHTML = tlUndoRec
+    ? `<div class="gt-undo"><span>${escapeHtml(tlUndoRec.msg)}</span><button type="button" data-undo="1">Undo</button></div>`
+    : (undoIt ? '<div class="gt-undo"><span>Task marked as done</span><button type="button" data-undo="1">Undo</button></div>' : '');
 
   const done = taskListItems.filter(tlIsDone);
   const dw = document.getElementById('tlDoneWrap');
@@ -9198,6 +9377,8 @@ async function tlToggleDone(id){
     tlUndoId = null;
   } else {
     if(tlSubStats(it).rq > 0){ tlBlockDone(id); return; }
+    if(it.rec){ await tlCompleteRecurring(it); return; }
+    tlUndoRec = null;
     const d = tlFirstDoneStatus();
     if(!d){ alert('No "done" status is set. Mark one as done in the status manager (gear icon) first.'); return; }
     it.prevStatus = it.status;
@@ -9205,7 +9386,7 @@ async function tlToggleDone(id){
     it.status = d.name;
     tlUndoId = id;
     clearTimeout(tlUndoTimer);
-    tlUndoTimer = setTimeout(() => { tlUndoId = null; renderTlList(); }, 4000);
+    tlArmUndo();
   }
   await saveTaskList();
   renderTlSummary(); renderTlFilterBar(); renderTlList();
@@ -9224,10 +9405,38 @@ async function tlPersist(id){
 (function tlBindEvents(){
   const view = document.getElementById('view-tasklist');
   view.addEventListener('click', async (e) => {
-    const t = e.target.closest('[data-ck],[data-sck],[data-sdel],[data-sadd],[data-npin],[data-ndel],[data-ncyc],[data-npost],[data-ntype],[data-nact],[data-del],[data-undo],[data-sec],[data-manage],[data-f].fu-filter,[data-row],[data-stop]');
+    const t = e.target.closest('[data-rday],[data-rmk],[data-rskip],[data-rstop],[data-ck],[data-sck],[data-sdel],[data-sadd],[data-npin],[data-ndel],[data-ncyc],[data-npost],[data-ntype],[data-nact],[data-del],[data-undo],[data-sec],[data-manage],[data-f].fu-filter,[data-row],[data-stop]');
     if(!t) return;
     if(t.dataset.stop) return;
     if(t.dataset.ck){ e.stopPropagation(); await tlToggleDone(t.dataset.ck); return; }
+    if(t.dataset.rmk || t.dataset.rday || t.dataset.rskip || t.dataset.rstop){
+      e.stopPropagation();
+      const parts = String(t.dataset.rmk || t.dataset.rday || t.dataset.rskip || t.dataset.rstop).split(':');
+      const it = taskListItems.find(i => i.id === parts[0]);
+      if(!it) return;
+      if(t.dataset.rmk){
+        const wd = tlParseDate(it.deadline || todayStr()).getDay();
+        it.rec = { days: [wd], every: 1, end: '' };
+        it.seriesId = it.seriesId || it.id;
+        it.hist = it.hist || [];
+        tlLog(it, 'Repeat set: ' + tlRecLabel(it.rec));
+      } else if(t.dataset.rday){
+        if(!it.rec) return;
+        const dn = +parts[1], ix = it.rec.days.indexOf(dn);
+        if(ix >= 0){ if(it.rec.days.length <= 1) return; it.rec.days.splice(ix, 1); } else it.rec.days.push(dn);
+        tlLog(it, 'Repeat changed: ' + tlRecLabel(it.rec));
+      } else if(t.dataset.rstop){
+        it.rec = null;
+        tlLog(it, 'Stopped repeating');
+      } else {
+        if(!it.rec) return;
+        await tlSkipRecurring(it);
+        return;
+      }
+      await saveTaskList();
+      renderTlSummary(); renderTlFilterBar(); renderTlList();
+      return;
+    }
     if(t.dataset.ntype){ tlNoteType = t.dataset.ntype; renderTlList(); return; }
     if(t.dataset.nact){ tlShowAct = !tlShowAct; renderTlList(); return; }
     if(t.dataset.npost){ e.stopPropagation(); await tlPostNote(t.dataset.npost); return; }
@@ -9312,7 +9521,7 @@ async function tlPersist(id){
       e.stopPropagation();
       const target = taskListItems.find(i => i.id === t.dataset.del);
       const nSub = target && target.subs ? target.subs.length : 0;
-      if(!confirm('Delete this task' + (nSub ? ' and its ' + nSub + ' sub task' + (nSub > 1 ? 's' : '') : '') + '?')) return;
+      if(!confirm('Delete this task' + (target && target.rec ? ' (the weekly repeat stops)' : '') + (nSub ? ' and its ' + nSub + ' sub task' + (nSub > 1 ? 's' : '') : '') + '?')) return;
       taskListItems = taskListItems.filter(i => i.id !== t.dataset.del);
       if(tlOpenId === t.dataset.del) tlOpenId = null;
       await saveTaskList();
@@ -9320,6 +9529,17 @@ async function tlPersist(id){
       return;
     }
     if(t.dataset.undo){
+      if(tlUndoRec){
+        const r = tlUndoRec;
+        tlUndoRec = null;
+        clearTimeout(tlUndoTimer);
+        const ix = taskListItems.findIndex(i => i.id === r.snap.id);
+        if(ix >= 0) taskListItems[ix] = r.snap;
+        if(r.cloneId) taskListItems = taskListItems.filter(i => i.id !== r.cloneId);
+        await saveTaskList();
+        renderTlSummary(); renderTlFilterBar(); renderTlList();
+        return;
+      }
       const it = taskListItems.find(i => i.id === tlUndoId);
       if(it){
         const was = it.status;
@@ -9355,10 +9575,23 @@ async function tlPersist(id){
       if(t.value === '__add'){ tlOpenPicModal(t); return; }
       t.dataset.prev = t.value;
     }
+    if(t.dataset && (t.dataset.rev || t.dataset.rendt || t.dataset.rendv)){
+      const rid = t.dataset.rev || t.dataset.rendt || t.dataset.rendv;
+      const ri = taskListItems.find(i => i.id === rid);
+      if(!ri || !ri.rec) return;
+      if(t.dataset.rev) ri.rec.every = +t.value;
+      else if(t.dataset.rendt) ri.rec.end = t.value === 'd' ? tlAddDays(ri.deadline || todayStr(), 84) : '';
+      else ri.rec.end = t.value;
+      tlLog(ri, 'Repeat changed: ' + tlRecLabel(ri.rec) + (ri.rec.end ? ' · ends ' + tlShortDate(ri.rec.end) : ''));
+      await saveTaskList();
+      renderTlFilterBar(); renderTlList();
+      return;
+    }
     if(!t.dataset || !t.dataset.f || !t.dataset.id || t.classList.contains('fu-filter')) return;
     const it = taskListItems.find(i => i.id === t.dataset.id);
     if(!it) return;
     if(t.dataset.f === 'status' && taskStatusManager.isDone(t.value) && !tlIsDone(it) && tlSubStats(it).rq > 0){ tlBlockDone(it.id); return; }
+    if(t.dataset.f === 'status' && taskStatusManager.isDone(t.value) && !tlIsDone(it) && it.rec){ await tlCompleteRecurring(it); return; }
     if(t.dataset.f === 'status' && it.status !== t.value && !taskStatusManager.isDone(it.status)) it.prevStatus = it.status;
     const oldVal = it[t.dataset.f];
     it[t.dataset.f] = t.value;
