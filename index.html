@@ -4294,7 +4294,8 @@ function checkRosterGapAlert(){
     if(mainEmpty) missingMain.push(d);
     const helperRec = (rosterHelperDays || []).find(r => sameDay(r.date, d));
     const helperEmpty = !helperRec || (helperRec.shift1 === '-' && helperRec.shift2 === '-');
-    if(helperEmpty && !rosterHelperHidden) missingHelper.push(d); // Helper disembunyikan -> tidak ada notif
+    // v20: notif banner untuk Tim Helper dihapus permanen (roster Helper sementara ditiadakan), walau tampilan Helper diaktifkan.
+    void helperEmpty;
   }
   if(missingMain.length === 0 && missingHelper.length === 0) return;
   console.warn('Roster gap terdeteksi.', {
