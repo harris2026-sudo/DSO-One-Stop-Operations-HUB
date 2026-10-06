@@ -812,6 +812,52 @@
   .pobr-card h3{font-family:var(--font-display);color:var(--navy);font-size:14.5px;margin:0 0 3px;display:flex;align-items:center;gap:8px;}
   .pobr-card h3 i{color:var(--accent);font-size:17px;}
   .pobr-card .pobr-subtitle{font-size:11.5px;color:var(--text-secondary);margin:0 0 14px;}
+  .pobm-open-btn{margin-left:auto;display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--navy);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;}
+  .pobm-open-btn:hover{background:var(--zebra);}
+  .pobm-overlay{position:fixed;inset:0;background:rgba(15,27,44,.5);z-index:100000;display:flex;align-items:flex-start;justify-content:center;padding:4vh 12px;overflow-y:auto;}
+  .pobm-overlay[hidden]{display:none;}
+  .pobm-modal{background:#fff;border-radius:14px;width:min(760px,100%);padding:16px 18px;box-shadow:0 12px 40px rgba(0,0,0,.25);font-family:inherit;color:var(--navy);}
+  .pobm-hd{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px;}
+  .pobm-hd h3{margin:0;font-size:15px;}
+  .pobm-chip{font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px;background:var(--blue-bg);color:var(--blue-fg);}
+  .pobm-chip.warn{background:var(--gold-bg);color:var(--gold-fg);}
+  .pobm-x{border:0;background:transparent;font-size:20px;cursor:pointer;color:var(--navy);padding:2px 6px;border-radius:6px;}
+  .pobm-x:hover{background:var(--zebra);}
+  .pobm-input{width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;background:#fff;color:var(--navy);}
+  .pobm-row{display:grid;grid-template-columns:38px minmax(0,1.6fr) minmax(0,1fr) 96px 98px;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--border);}
+  .pobm-row.off .pobm-nm,.pobm-row.off .pobm-rl{opacity:.5;}
+  .pobm-av{width:34px;height:34px;border-radius:50%;background:var(--zebra);color:var(--navy);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;overflow:hidden;}
+  .pobm-av img{width:100%;height:100%;object-fit:cover;}
+  .pobm-nm{font-size:13px;font-weight:700;margin:0;}
+  .pobm-rl{font-size:11.5px;color:#5B6770;margin:0;}
+  .pobm-bd{font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:999px;justify-self:start;}
+  .pobm-bd.on{background:var(--green-bg);color:var(--green-fg);}
+  .pobm-bd.off{background:var(--gold-bg);color:var(--gold-fg);}
+  .pobm-bd.man{background:var(--blue-bg);color:var(--blue-fg);}
+  .pobm-bd.sh{background:var(--zebra);color:#5B6770;}
+  .pobm-acts{display:flex;gap:2px;justify-content:flex-end;}
+  .pobm-ib{width:28px;height:28px;border:0;background:transparent;border-radius:6px;cursor:pointer;font-size:15px;color:var(--navy);}
+  .pobm-ib:hover{background:var(--zebra);}
+  .pobm-ib.danger{color:#B23A3A;}
+  .pobm-form{border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-top:12px;background:#FAFBFA;}
+  .pobm-form h4{margin:0 0 10px;font-size:13px;}
+  .pobm-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;align-items:end;}
+  .pobm-grid label{display:block;font-size:11.5px;color:#5B6770;margin-bottom:3px;}
+  .pobm-btn{padding:7px 14px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--navy);font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;}
+  .pobm-btn:hover{background:var(--zebra);}
+  .pobm-btn.pri{background:var(--navy);color:#fff;border-color:var(--navy);}
+  .pobm-err{font-size:12.5px;color:#B23A3A;}
+  .pobm-note{font-size:11.5px;color:#5B6770;margin-top:10px;}
+  .pobm-tools{margin-top:12px;border:1px solid var(--border);border-radius:10px;padding:10px 12px;background:#FAFBFA;}
+  .pobm-tools[hidden]{display:none;}
+  .pobm-tools-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px;font-size:12px;}
+  .pobm-lg{font-size:11.5px;font-weight:700;padding:3px 10px;border-radius:999px;cursor:pointer;border:2px solid transparent;}
+  .pobm-lg.sel{border-color:var(--navy);}
+  table.pobr-table td.status-cell.pobr-manual{cursor:pointer;outline:1px dashed #8A95A0;outline-offset:-2px;}
+  table.pobr-table td.status-cell.pobr-manual:hover{filter:brightness(.93);}
+  .pobr-tag{font-size:9px;font-weight:700;background:var(--blue-bg);color:var(--blue-fg);padding:1px 6px;border-radius:999px;margin-left:5px;}
+  .pobr-role{display:block;font-size:10px;font-weight:400;color:#5B6770;}
+  @media(max-width:560px){.pobm-row{grid-template-columns:34px 1fr 96px}.pobm-row .pobm-co{display:none}}
   .pobr-head-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;}
   .pobr-src-icon{width:30px;height:30px;border-radius:8px;background:var(--zebra);display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;position:relative;transition:background .12s ease;}
   .pobr-src-icon:hover{background:var(--steel-light);}
@@ -1623,6 +1669,7 @@
           <h3><i class="ti ti-users"></i> Digitech Team Attendance Status</h3>
           <p class="pobr-subtitle" style="margin:0;"><span id="pobrPersonCount">10</span> personel, kode ON/OFF/HO/Leave sesuai roster resmi</p>
         </div>
+        <button type="button" class="pobm-open-btn" id="pobmOpenBtn"><i class="ti ti-user-cog"></i> Kelola member</button>
         <div class="pobr-src-icon" id="pobrSrcIcon" title="Klik untuk sync dari Rooster_BIB.xlsx (Google Sheets)">
           <i class="ti ti-file-spreadsheet"></i>
           <span class="pobr-src-tip" id="pobrSrcTip">Sumber: Rooster_BIB.xlsx — klik untuk sync</span>
@@ -1649,6 +1696,20 @@
 
       <div class="pobr-table-wrap">
         <table class="pobr-table" id="pobrTable"></table>
+      </div>
+      <div class="pobm-tools" id="pobrManualTools" hidden>
+        <div class="pobm-tools-row"><b>Isi status member manual</b><span id="pobmLegend"></span></div>
+        <div class="pobm-tools-row">
+          <span>Isi cepat</span>
+          <select id="pobmQfMember" class="pobm-input" style="width:auto;"></select>
+          <input type="date" id="pobmQfFrom" class="pobm-input" style="width:auto;" aria-label="Dari tanggal">
+          <span>sampai</span>
+          <input type="date" id="pobmQfTo" class="pobm-input" style="width:auto;" aria-label="Sampai tanggal">
+          <select id="pobmQfStatus" class="pobm-input" style="width:auto;"><option value="1">ON</option><option value="2">OFF</option><option value="3">HO</option><option value="4">Leave</option></select>
+          <button type="button" class="pobm-btn" id="pobmQfApply">Terapkan</button>
+          <span class="pobm-err" id="pobmQfMsg"></span>
+        </div>
+        <div class="pobm-note" style="margin-top:2px;">Pilih status di atas, lalu klik sel bergaris putus pada baris member manual. Klik sel yang sama lagi untuk mengosongkan. Baris dari sheet tetap mengikuti Rooster_BIB.xlsx.</div>
       </div>
     </div>
   </div>
@@ -4720,7 +4781,7 @@ async function syncPobrFromSheet(showAlert){
       tip += ` · ⚠️ sheet baru terisi s/d ${lastSheetDate.toLocaleDateString('id-ID')} (${daysBehind} hari lalu) - cek apakah roster perlu diperpanjang`;
     }
     if(tipEl) tipEl.textContent = tip;
-    pobrData = fresh;
+    pobrBase = fresh; pobrData = pobrMerge(fresh);
     const countEl = document.getElementById('pobrPersonCount');
     if(countEl) countEl.textContent = pobrData.people.length;
     const q = (document.getElementById('pobrSearchInput')||{}).value || '';
@@ -4813,6 +4874,7 @@ function pobrNormalizeAlias(s){
 }
 function pobrResolvePhoto(name){
   const key = pobrNormalizeAlias(name);
+  if(typeof pobrPhotoByName !== 'undefined' && pobrPhotoByName[key]) return pobrPhotoByName[key];
   for(const entry of POBR_PHOTO_DIRECTORY){
     if(entry.aliases.some(a => pobrNormalizeAlias(a) === key)) return entry.photo;
   }
@@ -6642,6 +6704,348 @@ const POBR_STATUS_MAP = {
 };
 const POBR_DAY_ID = ['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
 let pobrMode = 'week';
+/* ============ v18: KELOLA MEMBER POB (lapisan terpisah, TIDAK menulis ke Google Sheet) ============
+   - Member dari sheet Rooster_BIB tetap mengikuti sheet; di sini hanya bisa disembunyikan / diubah tampilannya.
+   - Member manual: ditambah, diubah, dihapus, dan status ON/OFF/HO/Leave per hari diisi manual.
+   - Disimpan ke backend (store) key 'dso:pob-members' - BUKAN localStorage - sehingga tetap ada setelah sync. */
+const DSO_POBM_KEY = 'dso:pob-members';
+let pobrOverlay = { members:[], hidden:[], edits:{} };
+let pobrOverlayLoaded = false;
+let pobrBase = null;
+let pobrPhotoByName = {};
+let pobmStatusSel = 1;
+let pobmSaveTimer = null;
+
+async function pobrLoadOverlay(){
+  if(pobrOverlayLoaded) return true;
+  try{
+    const res = await store.get(DSO_POBM_KEY, true);
+    if(res && res.value){
+      const o = JSON.parse(res.value) || {};
+      pobrOverlay = { members: Array.isArray(o.members) ? o.members : [], hidden: Array.isArray(o.hidden) ? o.hidden : [], edits: o.edits || {} };
+    }
+    pobrOverlayLoaded = true;
+  }catch(e){
+    if(e && e.message === 'not found') pobrOverlayLoaded = true;
+    else console.warn('POB member: gagal memuat data (koneksi?)', e && e.message);
+  }
+  return pobrOverlayLoaded;
+}
+async function pobrSaveOverlayNow(){
+  try{ await store.set(DSO_POBM_KEY, JSON.stringify(pobrOverlay), true); return true; }
+  catch(e){ console.error('POB member: gagal simpan', e); showToast('Gagal menyimpan perubahan member', 'error'); return false; }
+}
+function pobrSaveOverlayDebounced(){ clearTimeout(pobmSaveTimer); pobmSaveTimer = setTimeout(pobrSaveOverlayNow, 400); }
+async function pobrLoadMerged(){
+  const raw = await dsoLoad(DSO_POBR_KEY, POBR_SEED);
+  await pobrLoadOverlay();
+  pobrBase = raw;
+  return pobrMerge(raw);
+}
+function pobrMerge(raw){
+  pobrPhotoByName = {};
+  if(!raw || !Array.isArray(raw.people)) return raw;
+  const hidden = new Set(pobrOverlay.hidden);
+  const people = [];
+  raw.people.forEach(p => {
+    const key = pobrNormalizeAlias(p.name);
+    if(hidden.has(key)) return;
+    const q = Object.assign({}, p, { _src:'sheet', _key:key });
+    const ed = pobrOverlay.edits[key];
+    if(ed){
+      if(ed.name) q.name = ed.name;
+      if(ed.role) q.role = ed.role;
+      if(ed.company) q.company = ed.company;
+      if(ed.photo) pobrPhotoByName[pobrNormalizeAlias(q.name)] = ed.photo;
+    }
+    people.push(q);
+  });
+  pobrOverlay.members.forEach(m => {
+    if(m.hidden) return;
+    const st = m.st || {};
+    people.push({ name:m.name, photo:null, role:m.role, company:m.company, _src:'manual', _id:m.id, statuses:(raw.dates||[]).map(d => st[d] || 0) });
+    if(m.photo) pobrPhotoByName[pobrNormalizeAlias(m.name)] = m.photo;
+  });
+  return { dates: raw.dates, people };
+}
+function pobrRefreshAll(){
+  if(!pobrBase) return;
+  pobrData = pobrMerge(pobrBase);
+  const c = document.getElementById('pobrPersonCount'); if(c) c.textContent = pobrData.people.length;
+  const q = ((document.getElementById('pobrSearchInput')||{}).value || '').toLowerCase().trim();
+  pobrRenderMiniKpi(); pobrRenderAvatars(q); pobrRenderTable(q); pobrUpdateManualTools();
+  const ov = document.getElementById('view-overview');
+  if(ov && ov.classList.contains('active')) renderOverviewPobCard();
+}
+
+/* ---- Isi status manual (klik sel + isi cepat) ---- */
+function pobrUpdateManualTools(){
+  const box = document.getElementById('pobrManualTools');
+  if(!box) return;
+  const list = pobrOverlay.members.filter(m => !m.hidden);
+  box.hidden = list.length === 0;
+  const sel = document.getElementById('pobmQfMember');
+  if(sel){
+    const prev = sel.value;
+    sel.innerHTML = list.map(m => `<option value="${m.id}">${escapeHtml(m.name)}</option>`).join('');
+    if(prev && list.some(m => m.id === prev)) sel.value = prev;
+  }
+  const lg = document.getElementById('pobmLegend');
+  if(lg && !lg.dataset.built){
+    lg.dataset.built = '1';
+    lg.innerHTML = [1,2,3,4,0].map(k => {
+      const st = POBR_STATUS_MAP[k];
+      return `<span class="pobm-lg" data-k="${k}" style="background:${st.bg};color:${st.fg};">${k ? st.label : 'Kosongkan'}</span>`;
+    }).join(' ');
+    lg.addEventListener('click', (e) => {
+      const c = e.target.closest('.pobm-lg'); if(!c) return;
+      pobmStatusSel = parseInt(c.dataset.k, 10);
+      pobrUpdateLegendSel();
+    });
+  }
+  pobrUpdateLegendSel();
+}
+function pobrUpdateLegendSel(){
+  document.querySelectorAll('#pobmLegend .pobm-lg').forEach(c => c.classList.toggle('sel', parseInt(c.dataset.k,10) === pobmStatusSel));
+}
+function pobrBindManual(){
+  const table = document.getElementById('pobrTable');
+  if(table && !table.dataset.manualBound){
+    table.dataset.manualBound = '1';
+    table.addEventListener('click', async (e) => {
+      const td = e.target.closest('td.pobr-manual'); if(!td) return;
+      if(!(await pobrLoadOverlay())){ showToast('Data member belum termuat. Cek koneksi lalu coba lagi.', 'error'); return; }
+      const m = pobrOverlay.members.find(x => x.id === td.dataset.id); if(!m) return;
+      m.st = m.st || {};
+      const iso = td.dataset.iso;
+      if(pobmStatusSel === 0 || m.st[iso] === pobmStatusSel) delete m.st[iso]; else m.st[iso] = pobmStatusSel;
+      pobrRefreshAll();
+      pobrSaveOverlayDebounced();
+    });
+  }
+  const ap = document.getElementById('pobmQfApply');
+  if(ap && !ap.dataset.bound){
+    ap.dataset.bound = '1';
+    ['pobmQfFrom','pobmQfTo','pobmQfMember'].forEach(id => document.getElementById(id).addEventListener('input', () => { document.getElementById('pobmQfMsg').textContent = ''; }));
+    ap.addEventListener('click', async () => {
+      const msg = document.getElementById('pobmQfMsg');
+      const id = document.getElementById('pobmQfMember').value;
+      const a = document.getElementById('pobmQfFrom').value, b = document.getElementById('pobmQfTo').value;
+      const v = parseInt(document.getElementById('pobmQfStatus').value, 10);
+      if(!id){ msg.textContent = 'Belum ada member manual'; return; }
+      if(!a || !b){ msg.textContent = 'Isi kedua tanggal dulu'; return; }
+      if(a > b){ msg.textContent = 'Tanggal awal harus sebelum tanggal akhir'; return; }
+      if(!(await pobrLoadOverlay())){ msg.textContent = 'Data member belum termuat, coba lagi'; return; }
+      const m = pobrOverlay.members.find(x => x.id === id); if(!m) return;
+      m.st = m.st || {};
+      let n = 0;
+      (pobrBase.dates || []).forEach(d => { if(d && d >= a && d <= b){ m.st[d] = v; n++; } });
+      if(!n){ msg.textContent = 'Rentang di luar tanggal roster'; return; }
+      msg.textContent = '';
+      pobrRefreshAll();
+      await pobrSaveOverlayNow();
+      showToast(n + ' hari diisi ' + POBR_STATUS_MAP[v].label, 'success');
+    });
+  }
+}
+
+/* ---- Modal Kelola member ---- */
+let pobmEl = null;
+let pobmEdit = null;      // {type:'sheet'|'manual', key|id}
+let pobmPhoto = undefined; // undefined = tidak diubah, null = dihapus, string = foto baru
+function pobmInitials(n){ return pobrInitials(n); }
+function pobmBuild(){
+  if(pobmEl) return;
+  pobmEl = document.createElement('div');
+  pobmEl.className = 'pobm-overlay';
+  pobmEl.hidden = true;
+  pobmEl.innerHTML = `<div class="pobm-modal" role="dialog" aria-modal="true" aria-label="Kelola member POB">
+    <div class="pobm-hd"><h3>Kelola member POB</h3>
+      <div style="display:flex;gap:6px;align-items:center;"><span class="pobm-chip" id="pobmC1"></span><span class="pobm-chip warn" id="pobmC2"></span>
+      <button type="button" class="pobm-x" id="pobmClose" aria-label="Tutup"><i class="ti ti-x"></i></button></div></div>
+    <input class="pobm-input" id="pobmSearch" placeholder="Cari nama atau jabatan" style="margin-bottom:6px;">
+    <div id="pobmList"></div>
+    <div class="pobm-form">
+      <h4 id="pobmFTitle"><i class="ti ti-user-plus"></i> Tambah member baru</h4>
+      <div class="pobm-grid">
+        <div><label for="pobmFn">Nama lengkap</label><input class="pobm-input" id="pobmFn" placeholder="Contoh: Budi Santoso"></div>
+        <div><label for="pobmFr">Jabatan</label><input class="pobm-input" id="pobmFr" placeholder="Contoh: Field Engineer"></div>
+        <div><label for="pobmFc">Perusahaan</label><select class="pobm-input" id="pobmFc"><option>Employee (GEMS)</option><option>Contractor</option></select></div>
+        <div><label>Foto</label><div style="display:flex;gap:6px;align-items:center;"><button type="button" class="pobm-btn" id="pobmPhotoBtn"><i class="ti ti-photo-up"></i> Pilih foto</button><span class="pobm-av" id="pobmPhotoPrev" style="display:none;"></span><button type="button" class="pobm-ib" id="pobmPhotoDel" style="display:none;" aria-label="Hapus foto"><i class="ti ti-x"></i></button></div><input type="file" id="pobmFile" accept="image/*" hidden></div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap;">
+        <button type="button" class="pobm-btn pri" id="pobmSave"><i class="ti ti-check"></i> <span id="pobmSv">Tambah member</span></button>
+        <button type="button" class="pobm-btn" id="pobmCancel" style="display:none;">Batal</button>
+        <span class="pobm-err" id="pobmErr"></span>
+      </div>
+    </div>
+    <div class="pobm-note">Perubahan di sini disimpan di HUB dan tidak mengubah Google Sheet Rooster_BIB. Member dari sheet hanya bisa disembunyikan atau diubah tampilannya. Status ON/OFF member manual diisi di tabel kehadiran.</div>
+  </div>`;
+  document.body.appendChild(pobmEl);
+  pobmEl.addEventListener('click', (e) => { if(e.target === pobmEl) pobmClose(); });
+  document.addEventListener('keydown', (e) => { if(e.key === 'Escape' && pobmEl && !pobmEl.hidden) pobmClose(); });
+  pobmEl.querySelector('#pobmClose').onclick = pobmClose;
+  pobmEl.querySelector('#pobmSearch').addEventListener('input', pobmRenderList);
+  pobmEl.querySelector('#pobmList').addEventListener('click', pobmListClick);
+  pobmEl.querySelector('#pobmSave').onclick = pobmSave;
+  pobmEl.querySelector('#pobmCancel').onclick = pobmResetForm;
+  pobmEl.querySelector('#pobmFn').addEventListener('input', () => { pobmEl.querySelector('#pobmErr').textContent = ''; });
+  pobmEl.querySelector('#pobmPhotoBtn').onclick = () => pobmEl.querySelector('#pobmFile').click();
+  pobmEl.querySelector('#pobmPhotoDel').onclick = () => { pobmPhoto = null; pobmShowPhoto(null); };
+  pobmEl.querySelector('#pobmFile').addEventListener('change', async (e) => {
+    const f = e.target.files && e.target.files[0]; e.target.value = '';
+    if(!f) return;
+    try{ pobmPhoto = await pobmReadPhoto(f); pobmShowPhoto(pobmPhoto); }
+    catch(err){ pobmEl.querySelector('#pobmErr').textContent = 'Foto tidak bisa dibaca. Coba file lain'; }
+  });
+}
+function pobmReadPhoto(file){
+  return new Promise((resolve, reject) => {
+    const fr = new FileReader();
+    fr.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const S = 160, c = document.createElement('canvas'); c.width = c.height = S;
+        const m = Math.min(img.width, img.height);
+        c.getContext('2d').drawImage(img, (img.width-m)/2, (img.height-m)/2, m, m, 0, 0, S, S);
+        resolve(c.toDataURL('image/jpeg', 0.82));
+      };
+      img.onerror = () => reject(new Error('gambar rusak'));
+      img.src = fr.result;
+    };
+    fr.onerror = () => reject(new Error('gagal baca'));
+    fr.readAsDataURL(file);
+  });
+}
+function pobmShowPhoto(src){
+  const prev = pobmEl.querySelector('#pobmPhotoPrev'), del = pobmEl.querySelector('#pobmPhotoDel');
+  if(src){ prev.innerHTML = `<img src="${src}" alt="Foto">`; prev.style.display = 'flex'; del.style.display = ''; }
+  else { prev.innerHTML = ''; prev.style.display = 'none'; del.style.display = 'none'; }
+}
+async function pobmOpen(){
+  pobmBuild();
+  if(!(await pobrLoadOverlay())){ showToast('Data member belum termuat. Cek koneksi lalu coba lagi.', 'error'); return; }
+  if(!pobrBase) pobrBase = await dsoLoad(DSO_POBR_KEY, POBR_SEED);
+  pobmResetForm();
+  pobmEl.querySelector('#pobmSearch').value = '';
+  pobmEl.hidden = false;
+  pobmRenderList();
+}
+function pobmClose(){ if(pobmEl) pobmEl.hidden = true; }
+function pobmEntries(){
+  const out = [];
+  const hidden = new Set(pobrOverlay.hidden);
+  ((pobrBase && pobrBase.people) || []).forEach(p => {
+    const key = pobrNormalizeAlias(p.name), ed = pobrOverlay.edits[key] || {};
+    out.push({ type:'sheet', key, origName:p.name, name:ed.name || p.name, role:ed.role || '', company:ed.company || '', photo: ed.photo || pobrResolvePhotoRaw(p.name), on:!hidden.has(key) });
+  });
+  pobrOverlay.members.forEach(m => out.push({ type:'manual', id:m.id, name:m.name, role:m.role||'', company:m.company||'', photo:m.photo||null, on:!m.hidden }));
+  return out;
+}
+function pobrResolvePhotoRaw(name){
+  const key = pobrNormalizeAlias(name);
+  for(const entry of POBR_PHOTO_DIRECTORY){ if(entry.aliases.some(a => pobrNormalizeAlias(a) === key)) return entry.photo; }
+  return null;
+}
+function pobmRenderList(){
+  if(!pobmEl) return;
+  const q = pobmEl.querySelector('#pobmSearch').value.toLowerCase().trim();
+  const all = pobmEntries();
+  const act = all.filter(e => e.on).length;
+  pobmEl.querySelector('#pobmC1').textContent = act + ' aktif';
+  pobmEl.querySelector('#pobmC2').textContent = (all.length - act) + ' disembunyikan';
+  const rows = all.filter(e => !q || (e.name + ' ' + e.role).toLowerCase().includes(q)).map(e => {
+    const av = e.photo ? `<img src="${e.photo}" alt="">` : escapeHtml(pobmInitials(e.name));
+    const ref = e.type === 'manual' ? `data-t="manual" data-id="${e.id}"` : `data-t="sheet" data-key="${e.key}"`;
+    return `<div class="pobm-row${e.on ? '' : ' off'}">
+      <div class="pobm-av">${av}</div>
+      <div><p class="pobm-nm">${escapeHtml(e.name)}</p><p class="pobm-rl">${escapeHtml(e.role || '-')}</p></div>
+      <div class="pobm-co"><p class="pobm-rl">${escapeHtml(e.company || '-')}</p><span class="pobm-bd ${e.type === 'manual' ? 'man' : 'sh'}">${e.type === 'manual' ? 'Manual' : 'Dari sheet'}</span></div>
+      <span class="pobm-bd ${e.on ? 'on' : 'off'}">${e.on ? 'Aktif' : 'Disembunyikan'}</span>
+      <div class="pobm-acts">
+        <button type="button" class="pobm-ib" data-a="e" ${ref} title="Ubah" aria-label="Ubah"><i class="ti ti-pencil"></i></button>
+        <button type="button" class="pobm-ib" data-a="t" ${ref} title="${e.on ? 'Sembunyikan' : 'Tampilkan'}" aria-label="${e.on ? 'Sembunyikan' : 'Tampilkan'}"><i class="ti ${e.on ? 'ti-eye-off' : 'ti-eye'}"></i></button>
+        ${e.type === 'manual' ? `<button type="button" class="pobm-ib danger" data-a="d" ${ref} title="Hapus" aria-label="Hapus"><i class="ti ti-trash"></i></button>` : ''}
+      </div></div>`;
+  }).join('');
+  pobmEl.querySelector('#pobmList').innerHTML = rows || '<p class="pobm-rl" style="padding:12px 0;">Tidak ada member yang cocok.</p>';
+}
+async function pobmCommit(){
+  pobrRefreshAll();
+  pobmRenderList();
+  await pobrSaveOverlayNow();
+}
+async function pobmListClick(e){
+  const b = e.target.closest('button'); if(!b) return;
+  const a = b.dataset.a, t = b.dataset.t;
+  const m = t === 'manual' ? pobrOverlay.members.find(x => x.id === b.dataset.id) : null;
+  if(a === 't'){
+    if(t === 'manual'){ if(!m) return; m.hidden = !m.hidden; }
+    else {
+      const key = b.dataset.key, i = pobrOverlay.hidden.indexOf(key);
+      if(i >= 0) pobrOverlay.hidden.splice(i, 1); else pobrOverlay.hidden.push(key);
+    }
+    await pobmCommit();
+  } else if(a === 'd'){
+    if(!m) return;
+    if(b.dataset.sure){ pobrOverlay.members = pobrOverlay.members.filter(x => x.id !== m.id); if(pobmEdit && pobmEdit.id === m.id) pobmResetForm(); await pobmCommit(); showToast('Member dihapus', 'success'); }
+    else {
+      b.dataset.sure = '1'; b.title = 'Klik lagi untuk konfirmasi hapus'; b.innerHTML = '<i class="ti ti-check"></i>';
+      setTimeout(() => { if(b.isConnected){ delete b.dataset.sure; b.title = 'Hapus'; b.innerHTML = '<i class="ti ti-trash"></i>'; } }, 2500);
+    }
+  } else if(a === 'e'){
+    const ent = pobmEntries().find(x => t === 'manual' ? x.id === b.dataset.id : x.key === b.dataset.key); if(!ent) return;
+    pobmEdit = t === 'manual' ? { type:'manual', id:ent.id } : { type:'sheet', key:ent.key };
+    pobmPhoto = undefined;
+    pobmEl.querySelector('#pobmFn').value = ent.name;
+    pobmEl.querySelector('#pobmFr').value = ent.role;
+    pobmEl.querySelector('#pobmFc').value = ent.company === 'Contractor' ? 'Contractor' : 'Employee (GEMS)';
+    pobmShowPhoto(ent.photo);
+    pobmEl.querySelector('#pobmFTitle').innerHTML = '<i class="ti ti-user-edit"></i> Ubah member';
+    pobmEl.querySelector('#pobmSv').textContent = 'Simpan perubahan';
+    pobmEl.querySelector('#pobmCancel').style.display = '';
+    pobmEl.querySelector('#pobmFn').focus();
+  }
+}
+function pobmResetForm(){
+  pobmEdit = null; pobmPhoto = undefined;
+  ['pobmFn','pobmFr'].forEach(id => { pobmEl.querySelector('#' + id).value = ''; });
+  pobmEl.querySelector('#pobmFc').value = 'Employee (GEMS)';
+  pobmShowPhoto(null);
+  pobmEl.querySelector('#pobmFTitle').innerHTML = '<i class="ti ti-user-plus"></i> Tambah member baru';
+  pobmEl.querySelector('#pobmSv').textContent = 'Tambah member';
+  pobmEl.querySelector('#pobmCancel').style.display = 'none';
+  pobmEl.querySelector('#pobmErr').textContent = '';
+}
+async function pobmSave(){
+  const err = pobmEl.querySelector('#pobmErr');
+  const name = pobmEl.querySelector('#pobmFn').value.trim();
+  const role = pobmEl.querySelector('#pobmFr').value.trim();
+  const company = pobmEl.querySelector('#pobmFc').value;
+  if(!name){ err.textContent = 'Isi nama lengkap dulu'; return; }
+  const nk = pobrNormalizeAlias(name);
+  const dup = pobmEntries().some(en => pobrNormalizeAlias(en.name) === nk && !(pobmEdit && ((pobmEdit.type === 'manual' && en.id === pobmEdit.id) || (pobmEdit.type === 'sheet' && en.key === pobmEdit.key))));
+  if(dup){ err.textContent = 'Nama itu sudah ada di daftar'; return; }
+  if(!(await pobrLoadOverlay())){ err.textContent = 'Data member belum termuat, coba lagi'; return; }
+  if(!pobmEdit){
+    pobrOverlay.members.push({ id:'m' + Date.now().toString(36) + Math.random().toString(36).slice(2,5), name, role, company, photo: pobmPhoto || null, st:{}, hidden:false });
+    showToast('Member ditambahkan. Isi status kehadirannya di tabel', 'success');
+  } else if(pobmEdit.type === 'manual'){
+    const m = pobrOverlay.members.find(x => x.id === pobmEdit.id);
+    if(m){ m.name = name; m.role = role; m.company = company; if(pobmPhoto !== undefined) m.photo = pobmPhoto; }
+    showToast('Perubahan disimpan', 'success');
+  } else {
+    const ed = pobrOverlay.edits[pobmEdit.key] || {};
+    ed.name = name; ed.role = role; ed.company = company;
+    if(pobmPhoto !== undefined){ if(pobmPhoto) ed.photo = pobmPhoto; else delete ed.photo; }
+    pobrOverlay.edits[pobmEdit.key] = ed;
+    showToast('Perubahan disimpan', 'success');
+  }
+  pobmResetForm();
+  await pobmCommit();
+}
+(function(){ const b = document.getElementById('pobmOpenBtn'); if(b) b.addEventListener('click', pobmOpen); })();
+
 let pobrData = null;
 let pobrStatusFilter = 0; // 0 = tampilkan semua; 1/2/3/4 = filter sesuai status hari ini (ON/OFF/HO/Leave)
 
@@ -6671,7 +7075,9 @@ function pobrTodayIdx(dates){
 }
 
 async function renderPobRoster(){
-  pobrData = await dsoLoad(DSO_POBR_KEY, POBR_SEED);
+  pobrData = await pobrLoadMerged();
+  pobrBindManual();
+  pobrUpdateManualTools();
   document.getElementById('pobrPersonCount').textContent = pobrData.people.length;
   pobrRenderMiniKpi();
   pobrRenderAvatars('');
@@ -6844,13 +7250,14 @@ function pobrRenderTable(filterQ){
 
   let tbody = '<tbody>';
   people.forEach(p => {
-    tbody += `<tr><td class="rowlabel">${escapeHtml(p.name)}</td>`;
+    const isManual = p._src === 'manual';
+    tbody += `<tr><td class="rowlabel">${escapeHtml(p.name)}${isManual ? '<span class="pobr-tag">Manual</span>' : ''}${p.role ? `<span class="pobr-role">${escapeHtml(p.role)}</span>` : ''}</td>`;
     dates.forEach((d,i) => {
       const realIdx = start + i;
       const v = p.statuses[realIdx];
       const st = POBR_STATUS_MAP[v] || POBR_STATUS_MAP[0];
       const isToday = realIdx === idx;
-      tbody += `<td class="status-cell ${isToday?'today-col':''}" style="background:${st.bg};color:${st.fg};">${st.label}</td>`;
+      tbody += `<td class="status-cell ${isToday?'today-col':''}${isManual?' pobr-manual':''}"${isManual ? ` data-id="${p._id}" data-iso="${d}"` : ''} style="background:${st.bg};color:${st.fg};">${st.label}</td>`;
     });
     tbody += '</tr>';
   });
@@ -6863,7 +7270,7 @@ function pobrRenderTable(filterQ){
 // buka menu POB dulu. Kegagalan di sini tidak boleh menggagalkan Overview lainnya.
 (async () => {
   try{
-    pobrData = await dsoLoad(DSO_POBR_KEY, POBR_SEED);
+    pobrData = await pobrLoadMerged();
   }catch(e){
     console.warn('Overview: gagal memuat data kehadiran POB awal:', e && e.message);
   }
