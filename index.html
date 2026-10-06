@@ -1,4 +1,21 @@
-<!DOCTYPE html>
+  const b = document.createElement('div');
+  b.id = 'rosterGapBanner';
+  b.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99997;background:#B8860B;color:#fff;padding:8px 40px 8px 16px;font-size:13px;font-weight:bold;text-align:center;font-family:Arial;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;';
+  const msg = document.createElement('span');
+  msg.textContent = '📅 Jadwal Roster 7 hari ke depan belum lengkap — ' + parts.join(' | ') + '. Segera isi di Google Sheets Roster supaya tampilan tidak kosong.';
+  b.appendChild(msg);
+  if(missingMain.length) b.appendChild(rosterMakeSheetChip('main','banner'));
+  if(missingHelper.length) b.appendChild(rosterMakeSheetChip('helper','banner'));
+  const x = document.createElement('button');
+  x.type = 'button';
+  x.title = 'Tutup sementara';
+  x.setAttribute('aria-label','Tutup banner');
+  x.innerHTML = '<i class="ti ti-x"></i>';
+  x.style.cssText = 'position:absolute;right:8px;top:50%;transform:translateY(-50%);border:0;background:transparent;color:#fff;cursor:pointer;font-size:18px;padding:4px;';
+  x.addEventListener('click', () => b.remove());
+  b.appendChild(x);
+  document.body.prepend(b);
+}<!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="UTF-8">
@@ -876,6 +893,16 @@
   .roster-editable-label{outline:none;border-radius:4px;padding:1px 3px;cursor:text;}
   .roster-editable-label:hover{background:rgba(31,56,100,.06);}
   .roster-editable-label:focus{background:rgba(31,56,100,.12);box-shadow:0 0 0 1.5px rgba(31,56,100,.3);}
+/* v16: chip link Google Sheet roster (teks bisa diedit) */
+.roster-sheet-chip{display:inline-flex;align-items:center;gap:2px;border-radius:999px;padding:2px 4px 2px 2px;font-family:Arial,sans-serif;font-size:12px;font-weight:bold;line-height:1;white-space:nowrap;vertical-align:middle;}
+.roster-sheet-chip.rsc-banner{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.55);color:#fff;}
+.roster-sheet-chip.rsc-toolbar{background:#fff;border:1px solid #1F3864;color:#1F3864;}
+.roster-sheet-chip button{border:0;background:transparent;color:inherit;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;padding:0;font-size:15px;}
+.roster-sheet-chip button:hover{background:rgba(127,127,127,.25);}
+.roster-sheet-chip .rsc-text{padding:2px 6px;border-radius:6px;cursor:text;outline:none;min-width:30px;}
+.roster-sheet-chip .rsc-edit{width:18px;height:18px;font-size:12px;opacity:.8;}
+.roster-sheet-links{display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap;}
+
   .roster-toolbar{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
   .roster-modeselect{display:flex;gap:6px;}
   .roster-modeselect button{
@@ -2164,6 +2191,7 @@
         <button data-mode="month">Bulan Ini</button>
       </div>
       <div style="display:flex;align-items:center;gap:8px;">
+        <div id="rosterSheetLinks" class="roster-sheet-links"></div>
         <div id="rosterSyncBanner" class="roster-sync-banner syncing" title="Menyinkronkan data roster dari Google Sheets..." aria-label="Status sinkron roster">⏳ Syncing</div>
         <button class="roster-resync-btn" id="rosterRefreshBtn">↻ Re-sync</button>
       </div>
@@ -3231,7 +3259,7 @@ async function loadRosterLabels(){
     if(res && res.value) rosterLabelOverrides = JSON.parse(res.value) || {};
   } catch(e){ /* belum ada data tersimpan, pakai default */ }
 }
-loadRosterLabels();
+loadRosterLabels().then(() => { try{ renderRosterSheetLinks(); }catch(e){} });
 // Delegasi event: elemen shift-card dirender ulang tiap sync, jadi listener dipasang di document
 document.addEventListener('focusout', (e) => {
   const el = e.target.closest && e.target.closest('.roster-editable-label');
@@ -3631,6 +3659,82 @@ let rosterLoaded = false;
    ID spreadsheet & gid di bawah HARUS diperbarui setiap kali file bulan baru dibuat oleh Harris/Lintech. */
 const ROSTER_HELPER_SHEET_ID = '163NbkVmdkY5v2zqQYB_WP_kwGRLpciD4hrYheVmndbc'; // "09. Roster Helper_September_2026" - diupdate 7 Sep 2026 (link file baru dari Harris, gid terkonfirmasi berisi data Roster Helper). ID & gid ini tetap perlu di-update manual tiap kali file bulan baru dibuat oleh Harris/Lintech - PASTIKAN file baru juga dikonversi ke Google Sheets native (File > Save as Google Sheets), bukan dibiarkan sebagai .xlsx.
 const ROSTER_HELPER_GID = '2120640525';
+/* v16: link Sheet Helper bisa diganti dari UI (ikon pensil) tanpa edit kode tiap bulan.
+   Disimpan di backend (store) - BUKAN localStorage. */
+const ROSTER_HELPER_OVERRIDE_KEY = 'roster:helperSheetOverride';
+let rosterHelperSheetId = ROSTER_HELPER_SHEET_ID;
+let rosterHelperGid = ROSTER_HELPER_GID;
+let rosterHelperOverrideLoaded = false;
+async function rosterLoadHelperOverride(){
+  if(rosterHelperOverrideLoaded) return;
+  rosterHelperOverrideLoaded = true;
+  try{
+    const res = await store.get(ROSTER_HELPER_OVERRIDE_KEY);
+    if(res && res.value){
+      const o = JSON.parse(res.value);
+      if(o && o.id){ rosterHelperSheetId = o.id; rosterHelperGid = o.gid || ROSTER_HELPER_GID; }
+    }
+  }catch(e){ /* belum ada override, pakai default */ }
+}
+function rosterMainSheetUrl(){ return `https://docs.google.com/spreadsheets/d/${ROSTER_SHEET_ID}/edit`; }
+function rosterHelperSheetUrl(){ return `https://docs.google.com/spreadsheets/d/${rosterHelperSheetId}/edit?gid=${rosterHelperGid}`; }
+async function rosterEditHelperLink(){
+  const cur = rosterHelperSheetUrl();
+  const input = prompt('Tempel link Google Sheet Roster Helper bulan ini:', cur);
+  if(input === null) return;
+  const m = String(input).match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);
+  if(!m){ showToast('Link tidak valid - harus link Google Sheets', 'error'); return; }
+  const g = String(input).match(/[#?&]gid=(\d+)/);
+  rosterHelperSheetId = m[1];
+  rosterHelperGid = g ? g[1] : rosterHelperGid;
+  try{
+    await store.set(ROSTER_HELPER_OVERRIDE_KEY, JSON.stringify({ id: rosterHelperSheetId, gid: rosterHelperGid }));
+    showToast('Link Sheet Helper disimpan', 'success');
+  }catch(e){ showToast('Gagal menyimpan link Helper', 'error'); }
+  if(typeof loadRoster === 'function') loadRoster();
+}
+const ROSTER_CHIP_DEFAULTS = { main: 'Isi sheet Tim Utama', helper: 'Isi sheet Helper' };
+function rosterMakeSheetChip(team, variant){
+  const rkey = (team === 'main' ? 'label_sheetUtama' : 'label_sheetHelper') + (variant === 'banner' ? 'Banner' : 'Toolbar');
+  const defText = ROSTER_CHIP_DEFAULTS[team];
+  const wrap = document.createElement('span');
+  wrap.className = 'roster-sheet-chip rsc-' + variant;
+  const openBtn = document.createElement('button');
+  openBtn.type = 'button';
+  openBtn.title = 'Buka Google Sheet di tab baru';
+  openBtn.innerHTML = '<i class="ti ti-file-spreadsheet"></i>';
+  openBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    window.open(team === 'main' ? rosterMainSheetUrl() : rosterHelperSheetUrl(), '_blank', 'noopener');
+  });
+  const txt = document.createElement('span');
+  txt.className = 'roster-editable-label rsc-text';
+  txt.dataset.rkey = rkey;
+  txt.title = 'Klik teks untuk mengedit';
+  try{ txt.contentEditable = 'plaintext-only'; }catch(e){}
+  if(txt.contentEditable !== 'plaintext-only') txt.contentEditable = 'true';
+  txt.spellcheck = false;
+  txt.textContent = rosterLabelText(rkey, defText);
+  txt.addEventListener('click', (e) => e.stopPropagation());
+  txt.addEventListener('focusout', () => { if(!txt.textContent.trim()) txt.textContent = defText; });
+  wrap.append(openBtn, txt);
+  if(team === 'helper'){
+    const ed = document.createElement('button');
+    ed.type = 'button';
+    ed.className = 'rsc-edit';
+    ed.title = 'Ganti link Sheet Helper (file baru tiap bulan)';
+    ed.innerHTML = '<i class="ti ti-pencil"></i>';
+    ed.addEventListener('click', (e) => { e.stopPropagation(); rosterEditHelperLink(); });
+    wrap.appendChild(ed);
+  }
+  return wrap;
+}
+function renderRosterSheetLinks(){
+  const box = document.getElementById('rosterSheetLinks');
+  if(!box) return;
+  if(box.contains(document.activeElement)) return; // jangan ganggu saat user sedang mengetik
+  box.replaceChildren(rosterMakeSheetChip('main','toolbar'), rosterMakeSheetChip('helper','toolbar'));
+}
 const ROSTER_HELPER_PERSONNEL = [
   { code:'Ferdy', shortCode:'FJS', name:'Ferdy Julian Siregar',      color:'#B45309', photo: ROSTER_HELPER_PHOTO_FJS, role:'Monitoring Field Support' },
   { code:'Wahyu', shortCode:'WH',  name:'Wahyu',                     color:'#0F766E', photo: ROSTER_HELPER_PHOTO_WH,  role:'Monitoring Field Support' },
@@ -3979,10 +4083,11 @@ function parseHelperCutiRows(rows){
   return entries;
 }
 async function fetchHelperRosterData(){
+  await rosterLoadHelperOverride();
   await loadGoogleChartsOnce();
   // headers=0 WAJIB: tanpa ini, Google gviz otomatis menebak baris awal sebagai header
   // dan membuang blok tanggal pertama (mis. minggu berjalan) dari hasil - lihat diagnosis 8 Sep 2026.
-  const url = `https://docs.google.com/spreadsheets/d/${ROSTER_HELPER_SHEET_ID}/gviz/tq?gid=${ROSTER_HELPER_GID}&headers=0&_t=${Date.now()}`;
+  const url = `https://docs.google.com/spreadsheets/d/${rosterHelperSheetId}/gviz/tq?gid=${rosterHelperGid}&headers=0&_t=${Date.now()}`;
   return new Promise((resolve, reject) => {
     let settled = false;
     const timer = setTimeout(() => {
@@ -4097,6 +4202,8 @@ function sameDay(a,b){ return a.toDateString() === b.toDateString(); }
    jauh-jauh hari, bukan pas hari-H sudah kepepet. */
 function checkRosterGapAlert(){
   const old = document.getElementById('rosterGapBanner');
+  // v16: jangan bangun ulang banner saat user sedang mengedit teks chip (auto-sync 5 menit)
+  if(old && old.contains(document.activeElement)) return;
   if(old) old.remove();
   const today = new Date(); today.setHours(0,0,0,0);
   const missingMain = [];
@@ -4136,6 +4243,7 @@ function startOfWeekBlockFor(date){
   });
 }
 function renderRoster(){
+  try{ renderRosterSheetLinks(); }catch(e){ console.warn(e); }
   document.querySelectorAll('.roster-modeselect button').forEach(b => b.classList.toggle('active', b.dataset.mode === rosterMode));
   const today = new Date(); today.setHours(0,0,0,0);
   const todayRec = rosterDays.find(d => sameDay(d.date, today));
