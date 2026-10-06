@@ -3676,6 +3676,30 @@ async function rosterEditHelperLink(){
   }catch(e){ showToast('Gagal menyimpan link Helper', 'error'); }
   if(typeof loadRoster === 'function') loadRoster();
 }
+/* v16: Roster Monitoring Field Support (Helper) sementara ditiadakan -> default DISEMBUNYIKAN.
+   Bisa ditampilkan lagi lewat tombol di toolbar Roster. Disimpan di backend (store), bukan localStorage. */
+const ROSTER_HELPER_HIDDEN_KEY = 'roster:helperHidden';
+let rosterHelperHidden = true;
+let rosterHelperHiddenLoaded = false;
+async function rosterLoadHelperHidden(){
+  if(rosterHelperHiddenLoaded) return;
+  rosterHelperHiddenLoaded = true;
+  try{
+    const res = await store.get(ROSTER_HELPER_HIDDEN_KEY);
+    if(res && res.value) rosterHelperHidden = (JSON.parse(res.value) !== false);
+  }catch(e){ /* belum ada data tersimpan -> default tersembunyi */ }
+}
+async function rosterToggleHelperHidden(){
+  rosterHelperHidden = !rosterHelperHidden;
+  try{ await store.set(ROSTER_HELPER_HIDDEN_KEY, JSON.stringify(rosterHelperHidden)); }
+  catch(e){ showToast('Gagal menyimpan pengaturan tampilan Helper', 'error'); }
+  showToast(rosterHelperHidden ? 'Roster Monitoring Field Support disembunyikan' : 'Roster Monitoring Field Support ditampilkan', 'success');
+  renderRosterSheetLinks();
+  if(!rosterHelperHidden){ loadRoster(); return; }
+  if(typeof rosterLoaded !== 'undefined' && rosterLoaded) renderRoster();
+  checkRosterGapAlert();
+}
+rosterLoadHelperHidden().then(() => { try{ renderRosterSheetLinks(); if(rosterLoaded) renderRoster(); checkRosterGapAlert(); }catch(e){} });
 const ROSTER_CHIP_DEFAULTS = { main: 'Isi sheet Tim Utama', helper: 'Isi sheet Helper' };
 function rosterMakeSheetChip(team, variant){
   const rkey = (team === 'main' ? 'label_sheetUtama' : 'label_sheetHelper') + (variant === 'banner' ? 'Banner' : 'Toolbar');
@@ -3716,7 +3740,16 @@ function renderRosterSheetLinks(){
   const box = document.getElementById('rosterSheetLinks');
   if(!box) return;
   if(box.contains(document.activeElement)) return; // jangan ganggu saat user sedang mengetik
-  box.replaceChildren(rosterMakeSheetChip('main','toolbar'), rosterMakeSheetChip('helper','toolbar'));
+  const tg = document.createElement('button');
+  tg.type = 'button';
+  tg.className = 'roster-resync-btn';
+  tg.title = rosterHelperHidden ? 'Tampilkan kembali roster Monitoring Field Support' : 'Sembunyikan roster Monitoring Field Support';
+  tg.innerHTML = '<i class="ti ' + (rosterHelperHidden ? 'ti-eye' : 'ti-eye-off') + '"></i> ' + (rosterHelperHidden ? 'Tampilkan Helper' : 'Sembunyikan Helper');
+  tg.addEventListener('click', rosterToggleHelperHidden);
+  const kids = [rosterMakeSheetChip('main','toolbar')];
+  if(!rosterHelperHidden) kids.push(rosterMakeSheetChip('helper','toolbar'));
+  kids.push(tg);
+  box.replaceChildren(...kids);
 }
 const ROSTER_HELPER_PERSONNEL = [
   { code:'Ferdy', shortCode:'FJS', name:'Ferdy Julian Siregar',      color:'#B45309', photo: ROSTER_HELPER_PHOTO_FJS, role:'Monitoring Field Support' },
@@ -4066,6 +4099,8 @@ function parseHelperCutiRows(rows){
   return entries;
 }
 async function fetchHelperRosterData(){
+  await rosterLoadHelperHidden();
+  if(rosterHelperHidden) return null; // Helper disembunyikan: tidak perlu fetch
   await rosterLoadHelperOverride();
   await loadGoogleChartsOnce();
   // headers=0 WAJIB: tanpa ini, Google gviz otomatis menebak baris awal sebagai header
@@ -4198,7 +4233,7 @@ function checkRosterGapAlert(){
     if(mainEmpty) missingMain.push(d);
     const helperRec = (rosterHelperDays || []).find(r => sameDay(r.date, d));
     const helperEmpty = !helperRec || (helperRec.shift1 === '-' && helperRec.shift2 === '-');
-    if(helperEmpty) missingHelper.push(d);
+    if(helperEmpty && !rosterHelperHidden) missingHelper.push(d); // Helper disembunyikan -> tidak ada notif
   }
   if(missingMain.length === 0 && missingHelper.length === 0) return;
   console.warn('Roster gap terdeteksi.', {
@@ -4322,6 +4357,7 @@ function renderShiftNowGrid(rec, now){
   return `<div class="roster-shiftnow-grid">${cards}</div>`;
 }
 function renderHelperCard(today, now){
+  if(rosterHelperHidden) return '';
   const helperRec = rosterHelperDays.find(d => sameDay(d.date, today));
   const cards = ROSTER_HELPER_SHIFT_DEFS.map(def => {
     const code = helperRec ? helperRec[def.key] : '-';
@@ -4377,6 +4413,7 @@ function rosterTodayCard(rec, highlight){
         ${rec.backup && rec.backup !== '-' ? `<div class="roster-shift-row muted"><span class="roster-shift-label">Backup</span><span class="roster-cell-badge" style="background:${rosterPersonColor(rec.backup)}">${rec.backup}</span><span class="roster-shift-name roster-name-tip" data-role="${rosterPersonRole(rec.backup)}">${rosterPersonName(rec.backup)}</span></div>` : ''}
         ${rec.cuti && rec.cuti !== '-' ? `<div class="roster-shift-row muted"><span class="roster-shift-label">Day-Off</span><span class="roster-cell-badge" style="background:${rosterPersonColor(rec.cuti)}">${rec.cuti}</span><span class="roster-shift-name roster-name-tip" data-role="${rosterPersonRole(rec.cuti)}">${rosterPersonName(rec.cuti)}</span></div>` : ''}
         ${(() => {
+          if(rosterHelperHidden) return '';
           const h = rosterHelperDays.find(d => sameDay(d.date, rec.date));
           if(!h) return '';
           const shiftRows = ROSTER_HELPER_SHIFT_DEFS.map(def => {
