@@ -930,6 +930,11 @@
 .roster-sheet-chip button:hover{background:rgba(127,127,127,.25);}
 .roster-sheet-chip .rsc-text{padding:2px 6px;border-radius:6px;cursor:text;outline:none;min-width:30px;}
 .roster-sheet-chip .rsc-edit{width:18px;height:18px;font-size:12px;opacity:.8;}
+.roster-sheet-chip .rsc-text:hover{text-decoration:underline dashed;text-underline-offset:3px;}
+.roster-sheet-chip .rsc-text:focus{text-decoration:none;}
+.roster-sheet-chip .rsc-tab{font-size:10.5px;font-weight:bold;padding:2px 7px;border-radius:999px;margin:0 2px;background:rgba(127,127,127,.18);cursor:pointer;}
+.roster-sheet-chip.rsc-banner .rsc-tab{background:rgba(255,255,255,.28);}
+.roster-sheet-chip.rsc-toolbar .rsc-tab{background:#E8EEF7;color:#1F3864;}
 .roster-sheet-links{display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap;}
 
   .roster-toolbar{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
@@ -3762,6 +3767,19 @@ async function rosterToggleHelperHidden(){
 }
 rosterLoadHelperHidden().then(() => { try{ renderRosterSheetLinks(); if(rosterLoaded) renderRoster(); checkRosterGapAlert(); }catch(e){} });
 const ROSTER_CHIP_DEFAULTS = { main: 'Isi sheet Tim Utama', helper: 'Isi sheet Helper' };
+function rosterSheetTabsToUpdate(){
+  const today = new Date(); today.setHours(0,0,0,0);
+  const monthName = d => `${ROSTER_MONTH_NAMES_EN[d.getMonth()]}-${d.getFullYear()}`;
+  const tabs = [], missing = [];
+  for(let i = 0; i < 7; i++){
+    const d = new Date(today); d.setDate(today.getDate() + i);
+    const rec = (rosterDays || []).find(r => sameDay(r.date, d));
+    const empty = !rec || (rec.shift1 === '-' && rec.shift2 === '-' && rec.shift3 === '-');
+    if(empty){ missing.push(d); const n = monthName(d); if(!tabs.includes(n)) tabs.push(n); }
+  }
+  if(!tabs.length) tabs.push(monthName(today));
+  return { tabs, missing };
+}
 function rosterMakeSheetChip(team, variant){
   const rkey = (team === 'main' ? 'label_sheetUtama' : 'label_sheetHelper') + (variant === 'banner' ? 'Banner' : 'Toolbar');
   const defText = ROSTER_CHIP_DEFAULTS[team];
@@ -3769,11 +3787,16 @@ function rosterMakeSheetChip(team, variant){
   wrap.className = 'roster-sheet-chip rsc-' + variant;
   const openBtn = document.createElement('button');
   openBtn.type = 'button';
-  openBtn.title = 'Buka Google Sheet di tab baru';
+  const info = team === 'main' ? rosterSheetTabsToUpdate() : null;
+  const tabLabel = info ? info.tabs.join(' & ') : '';
+  openBtn.title = team === 'main'
+    ? 'Buka Google Sheet Roster di tab baru. Tab yang perlu diisi: ' + tabLabel
+    : 'Buka Google Sheet Helper di tab baru';
   openBtn.innerHTML = '<i class="ti ti-file-spreadsheet"></i>';
   openBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     window.open(team === 'main' ? rosterMainSheetUrl() : rosterHelperSheetUrl(), '_blank', 'noopener');
+    if(team === 'main') showToast('Sheet dibuka. Isi di tab "' + tabLabel + '" (nama tab ada di bagian bawah sheet)', 'info');
   });
   const txt = document.createElement('span');
   txt.className = 'roster-editable-label rsc-text';
@@ -3786,12 +3809,37 @@ function rosterMakeSheetChip(team, variant){
   txt.addEventListener('click', (e) => e.stopPropagation());
   txt.addEventListener('focusout', () => { if(!txt.textContent.trim()) txt.textContent = defText; });
   wrap.append(openBtn, txt);
+  if(info){
+    const tb = document.createElement('span');
+    tb.className = 'rsc-tab';
+    tb.textContent = 'tab ' + tabLabel;
+    tb.title = info.missing.length
+      ? 'Tab yang perlu diisi. Tanggal kosong: ' + info.missing.map(d => d.toLocaleDateString('id-ID', { day:'numeric', month:'short' })).join(', ') + '. Klik untuk menyalin nama tab.'
+      : 'Tab roster bulan ini. Klik untuk menyalin nama tab.';
+    tb.addEventListener('click', (e) => {
+      e.stopPropagation();
+      try{ navigator.clipboard.writeText(info.tabs[0]); showToast('Nama tab disalin: ' + info.tabs[0], 'success'); }catch(err){}
+    });
+    wrap.appendChild(tb);
+  }
+  const pen = document.createElement('button');
+  pen.type = 'button';
+  pen.className = 'rsc-edit';
+  pen.title = 'Ubah teks tombol';
+  pen.setAttribute('aria-label', 'Ubah teks tombol');
+  pen.innerHTML = '<i class="ti ti-pencil"></i>';
+  pen.addEventListener('click', (e) => {
+    e.stopPropagation();
+    txt.focus();
+    try{ const r = document.createRange(); r.selectNodeContents(txt); const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(r); }catch(err){}
+  });
+  wrap.appendChild(pen);
   if(team === 'helper'){
     const ed = document.createElement('button');
     ed.type = 'button';
     ed.className = 'rsc-edit';
     ed.title = 'Ganti link Sheet Helper (file baru tiap bulan)';
-    ed.innerHTML = '<i class="ti ti-pencil"></i>';
+    ed.innerHTML = '<i class="ti ti-link"></i>';
     ed.addEventListener('click', (e) => { e.stopPropagation(); rosterEditHelperLink(); });
     wrap.appendChild(ed);
   }
