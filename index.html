@@ -1,21 +1,4 @@
-  const b = document.createElement('div');
-  b.id = 'rosterGapBanner';
-  b.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99997;background:#B8860B;color:#fff;padding:8px 40px 8px 16px;font-size:13px;font-weight:bold;text-align:center;font-family:Arial;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;';
-  const msg = document.createElement('span');
-  msg.textContent = '📅 Jadwal Roster 7 hari ke depan belum lengkap — ' + parts.join(' | ') + '. Segera isi di Google Sheets Roster supaya tampilan tidak kosong.';
-  b.appendChild(msg);
-  if(missingMain.length) b.appendChild(rosterMakeSheetChip('main','banner'));
-  if(missingHelper.length) b.appendChild(rosterMakeSheetChip('helper','banner'));
-  const x = document.createElement('button');
-  x.type = 'button';
-  x.title = 'Tutup sementara';
-  x.setAttribute('aria-label','Tutup banner');
-  x.innerHTML = '<i class="ti ti-x"></i>';
-  x.style.cssText = 'position:absolute;right:8px;top:50%;transform:translateY(-50%);border:0;background:transparent;color:#fff;cursor:pointer;font-size:18px;padding:4px;';
-  x.addEventListener('click', () => b.remove());
-  b.appendChild(x);
-  document.body.prepend(b);
-}<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="UTF-8">
@@ -4229,9 +4212,20 @@ function checkRosterGapAlert(){
   if(missingHelper.length) parts.push('Tim Helper: ' + missingHelper.map(fmt).join(', '));
   const b = document.createElement('div');
   b.id = 'rosterGapBanner';
-  b.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99997;background:#B8860B;color:#fff;padding:10px 16px;font-size:13px;font-weight:bold;text-align:center;font-family:Arial;cursor:pointer;';
-  b.textContent = '📅 Jadwal Roster 7 hari ke depan belum lengkap — ' + parts.join(' | ') + '. Segera isi di Google Sheets Roster supaya tampilan tidak kosong. (klik untuk tutup sementara)';
-  b.onclick = () => b.remove();
+  b.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99997;background:#B8860B;color:#fff;padding:8px 40px 8px 16px;font-size:13px;font-weight:bold;text-align:center;font-family:Arial;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;';
+  const msg = document.createElement('span');
+  msg.textContent = '📅 Jadwal Roster 7 hari ke depan belum lengkap — ' + parts.join(' | ') + '. Segera isi di Google Sheets Roster supaya tampilan tidak kosong.';
+  b.appendChild(msg);
+  if(missingMain.length) b.appendChild(rosterMakeSheetChip('main','banner'));
+  if(missingHelper.length) b.appendChild(rosterMakeSheetChip('helper','banner'));
+  const x = document.createElement('button');
+  x.type = 'button';
+  x.title = 'Tutup sementara';
+  x.setAttribute('aria-label','Tutup banner');
+  x.innerHTML = '<i class="ti ti-x"></i>';
+  x.style.cssText = 'position:absolute;right:8px;top:50%;transform:translateY(-50%);border:0;background:transparent;color:#fff;cursor:pointer;font-size:18px;padding:4px;';
+  x.addEventListener('click', () => b.remove());
+  b.appendChild(x);
   document.body.prepend(b);
 }
 function startOfWeekBlockFor(date){
