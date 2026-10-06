@@ -6709,7 +6709,7 @@ let pobrMode = 'week';
    - Member manual: ditambah, diubah, dihapus, dan status ON/OFF/HO/Leave per hari diisi manual.
    - Disimpan ke backend (store) key 'dso:pob-members' - BUKAN localStorage - sehingga tetap ada setelah sync. */
 const DSO_POBM_KEY = 'dso:pob-members';
-let pobrOverlay = { members:[], hidden:[], edits:{} };
+let pobrOverlay = { members:[], hidden:[], edits:{}, removed:[] };
 let pobrOverlayLoaded = false;
 let pobrBase = null;
 let pobrPhotoByName = {};
@@ -6722,7 +6722,7 @@ async function pobrLoadOverlay(){
     const res = await store.get(DSO_POBM_KEY, true);
     if(res && res.value){
       const o = JSON.parse(res.value) || {};
-      pobrOverlay = { members: Array.isArray(o.members) ? o.members : [], hidden: Array.isArray(o.hidden) ? o.hidden : [], edits: o.edits || {} };
+      pobrOverlay = { members: Array.isArray(o.members) ? o.members : [], hidden: Array.isArray(o.hidden) ? o.hidden : [], edits: o.edits || {}, removed: Array.isArray(o.removed) ? o.removed : [] };
     }
     pobrOverlayLoaded = true;
   }catch(e){
@@ -6746,10 +6746,11 @@ function pobrMerge(raw){
   pobrPhotoByName = {};
   if(!raw || !Array.isArray(raw.people)) return raw;
   const hidden = new Set(pobrOverlay.hidden);
+  const removed = new Set(pobrOverlay.removed);
   const people = [];
   raw.people.forEach(p => {
     const key = pobrNormalizeAlias(p.name);
-    if(hidden.has(key)) return;
+    if(hidden.has(key) || removed.has(key)) return;
     const q = Object.assign({}, p, { _src:'sheet', _key:key });
     const ed = pobrOverlay.edits[key];
     if(ed){
@@ -6861,7 +6862,7 @@ function pobmBuild(){
   pobmEl.hidden = true;
   pobmEl.innerHTML = `<div class="pobm-modal" role="dialog" aria-modal="true" aria-label="Kelola member POB">
     <div class="pobm-hd"><h3>Kelola member POB</h3>
-      <div style="display:flex;gap:6px;align-items:center;"><span class="pobm-chip" id="pobmC1"></span><span class="pobm-chip warn" id="pobmC2"></span>
+      <div style="display:flex;gap:6px;align-items:center;"><span class="pobm-chip" id="pobmC1"></span><span class="pobm-chip warn" id="pobmC2"></span><button type="button" class="pobm-btn" id="pobmRestore" style="display:none;padding:3px 10px;font-size:11px;" title="Kembalikan member sheet yang pernah dihapus"></button>
       <button type="button" class="pobm-x" id="pobmClose" aria-label="Tutup"><i class="ti ti-x"></i></button></div></div>
     <input class="pobm-input" id="pobmSearch" placeholder="Cari nama atau jabatan" style="margin-bottom:6px;">
     <div id="pobmList"></div>
@@ -6879,7 +6880,7 @@ function pobmBuild(){
         <span class="pobm-err" id="pobmErr"></span>
       </div>
     </div>
-    <div class="pobm-note">Perubahan di sini disimpan di HUB dan tidak mengubah Google Sheet Rooster_BIB. Member dari sheet hanya bisa disembunyikan atau diubah tampilannya. Status ON/OFF member manual diisi di tabel kehadiran.</div>
+    <div class="pobm-note">Perubahan di sini disimpan di HUB dan tidak mengubah Google Sheet Rooster_BIB. Member dari sheet yang dihapus tidak tampil lagi di HUB (bisa dipulihkan), tetapi barisnya di Google Sheet tetap ada. Status ON/OFF member manual diisi di tabel kehadiran.</div>
   </div>`;
   document.body.appendChild(pobmEl);
   pobmEl.addEventListener('click', (e) => { if(e.target === pobmEl) pobmClose(); });
@@ -6887,6 +6888,10 @@ function pobmBuild(){
   pobmEl.querySelector('#pobmClose').onclick = pobmClose;
   pobmEl.querySelector('#pobmSearch').addEventListener('input', pobmRenderList);
   pobmEl.querySelector('#pobmList').addEventListener('click', pobmListClick);
+  pobmEl.querySelector('#pobmRestore').onclick = async () => {
+    pobrOverlay.removed = [];
+    await pobmCommit(); showToast('Member terhapus dipulihkan', 'success');
+  };
   pobmEl.querySelector('#pobmSave').onclick = pobmSave;
   pobmEl.querySelector('#pobmCancel').onclick = pobmResetForm;
   pobmEl.querySelector('#pobmFn').addEventListener('input', () => { pobmEl.querySelector('#pobmErr').textContent = ''; });
@@ -6935,8 +6940,11 @@ function pobmClose(){ if(pobmEl) pobmEl.hidden = true; }
 function pobmEntries(){
   const out = [];
   const hidden = new Set(pobrOverlay.hidden);
+  const removed = new Set(pobrOverlay.removed);
   ((pobrBase && pobrBase.people) || []).forEach(p => {
-    const key = pobrNormalizeAlias(p.name), ed = pobrOverlay.edits[key] || {};
+    const key = pobrNormalizeAlias(p.name);
+    if(removed.has(key)) return;
+    const ed = pobrOverlay.edits[key] || {};
     out.push({ type:'sheet', key, origName:p.name, name:ed.name || p.name, role:ed.role || '', company:ed.company || '', photo: ed.photo || pobrResolvePhotoRaw(p.name), on:!hidden.has(key) });
   });
   pobrOverlay.members.forEach(m => out.push({ type:'manual', id:m.id, name:m.name, role:m.role||'', company:m.company||'', photo:m.photo||null, on:!m.hidden }));
@@ -6954,6 +6962,9 @@ function pobmRenderList(){
   const act = all.filter(e => e.on).length;
   pobmEl.querySelector('#pobmC1').textContent = act + ' aktif';
   pobmEl.querySelector('#pobmC2').textContent = (all.length - act) + ' disembunyikan';
+  const rb = pobmEl.querySelector('#pobmRestore'), rn = pobrOverlay.removed.length;
+  rb.style.display = rn ? '' : 'none';
+  rb.textContent = 'Pulihkan ' + rn + ' terhapus';
   const rows = all.filter(e => !q || (e.name + ' ' + e.role).toLowerCase().includes(q)).map(e => {
     const av = e.photo ? `<img src="${e.photo}" alt="">` : escapeHtml(pobmInitials(e.name));
     const ref = e.type === 'manual' ? `data-t="manual" data-id="${e.id}"` : `data-t="sheet" data-key="${e.key}"`;
@@ -6965,7 +6976,7 @@ function pobmRenderList(){
       <div class="pobm-acts">
         <button type="button" class="pobm-ib" data-a="e" ${ref} title="Ubah" aria-label="Ubah"><i class="ti ti-pencil"></i></button>
         <button type="button" class="pobm-ib" data-a="t" ${ref} title="${e.on ? 'Sembunyikan' : 'Tampilkan'}" aria-label="${e.on ? 'Sembunyikan' : 'Tampilkan'}"><i class="ti ${e.on ? 'ti-eye-off' : 'ti-eye'}"></i></button>
-        ${e.type === 'manual' ? `<button type="button" class="pobm-ib danger" data-a="d" ${ref} title="Hapus" aria-label="Hapus"><i class="ti ti-trash"></i></button>` : ''}
+        <button type="button" class="pobm-ib danger" data-a="d" ${ref} title="Hapus" aria-label="Hapus"><i class="ti ti-trash"></i></button>
       </div></div>`;
   }).join('');
   pobmEl.querySelector('#pobmList').innerHTML = rows || '<p class="pobm-rl" style="padding:12px 0;">Tidak ada member yang cocok.</p>';
@@ -6987,8 +6998,18 @@ async function pobmListClick(e){
     }
     await pobmCommit();
   } else if(a === 'd'){
-    if(!m) return;
-    if(b.dataset.sure){ pobrOverlay.members = pobrOverlay.members.filter(x => x.id !== m.id); if(pobmEdit && pobmEdit.id === m.id) pobmResetForm(); await pobmCommit(); showToast('Member dihapus', 'success'); }
+    if(t === 'manual' && !m) return;
+    if(b.dataset.sure){
+      if(t === 'manual'){ pobrOverlay.members = pobrOverlay.members.filter(x => x.id !== m.id); if(pobmEdit && pobmEdit.id === m.id) pobmResetForm(); }
+      else {
+        const key = b.dataset.key;
+        if(!pobrOverlay.removed.includes(key)) pobrOverlay.removed.push(key);
+        pobrOverlay.hidden = pobrOverlay.hidden.filter(k => k !== key);
+        delete pobrOverlay.edits[key];
+        if(pobmEdit && pobmEdit.key === key) pobmResetForm();
+      }
+      await pobmCommit(); showToast('Member dihapus dari HUB', 'success');
+    }
     else {
       b.dataset.sure = '1'; b.title = 'Klik lagi untuk konfirmasi hapus'; b.innerHTML = '<i class="ti ti-check"></i>';
       setTimeout(() => { if(b.isConnected){ delete b.dataset.sure; b.title = 'Hapus'; b.innerHTML = '<i class="ti ti-trash"></i>'; } }, 2500);
