@@ -4328,6 +4328,9 @@ function sameDay(a,b){ return a.toDateString() === b.toDateString(); }
    bukan cuma waktu buka menu Roster) supaya PIC ingat mengisi jadwal dari
    jauh-jauh hari, bukan pas hari-H sudah kepepet. */
 function checkRosterGapAlert(){
+  // v22: JANGAN cek/tampilkan banner sebelum data roster selesai dimuat. Sebelumnya, pemanggilan saat
+  // halaman baru dibuka (rosterDays masih kosong) membuat banner palsu "7 hari belum lengkap" muncul sesaat.
+  if(!rosterLoaded) return;
   const old = document.getElementById('rosterGapBanner');
   // v16: jangan bangun ulang banner saat user sedang mengedit teks chip (auto-sync 5 menit)
   if(old && old.contains(document.activeElement)) return;
