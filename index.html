@@ -812,6 +812,9 @@
   .pobr-card h3{font-family:var(--font-display);color:var(--navy);font-size:14.5px;margin:0 0 3px;display:flex;align-items:center;gap:8px;}
   .pobr-card h3 i{color:var(--accent);font-size:17px;}
   .pobr-card .pobr-subtitle{font-size:11.5px;color:var(--text-secondary);margin:0 0 14px;}
+  .pobr-legend-text{cursor:text;outline:none;border-radius:4px;padding:0 2px;}
+  .pobr-legend-text:hover{text-decoration:underline dashed;text-underline-offset:3px;}
+  .pobr-legend-text:focus{text-decoration:none;}
   .pobm-open-btn{margin-left:auto;display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--navy);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;}
   .pobm-open-btn:hover{background:var(--zebra);}
   .pobm-overlay{position:fixed;inset:0;background:rgba(15,27,44,.5);z-index:100000;display:flex;align-items:flex-start;justify-content:center;padding:4vh 12px;overflow-y:auto;}
@@ -1682,10 +1685,10 @@
       </div>
 
       <div class="pobr-legend">
-        <span class="pobr-legend-chip" style="background:var(--pobr-on-bg,#B7E1CD);color:var(--pobr-on-fg,#1C7A4E);"><span class="dot" style="background:var(--pobr-on-fg,#1C7A4E);"></span>ON — Site</span>
-        <span class="pobr-legend-chip" style="background:var(--pobr-off-bg,#FCE8B2);color:var(--pobr-off-fg,#95700B);"><span class="dot" style="background:var(--pobr-off-fg,#95700B);"></span>OFF</span>
-        <span class="pobr-legend-chip" style="background:var(--pobr-ho-bg,#A4C2F4);color:var(--pobr-ho-fg,#1C4CA6);"><span class="dot" style="background:var(--pobr-ho-fg,#1C4CA6);"></span>HO</span>
-        <span class="pobr-legend-chip" style="background:var(--pobr-leave-bg,#F4CCCC);color:var(--pobr-leave-fg,#B23A3A);"><span class="dot" style="background:var(--pobr-leave-fg,#B23A3A);"></span>Leave</span>
+        <span class="pobr-legend-chip" style="background:var(--pobr-on-bg,#B7E1CD);color:var(--pobr-on-fg,#1C7A4E);"><span class="dot" style="background:var(--pobr-on-fg,#1C7A4E);"></span><span class="roster-editable-label pobr-legend-text" contenteditable="true" spellcheck="false" data-rkey="label_pobrLegend_on" data-default="ON — Site" title="Klik untuk mengubah teks">ON — Site</span></span>
+        <span class="pobr-legend-chip" style="background:var(--pobr-off-bg,#FCE8B2);color:var(--pobr-off-fg,#95700B);"><span class="dot" style="background:var(--pobr-off-fg,#95700B);"></span><span class="roster-editable-label pobr-legend-text" contenteditable="true" spellcheck="false" data-rkey="label_pobrLegend_off" data-default="OFF" title="Klik untuk mengubah teks">OFF</span></span>
+        <span class="pobr-legend-chip" style="background:var(--pobr-ho-bg,#A4C2F4);color:var(--pobr-ho-fg,#1C4CA6);"><span class="dot" style="background:var(--pobr-ho-fg,#1C4CA6);"></span><span class="roster-editable-label pobr-legend-text" contenteditable="true" spellcheck="false" data-rkey="label_pobrLegend_ho" data-default="HO" title="Klik untuk mengubah teks">HO</span></span>
+        <span class="pobr-legend-chip" style="background:var(--pobr-leave-bg,#F4CCCC);color:var(--pobr-leave-fg,#B23A3A);"><span class="dot" style="background:var(--pobr-leave-fg,#B23A3A);"></span><span class="roster-editable-label pobr-legend-text" contenteditable="true" spellcheck="false" data-rkey="label_pobrLegend_leave" data-default="Leave" title="Klik untuk mengubah teks">Leave</span></span>
       </div>
 
       <div class="pobr-mini-kpi-row" id="pobrMiniKpiRow"></div>
@@ -3308,7 +3311,18 @@ async function loadRosterLabels(){
     if(res && res.value) rosterLabelOverrides = JSON.parse(res.value) || {};
   } catch(e){ /* belum ada data tersimpan, pakai default */ }
 }
-loadRosterLabels().then(() => { try{ renderRosterSheetLinks(); }catch(e){} });
+loadRosterLabels().then(() => { try{ renderRosterSheetLinks(); }catch(e){} try{ pobrApplyLegendLabels(); }catch(e){} });
+/* v23: teks legenda status POB (ON - Site / OFF / HO / Leave) bisa diedit, disimpan lewat rosterLabelOverrides (backend) */
+function pobrApplyLegendLabels(){
+  document.querySelectorAll('.pobr-legend-text').forEach(el => {
+    if(document.activeElement === el) return;
+    el.textContent = rosterLabelText(el.dataset.rkey, el.dataset.default);
+  });
+}
+document.addEventListener('focusout', (e) => {
+  const el = e.target.closest && e.target.closest('.pobr-legend-text');
+  if(el && !el.textContent.trim()) el.textContent = el.dataset.default;
+});
 // Delegasi event: elemen shift-card dirender ulang tiap sync, jadi listener dipasang di document
 document.addEventListener('focusout', (e) => {
   const el = e.target.closest && e.target.closest('.roster-editable-label');
