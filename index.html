@@ -525,9 +525,15 @@
   .gt-sub.is-done .gt-title{text-decoration:line-through;color:var(--text-muted);}
   .gt-ck.sm{width:16px;height:16px;border-width:1.5px;margin-top:2px;}
   .gt-ck.sm i{font-size:10px;}
-  .gt-subdel{margin-left:auto;border:none;background:transparent;color:var(--text-muted);cursor:pointer;opacity:0;font-size:14px;padding:2px;}
+  .gt-subdel{border:none;background:transparent;color:var(--text-muted);cursor:pointer;opacity:0;font-size:14px;padding:2px;}
   .gt-sub:hover .gt-subdel,.gt-subdel:focus-visible{opacity:1;}
   .gt-subdel:hover{color:var(--red-fg);}
+  .gt-subedt{margin-left:auto;}
+  .gt-subedt:hover{color:var(--accent);}
+  .gt-subform{border:1px solid var(--accent);border-radius:8px;padding:10px;margin:8px 0;background:var(--surface-alt);}
+  .gt-subform .gt-subadd{margin-top:0;padding-left:0;}
+  .gt-subform-act{display:flex;gap:6px;margin-top:8px;}
+  .gt-subform-act .btn{font-size:12px;padding:5px 12px;}
   .gt-subadd{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:6px;padding-left:6px;}
   .gt-subadd input[type=text]{flex:1;min-width:150px;}
   .gt-subadd select,.gt-subadd input[type=date]{width:auto;max-width:140px;}
@@ -10003,6 +10009,8 @@ window.tlRestoreFromJson = async function(text){
    ================================================================== */
 let tlOpenId = null, tlShowDone = false, tlUndoId = null, tlUndoTimer = null, tlInputTimer = null;
 let tlWarnId = null, tlWarnTimer = null, tlFocusSub = null;
+/* Sub task yang sedang diedit inline, format "parentId:subId". Hanya satu dalam satu waktu. */
+let tlSubEditId = null;
 const TL_MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 /* ---------- Notes & activity (kartu catatan, edit langsung, log otomatis) ---------- */
 const TL_NOTE_TYPES = ['note', 'hold', 'upd'];
@@ -10543,7 +10551,7 @@ function tlOpenPicModal(sel){
   const it = taskListItems.find(i => i.id === id);
   if(!it) return;
   const prev = isTask ? (it.pic || '') : (sel.dataset.prev || '');
-  tlPicPending = { isTask, id, prev, snapshot: tlPicManager.getList().slice() };
+  tlPicPending = { isTask, id, prev, selId: sel.id || '', snapshot: tlPicManager.getList().slice() };
   sel.value = prev;
   document.getElementById('tlPicManageBtn').click();
 }
@@ -10562,7 +10570,7 @@ async function tlOnPicModalClosed(){
     renderTlList();
     if(chosen) tlPersist(it.id);
   } else {
-    const sel = document.getElementById('tlSubP_' + p.id);
+    const sel = (p.selId && document.getElementById(p.selId)) || document.getElementById('tlSubP_' + p.id);
     if(sel) tlRefreshPicSelects(sel, chosen || (list.includes(p.prev) ? p.prev : ''));
   }
 }
@@ -10576,6 +10584,8 @@ function tlSubProgressText(it){
   return g.n ? g.d + '/' + g.n + ' sub tasks' : '';
 }
 function tlSubRowHtml(p, sb){
+  const key = p.id + ':' + sb.id;
+  if(tlSubEditId === key) return tlSubEditHtml(p, sb);
   const od = !sb.done && sb.deadline && sb.deadline < todayStr() && !tlIsHold(p.status);
   const late = sb.deadline && p.deadline && sb.deadline > p.deadline;
   let meta = '';
@@ -10583,9 +10593,28 @@ function tlSubRowHtml(p, sb){
   if(sb.deadline) meta += `<span class="gt-chip ${od?'od':(late?'warn':'')}"><i class="ti ti-calendar"></i>${tlFmtDate(sb.deadline)}${late ? ' · after task deadline' : ''}</span>`;
   if(sb.pic) meta += `<span class="gt-chip"><i class="ti ti-user"></i>${escapeHtml(sb.pic)}</span>`;
   return `<div class="gt-sub ${sb.done?'is-done':''}">
-    <button type="button" class="gt-ck sm ${sb.done?'on':''}" data-sck="${p.id}:${sb.id}" aria-label="${sb.done?'Mark sub task as not done':'Mark sub task as done'}"><i class="ti ti-check"></i></button>
+    <button type="button" class="gt-ck sm ${sb.done?'on':''}" data-sck="${key}" aria-label="${sb.done?'Mark sub task as not done':'Mark sub task as done'}"><i class="ti ti-check"></i></button>
     <div class="gt-body"><div class="gt-title">${escapeHtml(sb.title)}</div>${meta ? `<div class="gt-meta">${meta}</div>` : ''}</div>
-    <button type="button" class="gt-subdel" data-sdel="${p.id}:${sb.id}" aria-label="Delete sub task"><i class="ti ti-x"></i></button>
+    <button type="button" class="gt-subdel gt-subedt" data-sedit="${key}" aria-label="Edit sub task"><i class="ti ti-pencil"></i></button>
+    <button type="button" class="gt-subdel" data-sdel="${key}" aria-label="Delete sub task"><i class="ti ti-x"></i></button>
+  </div>`;
+}
+/* Form edit inline: field-nya sama persis dengan form "Add sub task" supaya tidak ada
+   kejutan. Status done TIDAK ada di sini -- tetap lewat lingkaran centang di kiri,
+   supaya tidak ada dua jalan untuk mengubah hal yang sama. */
+function tlSubEditHtml(p, sb){
+  const k = p.id + '_' + sb.id;
+  return `<div class="gt-subform" data-subform="${p.id}:${sb.id}">
+    <div class="gt-subadd">
+      <input type="text" id="tlSubET_${k}" value="${escapeHtml(sb.title || '')}" placeholder="Sub task name" aria-label="Sub task name">
+      <select id="tlSubEP_${k}" data-picsel="1" data-pid="${p.id}" data-sedit-pic="${p.id}:${sb.id}" aria-label="Sub task PIC">${tlPicOptionsHtml(sb.pic || '')}</select>
+      <input type="date" id="tlSubED_${k}" value="${escapeHtml(sb.deadline || '')}" aria-label="Sub task deadline">
+      <label><input type="checkbox" id="tlSubER_${k}" ${sb.required ? 'checked' : ''}> Required</label>
+    </div>
+    <div class="gt-subform-act">
+      <button type="button" class="btn btn-primary" data-ssave="${p.id}:${sb.id}">Save</button>
+      <button type="button" class="btn btn-ghost" data-scancel="1">Cancel</button>
+    </div>
   </div>`;
 }
 
@@ -10668,7 +10697,28 @@ function renderTlList(){
         r: !!(document.getElementById('tlSubR_' + tlOpenId) || {}).checked };
     }
   }
+  /* Isi form edit sub task yang belum di-Save ikut diselamatkan, supaya render ulang
+     dari autosave/sync tidak menghapus ketikan yang sedang berjalan. */
+  let sdraft = null;
+  if(tlSubEditId){
+    const ek = tlSubEditId.replace(':', '_');
+    const eT = document.getElementById('tlSubET_' + ek);
+    if(eT) sdraft = { k: ek, t: eT.value,
+      p: (document.getElementById('tlSubEP_' + ek) || {}).value || '',
+      d: (document.getElementById('tlSubED_' + ek) || {}).value || '',
+      r: !!(document.getElementById('tlSubER_' + ek) || {}).checked };
+  }
   listEl.innerHTML = vis.length ? vis.map(tlRowHtml).join('') : '<div class="gt-empty">No tasks in this filter.</div>';
+  if(sdraft){
+    const eT = document.getElementById('tlSubET_' + sdraft.k);
+    if(eT){
+      eT.value = sdraft.t;
+      const eP = document.getElementById('tlSubEP_' + sdraft.k);
+      if(eP && sdraft.p && sdraft.p !== '__add'){ if(!Array.from(eP.options).some(o => o.value === sdraft.p)) eP.innerHTML = tlPicOptionsHtml(sdraft.p); eP.value = sdraft.p; eP.dataset.prev = sdraft.p; }
+      document.getElementById('tlSubED_' + sdraft.k).value = sdraft.d;
+      document.getElementById('tlSubER_' + sdraft.k).checked = sdraft.r;
+    }
+  }
   if(draft){
     const nT = document.getElementById('tlSubT_' + draft.id);
     if(nT){
@@ -10754,7 +10804,7 @@ setInterval(() => {
 (function tlBindEvents(){
   const view = document.getElementById('view-tasklist');
   view.addEventListener('click', async (e) => {
-    const t = e.target.closest('[data-rday],[data-rmk],[data-rskip],[data-rstop],[data-ck],[data-sck],[data-sdel],[data-sadd],[data-npin],[data-ndel],[data-ncyc],[data-npost],[data-ntype],[data-nact],[data-del],[data-undo],[data-sec],[data-manage],[data-f].fu-filter,[data-row],[data-stop]');
+    const t = e.target.closest('[data-rday],[data-rmk],[data-rskip],[data-rstop],[data-ck],[data-sck],[data-sdel],[data-sedit],[data-ssave],[data-scancel],[data-sadd],[data-npin],[data-ndel],[data-ncyc],[data-npost],[data-ntype],[data-nact],[data-del],[data-undo],[data-sec],[data-manage],[data-f].fu-filter,[data-row],[data-stop]');
     if(!t) return;
     if(t.dataset.stop) return;
     if(t.dataset.ck){ e.stopPropagation(); await tlToggleDone(t.dataset.ck); return; }
@@ -10831,6 +10881,48 @@ setInterval(() => {
       renderTlSummary(); renderTlFilterBar(); renderTlList();
       return;
     }
+    if(t.dataset.sedit){
+      e.stopPropagation();
+      tlSubEditId = (tlSubEditId === t.dataset.sedit) ? null : t.dataset.sedit;
+      renderTlList();
+      if(tlSubEditId){
+        const f = document.getElementById('tlSubET_' + tlSubEditId.replace(':', '_'));
+        if(f){ f.focus(); f.select(); }
+      }
+      return;
+    }
+    if(t.dataset.scancel){
+      e.stopPropagation();
+      tlSubEditId = null;
+      renderTlList();
+      return;
+    }
+    if(t.dataset.ssave){
+      e.stopPropagation();
+      const [pid, sid] = t.dataset.ssave.split(':');
+      const p = taskListItems.find(i => i.id === pid);
+      const sb = p && (p.subs || []).find(x => x.id === sid);
+      if(!sb) { tlSubEditId = null; renderTlList(); return; }
+      const k = pid + '_' + sid;
+      const tEl = document.getElementById('tlSubET_' + k);
+      const title = (tEl.value || '').trim();
+      if(!title){ tEl.style.borderColor = 'var(--red-fg)'; tEl.placeholder = 'Sub task name is required'; tEl.focus(); return; }
+      const picEl = document.getElementById('tlSubEP_' + k);
+      const pic = (picEl && picEl.value !== '__add') ? picEl.value : (sb.pic || '');
+      const deadline = document.getElementById('tlSubED_' + k).value;
+      const required = document.getElementById('tlSubER_' + k).checked;
+      const chg = [];
+      if(sb.title !== title) chg.push('title "' + sb.title + '" → "' + title + '"');
+      if((sb.pic || '') !== pic) chg.push('PIC ' + (sb.pic || 'none') + ' → ' + (pic || 'none'));
+      if((sb.deadline || '') !== deadline) chg.push('deadline ' + (sb.deadline ? tlFmtDate(sb.deadline) : 'none') + ' → ' + (deadline ? tlFmtDate(deadline) : 'none'));
+      if(!!sb.required !== required) chg.push(required ? 'marked required' : 'no longer required');
+      sb.title = title; sb.pic = pic; sb.deadline = deadline; sb.required = required;
+      if(chg.length) tlLog(p, 'Edited sub task "' + title + '": ' + chg.join(', '));
+      tlSubEditId = null;
+      await saveTaskList();
+      renderTlSummary(); renderTlFilterBar(); renderTlList();
+      return;
+    }
     if(t.dataset.sdel){
       e.stopPropagation();
       const [pid, sid] = t.dataset.sdel.split(':');
@@ -10839,6 +10931,7 @@ setInterval(() => {
       const gone = (p.subs || []).find(x => x.id === sid);
       p.subs = (p.subs || []).filter(x => x.id !== sid);
       if(gone) tlLog(p, 'Removed sub task "' + gone.title + '"');
+      if(tlSubEditId === t.dataset.sdel) tlSubEditId = null;
       await saveTaskList();
       renderTlList();
       return;
@@ -10902,10 +10995,19 @@ setInterval(() => {
     }
     if(t.dataset.manage){ document.getElementById('tlStatusManageBtn').click(); return; }
     if(t.dataset.sec){ tlShowDone = !tlShowDone; renderTlList(); return; }
-    if(t.classList.contains('fu-filter')){ taskListFilter = t.dataset.f; renderTlFilterBar(); renderTlList(); return; }
-    if(t.dataset.row){ tlOpenId = (tlOpenId === t.dataset.row) ? null : t.dataset.row; renderTlList(); }
+    if(t.classList.contains('fu-filter')){ taskListFilter = t.dataset.f; tlSubEditId = null; renderTlFilterBar(); renderTlList(); return; }
+    if(t.dataset.row){ tlOpenId = (tlOpenId === t.dataset.row) ? null : t.dataset.row; tlSubEditId = null; renderTlList(); }
   });
   view.addEventListener('keydown', (e) => {
+    if(tlSubEditId && e.target.closest && e.target.closest('[data-subform]')){
+      if(e.key === 'Escape'){ e.preventDefault(); tlSubEditId = null; renderTlList(); return; }
+      if(e.key === 'Enter' && e.target.tagName !== 'BUTTON'){
+        e.preventDefault();
+        const b = view.querySelector('[data-ssave="' + tlSubEditId + '"]');
+        if(b) b.click();
+        return;
+      }
+    }
     if(e.key === 'Enter' && e.target.id && e.target.id.indexOf('tlSubT_') === 0){
       e.preventDefault();
       const b = view.querySelector('[data-sadd="' + e.target.id.slice(7) + '"]');
@@ -10914,7 +11016,7 @@ setInterval(() => {
     }
     if(e.key !== 'Enter' && e.key !== ' ') return;
     const row = e.target.closest('[data-row]');
-    if(row && e.target === row){ e.preventDefault(); tlOpenId = (tlOpenId === row.dataset.row) ? null : row.dataset.row; renderTlList(); }
+    if(row && e.target === row){ e.preventDefault(); tlOpenId = (tlOpenId === row.dataset.row) ? null : row.dataset.row; tlSubEditId = null; renderTlList(); }
     const sec = e.target.closest('[data-sec]');
     if(sec && e.target === sec){ e.preventDefault(); tlShowDone = !tlShowDone; renderTlList(); }
   });
