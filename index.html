@@ -448,6 +448,22 @@
   }
 
   /* Follow Up view */
+  /* ===== Handover Job ===== */
+  .ho-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px;}
+  .ho-head h3{margin:0;font-size:16px;font-weight:500;}
+  .ho-actions{display:flex;gap:8px;flex-wrap:wrap;}
+  .ho-btn{padding:7px 12px;border:0.5px solid var(--border-strong,var(--border));background:var(--surface);color:var(--text);border-radius:8px;cursor:pointer;font-size:13px;display:inline-flex;align-items:center;gap:6px;}
+  .ho-btn:hover{background:var(--surface-alt);}
+  .ho-btn.primary{background:var(--navy);color:#fff;border-color:var(--navy);}
+  .ho-period{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13px;margin-bottom:12px;color:var(--text-secondary);}
+  .ho-period input{padding:5px 8px;border:0.5px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);}
+  #hoPreview{background:#fff;color:#000;border:1px solid var(--border);border-radius:var(--radius);padding:16px;overflow-x:auto;}
+  .ho-root{display:none;}
+  @media print{
+    body.ho-printing > *:not(#handoverPrintRoot){display:none !important;}
+    #handoverPrintRoot{display:block !important;padding:0;}
+    @page{size:8.5in 11in;margin:0.79in 0.59in 0.39in 0.59in;}
+  }
   /* ===== Task List: gaya Google Tasks ===== */
   .gt{background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.08);padding:6px 0 4px;font-family:var(--font-body);}
   .gt-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:12px 20px 6px;}
@@ -1408,6 +1424,7 @@
       <div class="tab" data-view="roster" data-label="Roster"><i class="ti ti-users"></i><span>Roster</span></div>
       <div class="tab" data-view="sop" data-label="Standard Operational Procedure"><i class="ti ti-book-2"></i><span>SOP</span></div>
       <div class="tab" data-view="tasklist" data-label="Task List"><i class="ti ti-clipboard-list"></i><span>Task List</span></div>
+      <div class="tab" data-view="handover" data-label="Handover Job"><i class="ti ti-file-text"></i><span>Handover Job</span></div>
       <div class="tab" data-view="projects" data-label="Projects"><i class="ti ti-briefcase"></i><span>Projects</span></div>
       <div class="tab" data-view="workload" data-label="Workload Analysis"><i class="ti ti-gauge"></i><span>Workload Analysis</span></div>
       <div class="tab" data-view="openpoint" data-label="Open Point"><i class="ti ti-alert-triangle"></i><span>Open Point</span></div>
@@ -2341,6 +2358,25 @@
         <button type="button" class="btn" id="sopDocDeleteConfirmBtn" style="flex:1;justify-content:center;background:var(--red-fg);border-color:var(--red-fg);color:#fff;">Hapus</button>
       </div>
     </div>
+  </div>
+
+  <!-- ================= VIEW: HANDOVER JOB ================= -->
+  <div class="view" id="view-handover">
+    <div class="ho-head">
+      <h3>Operations – Handover Job</h3>
+      <div class="ho-actions">
+        <button class="ho-btn primary" id="hoPrintBtn" type="button"><i class="ti ti-printer"></i>Print to PDF</button>
+        <button class="ho-btn" id="hoWordBtn" type="button"><i class="ti ti-file-word"></i>Word</button>
+        <button class="ho-btn" id="hoPptBtn" type="button"><i class="ti ti-file-type-ppt"></i>PowerPoint</button>
+      </div>
+    </div>
+    <div class="ho-period">
+      <label for="hoFrom">Period</label>
+      <input type="date" id="hoFrom" aria-label="Period mulai">
+      <span>–</span>
+      <input type="date" id="hoTo" aria-label="Period selesai">
+    </div>
+    <div id="hoPreview" aria-label="Preview Handover Job"></div>
   </div>
 
   <!-- ================= VIEW: TASK LIST ================= -->
@@ -4612,6 +4648,7 @@ document.querySelectorAll('.tab').forEach(tab => {
     if(tab.dataset.view === 'roster') loadRoster();
     if(tab.dataset.view === 'sop') renderSop();
     if(tab.dataset.view === 'tasklist') renderTaskList();
+    if(tab.dataset.view === 'handover') renderHandover();
     if(tab.dataset.view === 'projects') renderProjects();
     if(tab.dataset.view === 'workload') renderWorkload();
     if(tab.dataset.view === 'openpoint') renderOpenPoint();
@@ -4619,6 +4656,203 @@ document.querySelectorAll('.tab').forEach(tab => {
     if(tab.dataset.view === 'overview') renderOverview();
     if(tab.dataset.view === 'assetplant') renderAssetPlant();
     if(tab.dataset.view === 'pob') renderPob();
+  };
+});
+
+/* ===== HANDOVER JOB: otomatis dari Task List, dikelompokkan per Project ===== */
+const HO_STATUS_MAP = { 'Belum Mulai':'Open', 'Proses':'Onprogress', 'Selesai':'Done' };
+const HO_PERIOD_KEY = 'handover:period';
+let hoPeriod = null;
+let hoPeriodLoaded = false;
+const HO_CELL = 'border:0.5pt solid #000;padding:3px 5px;vertical-align:top;';
+const HO_FONT = "font-family:'Arial Narrow',Arial,sans-serif;font-size:10pt;line-height:1.15;";
+
+function hoDs(ds){ if(!ds) return ''; const p = String(ds).split('-'); return p.length === 3 ? p[2] + '/' + p[1] + '/' + p[0] : String(ds); }
+function hoMs(ms){ const d = new Date(ms); if(isNaN(d)) return ''; return String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0') + '/' + d.getFullYear(); }
+function hoStatus(it){
+  if(taskStatusManager.isDone(it.status)) return 'Done';
+  return HO_STATUS_MAP[it.status] || it.status || 'Open';
+}
+function hoGroups(){
+  const map = new Map();
+  taskListItems.forEach(it => {
+    if(!it || !it.id) return;
+    const pn = it.projectId ? ((prjById(it.projectId) || {}).name || 'Project terhapus') : 'Tanpa Project';
+    if(!map.has(pn)) map.set(pn, []);
+    map.get(pn).push(it);
+  });
+  return [...map.entries()].sort((a,b) => a[0] === 'Tanpa Project' ? 1 : b[0] === 'Tanpa Project' ? -1 : a[0].localeCompare(b[0]));
+}
+function hoRowData(it){
+  const det = [];
+  if(it.pic) det.push('PIC: ' + it.pic);
+  if(it.vendor) det.push('Mitra: ' + it.vendor);
+  if(it.deadline) det.push('Deadline: ' + hoDs(it.deadline) + (it.time ? ' ' + tlTimeRange(it) : ''));
+  (it.subs || []).forEach(sb => det.push((sb.done ? '[x] ' : '[ ] ') + sb.title));
+  const follow = (it.notes || []).filter(n => n && n.tx).slice().sort((a,b) => a.ts - b.ts).map(n => 'Update ' + hoMs(n.ts) + ': ' + n.tx);
+  return { title: it.desc || '', details: det, follow, status: hoStatus(it) };
+}
+function hoPeriodText(){
+  const f = hoPeriod && hoPeriod.from ? hoDs(hoPeriod.from) : '';
+  const t = hoPeriod && hoPeriod.to ? hoDs(hoPeriod.to) : '';
+  return '(' + f + ' – ' + t + ')';
+}
+function hoBuildInner(){
+  const groups = hoGroups();
+  const header = [
+    ['Document Name', 'Operations – Handover Job'],
+    ['Period', hoPeriodText()],
+    ['Department', 'Digital Sustainability Operation (DSO)'],
+    ['Division', 'Digital & Technology Solutions']
+  ];
+  let h = '<table style="border-collapse:collapse;width:100%;margin-bottom:8px;' + HO_FONT + '">';
+  header.forEach(r => {
+    h += '<tr><td style="background:#323E4F;color:#fff;font-weight:bold;padding:3px 6px;width:24%;' + HO_CELL + '">' + escapeHtml(r[0]) + '</td>'
+       + '<td style="background:#D5DCE4;color:#000;font-weight:bold;padding:3px 6px;' + HO_CELL + '">' + escapeHtml(r[1]) + '</td></tr>';
+  });
+  h += '</table>';
+  h += '<table style="border-collapse:collapse;width:100%;table-layout:fixed;' + HO_FONT + 'color:#000;border:0.5pt solid #000;">'
+     + '<colgroup><col style="width:5%"><col style="width:55%"><col style="width:28%"><col style="width:12%"></colgroup>'
+     + '<thead><tr style="background:#323E4F;color:#fff;font-weight:bold;">'
+     + '<td style="text-align:center;' + HO_CELL + '">No</td><td style="' + HO_CELL + '">Task</td><td style="' + HO_CELL + '">Follow up</td><td style="text-align:center;' + HO_CELL + '">Status</td></tr></thead><tbody>';
+  if(!groups.length){
+    h += '<tr><td colspan="4" style="text-align:center;padding:8px;' + HO_CELL + '">Belum ada task di Task List.</td></tr>';
+  }
+  groups.forEach(g => {
+    h += '<tr style="background:#D5DCE4;"><td colspan="4" style="font-weight:bold;font-size:12pt;padding:4px 6px;' + HO_CELL + '">' + escapeHtml(g[0]) + '</td></tr>';
+    g[1].forEach((it, idx) => {
+      const r = hoRowData(it);
+      h += '<tr style="background:#D4DCE4;"><td style="text-align:center;' + HO_CELL + '">' + (idx+1) + '.</td>'
+         + '<td style="font-weight:bold;' + HO_CELL + '">' + escapeHtml(r.title) + '</td><td style="' + HO_CELL + '"></td><td style="' + HO_CELL + '"></td></tr>';
+      h += '<tr style="background:#fff;"><td style="' + HO_CELL + '"></td>'
+         + '<td style="' + HO_CELL + '">' + r.details.map(d => '<div>● ' + escapeHtml(d) + '</div>').join('') + '</td>'
+         + '<td style="text-align:justify;' + HO_CELL + '">' + r.follow.map(f => '<div>' + escapeHtml(f) + '</div>').join('') + '</td>'
+         + '<td style="text-align:center;' + HO_CELL + '">' + escapeHtml(r.status) + '</td></tr>';
+    });
+  });
+  h += '</tbody></table>';
+  return h;
+}
+async function hoLoadPeriod(){
+  if(hoPeriodLoaded) return;
+  hoPeriodLoaded = true;
+  try{ const r = await store.get(HO_PERIOD_KEY); if(r && r.value) hoPeriod = JSON.parse(r.value); }catch(e){}
+  if(!hoPeriod){
+    const today = todayStr();
+    const dates = taskListItems.map(it => it && it.date).filter(Boolean).sort();
+    hoPeriod = { from: dates[0] || today, to: today };
+  }
+}
+async function hoSavePeriod(){
+  try{ await store.set(HO_PERIOD_KEY, JSON.stringify(hoPeriod)); }catch(e){}
+}
+async function renderHandover(){
+  await hoLoadPeriod();
+  const fromEl = document.getElementById('hoFrom');
+  const toEl = document.getElementById('hoTo');
+  if(fromEl && !fromEl.dataset.bound){
+    fromEl.dataset.bound = '1';
+    fromEl.addEventListener('change', () => { hoPeriod.from = fromEl.value; hoSavePeriod(); renderHandover(); });
+    toEl.addEventListener('change', () => { hoPeriod.to = toEl.value; hoSavePeriod(); renderHandover(); });
+    document.getElementById('hoPrintBtn').onclick = hoPrintPdf;
+    document.getElementById('hoWordBtn').onclick = hoExportWord;
+    document.getElementById('hoPptBtn').onclick = hoExportPpt;
+  }
+  if(fromEl){ fromEl.value = hoPeriod.from || ''; toEl.value = hoPeriod.to || ''; }
+  const pv = document.getElementById('hoPreview');
+  if(pv) pv.innerHTML = hoBuildInner();
+}
+function hoPrintPdf(){
+  let root = document.getElementById('handoverPrintRoot');
+  if(!root){ root = document.createElement('div'); root.id = 'handoverPrintRoot'; root.className = 'ho-root'; document.body.appendChild(root); }
+  root.innerHTML = hoBuildInner();
+  root.style.display = 'block';
+  document.body.classList.add('ho-printing');
+  const done = () => { document.body.classList.remove('ho-printing'); root.innerHTML = ''; window.removeEventListener('afterprint', done); };
+  window.addEventListener('afterprint', done);
+  setTimeout(() => window.print(), 50);
+}
+function hoDownload(blob, name){
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+function hoFileBase(){ return 'Handover_' + ((hoPeriod && hoPeriod.from) || todayStr()); }
+function hoExportWord(){
+  const html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><style>@page{size:8.5in 11in;margin:0.79in 0.59in 0.39in 0.59in;} body{font-family:"Arial Narrow",Arial,sans-serif;font-size:10pt;}</style></head><body>' + hoBuildInner() + '</body></html>';
+  hoDownload(new Blob(['﻿', html], { type: 'application/msword' }), hoFileBase() + '.doc');
+}
+function hoLoadScript(src){
+  return new Promise((res, rej) => {
+    if(window.PptxGenJS) return res();
+    const s = document.createElement('script');
+    s.src = src; s.onload = res; s.onerror = rej;
+    document.head.appendChild(s);
+  });
+}
+async function hoExportPpt(){
+  try{ await hoLoadScript('https://cdnjs.cloudflare.com/ajax/libs/pptxgenjs/3.12.0/pptxgenjs.min.js'); }
+  catch(e){ alert('Library PowerPoint gagal dimuat. Periksa koneksi internet lalu coba lagi.'); return; }
+  const pptx = new window.PptxGenJS();
+  pptx.layout = 'LAYOUT_WIDE';
+  const hdrCell = t => ({ text: t, options: { bold: true, color: 'FFFFFF', fill: { color: '323E4F' } } });
+  const valCell = t => ({ text: t, options: { bold: true, fill: { color: 'D5DCE4' } } });
+  const cover = pptx.addSlide();
+  cover.addText('Operations – Handover Job', { x: 0.6, y: 0.5, w: 12, h: 0.7, fontFace: 'Arial Narrow', fontSize: 24, bold: true, color: '323E4F' });
+  cover.addTable([
+    [hdrCell('Document Name'), valCell('Operations – Handover Job')],
+    [hdrCell('Period'), valCell(hoPeriodText())],
+    [hdrCell('Department'), valCell('Digital Sustainability Operation (DSO)')],
+    [hdrCell('Division'), valCell('Digital & Technology Solutions')]
+  ], { x: 0.6, y: 1.4, w: 9, colW: [2.8, 6.2], fontFace: 'Arial Narrow', fontSize: 12, border: { type: 'solid', pt: 0.5, color: '000000' } });
+  const colHead = [hdrCell('No'), hdrCell('Task'), hdrCell('Follow up'), hdrCell('Status')];
+  const LIMIT = 18;
+  hoGroups().forEach(g => {
+    const items = g[1].map(hoRowData);
+    const chunks = []; let cur = [], w = 0;
+    items.forEach(r => {
+      const weight = 1 + Math.max(r.details.length, r.follow.length, 1);
+      if(cur.length && w + weight > LIMIT){ chunks.push(cur); cur = []; w = 0; }
+      cur.push(r); w += weight;
+    });
+    if(cur.length) chunks.push(cur);
+    chunks.forEach((chunk, ci) => {
+      const s = pptx.addSlide();
+      const rows = [
+        [{ text: g[0] + (chunks.length > 1 ? ' (' + (ci+1) + '/' + chunks.length + ')' : ''), options: { colspan: 4, bold: true, fontSize: 12, fill: { color: 'D5DCE4' } } }],
+        colHead
+      ];
+      let n = ci === 0 ? 0 : chunks.slice(0, ci).reduce((a, c) => a + c.length, 0);
+      chunk.forEach(r => {
+        n++;
+        rows.push([
+          { text: n + '.', options: { bold: true, align: 'center', fill: { color: 'D4DCE4' } } },
+          { text: r.title, options: { bold: true, fill: { color: 'D4DCE4' } } },
+          { text: '', options: { fill: { color: 'D4DCE4' } } },
+          { text: '', options: { fill: { color: 'D4DCE4' } } }
+        ]);
+        rows.push([
+          { text: '', options: { fill: { color: 'FFFFFF' } } },
+          { text: r.details.length ? r.details.map(d => '● ' + d).join('\n') : '', options: { fill: { color: 'FFFFFF' } } },
+          { text: r.follow.join('\n'), options: { fill: { color: 'FFFFFF' } } },
+          { text: r.status, options: { align: 'center', fill: { color: 'FFFFFF' } } }
+        ]);
+      });
+      s.addTable(rows, { x: 0.4, y: 0.4, w: 12.5, colW: [0.6, 6.4, 4.1, 1.4], fontFace: 'Arial Narrow', fontSize: 9, valign: 'top', border: { type: 'solid', pt: 0.5, color: '000000' } });
+    });
+  });
+  pptx.writeFile({ fileName: hoFileBase() + '.pptx' });
+}
+
+/* Sinkron otomatis: setiap Task List tersimpan, Handover Job ikut ter-update bila tab sedang dibuka */
+window.addEventListener('load', () => {
+  const orig = saveTaskList;
+  saveTaskList = function(){
+    const r = orig.apply(this, arguments);
+    const v = document.getElementById('view-handover');
+    if(v && v.classList.contains('active')) renderHandover();
+    return r;
   };
 });
 
