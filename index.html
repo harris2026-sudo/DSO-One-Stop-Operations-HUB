@@ -492,6 +492,17 @@
   .gt-title{font-size:14px;color:var(--text);line-height:1.4;word-break:break-word;}
   .gt-row.is-done .gt-title{text-decoration:line-through;color:var(--text-muted);}
   .gt-row.is-hold .gt-title{color:var(--text-secondary);}
+  /* v27: edit inline judul / vendor / catatan di baris Task List */
+  .gt-edt{display:inline-block;padding:1px 6px;margin-left:-6px;border-radius:6px;cursor:text;}
+  .gt-edt:hover{background:var(--hilite);}
+  .gt-pen{border:none;background:transparent;color:var(--text-muted);cursor:pointer;opacity:0;font-size:14px;padding:2px 4px;margin-left:2px;vertical-align:-1px;}
+  .gt-row:hover .gt-pen,.gt-pen:focus-visible{opacity:1;}
+  .gt-pen:hover{color:var(--accent);}
+  .gt-ie{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+  .gt-ie input{flex:1;min-width:140px;height:30px;font-size:13px;padding:0 8px;border:1px solid var(--accent);border-radius:6px;}
+  .gt-ie button{height:30px;padding:0 10px;font-size:12px;}
+  .gt-ie.sm input{height:24px;font-size:12px;min-width:110px;}
+  .gt-ie-hint{font-size:11px;color:var(--text-muted);margin-top:3px;}
   .gt-meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:5px;font-size:12px;color:var(--text-secondary);}
   .gt-chip{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:12px;border:1px solid var(--border);font-size:12px;}
   .gt-chip i{font-size:13px;}
@@ -10651,6 +10662,61 @@ function tlSubEditHtml(p, sb){
   </div>`;
 }
 
+/* v27: edit inline teks di baris Task List (judul task, vendor, catatan teratas).
+   Pemicu: klik dua kali pada teks, atau ikon pensil di samping judul. Enter = simpan, Esc = batal. */
+let tlInlineEdit = null; // { id, field: 'desc' | 'vendor' | 'note' }
+function tlInlineEditorHtml(it, field, value, small){
+  const label = field === 'desc' ? 'Task name' : (field === 'vendor' ? 'Vendor' : 'Note');
+  return `<div class="gt-ie${small ? ' sm' : ''}" data-stop="1">
+    <input type="text" id="tlIE" data-ie="${field}" data-id="${it.id}" value="${escapeHtml(value || '')}" placeholder="${label}" aria-label="${label}">
+    <button type="button" class="btn btn-primary" data-iesave="1">Save</button>
+    <button type="button" class="btn btn-ghost" data-iecancel="1">Cancel</button>
+    ${small ? '' : '<div class="gt-ie-hint" style="flex-basis:100%">Enter to save · Esc to cancel</div>'}
+  </div>`;
+}
+function tlTitleHtml(it){
+  if(tlInlineEdit && tlInlineEdit.id === it.id && tlInlineEdit.field === 'desc'){
+    return `<div class="gt-title">${tlInlineEditorHtml(it, 'desc', it.desc, false)}</div>`;
+  }
+  return `<div class="gt-title"><span class="gt-edt" data-ie-desc="${it.id}" title="Double-click to edit">${escapeHtml(it.desc)}</span><button type="button" class="gt-pen" data-iepen="desc:${it.id}" aria-label="Edit task name"><i class="ti ti-pencil"></i></button></div>`;
+}
+function tlStartInlineEdit(id, field){
+  const it = taskListItems.find(i => i.id === id);
+  if(!it) return;
+  if(field === 'note' && !tlSortedNotes(it)[0]) return;
+  tlInlineEdit = { id, field };
+  if(field === 'note' && tlOpenId === id) tlOpenId = null; // pratinjau catatan hanya tampil saat detail tertutup
+  renderTlList();
+  const inp = document.getElementById('tlIE');
+  if(inp){ inp.focus(); inp.select(); }
+}
+function tlCancelInlineEdit(){ tlInlineEdit = null; renderTlList(); }
+async function tlCommitInlineEdit(){
+  const inp = document.getElementById('tlIE');
+  if(!inp || !tlInlineEdit) return;
+  const it = taskListItems.find(i => i.id === inp.dataset.id);
+  const field = inp.dataset.ie;
+  if(!it){ tlInlineEdit = null; renderTlList(); return; }
+  const v = inp.value.trim();
+  if(field !== 'vendor' && !v){
+    inp.style.borderColor = 'var(--red-fg)';
+    inp.placeholder = (field === 'desc' ? 'Task name' : 'Note') + " can't be empty";
+    inp.focus();
+    return;
+  }
+  if(field === 'desc'){
+    if(v !== it.desc){ tlLog(it, 'Renamed: "' + it.desc + '" → "' + v + '"'); it.desc = v; }
+  } else if(field === 'vendor'){
+    if(v !== (it.vendor || '')){ tlLog(it, 'Vendor: ' + (it.vendor || 'none') + ' → ' + (v || 'none')); it.vendor = v; }
+  } else if(field === 'note'){
+    const n = tlSortedNotes(it)[0];
+    if(n && v !== n.tx){ n.tx = v; n.edited = Date.now(); }
+  }
+  tlInlineEdit = null;
+  await saveTaskList();
+  renderTlSummary(); renderTlFilterBar(); renderTlList();
+}
+
 function tlRowHtml(it){
   const done = tlIsDone(it), hold = tlIsHold(it.status), eff = tlEffectiveStatus(it), od = eff === 'Overdue';
   const first = taskStatusManager.getList()[0];
@@ -10658,7 +10724,11 @@ function tlRowHtml(it){
   let meta = '';
   if(it.deadline) meta += tlDeadlineChip(it, od, done || hold);
   if(it.pic) meta += `<span class="gt-chip"><i class="ti ti-user"></i>${escapeHtml(it.pic)}</span>`;
-  if(it.vendor) meta += `<span class="gt-chip"><i class="ti ti-building"></i>${escapeHtml(it.vendor)}</span>`;
+  if(it.vendor){
+    meta += (tlInlineEdit && tlInlineEdit.id === it.id && tlInlineEdit.field === 'vendor')
+      ? tlInlineEditorHtml(it, 'vendor', it.vendor, true)
+      : `<span class="gt-chip" data-ie-vendor="${it.id}" title="Double-click to edit vendor"><i class="ti ti-building"></i>${escapeHtml(it.vendor)}</span>`;
+  }
   if(it.projectId){ const pj = prjById(it.projectId); if(pj) meta += `<span class="gt-chip pjc" title="Project"><i class="ti ti-briefcase"></i>${escapeHtml(tlClip(pj.name, 26))}</span>`; }
   if(it.rec) meta += `<span class="gt-chip rc"><i class="ti ti-repeat"></i>${escapeHtml(tlRecLabel(it.rec))}${it.time ? ' · ' + it.time : ''}</span>`;
   else if(it.seriesId) meta += '<span class="gt-chip rc"><i class="ti ti-repeat"></i>Recurring</span>';
@@ -10669,7 +10739,11 @@ function tlRowHtml(it){
     meta += `<span class="gt-chip" style="${tlStatusColorStyle(it.status)}border-color:transparent;">${hold ? '<i class="ti ti-player-pause"></i>' : ''}${escapeHtml(it.status)}</span>`;
   }
   const topNote = tlSortedNotes(it)[0];
-  if(topNote && tlOpenId !== it.id) meta += `<span>${topNote.ty === 'hold' ? '<i class="ti ti-player-pause"></i> ' : ''}${escapeHtml(tlClip(topNote.tx, 70))}</span>`;
+  if(topNote && tlOpenId !== it.id){
+    meta += (tlInlineEdit && tlInlineEdit.id === it.id && tlInlineEdit.field === 'note')
+      ? tlInlineEditorHtml(it, 'note', topNote.tx, true)
+      : `<span data-ie-note="${it.id}" title="Double-click to edit note">${topNote.ty === 'hold' ? '<i class="ti ti-player-pause"></i> ' : ''}${escapeHtml(tlClip(topNote.tx, 70))}</span>`;
+  }
   const bar = g.n ? `<div class="gt-pb" aria-hidden="true"><div style="width:${Math.round(g.d / g.n * 100)}%"></div></div>` : '';
   const warn = (tlWarnId === it.id && g.rq > 0) ? `<div class="gt-warn"><i class="ti ti-alert-triangle"></i>Finish ${g.rq} required sub task${g.rq > 1 ? 's' : ''} first</div>` : '';
   let detail = '';
@@ -10701,7 +10775,7 @@ function tlRowHtml(it){
   const remarkLine = (done && it.remark && tlOpenId !== it.id) ? `<div class="gt-meta"><i class="ti ti-archive"></i>${escapeHtml(it.remark)}</div>` : '';
   return `<div class="gt-row ${done?'is-done':''} ${hold?'is-hold':''}" data-row="${it.id}" tabindex="0">
     <button type="button" class="gt-ck ${done?'on':''}" data-ck="${it.id}" aria-label="${done?'Mark as not done':'Mark as done'}"><i class="ti ti-check"></i></button>
-    <div class="gt-body"><div class="gt-title">${escapeHtml(it.desc)}</div>${meta ? `<div class="gt-meta">${meta}</div>` : ''}${bar}${warn}${detail}${remarkLine}</div>
+    <div class="gt-body">${tlTitleHtml(it)}${meta ? `<div class="gt-meta">${meta}</div>` : ''}${bar}${warn}${detail}${remarkLine}</div>
     <button type="button" class="gt-del" data-del="${it.id}" aria-label="Delete task"><i class="ti ti-trash"></i></button>
   </div>`;
 }
@@ -10837,8 +10911,11 @@ setInterval(() => {
 (function tlBindEvents(){
   const view = document.getElementById('view-tasklist');
   view.addEventListener('click', async (e) => {
-    const t = e.target.closest('[data-rday],[data-rmk],[data-rskip],[data-rstop],[data-ck],[data-sck],[data-sdel],[data-sedit],[data-ssave],[data-scancel],[data-sadd],[data-npin],[data-ndel],[data-ncyc],[data-npost],[data-ntype],[data-nact],[data-del],[data-undo],[data-sec],[data-manage],[data-f].fu-filter,[data-row],[data-stop]');
+    const t = e.target.closest('[data-iepen],[data-iesave],[data-iecancel],[data-rday],[data-rmk],[data-rskip],[data-rstop],[data-ck],[data-sck],[data-sdel],[data-sedit],[data-ssave],[data-scancel],[data-sadd],[data-npin],[data-ndel],[data-ncyc],[data-npost],[data-ntype],[data-nact],[data-del],[data-undo],[data-sec],[data-manage],[data-f].fu-filter,[data-row],[data-stop]');
     if(!t) return;
+    if(t.dataset.iesave){ e.stopPropagation(); await tlCommitInlineEdit(); return; }
+    if(t.dataset.iecancel){ e.stopPropagation(); tlCancelInlineEdit(); return; }
+    if(t.dataset.iepen){ e.stopPropagation(); tlStartInlineEdit(t.dataset.iepen.split(':')[1], 'desc'); return; }
     if(t.dataset.stop) return;
     if(t.dataset.ck){ e.stopPropagation(); await tlToggleDone(t.dataset.ck); return; }
     if(t.dataset.rmk || t.dataset.rday || t.dataset.rskip || t.dataset.rstop){
@@ -11052,6 +11129,21 @@ setInterval(() => {
     if(row && e.target === row){ e.preventDefault(); tlOpenId = (tlOpenId === row.dataset.row) ? null : row.dataset.row; tlSubEditId = null; renderTlList(); }
     const sec = e.target.closest('[data-sec]');
     if(sec && e.target === sec){ e.preventDefault(); tlShowDone = !tlShowDone; renderTlList(); }
+  });
+  view.addEventListener('dblclick', (e) => {
+    const t = e.target.closest('[data-ie-desc],[data-ie-vendor],[data-ie-note]');
+    if(!t) return;
+    e.preventDefault();
+    if(window.getSelection) window.getSelection().removeAllRanges();
+    if(t.dataset.ieDesc) tlStartInlineEdit(t.dataset.ieDesc, 'desc');
+    else if(t.dataset.ieVendor) tlStartInlineEdit(t.dataset.ieVendor, 'vendor');
+    else if(t.dataset.ieNote) tlStartInlineEdit(t.dataset.ieNote, 'note');
+  });
+  view.addEventListener('keydown', async (e) => {
+    if(e.target && e.target.id === 'tlIE'){
+      if(e.key === 'Enter'){ e.preventDefault(); await tlCommitInlineEdit(); }
+      else if(e.key === 'Escape'){ e.preventDefault(); tlCancelInlineEdit(); }
+    }
   });
   view.addEventListener('change', async (e) => {
     const t = e.target;
