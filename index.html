@@ -3823,9 +3823,10 @@ async function rosterToggleHelperHidden(){
 }
 rosterLoadHelperHidden().then(() => { try{ renderRosterSheetLinks(); if(rosterLoaded) renderRoster(); checkRosterGapAlert(); }catch(e){} });
 const ROSTER_CHIP_DEFAULTS = { main: 'Isi sheet Tim Utama', helper: 'Isi sheet Helper' };
+let rosterTabByMonth = {}; // v26: "tahun-bulan" -> nama tab sheet yang benar-benar terbaca
 function rosterSheetTabsToUpdate(){
   const today = new Date(); today.setHours(0,0,0,0);
-  const monthName = d => `${ROSTER_MONTH_NAMES_EN[d.getMonth()]}-${d.getFullYear()}`;
+  const monthName = d => rosterTabByMonth[d.getFullYear() + '-' + d.getMonth()] || `${ROSTER_MONTH_NAMES_EN[d.getMonth()]}-${d.getFullYear()}`;
   const tabs = [], missing = [];
   for(let i = 0; i < 7; i++){
     const d = new Date(today); d.setDate(today.getDate() + i);
@@ -4135,14 +4136,31 @@ function parseRosterBlocks(rows){
    sesuai struktur asli file Harris. gid TIDAK dipakai lagi karena gid bukan angka urut per tab -
    hanya tab pertama yang gid-nya pasti 0, tab lain dapat ID acak sehingga tebakan gid 1..7 salah sasaran. */
 const ROSTER_MONTH_NAMES_EN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+/* v26: sheet kadang memakai 1 tab untuk 2 bulan (contoh nyata: "Oct & Nov-2026", "Nov & Des-2026").
+   Pola lama hanya "NamaBulan-Tahun" sehingga tab gabungan tidak ketemu dan banner "belum lengkap" muncul palsu.
+   Sekarang dicoba juga: nama gabungan (singkatan Inggris & Indonesia) dan gid cadangan. */
+const ROSTER_MONTH_ABBR_VARIANTS = [
+  ['Jan'],['Feb'],['Mar'],['Apr'],['May','Mei'],['Jun'],['Jul'],['Aug','Agu','Agt'],['Sep'],['Oct','Okt'],['Nov'],['Dec','Des']
+];
+const ROSTER_FALLBACK_GIDS = ['1882580998']; // tab "Oct & Nov-2026" (link dari Harris, 15 Okt 2026)
 function rosterCandidateSheetNames(){
   const now = new Date();
-  const names = [];
+  const set = new Set();
   for(let offset=-2; offset<=6; offset++){
     const d = new Date(now.getFullYear(), now.getMonth()+offset, 1);
-    names.push(`${ROSTER_MONTH_NAMES_EN[d.getMonth()]}-${d.getFullYear()}`);
+    set.add(`${ROSTER_MONTH_NAMES_EN[d.getMonth()]}-${d.getFullYear()}`);
   }
-  return names;
+  // tab gabungan 2 bulan: pasangan (bulan, bulan+1) untuk -2..+3 bulan dari sekarang
+  for(let offset=-2; offset<=3; offset++){
+    const a = new Date(now.getFullYear(), now.getMonth()+offset, 1);
+    const b = new Date(now.getFullYear(), now.getMonth()+offset+1, 1);
+    ROSTER_MONTH_ABBR_VARIANTS[a.getMonth()].forEach(x => {
+      ROSTER_MONTH_ABBR_VARIANTS[b.getMonth()].forEach(y => {
+        [a.getFullYear(), b.getFullYear()].forEach(yr => set.add(`${x} & ${y}-${yr}`));
+      });
+    });
+  }
+  return Array.from(set);
 }
 /* Google TIDAK mengirim header Access-Control-Allow-Origin di endpoint gviz/tq, sehingga
    fetch()/XHR biasa dari domain lain (mis. GitHub Pages) selalu diblokir CORS oleh browser -
@@ -4180,8 +4198,15 @@ function loadGoogleChartsOnce(){
   return rosterGChartsPromise;
 }
 async function fetchRosterSheetByName(sheetName){
+  // headers=0 (v26): cegah gviz membuang blok tanggal pertama di tab (auto-detect header)
+  return fetchRosterSheetQuery(sheetName, `sheet=${encodeURIComponent(sheetName)}&headers=0`);
+}
+async function fetchRosterSheetByGid(gid){
+  return fetchRosterSheetQuery('gid ' + gid, `gid=${encodeURIComponent(gid)}&headers=0`);
+}
+async function fetchRosterSheetQuery(sheetName, queryPart){
   await loadGoogleChartsOnce();
-  const url = `https://docs.google.com/spreadsheets/d/${ROSTER_SHEET_ID}/gviz/tq?sheet=${encodeURIComponent(sheetName)}&_t=${Date.now()}`;
+  const url = `https://docs.google.com/spreadsheets/d/${ROSTER_SHEET_ID}/gviz/tq?${queryPart}&_t=${Date.now()}`;
   return new Promise((resolve, reject) => {
     let settled = false;
     const timer = setTimeout(() => {
@@ -4324,11 +4349,19 @@ async function loadRoster(){
   try{
     const candidates = rosterCandidateSheetNames();
     const errorTypes = [];
-    const attempts = candidates.map(name => fetchRosterSheetByName(name).catch(err => {
+    const tabByMonth = {};
+    const track = (label) => (days) => {
+      (days || []).forEach(d => { const k = d.date.getFullYear() + '-' + d.date.getMonth(); if(!tabByMonth[k]) tabByMonth[k] = label; });
+      return days;
+    };
+    const attempts = candidates.map(name => fetchRosterSheetByName(name).then(track(name)).catch(err => {
       errorTypes.push(err && err.rosterErrorType || 'unknown');
       return [];
     }));
+    // v26: tab cadangan lewat gid (tahan terhadap nama tab yang berubah). Label tab tidak diketahui -> nama aslinya tidak dipakai.
+    ROSTER_FALLBACK_GIDS.forEach(gid => attempts.push(fetchRosterSheetByGid(gid).catch(() => [])));
     const results = await Promise.all(attempts);
+    rosterTabByMonth = tabByMonth;
     const merged = [];
     const seen = new Set();
     results.flat().forEach(d => {
