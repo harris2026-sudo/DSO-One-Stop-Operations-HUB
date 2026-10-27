@@ -502,6 +502,10 @@
   .gt-seg button i{font-size:15px;}
   .gt-sortok{margin-left:auto;display:inline-flex;align-items:center;gap:8px;padding:3px 4px 3px 10px;border-radius:8px;background:#E7F4EA;color:#1F6B33;font-size:12px;}
   .gt-sortok button{border:none;background:#fff;color:#1F6B33;border-radius:6px;height:24px;padding:0 9px;font:inherit;font-size:12px;cursor:pointer;}
+  .gt-row.gt-into{background:var(--hilite);box-shadow:inset 0 0 0 2px var(--accent);}
+  .gt-row.gt-into::after{content:'Jadikan sub task';position:absolute;right:50px;top:8px;font-size:12px;background:var(--accent);color:#fff;padding:2px 10px;border-radius:10px;pointer-events:none;}
+  .gt-row.gt-nope{box-shadow:inset 0 0 0 2px var(--red-fg);}
+  .gt-row.gt-nope::after{content:attr(data-nope);position:absolute;right:50px;top:8px;font-size:12px;background:var(--red-fg);color:#fff;padding:2px 10px;border-radius:10px;pointer-events:none;}
   .gt-row.flash{animation:gtflash 1.2s;}
   @keyframes gtflash{0%{background:#E7F4EA;}100%{background:transparent;}}
   body.tl-dragging,body.tl-dragging *{user-select:none !important;cursor:grabbing !important;}
@@ -10854,6 +10858,11 @@ function tlRenderSortBar(){
 async function tlSortUndoNow(){
   const u = tlSortUndo;
   if(!u) return;
+  if(u.fn){
+    tlSortToast = null; tlSortUndo = null; clearTimeout(tlSortToastTimer);
+    await u.fn();
+    return;
+  }
   taskListItems.forEach(i => { if(i.id in u.ords){ if(typeof u.ords[i.id] === 'number') i.ord = u.ords[i.id]; else delete i.ord; } });
   tlSortToast = null; tlSortUndo = null; clearTimeout(tlSortToastTimer);
   await tlSetSortMode(u.mode);
@@ -10892,6 +10901,44 @@ async function tlPlace(id, idx){
   if(fr) fr.classList.add('flash');
   saveTaskList();
 }
+/* Jadikan task sebagai sub task task lain (drop di tengah baris target). */
+function tlNestReason(src, tgt){
+  if(!src || !tgt || src.id === tgt.id) return 'Tidak valid';
+  if(src.subs && src.subs.length) return 'Task ini punya sub task';
+  if(src.rec || src.seriesId) return 'Task recurring tidak bisa';
+  if(tlIsDone(tgt)) return 'Task tujuan sudah Done';
+  if(tlIsHold(tgt.status)) return 'Task tujuan sedang Hold';
+  return '';
+}
+async function tlNest(srcId, tgtId){
+  const src = taskListItems.find(i => i.id === srcId), tgt = taskListItems.find(i => i.id === tgtId);
+  if(!src || !tgt) return;
+  const why = tlNestReason(src, tgt);
+  if(why){ tlShowSortToast(why === 'Task ini punya sub task' ? 'Pindahkan atau hapus dulu sub task-nya' : why, null); return; }
+  const srcCopy = JSON.parse(JSON.stringify(src)), tgtCopy = JSON.parse(JSON.stringify(tgt));
+  const srcIx = taskListItems.findIndex(i => i.id === srcId);
+  tgt.subs = tgt.subs || [];
+  const title = String(src.desc || '').trim() || 'Task';
+  tgt.subs.push({
+    id: 'ts' + Date.now() + Math.floor(Math.random() * 1000),
+    title, required: false, done: false,
+    pic: src.pic || '', deadline: src.deadline || ''
+  });
+  tlLog(tgt, 'Task "' + tlClip(title, 40) + '" dijadikan sub task');
+  taskListItems = taskListItems.filter(i => i.id !== srcId);
+  if(tlOpenId === srcId) tlOpenId = null;
+  tlShowSortToast('"' + tlClip(title, 20) + '" jadi sub task "' + tlClip(tgt.desc || '', 20) + '"', { fn: async () => {
+    const t2 = taskListItems.find(i => i.id === tgtId);
+    if(t2){ t2.subs = tgtCopy.subs; t2.activity = tgtCopy.activity; }
+    if(!taskListItems.some(i => i.id === srcId)) taskListItems.splice(Math.min(srcIx, taskListItems.length), 0, srcCopy);
+    await saveTaskList();
+    renderTlSummary(); renderTlFilterBar(); renderTlList();
+  }});
+  await saveTaskList();
+  renderTlSummary(); renderTlFilterBar(); renderTlList();
+  const fr = document.querySelector('#tlList .gt-row[data-row="' + tgtId + '"]');
+  if(fr) fr.classList.add('flash');
+}
 (function tlDragInit(){
   const listEl = document.getElementById('tlList');
   let drag = null, pend = null, justDragged = false;
@@ -10927,15 +10974,32 @@ async function tlPlace(id, idx){
     if(!drag) return;
     e.preventDefault();
     drag.ghost.style.top = (e.clientY - drag.dy) + 'px';
+    listEl.querySelectorAll('.gt-into,.gt-nope').forEach(x => { x.classList.remove('gt-into', 'gt-nope'); x.removeAttribute('data-nope'); });
+    drag.into = null; drag.deny = '';
+    /* Tengah baris (28%-72%) = jadikan sub task; tepi = pindah urutan. */
+    const hit = rowsNow().find(r => { const b = r.getBoundingClientRect(); return e.clientY >= b.top && e.clientY <= b.bottom && r.dataset.row !== drag.id; });
+    if(hit){
+      const b = hit.getBoundingClientRect(), f = (e.clientY - b.top) / b.height;
+      if(f > 0.28 && f < 0.72){
+        const src = taskListItems.find(i => i.id === drag.id), tgt = taskListItems.find(i => i.id === hit.dataset.row);
+        const why = tlNestReason(src, tgt);
+        if(!why){ drag.into = hit.dataset.row; hit.classList.add('gt-into'); drag.ind.style.display = 'none'; return; }
+        drag.deny = why; hit.classList.add('gt-nope'); hit.setAttribute('data-nope', why); drag.ind.style.display = 'none'; return;
+      }
+    }
+    drag.ind.style.display = '';
     const c = calcIdx(e.clientY);
     drag.idx = c.idx;
     showInd(c.idx, c.rows);
   }
   function onUp(){
     if(!drag) return;
-    const id = drag.id, idx = drag.idx;
+    const id = drag.id, idx = drag.idx, into = drag.into, deny = drag.deny;
     cleanup();
     justDragged = true; setTimeout(() => { justDragged = false; }, 80);
+    listEl.querySelectorAll('.gt-into,.gt-nope').forEach(x => { x.classList.remove('gt-into', 'gt-nope'); x.removeAttribute('data-nope'); });
+    if(into){ tlNest(id, into); return; }
+    if(deny){ tlShowSortToast(deny === 'Task ini punya sub task' ? 'Tidak bisa jadi sub task: pindahkan atau hapus dulu sub task-nya' : 'Tidak bisa jadi sub task: ' + deny.toLowerCase(), null); return; }
     tlPlace(id, idx);
   }
   function onCancel(){ cleanup(); }
