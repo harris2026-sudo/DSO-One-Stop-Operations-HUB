@@ -493,8 +493,18 @@
   .gt-row.dragging{opacity:.35;}
   .gt-ghost{position:fixed;z-index:9999;pointer-events:none;background:#fff;border:1px solid var(--accent);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.18);opacity:.95;overflow:hidden;}
   .gt-dropind{position:absolute;left:12px;right:12px;height:3px;border-radius:2px;background:var(--accent);pointer-events:none;z-index:5;}
-  .gt-sortbar{display:flex;align-items:center;gap:8px;padding:6px 20px;font-size:12px;color:var(--text-secondary);border-bottom:1px solid var(--border);}
-  .gt-sortbar .btn{height:26px;padding:0 10px;font-size:12px;}
+  .gt-sortbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 20px;font-size:13px;color:var(--text-secondary);border-bottom:1px solid var(--border);background:var(--zebra);}
+  .gt-sortbar > i{font-size:16px;}
+  .gt-seg{display:inline-flex;border:1px solid var(--border);border-radius:8px;overflow:hidden;background:#fff;}
+  .gt-seg button{border:none;background:transparent;font:inherit;font-size:13px;padding:0 12px;height:30px;display:inline-flex;align-items:center;gap:6px;color:var(--text-secondary);cursor:pointer;}
+  .gt-seg button:hover{background:var(--hilite);}
+  .gt-seg button.on{background:var(--hilite);color:var(--accent);font-weight:600;}
+  .gt-seg button i{font-size:15px;}
+  .gt-sortok{margin-left:auto;display:inline-flex;align-items:center;gap:8px;padding:3px 4px 3px 10px;border-radius:8px;background:#E7F4EA;color:#1F6B33;font-size:12px;}
+  .gt-sortok button{border:none;background:#fff;color:#1F6B33;border-radius:6px;height:24px;padding:0 9px;font:inherit;font-size:12px;cursor:pointer;}
+  .gt-row.flash{animation:gtflash 1.2s;}
+  @keyframes gtflash{0%{background:#E7F4EA;}100%{background:transparent;}}
+  body.tl-dragging,body.tl-dragging *{user-select:none !important;cursor:grabbing !important;}
   .gt-row:focus-visible{outline:2px solid var(--accent);outline-offset:-2px;}
   .gt-ck{flex:none;width:20px;height:20px;border-radius:50%;border:2px solid var(--text-muted);margin-top:1px;background:transparent;padding:0;display:flex;align-items:center;justify-content:center;color:transparent;cursor:pointer;transition:background .15s,border-color .15s;}
   .gt-ck:hover{border-color:var(--accent);background:var(--hilite);}
@@ -10818,13 +10828,37 @@ async function tlSetSortMode(m){
   try{ await store.set('tasklist:sortmode', m); }catch(e){ console.error('Gagal menyimpan mode urutan', e); }
 }
 function tlOpenSorted(){ return taskListItems.filter(it => !tlIsDone(it)).sort(tlCompare); }
+let tlSortToast = null, tlSortToastTimer = null, tlSortUndo = null;
+function tlSortSnap(){
+  const o = {};
+  taskListItems.forEach(i => { o[i.id] = i.ord; });
+  return { ords: o, mode: tlSortMode };
+}
+function tlShowSortToast(msg, snap){
+  tlSortToast = msg; tlSortUndo = snap;
+  clearTimeout(tlSortToastTimer);
+  tlSortToastTimer = setTimeout(() => { tlSortToast = null; tlSortUndo = null; tlRenderSortBar(); }, 6000);
+  tlRenderSortBar();
+}
 function tlRenderSortBar(){
   const el = document.getElementById('tlSortBar');
   if(!el) return;
-  el.innerHTML = tlSortMode === 'manual'
-    ? '<i class="ti ti-arrows-sort"></i><span>Urutan manual</span><button type="button" class="btn btn-ghost" data-sortauto="1">Urut deadline</button>'
-    : '';
-  el.style.display = tlSortMode === 'manual' ? '' : 'none';
+  const m = tlSortMode;
+  el.className = 'gt-sortbar';
+  el.innerHTML = '<i class="ti ti-arrows-sort" aria-hidden="true"></i>' +
+    '<div class="gt-seg" role="group" aria-label="Mode urutan">' +
+    `<button type="button" data-sortmode="auto" class="${m === 'auto' ? 'on' : ''}"><i class="ti ti-calendar-due"></i>Deadline</button>` +
+    `<button type="button" data-sortmode="manual" class="${m === 'manual' ? 'on' : ''}"><i class="ti ti-hand-move"></i>Manual</button></div>` +
+    (tlSortToast ? `<span class="gt-sortok" role="status">${escapeHtml(tlSortToast)}${tlSortUndo ? '<button type="button" data-sortundo="1">Batalkan</button>' : ''}</span>` : '');
+}
+async function tlSortUndoNow(){
+  const u = tlSortUndo;
+  if(!u) return;
+  taskListItems.forEach(i => { if(i.id in u.ords){ if(typeof u.ords[i.id] === 'number') i.ord = u.ords[i.id]; else delete i.ord; } });
+  tlSortToast = null; tlSortUndo = null; clearTimeout(tlSortToastTimer);
+  await tlSetSortMode(u.mode);
+  renderTlList();
+  saveTaskList();
 }
 async function tlPlace(id, idx){
   if(taskListFilter !== 'All') return;
@@ -10834,6 +10868,7 @@ async function tlPlace(id, idx){
   const others = list.filter(i => i.id !== id);
   idx = Math.max(0, Math.min(idx, others.length));
   if(idx === cur && tlSortMode === 'manual') return;
+  const snap = tlSortSnap();
   /* Back-fill ord (kelipatan 10, sesuai urutan yang sedang tampil) bila ada task yang belum punya. */
   if(list.some(i => typeof i.ord !== 'number')) list.forEach((i, k) => { i.ord = (k + 1) * 10; });
   const it = list[cur];
@@ -10851,12 +10886,15 @@ async function tlPlace(id, idx){
   else v = 10;
   it.ord = v;
   if(tlSortMode !== 'manual') await tlSetSortMode('manual');
+  tlShowSortToast('"' + tlClip(it.desc || it.title || 'Task', 22) + '" dipindah ke #' + (list.findIndex(x => x === it) >= 0 ? (tlOpenSorted().findIndex(x => x === it) + 1) : idx + 1), snap);
   renderTlList();
+  const fr = document.querySelector('#tlList .gt-row[data-row="' + id + '"]');
+  if(fr) fr.classList.add('flash');
   saveTaskList();
 }
 (function tlDragInit(){
   const listEl = document.getElementById('tlList');
-  let drag = null;
+  let drag = null, pend = null, justDragged = false;
   function rowsNow(){ return Array.from(listEl.querySelectorAll('.gt-row[data-row]:not(.is-done)')); }
   function calcIdx(y){
     const rows = rowsNow().filter(r => r.dataset.row !== drag.id);
@@ -10882,6 +10920,7 @@ async function tlPlace(id, idx){
     document.removeEventListener('pointermove', onMove);
     document.removeEventListener('pointerup', onUp);
     document.removeEventListener('pointercancel', onCancel);
+    document.body.classList.remove('tl-dragging');
     drag = null;
   }
   function onMove(e){
@@ -10896,15 +10935,14 @@ async function tlPlace(id, idx){
     if(!drag) return;
     const id = drag.id, idx = drag.idx;
     cleanup();
+    justDragged = true; setTimeout(() => { justDragged = false; }, 80);
     tlPlace(id, idx);
   }
   function onCancel(){ cleanup(); }
-  listEl.addEventListener('pointerdown', (e) => {
-    const g = e.target.closest('.gt-grip');
-    if(!g || taskListFilter !== 'All' || (e.pointerType === 'mouse' && e.button !== 0)) return;
-    const row = g.closest('.gt-row');
-    if(!row) return;
-    e.preventDefault();
+  /* Drag bisa dimulai dari mana saja di baris (bukan hanya grip). Mouse: geser > 6px.
+     Sentuh: tekan-tahan 400ms (supaya scroll tetap normal); grip langsung aktif. */
+  const NODRAG = 'button:not(.gt-grip),input,select,textarea,a,label,[contenteditable],.gt-detail,.gt-ie,[data-stop]:not(.gt-grip)';
+  function startDrag(row, e){
     const rb = row.getBoundingClientRect();
     const ghost = row.cloneNode(true);
     ghost.classList.add('gt-ghost');
@@ -10915,13 +10953,56 @@ async function tlPlace(id, idx){
     ind.className = 'gt-dropind';
     listEl.appendChild(ind);
     row.classList.add('dragging');
+    document.body.classList.add('tl-dragging');
     drag = { id: row.dataset.row, ghost, ind, dy: e.clientY - rb.top, idx: 0 };
     const c = calcIdx(e.clientY);
     drag.idx = c.idx; showInd(c.idx, c.rows);
     document.addEventListener('pointermove', onMove, { passive: false });
     document.addEventListener('pointerup', onUp);
     document.addEventListener('pointercancel', onCancel);
+  }
+  function clearPend(){
+    if(!pend) return;
+    clearTimeout(pend.timer);
+    document.removeEventListener('pointermove', pendMove);
+    document.removeEventListener('pointerup', clearPend);
+    document.removeEventListener('pointercancel', clearPend);
+    pend = null;
+  }
+  function pendMove(e){
+    if(!pend) return;
+    const dist = Math.hypot(e.clientX - pend.x, e.clientY - pend.y);
+    if(pend.touch){ if(dist > 8) clearPend(); return; }   // sentuh bergeser sebelum tahan = scroll biasa
+    if(dist > 6){
+      const row = pend.row, ev = e;
+      clearPend();
+      startDrag(row, ev);
+    }
+  }
+  listEl.addEventListener('pointerdown', (e) => {
+    if(taskListFilter !== 'All' || (e.pointerType === 'mouse' && e.button !== 0) || drag) return;
+    const g = e.target.closest('.gt-grip');
+    const row = e.target.closest('.gt-row');
+    if(!row || row.classList.contains('is-done') || !row.dataset.row) return;
+    if(g){ e.preventDefault(); startDrag(row, e); return; }
+    if(e.target.closest(NODRAG) || tlOpenId === row.dataset.row) return;
+    const touch = e.pointerType !== 'mouse';
+    pend = { row, x: e.clientX, y: e.clientY, touch };
+    if(touch){
+      pend.timer = setTimeout(() => {
+        const r = pend && pend.row; const px = pend && pend.x, py = pend && pend.y;
+        clearPend();
+        if(r){ if(navigator.vibrate) try{ navigator.vibrate(15); }catch(_){} startDrag(r, { clientY: py, clientX: px }); }
+      }, 400);
+    }
+    document.addEventListener('pointermove', pendMove);
+    document.addEventListener('pointerup', clearPend);
+    document.addEventListener('pointercancel', clearPend);
   });
+  listEl.addEventListener('click', (e) => {
+    if(justDragged){ e.stopPropagation(); e.preventDefault(); }
+  }, true);
+  listEl.addEventListener('dragstart', (e) => { if(drag || pend) e.preventDefault(); });
   /* Keyboard: Alt + panah atas/bawah pada tombol grip. */
   listEl.addEventListener('keydown', async (e) => {
     const g = e.target.closest && e.target.closest('.gt-grip');
@@ -10938,8 +11019,13 @@ async function tlPlace(id, idx){
     if(nb) nb.focus();
   });
   document.getElementById('tlSortBar').addEventListener('click', async (e) => {
-    if(!e.target.closest('[data-sortauto]')) return;
-    await tlSetSortMode('auto');
+    const um = e.target.closest('[data-sortundo]');
+    if(um){ await tlSortUndoNow(); return; }
+    const mb = e.target.closest('[data-sortmode]');
+    if(!mb || mb.dataset.sortmode === tlSortMode) return;
+    const snap = tlSortSnap();
+    await tlSetSortMode(mb.dataset.sortmode);
+    tlShowSortToast(mb.dataset.sortmode === 'auto' ? 'Kembali urut deadline' : 'Urutan manual aktif', snap);
     renderTlList();
   });
 })();
