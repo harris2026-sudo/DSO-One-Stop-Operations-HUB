@@ -483,6 +483,18 @@
   .gt-actions{display:flex;justify-content:flex-end;gap:8px;}
   .gt-row{display:flex;gap:14px;align-items:flex-start;padding:10px 20px;border-bottom:1px solid var(--border);cursor:pointer;position:relative;}
   .gt-row:hover{background:var(--zebra);}
+  /* v28: drag & drop urutan Task List */
+  #tlList{position:relative;}
+  .gt-grip{flex:none;width:18px;margin:0 -8px 0 -10px;padding:0;border:none;background:transparent;color:var(--text-muted);cursor:grab;opacity:0;touch-action:none;font-size:16px;line-height:1;align-self:flex-start;margin-top:2px;}
+  .gt-row:hover .gt-grip,.gt-grip:focus-visible{opacity:1;}
+  @media (hover:none){.gt-grip{opacity:.55;}}
+  .gt-grip:hover{color:var(--accent);}
+  .gt-grip:active{cursor:grabbing;}
+  .gt-row.dragging{opacity:.35;}
+  .gt-ghost{position:fixed;z-index:9999;pointer-events:none;background:#fff;border:1px solid var(--accent);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.18);opacity:.95;overflow:hidden;}
+  .gt-dropind{position:absolute;left:12px;right:12px;height:3px;border-radius:2px;background:var(--accent);pointer-events:none;z-index:5;}
+  .gt-sortbar{display:flex;align-items:center;gap:8px;padding:6px 20px;font-size:12px;color:var(--text-secondary);border-bottom:1px solid var(--border);}
+  .gt-sortbar .btn{height:26px;padding:0 10px;font-size:12px;}
   .gt-row:focus-visible{outline:2px solid var(--accent);outline-offset:-2px;}
   .gt-ck{flex:none;width:20px;height:20px;border-radius:50%;border:2px solid var(--text-muted);margin-top:1px;background:transparent;padding:0;display:flex;align-items:center;justify-content:center;color:transparent;cursor:pointer;transition:background .15s,border-color .15s;}
   .gt-ck:hover{border-color:var(--accent);background:var(--hilite);}
@@ -2431,6 +2443,7 @@
           <button type="button" class="btn btn-primary" id="tlAddBtn">Save</button>
         </div>
       </div>
+      <div id="tlSortBar"></div>
       <div id="tlList"></div>
       <div id="tlUndo"></div>
       <div id="tlDoneWrap"></div>
@@ -10081,6 +10094,8 @@ function tlAvatar(name){
 async function tlLoadAuthor(){
   try{ const r = await store.get('tasklist:author'); tlAuthor = (r && r.value) ? r.value : ''; }
   catch(e){ tlAuthor = ''; }
+  try{ const r = await store.get('tasklist:sortmode'); tlSortMode = (r && r.value === 'manual') ? 'manual' : 'auto'; }
+  catch(e){ tlSortMode = 'auto'; }
 }
 async function tlSetAuthor(n){
   tlAuthor = n;
@@ -10773,22 +10788,168 @@ function tlRowHtml(it){
     </div>`;
   }
   const remarkLine = (done && it.remark && tlOpenId !== it.id) ? `<div class="gt-meta"><i class="ti ti-archive"></i>${escapeHtml(it.remark)}</div>` : '';
+  const grip = (!done && taskListFilter === 'All') ? `<button type="button" class="gt-grip" data-grip="${it.id}" data-stop="1" aria-label="Drag to reorder (Alt + arrow up/down)" title="Drag untuk mengubah urutan"><i class="ti ti-grip-vertical"></i></button>` : '';
   return `<div class="gt-row ${done?'is-done':''} ${hold?'is-hold':''}" data-row="${it.id}" tabindex="0">
-    <button type="button" class="gt-ck ${done?'on':''}" data-ck="${it.id}" aria-label="${done?'Mark as not done':'Mark as done'}"><i class="ti ti-check"></i></button>
+    ${grip}<button type="button" class="gt-ck ${done?'on':''}" data-ck="${it.id}" aria-label="${done?'Mark as not done':'Mark as done'}"><i class="ti ti-check"></i></button>
     <div class="gt-body">${tlTitleHtml(it)}${meta ? `<div class="gt-meta">${meta}</div>` : ''}${bar}${warn}${detail}${remarkLine}</div>
     <button type="button" class="gt-del" data-del="${it.id}" aria-label="Delete task"><i class="ti ti-trash"></i></button>
   </div>`;
 }
 
+/* ---------- v28: urutan manual (drag & drop) ----------
+   Field `ord` (angka) per task. Saat di-drop, `ord` task yang dipindah diset ke titik tengah
+   tetangga barunya, jadi hanya 1 task yang berubah dan tersimpan. Mode urutan ("auto" = deadline,
+   "manual" = ord) disimpan lewat store, bukan localStorage. */
+let tlSortMode = 'auto';
+function tlAutoCmp(a, b){
+  const ha = tlIsHold(a.status) ? 1 : 0, hb = tlIsHold(b.status) ? 1 : 0;
+  if(ha !== hb) return ha - hb;
+  return (a.deadline || '9999').localeCompare(b.deadline || '9999') || (a.time || '99:99').localeCompare(b.time || '99:99');
+}
+function tlCompare(a, b){
+  if(tlSortMode === 'manual'){
+    const oa = typeof a.ord === 'number' ? a.ord : Infinity, ob = typeof b.ord === 'number' ? b.ord : Infinity;
+    if(oa !== ob) return oa < ob ? -1 : 1;
+  }
+  return tlAutoCmp(a, b);
+}
+async function tlSetSortMode(m){
+  tlSortMode = m;
+  try{ await store.set('tasklist:sortmode', m); }catch(e){ console.error('Gagal menyimpan mode urutan', e); }
+}
+function tlOpenSorted(){ return taskListItems.filter(it => !tlIsDone(it)).sort(tlCompare); }
+function tlRenderSortBar(){
+  const el = document.getElementById('tlSortBar');
+  if(!el) return;
+  el.innerHTML = tlSortMode === 'manual'
+    ? '<i class="ti ti-arrows-sort"></i><span>Urutan manual</span><button type="button" class="btn btn-ghost" data-sortauto="1">Urut deadline</button>'
+    : '';
+  el.style.display = tlSortMode === 'manual' ? '' : 'none';
+}
+async function tlPlace(id, idx){
+  if(taskListFilter !== 'All') return;
+  const list = tlOpenSorted();
+  const cur = list.findIndex(i => i.id === id);
+  if(cur < 0) return;
+  const others = list.filter(i => i.id !== id);
+  idx = Math.max(0, Math.min(idx, others.length));
+  if(idx === cur && tlSortMode === 'manual') return;
+  /* Back-fill ord (kelipatan 10, sesuai urutan yang sedang tampil) bila ada task yang belum punya. */
+  if(list.some(i => typeof i.ord !== 'number')) list.forEach((i, k) => { i.ord = (k + 1) * 10; });
+  const it = list[cur];
+  const p = others[idx - 1], n = others[idx];
+  let v;
+  if(p && n){
+    v = (p.ord + n.ord) / 2;
+    if(!(v > p.ord && v < n.ord)){   // celah habis: nomori ulang
+      others.splice(idx, 0, it);
+      others.forEach((i, k) => { i.ord = (k + 1) * 10; });
+      v = it.ord;
+    }
+  } else if(p) v = p.ord + 10;
+  else if(n) v = n.ord - 10;
+  else v = 10;
+  it.ord = v;
+  if(tlSortMode !== 'manual') await tlSetSortMode('manual');
+  renderTlList();
+  saveTaskList();
+}
+(function tlDragInit(){
+  const listEl = document.getElementById('tlList');
+  let drag = null;
+  function rowsNow(){ return Array.from(listEl.querySelectorAll('.gt-row[data-row]:not(.is-done)')); }
+  function calcIdx(y){
+    const rows = rowsNow().filter(r => r.dataset.row !== drag.id);
+    let idx = rows.length;
+    for(let i = 0; i < rows.length; i++){
+      const b = rows[i].getBoundingClientRect();
+      if(y < b.top + b.height / 2){ idx = i; break; }
+    }
+    return { idx, rows };
+  }
+  function showInd(idx, rows){
+    let top;
+    const lb = listEl.getBoundingClientRect();
+    if(!rows.length) top = 0;
+    else if(idx >= rows.length) top = rows[rows.length - 1].getBoundingClientRect().bottom - lb.top;
+    else top = rows[idx].getBoundingClientRect().top - lb.top;
+    drag.ind.style.top = (top - 1) + 'px';
+  }
+  function cleanup(){
+    if(!drag) return;
+    drag.ghost.remove(); drag.ind.remove();
+    const r = listEl.querySelector('.gt-row.dragging'); if(r) r.classList.remove('dragging');
+    document.removeEventListener('pointermove', onMove);
+    document.removeEventListener('pointerup', onUp);
+    document.removeEventListener('pointercancel', onCancel);
+    drag = null;
+  }
+  function onMove(e){
+    if(!drag) return;
+    e.preventDefault();
+    drag.ghost.style.top = (e.clientY - drag.dy) + 'px';
+    const c = calcIdx(e.clientY);
+    drag.idx = c.idx;
+    showInd(c.idx, c.rows);
+  }
+  function onUp(){
+    if(!drag) return;
+    const id = drag.id, idx = drag.idx;
+    cleanup();
+    tlPlace(id, idx);
+  }
+  function onCancel(){ cleanup(); }
+  listEl.addEventListener('pointerdown', (e) => {
+    const g = e.target.closest('.gt-grip');
+    if(!g || taskListFilter !== 'All' || (e.pointerType === 'mouse' && e.button !== 0)) return;
+    const row = g.closest('.gt-row');
+    if(!row) return;
+    e.preventDefault();
+    const rb = row.getBoundingClientRect();
+    const ghost = row.cloneNode(true);
+    ghost.classList.add('gt-ghost');
+    ghost.style.width = rb.width + 'px'; ghost.style.left = rb.left + 'px'; ghost.style.top = rb.top + 'px';
+    ghost.querySelectorAll('[id]').forEach(n => n.removeAttribute('id'));
+    document.body.appendChild(ghost);
+    const ind = document.createElement('div');
+    ind.className = 'gt-dropind';
+    listEl.appendChild(ind);
+    row.classList.add('dragging');
+    drag = { id: row.dataset.row, ghost, ind, dy: e.clientY - rb.top, idx: 0 };
+    const c = calcIdx(e.clientY);
+    drag.idx = c.idx; showInd(c.idx, c.rows);
+    document.addEventListener('pointermove', onMove, { passive: false });
+    document.addEventListener('pointerup', onUp);
+    document.addEventListener('pointercancel', onCancel);
+  });
+  /* Keyboard: Alt + panah atas/bawah pada tombol grip. */
+  listEl.addEventListener('keydown', async (e) => {
+    const g = e.target.closest && e.target.closest('.gt-grip');
+    if(!g || !e.altKey || (e.key !== 'ArrowUp' && e.key !== 'ArrowDown')) return;
+    e.preventDefault(); e.stopPropagation();
+    const id = g.dataset.grip;
+    const list = tlOpenSorted();
+    const cur = list.findIndex(i => i.id === id);
+    if(cur < 0) return;
+    const to = e.key === 'ArrowUp' ? cur - 1 : cur + 1;
+    if(to < 0 || to >= list.length) return;
+    await tlPlace(id, to);
+    const nb = listEl.querySelector('.gt-grip[data-grip="' + id + '"]');
+    if(nb) nb.focus();
+  });
+  document.getElementById('tlSortBar').addEventListener('click', async (e) => {
+    if(!e.target.closest('[data-sortauto]')) return;
+    await tlSetSortMode('auto');
+    renderTlList();
+  });
+})();
+
 function renderTlList(){
   const listEl = document.getElementById('tlList');
   const open = taskListItems.filter(it => !tlIsDone(it));
   const vis = open.filter(it => taskListFilter === 'All' || (taskListFilter === 'Overdue' ? tlEffectiveStatus(it) === 'Overdue' : (taskListFilter === 'Recurring' ? !!it.rec : it.status === taskListFilter)));
-  vis.sort((a, b) => {
-    const ha = tlIsHold(a.status) ? 1 : 0, hb = tlIsHold(b.status) ? 1 : 0;
-    if(ha !== hb) return ha - hb;
-    return (a.deadline || '9999').localeCompare(b.deadline || '9999') || (a.time || '99:99').localeCompare(b.time || '99:99');
-  });
+  vis.sort(tlCompare);
+  tlRenderSortBar();
   let ndraft = null;
   if(tlOpenId){
     const nt = document.getElementById('tlNoteT_' + tlOpenId);
