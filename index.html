@@ -1444,6 +1444,105 @@
   @media print{
     #view-workload .wla-btn-del, #view-workload .wla-toolbar, .sidebar, .topbar{display:none !important;}
   }
+  /* ===== WEEKLY MEETING WIM ===== */
+  .wmx{max-width:1120px}
+  .wmx-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+  .wmx-sub{font-size:14px;color:var(--text-secondary)}
+  .wmx-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .wmx-wk{display:flex;align-items:center;border:1px solid var(--border);border-radius:8px;background:var(--surface)}
+  .wmx-wk button{border:0;background:transparent;padding:6px 11px;cursor:pointer;font:inherit;color:var(--text)}
+  .wmx-wk button:hover{background:var(--surface-alt)}
+  .wmx-wk input{border:0;background:transparent;padding:6px 4px;font:inherit;color:var(--text)}
+  .wmx-btn{border:1px solid var(--border);background:var(--surface);border-radius:8px;padding:6px 12px;cursor:pointer;font:inherit;font-size:13px;color:var(--text)}
+  .wmx-btn:hover{border-color:var(--accent)}
+  .wmx-btn.pri{background:var(--navy);border-color:var(--navy);color:#fff}
+  .wmx-nav{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;position:sticky;top:0;z-index:3;background:var(--bg);padding:6px 0}
+  .wmx-nav button{border:1px solid var(--border);background:var(--surface);border-radius:999px;padding:5px 14px;cursor:pointer;font:inherit;font-size:13px;color:var(--text)}
+  .wmx-nav button:hover{border-color:var(--accent);color:var(--accent)}
+  .wmx-sec{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:14px;scroll-margin-top:56px}
+  .wmx-sh{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+  .wmx-n{width:26px;height:26px;border-radius:50%;background:var(--navy);color:#fff;font-weight:600;font-size:13px;display:flex;align-items:center;justify-content:center;flex:none}
+  .wmx-sh h3{margin:0;font-size:18px;font-family:'Space Grotesk',sans-serif;font-weight:600}
+  .wmx-src{margin-left:auto;font-size:12px;color:var(--text-muted);text-align:right}
+  .wmx-kp{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:12px}
+  .wmx-k{background:var(--surface-alt);border-radius:8px;padding:10px 12px;min-width:0}
+  .wmx-k span{display:block;font-size:12px;color:var(--text-secondary)}
+  .wmx-k b{display:block;font-family:'Space Grotesk',sans-serif;font-size:26px;font-weight:600;line-height:1.2}
+  .wmx-k small{display:block;font-size:11px;color:var(--text-muted);margin-top:1px}
+  .wmx-k input{width:100%;border:1px solid var(--border);background:var(--surface);border-radius:6px;padding:5px 8px;font:inherit;margin-top:2px;color:var(--text)}
+  .wmx-note{font-size:12px;color:var(--text-secondary);margin:6px 0 0}
+  .wmx-tabs{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:14px 0 10px}
+  .wmx-tabs button{border:1px solid var(--border);background:transparent;border-radius:999px;padding:4px 14px;cursor:pointer;font:inherit;font-size:13px;color:var(--text)}
+  .wmx-tabs button.on{background:var(--navy);border-color:var(--navy);color:#fff}
+  .wmx-thr{margin-left:auto;display:flex;gap:6px;align-items:center;font-size:12px;color:var(--text-secondary);flex-wrap:wrap}
+  .wmx-thr input{width:62px;border:1px solid var(--border);border-radius:6px;padding:3px 6px;text-align:right;font:inherit;background:var(--surface);color:var(--text)}
+  .wmx-lane{display:grid;grid-template-columns:78px repeat(6,minmax(0,1fr)) 86px;gap:5px;margin-bottom:5px;align-items:stretch}
+  .wmx-lane.hd{font-size:12px;color:var(--text-secondary);text-align:center}
+  .wmx-ln{display:flex;align-items:center;font-weight:600;font-family:'Space Grotesk',sans-serif}
+  .wmx-c{border-radius:6px;padding:8px 2px;text-align:center;font-variant-numeric:tabular-nums;font-size:13px;background:var(--surface-alt)}
+  .wmx-c.g{background:var(--green-bg);color:var(--green-fg)}
+  .wmx-c.y{background:var(--yellow-bg);color:#8a5a0e}
+  .wmx-c.r{background:var(--red-bg);color:var(--red-fg)}
+  .wmx-c.avg{background:transparent;border:1px dashed var(--border);font-weight:600}
+  .wmx-chips{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 10px}
+  .wmx-chips button{border:1px solid var(--border);background:transparent;border-radius:999px;padding:4px 12px;cursor:pointer;font:inherit;font-size:12px;color:var(--text)}
+  .wmx-chips button.on{background:var(--navy);border-color:var(--navy);color:#fff}
+  .wmx-tw{overflow-x:auto;border:1px solid var(--border);border-radius:10px}
+  .wmx table{width:100%;border-collapse:collapse;font-size:13px;min-width:720px}
+  .wmx th{font-weight:500;color:var(--text-secondary);text-align:left;font-size:12px;padding:8px 10px;border-bottom:1px solid var(--border);background:var(--surface-alt);white-space:nowrap}
+  .wmx td{padding:6px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+  .wmx tr:last-child td{border-bottom:0}
+  .wmx .rt{text-align:right}
+  .wmx td input.num{width:60px;text-align:right;border:1px solid var(--border);border-radius:6px;padding:3px 6px;font:inherit;background:var(--surface);color:var(--text)}
+  .wmx td input.txt{width:100%;min-width:260px;border:1px solid transparent;background:transparent;border-radius:6px;padding:3px 6px;font:inherit;color:var(--text)}
+  .wmx td input.txt:hover{border-color:var(--border)}
+  .wmx td input.txt:focus{border-color:var(--accent);background:var(--surface);outline:none}
+  .wmx-pill{display:inline-block;border-radius:999px;padding:1px 9px;font-size:11px;font-weight:500;white-space:nowrap}
+  .wmx-pill.bad{background:var(--red-bg);color:var(--red-fg)}
+  .wmx-pill.ok{background:var(--green-bg);color:var(--green-fg)}
+  .wmx-pill.warn{background:var(--yellow-bg);color:#8a5a0e}
+  .wmx-alert{background:var(--yellow-bg);color:#6e4a0b;border-radius:8px;padding:9px 12px;font-size:13px;margin-top:10px}
+  .wmx-row{display:grid;grid-template-columns:minmax(0,2fr) 170px 70px 110px;gap:10px;align-items:center;padding:9px 0;border-top:1px solid var(--border);font-size:13px}
+  .wmx-row:first-of-type{border-top:0}
+  .wmx-row.hd{font-size:12px;color:var(--text-secondary);padding-top:0}
+  .wmx-isu{display:grid;grid-template-columns:minmax(0,2fr) 130px 150px 28px;gap:8px;align-items:center;padding:5px 0;border-top:1px solid var(--border)}
+  .wmx-isu:first-of-type{border-top:0}
+  .wmx-isu input,.wmx-isu select,.wmx-add input{border:1px solid var(--border);background:var(--surface);border-radius:6px;padding:5px 8px;font:inherit;min-width:0;width:100%;color:var(--text)}
+  .wmx-x{border:0;background:transparent;color:var(--text-muted);font-size:18px;cursor:pointer;line-height:1}
+  .wmx-x:hover{color:var(--red-fg)}
+  .wmx-add{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+  .wmx-add input{flex:1 1 180px}
+  .wmx-ft{margin-top:14px;padding-top:12px;border-top:1px solid var(--border)}
+  .wmx-ft label{display:block;font-size:12px;color:var(--text-secondary);margin-bottom:3px}
+  .wmx-ft textarea{width:100%;min-height:60px;resize:vertical;border:1px solid var(--border);background:var(--surface);border-radius:8px;padding:8px 10px;font:inherit;color:var(--text)}
+  .wmx-act{display:grid;grid-template-columns:22px minmax(0,1fr) 130px 138px 26px;gap:8px;align-items:center;padding:4px 0}
+  .wmx-act input[type=text],.wmx-act input[type=date]{width:100%;border:1px solid transparent;background:transparent;border-radius:6px;padding:4px 6px;font:inherit;min-width:0;color:var(--text)}
+  .wmx-act input[type=text]:hover,.wmx-act input[type=date]:hover{border-color:var(--border)}
+  .wmx-act input:focus{border-color:var(--accent);background:var(--surface);outline:none}
+  .wmx-act.done input[type=text]{text-decoration:line-through;color:var(--text-muted)}
+  .wmx-empty{color:var(--text-muted);font-size:13px;padding:6px 0}
+  .wmx details{margin-top:12px}
+  .wmx summary{cursor:pointer;font-size:13px;color:var(--accent)}
+  .wmx-g2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:14px;margin-top:10px}
+  .wmx-br{display:grid;grid-template-columns:120px 1fr 22px;gap:8px;align-items:center;padding:3px 0;font-size:13px}
+  .wmx-br .b{height:9px;border-radius:5px;background:var(--surface-alt);overflow:hidden}
+  .wmx-br .b i{display:block;height:100%;background:var(--accent)}
+  .wmx-ev{font-size:12px;display:grid;grid-template-columns:56px 50px 1fr;gap:8px;padding:4px 0;border-top:1px solid var(--border)}
+  @media (max-width:760px){
+    .wmx-kp{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .wmx-lane{grid-template-columns:48px repeat(6,minmax(0,1fr)) 0}
+    .wmx-lane>:last-child{display:none}
+    .wmx-c{font-size:11px;padding:7px 0}
+    .wmx-row{grid-template-columns:minmax(0,1fr) 100px}
+    .wmx-row>:nth-child(n+3){display:none}
+    .wmx-isu{grid-template-columns:minmax(0,1fr) 110px 26px}
+    .wmx-isu>:nth-child(3){display:none}
+    .wmx-act{grid-template-columns:22px minmax(0,1fr) 26px}
+    .wmx-act>:nth-child(3),.wmx-act>:nth-child(4){display:none}
+    .wmx-g2{grid-template-columns:minmax(0,1fr)}
+    .wmx-src{display:none}
+  }
+
 </style>
 </head>
 <body>
@@ -1470,7 +1569,8 @@
       <div class="tab" data-view="handover" data-label="Handover Job"><i class="ti ti-file-text"></i><span>Handover Job</span></div>
       <div class="tab" data-view="projects" data-label="Projects"><i class="ti ti-briefcase"></i><span>Projects</span></div>
       <div class="tab" data-view="workload" data-label="Workload Analysis"><i class="ti ti-gauge"></i><span>Workload Analysis</span></div>
-      <div class="tab" data-view="openpoint" data-label="Open Point"><i class="ti ti-alert-triangle"></i><span>Open Point</span></div>
+      <div class="tab" data-view="openpoint" data-label="Open Point" style="display:none" hidden><i class="ti ti-alert-triangle"></i><span>Open Point</span></div>
+      <div class="tab" data-view="weeklywim" data-label="Weekly Meeting WIM"><i class="ti ti-calendar-event"></i><span>Weekly Meeting WIM</span></div>
       <div class="tab" data-view="pjp" data-label="Penilaian Jasa Pertambangan"><i class="ti ti-building-factory-2"></i><span>Penilaian Jasa Pertambangan</span></div>
     </div>
 
@@ -1522,7 +1622,7 @@
       <div class="card clickable" id="ovCardTasklist">
         <div class="ov-mini-card" id="ovTasklistCard"></div>
       </div>
-      <div class="card clickable" id="ovCardOpenpoint">
+      <div class="card clickable" id="ovCardOpenpoint" style="display:none" hidden>
         <div class="ov-mini-card" id="ovOpenpointCard"></div>
       </div>
       <div class="card clickable" id="ovCardProjects" style="grid-column:1/-1;">
@@ -2493,6 +2593,11 @@
       <div class="pj-up" id="pjUp"></div>
       <div class="pj-body"><div class="pj-main" id="pjMain"></div><aside class="pj-dt" id="pjDt" aria-live="polite"></aside></div>
     </div>
+  </div>
+
+  <!-- ================= VIEW: WEEKLY MEETING WIM ================= -->
+  <div class="view" id="view-weeklywim">
+    <div class="wmx" id="wmx"></div>
   </div>
 
   <!-- ================= VIEW: WORKLOAD ANALYSIS ================= -->
@@ -4730,6 +4835,7 @@ document.querySelectorAll('.tab').forEach(tab => {
     if(tab.dataset.view === 'projects') renderProjects();
     if(tab.dataset.view === 'workload') renderWorkload();
     if(tab.dataset.view === 'openpoint') renderOpenPoint();
+    if(tab.dataset.view === 'weeklywim') renderWeeklyWim();
     if(tab.dataset.view === 'pjp') renderPJP();
     if(tab.dataset.view === 'overview') renderOverview();
     if(tab.dataset.view === 'assetplant') renderAssetPlant();
@@ -5566,6 +5672,333 @@ async function dsoLoad(key, fallback){
 }
 async function dsoSave(key, val){
   try{ await store.set(key, JSON.stringify(val), true); }catch(e){ console.error('gagal simpan', key, e); }
+}
+
+/* ================= WEEKLY MEETING WIM =================
+   Lima bagian agenda: 1 Operasional, 2 Sistem, 3 Project, 4 HSE, 5 Stock Management.
+   Data sumber: PDF SLA WIM Jan-Sep 2026 (tampil mulai April), Excel Detail Control Stock Part WIM (s.d. 17 Jul 2026),
+   menu Projects (langsung), System Availability Overview (langsung). Sistem dan HSE berupa kolom isian.
+   Penyimpanan lewat store HUB (bukan localStorage). Catatan dan action item tersimpan per minggu. */
+const WMX_KEY = 'wimweekly:v1:';
+const WMX_SEC = [['ops', 'Operasional'], ['sys', 'Sistem'], ['proj', 'Project'], ['hse', 'HSE'], ['stock', 'Stock Management']];
+const WMX_MONTHS = ['Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep'];
+const WMX_SLA = [
+  [[92.85,92.85,27.78,27.36],[98.96,98.96,68.79,68.13],[95.24,95.24,40.00,40.00]],
+  [[87.01,87.01,41.11,38.30],[100,100,79.78,79.78],[96.52,96.52,51.74,51.01]],
+  [[90.48,90.48,28.51,28.51],[100,100,78.53,78.53],[95.39,95.39,6.63,5.79]],
+  [[99.00,98.61,40.33,39.49],[100,100,38.21,38.21],[100,100,57.42,57.42]],
+  [[97.19,97.14,89.79,87.12],[100,100,33.44,33.44],[100,100,14.34,14.34]],
+  [[96.83,96.83,17.51,14.33],[100,100,86.83,86.83],[100,100,15.01,15.01]]
+];
+const WMX_SLA_TOTAL = [96.69, 96.77, 46.98, 46.37];
+const WMX_METRIC = ['PA', 'MA', 'UA', 'EU'];
+const WMX_METRIC_FULL = ['Physical availability', 'Mechanical availability', 'Use of availability', 'Effective utilization'];
+const WMX_PARTS = [
+  ['Load Cell','2026-05-28',4],['Saddle','2026-05-28',0],['Baut Load Cell','2026-05-28',11],['Dudukan Load Cell','2026-01-14',3],
+  ['Bolt Adjuster Platform','2025-12-14',8],['Longrat Adjuster','2025-12-03',4],['Ring Adjuster','2025-12-07',20],['Rubber Adjuster','2025-12-07',4],
+  ['Mur Adjuster','2026-05-05',2],['Mounting Platform LS','2026-04-07',8],['Platform Low Speed','2025-12-26',0],['Frame Low Speed','2025-12-26',1],
+  ['Junction Box','2025-08-21',1],['RFID Reader','2026-07-17',0],['CCTV','2026-03-02',1],['Strip Sensor High Speed','2025-07-17',4],
+  ['Switch','2026-01-11',1],['PLC','2025-07-29',0],['Baterai Lithium','2026-06-28',0],['WIM Logix HS','2025-07-29',0],
+  ['WIM Logix LS','2025-07-29',1],['Light Curtain','2026-04-07',2],['Mini PC','2026-07-02',1],['Stabilizer','2025-07-29',0],
+  ['Inverter','2026-06-25',1],['Loop Detector','2026-01-11',2],['PSU','2026-05-30',0]
+];
+const WMX_STOCK_DEFAULT = { 'Load Cell': { phys: 0, note: 'Tanpa laporan: Excel sisa 4 per 28 Mei 2026, fisik hari ini 0. Pemakaian setelah 28 Mei belum tercatat.' } };
+const WMX_REPL = [
+  ['Load Cell','2026-01-14','Lane 3'],['Load Cell','2026-03-18','Lane 1'],['Load Cell','2026-03-29','Lane 1'],['Load Cell','2026-05-11','Lane 3'],['Load Cell','2026-05-22','Lane 3'],['Load Cell','2026-05-26','Lane 3'],['Load Cell','2026-05-28','Lane 1'],
+  ['Saddle','2026-01-14','Lane 3'],['Saddle','2026-05-05','Lane 3'],['Saddle','2026-05-22','Lane 3'],['Saddle','2026-05-28','Lane 1'],
+  ['Baut Load Cell','2026-01-14','Lane 3'],['Baut Load Cell','2026-03-18','Lane 1'],['Baut Load Cell','2026-05-22','Lane 3'],['Baut Load Cell','2026-05-28','Lane 1'],
+  ['Baterai Lithium','2026-04-16','Lane 2'],['Baterai Lithium','2026-06-28','Lane 3'],
+  ['RFID Reader','2026-07-17','Lane 2'],['Inverter','2026-03-02','Lane 1']
+];
+let wmxCfg = { g: 99, y: 95, uaG: '', uaY: '' }, wmxStock = {}, wmxWk = null, wmxWkStart = '';
+let wmxMetric = 0, wmxFilter = 'out', wmxReady = false, wmxAvail = null;
+const wmxTimers = {};
+
+function wmxIso(d){ return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+function wmxParse(s){ const p = s.split('-'); return new Date(+p[0], +p[1] - 1, +p[2]); }
+function wmxAdd(s, n){ const d = wmxParse(s); d.setDate(d.getDate() + n); return wmxIso(d); }
+function wmxMonday(s){ const d = wmxParse(s); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return wmxIso(d); }
+const WMX_BLN = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+function wmxFd(s){ const d = wmxParse(s); return d.getDate() + ' ' + WMX_BLN[d.getMonth()] + ' ' + d.getFullYear(); }
+function wmxFds(s){ const d = wmxParse(s); return d.getDate() + ' ' + WMX_BLN[d.getMonth()]; }
+function wmxIsoWeek(s){
+  const d = wmxParse(s); d.setHours(12);
+  const t = new Date(d.getTime()); t.setDate(t.getDate() + 3 - ((t.getDay() + 6) % 7));
+  const w1 = new Date(t.getFullYear(), 0, 4);
+  return 1 + Math.round(((t - w1) / 864e5 - 3 + ((w1.getDay() + 6) % 7)) / 7);
+}
+function wmxPct(v){ return v.toFixed(2).replace('.', ',') + '%'; }
+function wmxUid(){ return 'a' + Date.now().toString(36) + Math.floor(Math.random() * 1e5).toString(36); }
+function wmxEmptyWk(){ return { notes: {}, acts: [], sys: { change: '', backup: '', issues: [] }, hse: { ins: '', nm: '', insp: '', tbx: '' } }; }
+function wmxNormWk(w){
+  const b = wmxEmptyWk(); w = w && typeof w === 'object' ? w : {};
+  b.notes = w.notes && typeof w.notes === 'object' ? w.notes : {};
+  b.acts = Array.isArray(w.acts) ? w.acts : [];
+  b.sys = Object.assign(b.sys, w.sys || {}); b.sys.issues = Array.isArray(b.sys.issues) ? b.sys.issues : [];
+  b.hse = Object.assign(b.hse, w.hse || {});
+  return b;
+}
+
+async function wmxGet(key, fb){
+  try{
+    const r = await store.get(WMX_KEY + key, true);
+    if(r && r.value) return JSON.parse(r.value);
+    return fb;
+  }catch(e){
+    if(!(e && e.message === 'not found')) console.error('Weekly Meeting: gagal memuat', key, e);
+    return fb;
+  }
+}
+function wmxSave(key, obj){
+  clearTimeout(wmxTimers[key]);
+  wmxTimers[key] = setTimeout(() => {
+    store.set(WMX_KEY + key, JSON.stringify(obj), true).catch(e => {
+      console.error('Weekly Meeting: gagal menyimpan', key, e);
+      showToast('Gagal menyimpan Weekly Meeting. Cek koneksi backend.', 'error');
+    });
+  }, 600);
+}
+const wmxSaveWk = () => wmxSave('wk:' + wmxWkStart, wmxWk);
+const wmxSaveCfg = () => wmxSave('cfg', wmxCfg);
+const wmxSaveStock = () => wmxSave('stock', wmxStock);
+
+function wmxSh(n, title, src){
+  return '<div class="wmx-sh"><span class="wmx-n">' + n + '</span><h3>' + title + '</h3><span class="wmx-src">' + escapeHtml(src) + '</span></div>';
+}
+function wmxFoot(sec){
+  const acts = wmxWk.acts.filter(a => a.sec === sec);
+  return '<div class="wmx-ft" data-sec="' + sec + '"><label>Catatan</label>'
+    + '<textarea data-wf="note" placeholder="Catatan pembahasan bagian ini">' + escapeHtml(wmxWk.notes[sec] || '') + '</textarea>'
+    + '<label style="margin-top:10px">Action item</label>'
+    + (acts.length ? acts.map(a => '<div class="wmx-act ' + (a.done ? 'done' : '') + '" data-aid="' + a.id + '">'
+        + '<input type="checkbox" data-wa="done" ' + (a.done ? 'checked' : '') + ' aria-label="Selesai">'
+        + '<input type="text" data-wa="text" value="' + escapeHtml(a.text) + '" aria-label="Action item">'
+        + '<input type="text" data-wa="pic" value="' + escapeHtml(a.pic || '') + '" placeholder="PIC" aria-label="PIC">'
+        + '<input type="date" data-wa="due" value="' + escapeHtml(a.due || '') + '" aria-label="Tenggat">'
+        + '<button type="button" class="wmx-x" data-wm="delact" aria-label="Hapus">&times;</button></div>').join('')
+      : '<div class="wmx-empty">Belum ada action item.</div>')
+    + '<div class="wmx-add"><input type="text" data-wf="new" placeholder="Tulis action item, lalu Enter"><button type="button" class="wmx-btn pri" data-wm="addact">Tambah</button></div></div>';
+}
+
+/* ---------- 1 Operasional ---------- */
+function wmxAvg(rows, m){ return rows.reduce((a, r) => a + r[m], 0) / rows.length; }
+function wmxCellCls(m, v){
+  const g = m < 2 ? wmxCfg.g : wmxCfg.uaG, y = m < 2 ? wmxCfg.y : wmxCfg.uaY;
+  if(g === '' || g == null) return '';
+  if(v >= +g) return 'g';
+  if(y !== '' && y != null && v >= +y) return 'y';
+  return 'r';
+}
+function wmxLanesHtml(){
+  const m = wmxMetric;
+  let h = '<div class="wmx-lane hd"><span></span>' + WMX_MONTHS.map(x => '<span>' + x + '</span>').join('') + '<span>Rata-rata</span></div>';
+  for(let l = 0; l < 3; l++){
+    const rows = WMX_SLA.map(mo => mo[l]);
+    h += '<div class="wmx-lane"><div class="wmx-ln">Lane ' + (l + 1) + '</div>' + rows.map(r => '<div class="wmx-c ' + wmxCellCls(m, r[m]) + '">' + wmxPct(r[m]) + '</div>').join('') + '<div class="wmx-c avg">' + wmxPct(wmxAvg(rows, m)) + '</div></div>';
+  }
+  const all = [].concat(...WMX_SLA);
+  h += '<div class="wmx-lane"><div class="wmx-ln" style="font-size:13px;color:var(--text-secondary)">Semua lane</div>' + WMX_SLA.map(mo => '<div class="wmx-c avg">' + wmxPct(mo.reduce((a, r) => a + r[m], 0) / 3) + '</div>').join('') + '<div class="wmx-c avg">' + wmxPct(wmxAvg(all, m)) + '</div></div>';
+  const colored = m < 2 || (wmxCfg.uaG !== '' && wmxCfg.uaG != null);
+  h += '<p class="wmx-note">' + (colored ? 'Warna: hijau mulai ' + (m < 2 ? wmxCfg.g : wmxCfg.uaG) + '%, kuning mulai ' + (m < 2 ? wmxCfg.y : wmxCfg.uaY) + '%, merah di bawahnya. Ambang bisa diubah di kanan atas.' : 'UA dan EU belum punya ambang warna. Isi ambang di kanan atas bila target kontraknya sudah ada.') + '</p>';
+  return h;
+}
+function wmxThrHtml(){
+  const m = wmxMetric, gk = m < 2 ? 'g' : 'uaG', yk = m < 2 ? 'y' : 'uaY';
+  return '<span>Ambang ' + WMX_METRIC[m] + (m < 2 ? ' (sementara)' : '') + ': hijau mulai</span><input type="number" step="0.1" data-thr="' + gk + '" value="' + escapeHtml(wmxCfg[gk]) + '" aria-label="Ambang hijau"><span>kuning mulai</span><input type="number" step="0.1" data-thr="' + yk + '" value="' + escapeHtml(wmxCfg[yk]) + '" aria-label="Ambang kuning">';
+}
+function wmxRenderOps(){
+  const all = [].concat(...WMX_SLA);
+  document.getElementById('wmx-ops').innerHTML = wmxSh(1, 'Operasional', 'PDF SLA WIM Jan–Sep 2026, tampil mulai April')
+    + '<div class="wmx-kp">' + WMX_METRIC.map((m, i) => '<div class="wmx-k"><span>' + m + ' · ' + WMX_METRIC_FULL[i] + '</span><b>' + wmxPct(WMX_SLA_TOTAL[i]) + '</b><small>Rata-rata Apr–Sep: ' + wmxPct(wmxAvg(all, i)) + '</small></div>').join('') + '</div>'
+    + '<p class="wmx-note">Angka besar adalah baris "SLA TOTAL WIM" di PDF (Jan–Sep 2026, perhitungan Custodian). Rata-rata Apr–Sep dihitung sederhana dari 18 baris lane-bulan, jadi bisa berbeda dari total PDF.</p>'
+    + '<div class="wmx-tabs" id="wmxTabs">' + WMX_METRIC.map((m, i) => '<button type="button" data-wm="metric" data-m="' + i + '" class="' + (wmxMetric === i ? 'on' : '') + '">' + m + '</button>').join('') + '<div class="wmx-thr" id="wmxThr">' + wmxThrHtml() + '</div></div>'
+    + '<div id="wmxLanes">' + wmxLanesHtml() + '</div>' + wmxFoot('ops');
+}
+
+/* ---------- 2 Sistem ---------- */
+function wmxRenderSys(){
+  const s = wmxWk.sys, open = s.issues.filter(i => i.status !== 'done').length;
+  const up = wmxAvail && wmxAvail.uptime != null ? String(wmxAvail.uptime).replace('.', ',') + '%' : '--';
+  document.getElementById('wmx-sys').innerHTML = wmxSh(2, 'Sistem', 'System Availability dari Overview, sisanya isian')
+    + '<div class="wmx-kp"><div class="wmx-k"><span>System availability</span><b>' + up + '</b><small>dari Overview HUB</small></div>'
+    + '<div class="wmx-k"><span>Isu terbuka</span><b>' + open + '</b><small>dari tabel di bawah</small></div>'
+    + '<div class="wmx-k"><span>Perubahan sistem</span><input type="text" data-sys="change" value="' + escapeHtml(s.change) + '" placeholder="Isi manual"></div>'
+    + '<div class="wmx-k"><span>Backup</span><input type="text" data-sys="backup" value="' + escapeHtml(s.backup) + '" placeholder="Isi manual"></div></div>'
+    + (s.issues.length ? s.issues.map(i => '<div class="wmx-isu" data-iid="' + i.id + '"><input type="text" data-iss="text" value="' + escapeHtml(i.text) + '" aria-label="Isu sistem">'
+        + '<select data-iss="status" aria-label="Status">' + [['open', 'Open'], ['prog', 'Progress'], ['done', 'Selesai']].map(o => '<option value="' + o[0] + '" ' + (i.status === o[0] ? 'selected' : '') + '>' + o[1] + '</option>').join('') + '</select>'
+        + '<input type="text" data-iss="pic" value="' + escapeHtml(i.pic || '') + '" placeholder="PIC" aria-label="PIC">'
+        + '<button type="button" class="wmx-x" data-wm="deliss" aria-label="Hapus">&times;</button></div>').join('') : '<div class="wmx-empty">Belum ada isu sistem. Tambahkan di bawah.</div>')
+    + '<div class="wmx-add"><input type="text" data-wf="newiss" placeholder="Tulis isu atau perubahan sistem, lalu Enter"><button type="button" class="wmx-btn pri" data-wm="addiss">Tambah isu</button></div>'
+    + wmxFoot('sys');
+}
+
+/* ---------- 3 Project ---------- */
+function wmxRenderProj(){
+  let rows = [];
+  try{ rows = prjItems.map(p => ({ p, s: prjStatus(p) })).filter(x => x.s.st !== 'done'); }catch(e){ rows = []; }
+  rows.sort((a, b) => String(a.p.target || '9999').localeCompare(String(b.p.target || '9999')));
+  let body;
+  if(!rows.length) body = '<div class="wmx-empty">Belum ada project aktif. Buka menu Projects, lalu klik Import plan Okt-Des atau tambah project.</div>';
+  else body = '<div class="wmx-row hd"><span>Project</span><span>Jadwal</span><span>Progres</span><span>Status</span></div>' + rows.map(({ p, s }) => {
+    const st = PRJ_STATUS[s.st];
+    const sch = p.start && p.target ? (p.start === p.target ? wmxFds(p.start) : wmxFds(p.start) + ' – ' + wmxFds(p.target)) : '-';
+    return '<div class="wmx-row"><span><b style="font-weight:500">' + escapeHtml(p.name) + '</b><div style="font-size:11px;color:var(--text-muted)">' + escapeHtml(p.phase || '') + (p.pics.length ? ' · PIC ' + escapeHtml(p.pics.join(', ')) : ' · PIC belum diisi') + '</div></span><span>' + sch + '</span><span>' + prjProgress(p) + '%</span><span><span class="wmx-pill" style="background:var(--surface-alt);color:' + st.c + '">' + st.l + '</span></span></div>';
+  }).join('');
+  document.getElementById('wmx-proj').innerHTML = wmxSh(3, 'Project', 'menu Projects, tampil langsung')
+    + body + '<div class="wmx-add"><button type="button" class="wmx-btn" data-wm="gotoproj">Buka menu Projects</button></div>' + wmxFoot('proj');
+}
+
+/* ---------- 4 HSE ---------- */
+function wmxRenderHse(){
+  const h = wmxWk.hse;
+  const tile = (k, label) => '<div class="wmx-k"><span>' + label + '</span><input type="number" min="0" data-hse="' + k + '" value="' + escapeHtml(h[k]) + '" placeholder="Isi"></div>';
+  document.getElementById('wmx-hse').innerHTML = wmxSh(4, 'HSE', 'isian manual')
+    + '<div class="wmx-kp">' + tile('ins', 'Insiden') + tile('nm', 'Near miss') + tile('insp', 'Inspeksi K3') + tile('tbx', 'Toolbox') + '</div>'
+    + '<p class="wmx-note">Angka diketik langsung dan tersimpan per minggu. Tambahkan kejadian penting di catatan.</p>' + wmxFoot('hse');
+}
+
+/* ---------- 5 Stock Management ---------- */
+function wmxEff(p){
+  const o = wmxStock[p[0]];
+  const phys = o && o.phys !== '' && o.phys != null ? +o.phys : null;
+  return { ex: p[2], eff: phys != null ? phys : p[2], diff: phys != null && phys !== p[2] };
+}
+function wmxRenderStock(){
+  let out = 0, ready = 0, diff = 0;
+  WMX_PARTS.forEach(p => { const e = wmxEff(p); if(e.eff <= 0) out++; else ready++; if(e.diff) diff++; });
+  const cnt = { out, ready, diff, all: WMX_PARTS.length };
+  const lab = { out: 'Habis', ready: 'Ada stok', diff: 'Selisih', all: 'Semua' };
+  const rows = WMX_PARTS.filter(p => { const e = wmxEff(p); return wmxFilter === 'all' || (wmxFilter === 'out' && e.eff <= 0) || (wmxFilter === 'ready' && e.eff > 0) || (wmxFilter === 'diff' && e.diff); })
+    .sort((a, b) => wmxEff(a).eff - wmxEff(b).eff || a[0].localeCompare(b[0]));
+  const by = {}; WMX_REPL.forEach(r => by[r[0]] = (by[r[0]] || 0) + 1);
+  const names = Object.keys(by).sort((a, b) => by[b] - by[a]), mx = by[names[0]];
+  const evs = WMX_REPL.slice().sort((a, b) => b[1].localeCompare(a[1]));
+  document.getElementById('wmx-stock').innerHTML = wmxSh(5, 'Stock Management', 'Excel Detail Control Stock Part WIM, s.d. 17 Jul 2026')
+    + '<div class="wmx-kp"><div class="wmx-k"><span>Part habis</span><b style="color:var(--red-fg)">' + out + '</b><small>stok efektif 0</small></div>'
+    + '<div class="wmx-k"><span>Masih ada stok</span><b>' + ready + '</b><small>dari ' + WMX_PARTS.length + ' jenis part</small></div>'
+    + '<div class="wmx-k"><span>Selisih dengan Excel</span><b style="color:#8a5a0e">' + diff + '</b><small>fisik beda dari catatan</small></div>'
+    + '<div class="wmx-k"><span>Pergantian 2026</span><b>' + WMX_REPL.length + '</b><small>kejadian</small></div></div>'
+    + '<div class="wmx-chips">' + Object.keys(lab).map(k => '<button type="button" data-wm="filter" data-f="' + k + '" class="' + (wmxFilter === k ? 'on' : '') + '">' + lab[k] + ' ' + cnt[k] + '</button>').join('') + '</div>'
+    + '<div class="wmx-tw"><table><thead><tr><th>Part</th><th class="rt">Stok Excel</th><th class="rt">Stok fisik</th><th>Status</th><th>Catatan terakhir Excel</th><th>Catatan</th></tr></thead><tbody>'
+    + (rows.length ? rows.map(p => {
+        const e = wmxEff(p), o = wmxStock[p[0]] || {};
+        return '<tr data-p="' + escapeHtml(p[0]) + '"><td><b style="font-weight:500">' + escapeHtml(p[0]) + '</b></td><td class="rt">' + p[2] + '</td>'
+          + '<td class="rt"><input class="num" type="number" min="0" data-pk="phys" value="' + (o.phys == null ? '' : escapeHtml(o.phys)) + '" placeholder="' + p[2] + '" aria-label="Stok fisik ' + escapeHtml(p[0]) + '"></td>'
+          + '<td>' + (e.eff <= 0 ? '<span class="wmx-pill bad">Habis</span>' : '<span class="wmx-pill ok">Ada stok</span>') + (e.diff ? ' <span class="wmx-pill warn">Tanpa laporan</span>' : '') + '</td>'
+          + '<td style="color:var(--text-muted);font-size:12px">' + wmxFd(p[1]) + '</td>'
+          + '<td><input class="txt" type="text" data-pk="note" value="' + escapeHtml(o.note || '') + '" placeholder="Tambah catatan" aria-label="Catatan ' + escapeHtml(p[0]) + '"></td></tr>';
+      }).join('') : '<tr><td colspan="6" class="wmx-empty">Tidak ada part pada filter ini.</td></tr>')
+    + '</tbody></table></div>'
+    + '<div class="wmx-alert"><b>Perhatian:</b> catatan Excel berhenti di 17 Juli 2026, jadi pemakaian setelahnya belum tercatat. Isi kolom Stok fisik bila angka lapangan berbeda.</div>'
+    + '<details><summary>Riwayat pergantian part 2026 (' + WMX_REPL.length + ' kejadian)</summary><div class="wmx-g2"><div>'
+    + names.map(n => '<div class="wmx-br"><span>' + escapeHtml(n) + '</span><div class="b"><i style="width:' + (by[n] / mx * 100).toFixed(0) + '%"></i></div><span style="text-align:right">' + by[n] + '</span></div>').join('')
+    + '</div><div>' + evs.map(r => '<div class="wmx-ev"><span>' + wmxFds(r[1]) + '</span><span>' + r[2] + '</span><span>' + escapeHtml(r[0]) + '</span></div>').join('') + '</div></div></details>'
+    + wmxFoot('stock');
+}
+
+/* ---------- kerangka, minggu, event ---------- */
+function wmxRenderAll(){
+  const end = wmxAdd(wmxWkStart, 6);
+  document.getElementById('wmxWkLabel').textContent = 'Minggu ke-' + wmxIsoWeek(wmxWkStart) + ' · ' + wmxFds(wmxWkStart) + ' – ' + wmxFd(end);
+  document.getElementById('wmxWkDate').value = wmxWkStart;
+  wmxRenderOps(); wmxRenderSys(); wmxRenderProj(); wmxRenderHse(); wmxRenderStock();
+}
+async function wmxLoadWeek(){
+  wmxWk = wmxNormWk(await wmxGet('wk:' + wmxWkStart, null));
+  wmxRenderAll();
+}
+async function renderWeeklyWim(){
+  const root = document.getElementById('wmx');
+  if(!wmxReady){
+    root.innerHTML = '<div class="wmx-head"><div class="wmx-sub" id="wmxWkLabel">Memuat...</div><div class="wmx-tools">'
+      + '<div class="wmx-wk" role="group" aria-label="Pilih minggu"><button type="button" data-wm="prevwk" aria-label="Minggu sebelumnya">&lsaquo;</button><input type="date" id="wmxWkDate" aria-label="Tanggal dalam minggu"><button type="button" data-wm="nextwk" aria-label="Minggu berikutnya">&rsaquo;</button></div>'
+      + '<button type="button" class="wmx-btn" data-wm="carry">Bawa action item belum selesai dari minggu lalu</button></div></div>'
+      + '<div class="wmx-nav" role="navigation" aria-label="Bagian">' + WMX_SEC.map((s, i) => '<button type="button" data-wm="jump" data-s="' + s[0] + '">' + (i + 1) + ' ' + s[1] + '</button>').join('') + '</div>'
+      + WMX_SEC.map(s => '<div class="wmx-sec" id="wmx-' + s[0] + '"></div>').join('');
+    Object.assign(wmxCfg, await wmxGet('cfg', {}));
+    const st = await wmxGet('stock', {});
+    wmxStock = st && typeof st === 'object' ? st : {};
+    Object.keys(WMX_STOCK_DEFAULT).forEach(k => { if(!wmxStock[k]) wmxStock[k] = Object.assign({}, WMX_STOCK_DEFAULT[k]); });
+    wmxWkStart = wmxMonday(wmxIso(new Date()));
+    wmxBind();
+    wmxReady = true;
+  }
+  try{ wmxAvail = await dsoLoad(DSO_AVAIL_KEY, dsoDefaults().availability); }catch(e){}
+  try{ await loadTaskList(); await prjLoad(true); }catch(e){ console.error('Weekly Meeting: gagal memuat Projects', e); }
+  await wmxLoadWeek();
+}
+function wmxGoWeek(s){ wmxWkStart = wmxMonday(s); wmxLoadWeek(); }
+function wmxAddAct(sec, inp){
+  const v = inp.value.trim();
+  if(!v){ inp.style.borderColor = 'var(--red-fg)'; inp.placeholder = 'Tulis dulu isi action item'; inp.focus(); return; }
+  wmxWk.acts.push({ id: wmxUid(), sec, text: v, pic: '', due: '', done: false });
+  wmxSaveWk(); wmxRerender(sec);
+}
+function wmxAddIss(inp){
+  const v = inp.value.trim();
+  if(!v){ inp.style.borderColor = 'var(--red-fg)'; inp.placeholder = 'Tulis dulu isi isu'; inp.focus(); return; }
+  wmxWk.sys.issues.push({ id: wmxUid(), text: v, status: 'open', pic: '' });
+  wmxSaveWk(); wmxRenderSys();
+}
+function wmxRerender(sec){
+  ({ ops: wmxRenderOps, sys: wmxRenderSys, proj: wmxRenderProj, hse: wmxRenderHse, stock: wmxRenderStock })[sec]();
+}
+function wmxBind(){
+  const root = document.getElementById('wmx');
+  root.addEventListener('input', e => {
+    const t = e.target, sec = t.closest('.wmx-ft') ? t.closest('.wmx-ft').dataset.sec : null;
+    if(t.dataset.wf === 'note' && sec){ wmxWk.notes[sec] = t.value; wmxSaveWk(); return; }
+    if(t.dataset.wa){ const a = wmxWk.acts.find(x => x.id === t.closest('.wmx-act').dataset.aid); if(a && t.dataset.wa !== 'done'){ a[t.dataset.wa] = t.value; wmxSaveWk(); } return; }
+    if(t.dataset.sys){ wmxWk.sys[t.dataset.sys] = t.value; wmxSaveWk(); return; }
+    if(t.dataset.hse){ wmxWk.hse[t.dataset.hse] = t.value; wmxSaveWk(); return; }
+    if(t.dataset.iss === 'text' || t.dataset.iss === 'pic'){ const i = wmxWk.sys.issues.find(x => x.id === t.closest('.wmx-isu').dataset.iid); if(i){ i[t.dataset.iss] = t.value; wmxSaveWk(); } return; }
+    if(t.dataset.pk){
+      const name = t.closest('tr').dataset.p; wmxStock[name] = wmxStock[name] || {};
+      if(t.dataset.pk === 'phys') wmxStock[name].phys = t.value === '' ? null : Math.max(0, parseInt(t.value, 10) || 0);
+      else wmxStock[name].note = t.value;
+      wmxSaveStock(); return;
+    }
+    if(t.dataset.thr){ wmxCfg[t.dataset.thr] = t.value === '' ? '' : +t.value; wmxSaveCfg(); document.getElementById('wmxLanes').innerHTML = wmxLanesHtml(); return; }
+  });
+  root.addEventListener('change', e => {
+    const t = e.target;
+    if(t.id === 'wmxWkDate'){ if(t.value) wmxGoWeek(t.value); return; }
+    if(t.dataset.wa === 'done'){ const row = t.closest('.wmx-act'), a = wmxWk.acts.find(x => x.id === row.dataset.aid); if(a){ a.done = t.checked; row.classList.toggle('done', a.done); wmxSaveWk(); } return; }
+    if(t.dataset.iss === 'status'){ const i = wmxWk.sys.issues.find(x => x.id === t.closest('.wmx-isu').dataset.iid); if(i){ i.status = t.value; wmxSaveWk(); wmxRenderSys(); } return; }
+    if(t.dataset.pk === 'phys'){ wmxRenderStock(); return; }
+    if(t.dataset.hse || t.dataset.sys){ return; }
+  });
+  root.addEventListener('keydown', e => {
+    if(e.key !== 'Enter') return;
+    const t = e.target;
+    if(t.dataset.wf === 'new'){ e.preventDefault(); wmxAddAct(t.closest('.wmx-ft').dataset.sec, t); }
+    if(t.dataset.wf === 'newiss'){ e.preventDefault(); wmxAddIss(t); }
+  });
+  root.addEventListener('click', async e => {
+    const t = e.target.closest('[data-wm]'); if(!t) return;
+    const k = t.dataset.wm;
+    if(k === 'prevwk'){ wmxGoWeek(wmxAdd(wmxWkStart, -7)); return; }
+    if(k === 'nextwk'){ wmxGoWeek(wmxAdd(wmxWkStart, 7)); return; }
+    if(k === 'jump'){ const el = document.getElementById('wmx-' + t.dataset.s); if(el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
+    if(k === 'metric'){ wmxMetric = +t.dataset.m; wmxRenderOps(); return; }
+    if(k === 'filter'){ wmxFilter = t.dataset.f; wmxRenderStock(); return; }
+    if(k === 'gotoproj'){ document.querySelector('.tab[data-view="projects"]').click(); return; }
+    if(k === 'addact'){ const ft = t.closest('.wmx-ft'); wmxAddAct(ft.dataset.sec, ft.querySelector('[data-wf="new"]')); return; }
+    if(k === 'addiss'){ wmxAddIss(t.parentElement.querySelector('[data-wf="newiss"]')); return; }
+    if(k === 'delact'){ const id = t.closest('.wmx-act').dataset.aid, sec = t.closest('.wmx-ft').dataset.sec; wmxWk.acts = wmxWk.acts.filter(a => a.id !== id); wmxSaveWk(); wmxRerender(sec); return; }
+    if(k === 'deliss'){ const id = t.closest('.wmx-isu').dataset.iid; wmxWk.sys.issues = wmxWk.sys.issues.filter(i => i.id !== id); wmxSaveWk(); wmxRenderSys(); return; }
+    if(k === 'carry'){
+      const prev = wmxNormWk(await wmxGet('wk:' + wmxAdd(wmxWkStart, -7), null));
+      const open = prev.acts.filter(a => !a.done), have = new Set(wmxWk.acts.map(a => a.sec + '|' + a.text));
+      let n = 0;
+      open.forEach(a => { if(!have.has(a.sec + '|' + a.text)){ wmxWk.acts.push({ id: wmxUid(), sec: a.sec, text: a.text, pic: a.pic || '', due: a.due || '', done: false }); n++; } });
+      const iss = prev.sys.issues.filter(i => i.status !== 'done'), haveI = new Set(wmxWk.sys.issues.map(i => i.text));
+      iss.forEach(i => { if(!haveI.has(i.text)){ wmxWk.sys.issues.push({ id: wmxUid(), text: i.text, status: i.status, pic: i.pic || '' }); n++; } });
+      if(n){ wmxSaveWk(); wmxRenderAll(); showToast(n + ' item dibawa dari minggu lalu.', 'success'); }
+      else showToast('Tidak ada item tertinggal dari minggu lalu.', 'success');
+      return;
+    }
+  });
 }
 
 /* ================= WORKLOAD ANALYSIS (WLA) ================= */
