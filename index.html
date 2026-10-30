@@ -2474,6 +2474,7 @@
           <div class="gt-seg" role="group" aria-label="View" id="pjViews">
             <button type="button" data-pjv="lanes" class="on">Lanes</button><button type="button" data-pjv="cards">Cards</button><button type="button" data-pjv="table">Table</button>
           </div>
+          <button type="button" class="btn btn-ghost" id="pjImportBtn" title="Impor 5 project dari Planning timeline Okt-Des 2026 (VGT BIB). Aman dijalankan ulang, tidak menimpa data.">Import plan Okt-Des</button>
           <button type="button" class="btn btn-primary" id="pjAddBtn">+ Add project</button>
         </div>
       </div>
@@ -11928,6 +11929,63 @@ document.getElementById('pjNewSave').onclick = async () => {
   prjRenderAll();
   await prjSave(p);
 };
+
+/* ---- impor plan Okt-Des 2026 (Planning timeline VGT BIB) ----
+   Satu kali klik membuat 5 project berstatus Planned (manual), progress 0%, PIC kosong.
+   Aman dijalankan ulang: project yang sudah punya "seed" yang sama dilewati, data lain tidak disentuh.
+   Semua teks (nama, fase, catatan, milestone, tanggal) bisa diedit di panel detail dan tersimpan otomatis. */
+const PRJ_PLAN_SRC = 'Sumber: Planning timeline Oktober s.d. Desember 2026 (PT VGT, Site BIB). Status Planned diset manual; ubah ke Auto setelah pekerjaan berjalan.';
+const PRJ_PLAN_SEED = [
+  { seed:'plan2026q4-pavement', name:'Perbaikan Pavement Lane 1 dan Lane 3', phase:'PO 5300000945', start:'2026-10-28', target:'2026-12-01',
+    note:'PO 5300000945. ' + PRJ_PLAN_SRC,
+    ms:[['Pengadaan material','2026-10-28','2026-11-03'],['Pengiriman material ke Angsana','2026-11-04','2026-11-17'],['Administrasi perizinan','2026-11-12','2026-11-17'],['Mobilisasi material dan peralatan ke KM 13','2026-11-18','2026-11-18'],['Cutting Lane 1','2026-11-19','2026-11-20'],['Chipping Lane 1','2026-11-21','2026-11-22'],['Grouting Lane 1','2026-11-23','2026-11-24'],['Curing Lane 1','2026-11-25','2026-11-25'],['Cutting Lane 3','2026-11-25','2026-11-26'],['Chipping Lane 3','2026-11-27','2026-11-28'],['Grouting Lane 3','2026-11-29','2026-11-30'],['Curing Lane 3','2026-12-01','2026-12-01'],['Housekeeping','2026-12-01','2026-12-01']] },
+  { seed:'plan2026q4-scoreboard', name:'Instalasi Scoreboard PBR', phase:'Instalasi', start:'2026-10-27', target:'2026-11-04',
+    note:PRJ_PLAN_SRC,
+    ms:[['Cutting, chipping dan penggalian','2026-10-27','2026-10-30'],['Pengecoran pedestal','2026-10-31','2026-10-31'],['Pabrikasi bracket scoreboard','2026-11-01','2026-11-01'],['Pemasangan tiang','2026-11-02','2026-11-02'],['Pemasangan scoreboard pada tiang','2026-11-02','2026-11-03'],['Instalasi kabel scoreboard','2026-11-03','2026-11-03'],['Pengetesan','2026-11-04','2026-11-04']] },
+  { seed:'plan2026q4-ls-lane1', name:'Maintenance WIM LS Lane 1', phase:'Maintenance', start:'2026-10-28', target:'2026-10-28',
+    note:PRJ_PLAN_SRC,
+    ms:[['Penggantian mounting baru','2026-10-28','2026-10-28'],['Pengukuran mounting tergerus','2026-10-28','2026-10-28'],['Pengukuran saddle tergerus','2026-10-28','2026-10-28'],['Pengukuran jarak antar loadcell','2026-10-28','2026-10-28'],['Pengukuran bending frame','2026-10-28','2026-10-28'],['Pengecekan base loadcell','2026-10-28','2026-10-28'],['Pengukuran resistensi loadcell','2026-10-28','2026-10-28']] },
+  { seed:'plan2026q4-ls-lane3', name:'Maintenance WIM LS Lane 3', phase:'Maintenance', start:'2026-10-29', target:'2026-10-29',
+    note:PRJ_PLAN_SRC,
+    ms:[['Pelepasan stopper','2026-10-29','2026-10-29'],['Penggantian mounting baru','2026-10-29','2026-10-29'],['Pengukuran mounting tergerus','2026-10-29','2026-10-29'],['Pengukuran saddle tergerus','2026-10-29','2026-10-29'],['Pengukuran jarak antar loadcell','2026-10-29','2026-10-29'],['Pengukuran bending frame','2026-10-29','2026-10-29'],['Pengecekan base loadcell','2026-10-29','2026-10-29'],['Pengukuran resistensi loadcell','2026-10-29','2026-10-29']] },
+  { seed:'plan2026q4-statik-pad', name:'Peneraan Statik Pad', phase:'Peneraan', start:'2026-10-26', target:'2026-10-31',
+    note:PRJ_PLAN_SRC,
+    ms:[['Pelaksanaan uji tipe','2026-10-26','2026-10-31'],['Pelaksanaan uji tera','2026-10-26','2026-10-31']] }
+];
+async function prjImportPlan(){
+  const btn = document.getElementById('pjImportBtn');
+  const label = btn.textContent;
+  btn.textContent = 'Importing...';
+  try{
+    await prjLoad(true);
+    if(prjStore.isFailed()){ showToast('Backend tidak terjangkau. Impor dibatalkan dan tidak ada data yang diubah.', 'error'); return; }
+    const have = new Set(prjItems.map(p => p.seed).filter(Boolean));
+    const todo = PRJ_PLAN_SEED.filter(d => !have.has(d.seed));
+    if(!todo.length){ showToast('Plan Okt-Des sudah ada di Projects. Tidak ada yang diimpor.', 'success'); return; }
+    const t0 = Date.now();
+    todo.slice().reverse().forEach((d, i) => {
+      const p = prjNormalize({
+        id: 'pj' + (t0 + i) + 'x' + Math.floor(Math.random() * 1000), seed: d.seed,
+        name: d.name, phase: d.phase, start: d.start, target: d.target,
+        progress: 0, progressMode: 'manual', statusMode: 'manual', status: 'plan',
+        note: d.note, createdAt: t0,
+        milestones: d.ms.map((m, k) => ({ id: 'pm' + (t0 + i) + 'x' + k, name: m[1] === m[2] ? m[0] : m[0] + ' (' + prjFd(m[1]) + ' - ' + prjFd(m[2]) + ')', date: m[2], done: false }))
+      });
+      p.updatedAt = t0; p.updatedBy = tlAuthorName();
+      prjItems.unshift(p);
+    });
+    prjFilter = null;
+    prjSel = prjItems[0].id;
+    prjRenderAll();
+    await prjStore.save();
+    showToast(todo.length + ' project diimpor dengan status Planned. PIC bisa diisi di panel detail.', 'success');
+  }catch(err){
+    showToast('Impor gagal: ' + (err && err.message ? err.message : err), 'error');
+  }finally{
+    btn.textContent = label;
+  }
+}
+document.getElementById('pjImportBtn').onclick = prjImportPlan;
 
 /* ---- interaksi ---- */
 function prjSelProject(){ return prjById(prjSel); }
