@@ -5905,9 +5905,11 @@ function wmxRenderSys(){
 }
 
 /* ---------- 3 Project ---------- */
+/* Project non-WIM yang tidak ditampilkan di Weekly Meeting WIM (tetap ada di menu Projects). Tambah nama lain dengan | */
+const WMX_PROJ_HIDE = /urise|synova/i;
 function wmxRenderProj(){
   let rows = [];
-  try{ rows = prjItems.map(p => ({ p, s: prjStatus(p) })).filter(x => x.s.st !== 'done'); }catch(e){ rows = []; }
+  try{ rows = prjItems.filter(p => !WMX_PROJ_HIDE.test(p.name || '')).map(p => ({ p, s: prjStatus(p) })).filter(x => x.s.st !== 'done'); }catch(e){ rows = []; }
   rows.sort((a, b) => String(a.p.target || '9999').localeCompare(String(b.p.target || '9999')));
   let body;
   if(!rows.length) body = '<div class="wmx-empty">Belum ada project aktif. Buka menu Projects, lalu klik Import plan Okt-Des atau tambah project.</div>';
