@@ -776,6 +776,77 @@
   .pj-lk{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:13px;}
   .pj-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:14px;font-size:11.5px;color:var(--text-muted);flex-wrap:wrap;}
   .pj-del{border:none;background:transparent;color:var(--red-fg);cursor:pointer;font-size:12px;font-family:inherit;padding:2px 4px;}
+  /* ===== Projects: Jadwal interaktif + progres bersegmen ===== */
+  .pj-kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-top:14px;}
+  .pjk{position:relative;border:1px solid var(--border);border-radius:10px;padding:9px 12px 12px;background:#fff;overflow:hidden;}
+  .pjk b{display:block;font-family:var(--font-display);font-size:22px;font-weight:600;line-height:1.2;font-variant-numeric:tabular-nums;}
+  .pjk span{font-size:12px;color:var(--text-secondary);}
+  .pjk i{position:absolute;left:0;bottom:0;height:3px;background:var(--k);}
+  .pjk.d{--k:#1B8A5A;}.pjk.n{--k:#E8A33D;}.pjk.o{--k:#D64541;}.pjk.u{--k:#3B82C4;}
+  .pj-sg{position:absolute;top:11px;height:10px;border-radius:2px;box-shadow:0 0 0 1px #fff;}
+  .pj-sgs{display:flex;gap:2px;margin:12px 0 6px;height:8px;}
+  .pj-sgs span{flex:1;border-radius:2px;min-width:2px;}
+  .pj-sg.d,.pj-sgs .d,.pjx-seg .d{background:#1B8A5A;}
+  .pj-sg.o,.pj-sgs .o,.pjx-seg .o{background:#D64541;}
+  .pj-sg.n,.pj-sgs .n,.pjx-seg .n{background:#E8A33D;}
+  .pj-sg.u,.pj-sgs .u,.pjx-seg .u{background:#CFE0F3;}
+  .pjx{--lc:168px;user-select:none;}
+  .pjx-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+  .pjx-tabs button{display:inline-flex;gap:7px;align-items:center;font-size:12.5px;padding:4px 11px;border-radius:14px;border:1px solid var(--border);background:transparent;color:var(--text-secondary);cursor:pointer;font-family:inherit;}
+  .pjx-tabs button.on{background:var(--zebra);color:var(--text);border-color:var(--text-secondary);font-weight:600;}
+  .pjx-tabs em{font-style:normal;font-size:11px;opacity:.8;}
+  .pjx-hd{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:flex-start;margin-bottom:8px;}
+  .pjx-hd h4{margin:0;font-size:15px;font-weight:600;display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+  .pjx-hd p{margin:2px 0 0;font-size:12px;color:var(--text-secondary);}
+  .pjx-tools{display:flex;gap:6px;flex-wrap:wrap;}
+  .pjx-tools button{font-size:12px;padding:4px 10px;}
+  .pjx-tools button:disabled{opacity:.4;cursor:default;}
+  .pjx-seg{display:flex;gap:2px;height:12px;margin-bottom:6px;}
+  .pjx-seg span{flex:1;border-radius:2px;min-width:3px;}
+  .pjx-pb{height:6px;border-radius:3px;background:var(--border);position:relative;margin:4px 0 12px;}
+  .pjx-pb i{position:absolute;left:0;top:0;bottom:0;border-radius:3px;background:#1B8A5A;}
+  .pjx-pb u{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--text);opacity:.65;}
+  .pjx-ro{font-size:12px;background:var(--zebra);border-radius:8px;padding:6px 10px;margin-bottom:8px;min-height:30px;color:var(--text-secondary);display:flex;align-items:center;}
+  .pjx-ro b{color:var(--text);font-weight:600;margin-right:4px;}
+  .pjx-tl{border:1px solid var(--border);border-radius:12px;padding:8px 10px 10px;overflow:hidden;background:#fff;}
+  .pjx-ax,.pjx-rw,.pjx-dt{display:grid;grid-template-columns:var(--lc) minmax(0,1fr);}
+  .pjx-ax{height:22px;font-size:10.5px;color:var(--text-secondary);}
+  .pjx-axt{position:relative;}
+  .pjx-axt span{position:absolute;top:2px;white-space:nowrap;}
+  .pjx-rw{align-items:center;min-height:30px;border-top:1px solid var(--border);}
+  .pjx-rw.sel{background:var(--zebra);}
+  .pjx-nm{display:flex;gap:7px;align-items:center;padding-right:8px;min-width:0;}
+  .pjx-nm input[type=checkbox]{margin:0;flex:none;}
+  .pjx-t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:text;border-radius:4px;padding:2px 3px;font-size:12.5px;}
+  .pjx-t:hover{background:rgba(127,127,127,.12);}
+  .pjx-nm.dn .pjx-t{text-decoration:line-through;color:var(--text-muted);}
+  .pjx-ne{height:26px;font-size:12.5px;padding:0 6px;width:100%;border:1px solid var(--accent);border-radius:6px;font-family:inherit;}
+  .pjx-trk{position:relative;height:30px;}
+  .pjx-col{position:absolute;top:0;bottom:0;border-left:1px solid var(--border);opacity:.6;}
+  .pjx-col.we{background:var(--zebra);opacity:1;border-left-color:transparent;}
+  .pjx-td{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--red-fg);z-index:3;pointer-events:none;}
+  .pjx-bar{position:absolute;top:6px;height:18px;border-radius:5px;cursor:grab;z-index:2;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;touch-action:none;min-width:6px;}
+  .pjx-bar:active{cursor:grabbing;}
+  .pjx-bar:focus-visible{outline:2px solid var(--accent);outline-offset:1px;}
+  .pjx-bar.d{background:#1B8A5A;}.pjx-bar.o{background:#D64541;}.pjx-bar.n{background:#E8A33D;color:#412402;}
+  .pjx-bar.u{background:#EAF2FB;border:1.5px solid #3B82C4;color:#1F5C99;}
+  .pjx-bar b{position:absolute;top:0;bottom:0;width:8px;cursor:ew-resize;}
+  .pjx-bar b.l{left:0;}.pjx-bar b.r{right:0;}
+  .pjx-bar:hover b::after{content:"";position:absolute;top:4px;bottom:4px;width:2px;border-radius:1px;background:currentColor;opacity:.6;}
+  .pjx-bar b.l::after{left:2px;}.pjx-bar b.r::after{right:2px;}
+  .pjx-nodate{border:1px dashed var(--border);background:transparent;border-radius:5px;font-size:11px;color:var(--text-muted);cursor:pointer;height:20px;margin:5px 0;padding:0 8px;font-family:inherit;}
+  .pjx-dt{border-top:1px dashed var(--border);background:var(--zebra);}
+  .pjx-dti{grid-column:2;padding:7px 0 8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:12px;}
+  .pjx-dti input[type=date]{height:28px;font-size:12px;padding:0 6px;border:1px solid var(--border);border-radius:6px;font-family:inherit;background:#fff;}
+  .pjx-dti .btn{height:28px;font-size:12px;padding:0 10px;}
+  .pjx-er{color:var(--red-fg);font-size:11.5px;width:100%;}
+  .pjx-new .pjx-trk{cursor:crosshair;}
+  .pjx-new .pjx-nm{color:var(--text-muted);font-size:12.5px;}
+  .pjx-hint{position:absolute;inset:0;display:flex;align-items:center;padding-left:8px;font-size:11px;color:var(--text-muted);pointer-events:none;}
+  .pjx-gh{position:absolute;top:6px;height:18px;border-radius:5px;background:#EAF2FB;border:1.5px dashed #3B82C4;z-index:2;pointer-events:none;}
+  .pjx-tip{font-size:11.5px;color:var(--text-secondary);margin-top:8px;line-height:1.6;}
+  .pjx-tip kbd{font-family:var(--font-mono,monospace);font-size:10px;border:1px solid var(--border);border-radius:4px;padding:0 4px;background:var(--zebra);}
+  @container (max-width:700px){ .pjx{--lc:110px;} }
   .pj-ovbar{display:flex;height:10px;border-radius:5px;overflow:hidden;gap:2px;margin:10px 0 8px;}
   .pj-ovbar span{display:block;min-width:5px;}
   .pj-ovli{display:flex;gap:8px;align-items:baseline;font-size:12px;padding:2px 0;}
@@ -2572,7 +2643,7 @@
         <div><h3>Projects</h3><p class="pj-sum" id="pjSum"></p></div>
         <div class="pj-tools">
           <div class="gt-seg" role="group" aria-label="View" id="pjViews">
-            <button type="button" data-pjv="lanes" class="on">Lanes</button><button type="button" data-pjv="cards">Cards</button><button type="button" data-pjv="table">Table</button>
+            <button type="button" data-pjv="plan" class="on">Jadwal</button><button type="button" data-pjv="lanes">Lanes</button><button type="button" data-pjv="cards">Cards</button><button type="button" data-pjv="table">Table</button>
           </div>
           <button type="button" class="btn btn-ghost" id="pjImportBtn" title="Impor 5 project dari Planning timeline Okt-Des 2026 (VGT BIB). Aman dijalankan ulang, tidak menimpa data.">Import plan Okt-Des</button>
           <button type="button" class="btn btn-primary" id="pjAddBtn">+ Add project</button>
@@ -2588,6 +2659,7 @@
         <div class="gt-err" id="pjNewErr"></div>
         <div class="gt-actions"><button type="button" class="btn btn-ghost" id="pjNewCancel">Cancel</button><button type="button" class="btn btn-primary" id="pjNewSave">Save project</button></div>
       </div>
+      <div class="pj-kpi" id="pjKpi" style="display:none"></div>
       <div class="pj-bar" id="pjBar" role="group" aria-label="Projects by status"></div>
       <div class="pj-lg" id="pjLg"></div>
       <div class="pj-up" id="pjUp"></div>
@@ -12086,7 +12158,7 @@ const PRJ_STATUS = {
 const PRJ_ORDER = ['late', 'risk', 'ok', 'hold', 'plan', 'done'];
 const PRJ_SEV = { h: 'High', m: 'Medium', l: 'Low' };
 const PRJ_LATE_PTS = 15, PRJ_RISK_PTS = 8;   // ambang selisih progres (poin)
-let prjItems = [], prjLoaded = false, prjLoadedAt = 0, prjMode = 'lanes', prjFilter = null, prjSel = null, prjPicPending = null;
+let prjItems = [], prjLoaded = false, prjLoadedAt = 0, prjMode = 'plan', prjFilter = null, prjSel = null, prjPicPending = null;
 const prjTimers = {};
 const prjStore = createItemStore('projects:list', () => prjItems);
 
@@ -12096,10 +12168,22 @@ function prjNormalize(p){
   p.milestones = Array.isArray(p.milestones) ? p.milestones : [];
   p.risks = Array.isArray(p.risks) ? p.risks : [];
   p.statusMode = p.statusMode === 'manual' ? 'manual' : 'auto';
-  p.progressMode = p.progressMode === 'manual' ? 'manual' : 'tasks';
+  p.progressMode = ['manual', 'tasks', 'acts', 'actsd'].includes(p.progressMode) ? p.progressMode : 'tasks';
+  if(p.seed && p.progressMode === 'manual' && !p.pmSet) p.progressMode = 'acts';   // plan Okt-Des: progres dari aktivitas
+  prjMsFix(p);
   p.progress = Math.max(0, Math.min(100, +p.progress || 0));
   p.note = p.note || ''; p.phase = p.phase || '';
   return p;
+}
+function prjMsFix(p){
+  const def = p.seed && typeof PRJ_PLAN_SEED !== 'undefined' ? PRJ_PLAN_SEED.find(d => d.seed === p.seed) : null;
+  p.milestones.forEach(m => {
+    if(m.start !== undefined) return;
+    const f = def && def.ms.find(x => m.name === x[0] || String(m.name).indexOf(x[0] + ' (') === 0);
+    if(f){ m.name = f[0]; m.start = f[1]; if(!m.date) m.date = f[2]; }
+    else m.start = m.date || '';
+    if(m.start && m.date && m.date < m.start) m.start = m.date;
+  });
 }
 async function prjLoad(force){
   if(!force && prjLoaded && Date.now() - prjLoadedAt < 15000) return;
@@ -12128,6 +12212,10 @@ function prjTaskStats(p){
   return { n: ts.length, d: ts.filter(tlIsDone).length, od: ts.filter(t => tlEffectiveStatus(t) === 'Overdue').length };
 }
 function prjProgress(p){
+  if(p.progressMode === 'acts' || p.progressMode === 'actsd'){
+    const a = prjActStats(p);
+    if(a.n > 0) return p.progressMode === 'acts' ? Math.round(a.d / a.n * 100) : Math.round(a.wd / a.w * 100);
+  }
   if(p.progressMode === 'tasks'){ const t = prjTaskStats(p); if(t.n > 0) return Math.round(t.d / t.n * 100); }
   return p.progress || 0;
 }
@@ -12189,6 +12277,7 @@ function prjVisible(){
 
 /* ---- rendering ---- */
 function prjRenderSummary(){
+  prjRenderKpi();
   const rows = prjRows(), c = {};
   rows.forEach(x => { c[x.s.st] = (c[x.s.st] || 0) + 1; });
   const active = rows.filter(x => x.s.st !== 'done').length;
@@ -12217,8 +12306,8 @@ function prjRenderSummary(){
 }
 function prjRange(){
   const today = tlParseDate(todayStr());
-  let lo = new Date(today); lo.setDate(lo.getDate() - 45);
-  let hi = new Date(today); hi.setDate(hi.getDate() + 75);
+  let lo = new Date(today); lo.setDate(lo.getDate() - 14);
+  let hi = new Date(today); hi.setDate(hi.getDate() + 21);
   const cap = new Date(today); cap.setDate(cap.getDate() - 400);
   prjItems.forEach(p => {
     if(p.start){ const d = tlParseDate(p.start); if(d < lo) lo = d < cap ? cap : d; }
@@ -12237,11 +12326,12 @@ function prjLanesHtml(rows){
     const st = PRJ_STATUS[s.st], prog = prjProgress(p), exp = prjExpected(p);
     const a = p.start ? pos(tlParseDate(p.start)) : 0, b = p.target ? pos(tlParseDate(p.target)) : a + 2;
     const w = Math.max(b - a, 1.5), fillW = w * prog / 100;
+    const useSeg = prjUseSeg(p);
     const over = (s.st === 'late' || s.st === 'risk') && p.target && todayD > tlParseDate(p.target) ? `<span class="pj-over" style="left:${b}%;width:${Math.max(0, pos(todayD) - b)}%"></span>` : '';
     const showEx = ['ok', 'risk', 'late', 'hold'].includes(s.st);
     return `<button type="button" class="pj-ln ${prjSel === p.id ? 'sel' : ''}" data-pjid="${p.id}" style="--c:${st.c}" aria-pressed="${prjSel === p.id}" aria-label="${escapeHtml(p.name)}, ${st.l}, ${prog} percent">
       <span class="pj-lh"><span class="pj-nm">${escapeHtml(p.name)}</span><span class="pj-sub">${prjPill(s.st)}<span>${escapeHtml(p.phase || '')}</span></span></span>
-      <span class="pj-trk"><span class="pj-bg" style="left:${a}%;width:${w}%"></span><span class="pj-fl ${prog >= 100 ? 'full' : ''}" style="left:${a}%;width:${fillW}%"></span>${over}${showEx ? `<span class="pj-ex" title="Expected progress today: ${exp}%" style="left:${a + w * exp / 100}%"></span>` : ''}${p.milestones.filter(m => m.date).map(m => `<span class="pj-ms ${m.done ? 'd' : ''}" title="${escapeHtml(m.name)}, ${prjFd(m.date)}" style="left:${pos(tlParseDate(m.date))}%"></span>`).join('')}</span>
+      <span class="pj-trk"><span class="pj-bg" style="left:${a}%;width:${w}%"></span>${useSeg ? prjSegHtml(p, pos) : `<span class="pj-fl ${prog >= 100 ? 'full' : ''}" style="left:${a}%;width:${fillW}%"></span>`}${over}${showEx ? `<span class="pj-ex" title="Expected progress today: ${exp}%" style="left:${a + w * exp / 100}%"></span>` : ''}${(useSeg ? [] : p.milestones.filter(m => m.date)).map(m => `<span class="pj-ms ${m.done ? 'd' : ''}" title="${escapeHtml(m.name)}, ${prjFd(m.date)}" style="left:${pos(tlParseDate(m.date))}%"></span>`).join('')}</span>
       <span class="pj-pc">${prog}%</span></button>`;
   }).join('');
   h += `<div class="pj-today" style="left:calc(var(--lc) + (100% - var(--lc) - var(--rc)) * ${pos(todayD) / 100})"><span>Today</span></div></div>`;
@@ -12254,7 +12344,7 @@ function prjCardsHtml(rows){
     const vt = prjVarTxt(p, s.st);
     return `<button type="button" class="pj-cd ${prjSel === p.id ? 'sel' : ''}" data-pjid="${p.id}" style="--c:${st.c}" aria-pressed="${prjSel === p.id}"><div class="r1"><span class="pj-nm">${escapeHtml(p.name)}</span><span>${prjAvatars(p)}</span></div>
       <div style="margin-top:4px">${prjPill(s.st)} <span class="pj-sub" style="display:inline">${escapeHtml(p.phase || '')}</span></div>
-      <div class="pj-mb" aria-hidden="true"><i style="width:${prog}%"></i>${['ok', 'risk', 'late', 'hold'].includes(s.st) ? `<s style="left:${exp}%"></s>` : ''}</div>
+      ${prjUseSeg(p) ? prjSegStrip(p) : `<div class="pj-mb" aria-hidden="true"><i style="width:${prog}%"></i>${['ok', 'risk', 'late', 'hold'].includes(s.st) ? `<s style="left:${exp}%"></s>` : ''}</div>`}
       <div class="f"><b>${prog}% done</b>${vt ? ', ' + vt : ''}<br>${prjLeft(p, s.st)}${p.target ? ', target ' + prjFd(p.target) : ''}<br>Next: ${escapeHtml(prjNextMs(p))}<br>Tasks ${t.d} of ${t.n}${t.od ? `, <span style="color:var(--red-fg)">${t.od} overdue</span>` : ''}</div></button>`;
   }).join('') + '</div>';
 }
@@ -12269,12 +12359,19 @@ function prjRenderMain(){
   const rows = prjVisible(), box = document.getElementById('pjMain');
   if(!prjItems.length) box.innerHTML = '<div class="pj-empty">No projects yet. Use "Add project" to create the first one.</div>';
   else if(!rows.length) box.innerHTML = '<div class="pj-empty">No projects with this status.</div>';
+  else if(prjMode === 'plan'){
+    if(!rows.some(x => x.p.id === prjSel)){ prjSel = rows[0].p.id; setTimeout(prjRenderDetail, 0); }
+    box.innerHTML = pjxHtml(prjById(prjSel), rows);
+  }
   else box.innerHTML = prjMode === 'lanes' ? prjLanesHtml(rows) : (prjMode === 'cards' ? prjCardsHtml(rows) : prjTableHtml(rows));
   document.querySelectorAll('#pjViews button').forEach(b => b.classList.toggle('on', b.dataset.pjv === prjMode));
+  if(prjMode === 'plan') pjxPost();
 }
 function prjDetailHtml(p){
   const s = prjStatus(p), st = PRJ_STATUS[s.st], t = prjTaskStats(p), prog = prjProgress(p), vt = prjVarTxt(p, s.st);
   const today = todayStr();
+  const aS = prjActStats(p), isAct = p.progressMode === 'acts' || p.progressMode === 'actsd';
+  const useMan = p.progressMode === 'manual' || (p.progressMode === 'tasks' && t.n === 0) || (isAct && aS.n === 0);
   const autoOpt = `<option value="auto" ${p.statusMode === 'auto' ? 'selected' : ''}>Auto: ${PRJ_STATUS[s.auto.st].l}</option>`;
   const stOpts = ['ok', 'risk', 'late', 'hold', 'plan', 'done'].map(k => `<option value="${k}" ${p.statusMode === 'manual' && p.status === k ? 'selected' : ''}>${PRJ_STATUS[k].l}</option>`).join('');
   const why = s.manual
@@ -12292,13 +12389,13 @@ function prjDetailHtml(p){
     <h5>Schedule</h5>
     <div class="pj-kv"><span>Start</span><input type="date" data-pf="start" value="${escapeHtml(p.start || '')}" aria-label="Start date">
       <span>Target</span><input type="date" data-pf="target" value="${escapeHtml(p.target || '')}" aria-label="Target date">
-      <span>Progress</span><span style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><select id="pjProgMode" aria-label="Progress source" style="border-color:var(--border)"><option value="tasks" ${p.progressMode === 'tasks' ? 'selected' : ''}>From linked tasks</option><option value="manual" ${p.progressMode === 'manual' ? 'selected' : ''}>Manual</option></select>${p.progressMode === 'manual' || t.n === 0 ? `<input type="number" min="0" max="100" data-pf="progress" value="${p.progress}" style="width:62px;border-color:var(--border)" aria-label="Progress percent">%` : `<b style="font-weight:600">${prog}%</b>`}</span></div>
+      <span>Progress</span><span style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><select id="pjProgMode" aria-label="Progress source" style="border-color:var(--border)"><option value="acts" ${p.progressMode === 'acts' ? 'selected' : ''}>Dari aktivitas (jumlah)</option><option value="actsd" ${p.progressMode === 'actsd' ? 'selected' : ''}>Dari aktivitas (durasi)</option><option value="tasks" ${p.progressMode === 'tasks' ? 'selected' : ''}>From linked tasks</option><option value="manual" ${p.progressMode === 'manual' ? 'selected' : ''}>Manual</option></select>${useMan ? `<input type="number" min="0" max="100" data-pf="progress" value="${p.progress}" style="width:62px;border-color:var(--border)" aria-label="Progress percent">%` : `<b style="font-weight:600">${prog}%</b>`}</span></div>
     <div class="pj-why" style="margin-top:6px">${prog}% done${vt ? ', ' + vt : ''}. ${prjLeft(p, s.st)}.${p.progressMode === 'tasks' && t.n === 0 ? ' No linked tasks yet, so the manual value is used.' : ''}</div>
     <h5>PIC</h5>
     <div class="pj-chips">${p.pics.map(n => `<span class="pj-chip">${escapeHtml(n)}<button type="button" data-pjpicdel="${escapeHtml(n)}" aria-label="Remove ${escapeHtml(n)}">&times;</button></span>`).join('')}${picAdd}</div>
-    <h5>Milestones</h5>
-    <div>${ms.map(m => { const od = !m.done && m.date && m.date < today; return `<div class="pj-row ${m.done ? 'dn' : ''} ${od ? 'od' : ''}"><input type="checkbox" data-pjms="${m.id}:done" ${m.done ? 'checked' : ''} aria-label="Done"><input type="text" data-pjms="${m.id}:name" value="${escapeHtml(m.name)}" aria-label="Milestone"><input type="date" data-pjms="${m.id}:date" value="${escapeHtml(m.date || '')}" aria-label="Milestone date"><button type="button" class="x" data-pjmsdel="${m.id}" aria-label="Delete milestone"><i class="ti ti-x"></i></button></div>`; }).join('') || '<div class="pj-why">No milestones yet.</div>'}
-      <div class="pj-add"><input type="text" id="pjMsName" placeholder="Add milestone" aria-label="New milestone"><input type="date" id="pjMsDate" aria-label="Milestone date"><button type="button" class="btn btn-ghost" data-pjact="msadd">Add</button></div></div>
+    <h5>Aktivitas</h5>
+    <div class="pj-lk"><span>${aS.d} dari ${aS.n} selesai${aS.o ? `, <span style="color:var(--red-fg)">${aS.o} terlambat</span>` : ''}</span>${prjMode === 'plan' ? '' : '<button type="button" class="btn btn-ghost" data-pjv="plan">Buka editor Jadwal</button>'}</div>
+    <div class="pj-why" style="margin-top:4px">Nama, tanggal mulai dan selesai aktivitas diedit langsung di tab Jadwal (seret batang atau klik untuk isi tanggal).</div>
     <h5>Risks and issues</h5>
     <div>${p.risks.map(r => `<div class="pj-row"><select class="pj-sev ${r.sev === 'h' ? 'h' : ''}" data-pjrk="${r.id}:sev" aria-label="Severity">${['h', 'm', 'l'].map(k => `<option value="${k}" ${r.sev === k ? 'selected' : ''}>${PRJ_SEV[k]}</option>`).join('')}</select><input type="text" data-pjrk="${r.id}:text" value="${escapeHtml(r.text)}" aria-label="Risk"><button type="button" class="x" data-pjrkdel="${r.id}" aria-label="Delete risk"><i class="ti ti-x"></i></button></div>`).join('') || '<div class="pj-why">None logged.</div>'}
       <div class="pj-add"><input type="text" id="pjRkText" placeholder="Add risk or issue" aria-label="New risk"><select id="pjRkSev" class="pj-sev" aria-label="Severity"><option value="m">Medium</option><option value="h">High</option><option value="l">Low</option></select><button type="button" class="btn btn-ghost" data-pjact="rkadd">Add</button></div></div>
@@ -12400,9 +12497,9 @@ async function prjImportPlan(){
       const p = prjNormalize({
         id: 'pj' + (t0 + i) + 'x' + Math.floor(Math.random() * 1000), seed: d.seed,
         name: d.name, phase: d.phase, start: d.start, target: d.target,
-        progress: 0, progressMode: 'manual', statusMode: 'manual', status: 'plan',
+        progress: 0, progressMode: 'acts', statusMode: 'manual', status: 'plan',
         note: d.note, createdAt: t0,
-        milestones: d.ms.map((m, k) => ({ id: 'pm' + (t0 + i) + 'x' + k, name: m[1] === m[2] ? m[0] : m[0] + ' (' + prjFd(m[1]) + ' - ' + prjFd(m[2]) + ')', date: m[2], done: false }))
+        milestones: d.ms.map((m, k) => ({ id: 'pm' + (t0 + i) + 'x' + k, name: m[0], start: m[1], date: m[2], done: false }))
       });
       p.updatedAt = t0; p.updatedBy = tlAuthorName();
       prjItems.unshift(p);
@@ -12419,6 +12516,271 @@ async function prjImportPlan(){
   }
 }
 document.getElementById('pjImportBtn').onclick = prjImportPlan;
+
+/* ==================================================================
+   JADWAL INTERAKTIF -- editor timeline per project
+   Aktivitas = milestones {id,name,start,date(selesai),done}. Seret batang untuk geser/ubah durasi,
+   klik batang untuk isi tanggal manual, klik nama untuk ubah teks, seret di baris kosong untuk membuat aktivitas.
+   Undo/redo 40 langkah per project. Tersimpan lewat prjStore (backend), bukan localStorage.
+   ================================================================== */
+const PJX_MON = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+const PJX_LBL = { d:'Selesai', o:'Terlambat', n:'Berjalan', u:'Belum mulai' };
+const PJX = { sel:null, win:null, selA:null, editing:null, focus:null, err:'', hist:[], fut:[], drag:null, ghost:null };
+function pjxD(s){ const p = String(s).split('-'); return Math.round(Date.UTC(+p[0], +p[1] - 1, +p[2]) / 864e5); }
+function pjxIso(n){ const d = new Date(n * 864e5); return d.getUTCFullYear() + '-' + String(d.getUTCMonth() + 1).padStart(2, '0') + '-' + String(d.getUTCDate()).padStart(2, '0'); }
+function pjxF(n){ const d = new Date(n * 864e5); return d.getUTCDate() + ' ' + PJX_MON[d.getUTCMonth()]; }
+function pjxSpan(m){ if(!m.start || !m.date) return null; const s = pjxD(m.start), e = pjxD(m.date); return e >= s ? { s, e } : { s: e, e: s }; }
+function pjxSt(m){
+  if(m.done) return 'd';
+  const sp = pjxSpan(m); if(!sp) return 'u';
+  const t = pjxD(todayStr());
+  return sp.e < t ? 'o' : (sp.s <= t ? 'n' : 'u');
+}
+function prjActStats(p){
+  const r = { n: p.milestones.length, d: 0, o: 0, n2: 0, u: 0, w: 0, wd: 0 };
+  p.milestones.forEach(m => {
+    const st = pjxSt(m), sp = pjxSpan(m), w = sp ? sp.e - sp.s + 1 : 1;
+    r.w += w;
+    if(st === 'd'){ r.d++; r.wd += w; } else if(st === 'o') r.o++; else if(st === 'n') r.n2++; else r.u++;
+  });
+  return r;
+}
+function prjUseSeg(p){ return (p.progressMode === 'acts' || p.progressMode === 'actsd') && p.milestones.some(m => pjxSpan(m)); }
+function prjSegHtml(p, pos){
+  return p.milestones.filter(m => pjxSpan(m)).map(m => {
+    const a = pos(tlParseDate(m.start)), b = pos(tlParseDate(tlAddDays(m.date, 1)));
+    return `<span class="pj-sg ${pjxSt(m)}" title="${escapeHtml(m.name)}: ${PJX_LBL[pjxSt(m)]}" style="left:${a}%;width:${Math.max(b - a, 0.6)}%"></span>`;
+  }).join('');
+}
+function prjSegStrip(p){
+  const ms = p.milestones.slice().sort((a, b) => String(a.start || a.date || '9').localeCompare(String(b.start || b.date || '9')));
+  return '<div class="pj-sgs" aria-hidden="true">' + ms.map(m => `<span class="${pjxSt(m)}" title="${escapeHtml(m.name)}: ${PJX_LBL[pjxSt(m)]}"></span>`).join('') + '</div>';
+}
+function prjRenderKpi(){
+  const box = document.getElementById('pjKpi');
+  let n = 0, d = 0, o = 0, r = 0, u = 0;
+  prjItems.forEach(p => { const s = prjActStats(p); n += s.n; d += s.d; o += s.o; r += s.n2; u += s.u; });
+  if(!n){ box.style.display = 'none'; box.innerHTML = ''; return; }
+  box.style.display = '';
+  const tile = (cls, v, l) => `<div class="pjk ${cls}"><b>${v}</b><span>${l}</span><i style="width:${Math.round(v / n * 100)}%"></i></div>`;
+  box.innerHTML = tile('d', d, 'Aktivitas selesai (' + Math.round(d / n * 100) + '% dari ' + n + ')') + tile('n', r, 'Sedang berjalan') + tile('o', o, 'Terlambat') + tile('u', u, 'Belum mulai');
+}
+
+/* ---- window waktu ---- */
+function pjxFit(p, keep){
+  const t = pjxD(todayStr());
+  let lo = t, hi = t;
+  p.milestones.forEach(m => { const sp = pjxSpan(m); if(sp){ lo = Math.min(lo, sp.s); hi = Math.max(hi, sp.e); } });
+  lo -= 1; hi += 2; if(hi - lo < 13) hi = lo + 13;
+  if(keep && PJX.win && PJX.win.id === p.id){ lo = Math.min(lo, PJX.win.w0); hi = Math.max(hi, PJX.win.w1); }
+  PJX.win = { id: p.id, w0: lo, w1: hi };
+}
+function pjxHtml(p, rows){
+  if(PJX.sel !== p.id){ PJX.sel = p.id; PJX.hist = []; PJX.fut = []; PJX.selA = null; PJX.editing = null; PJX.err = ''; PJX.win = null; }
+  pjxFit(p, !!PJX.win);
+  const w = PJX.win, N = w.w1 - w.w0 + 1, today = pjxD(todayStr());
+  const s = prjActStats(p), s0 = prjStatus(p), prog = prjProgress(p), ex = prjExpected(p);
+  if(PJX.selA !== null && PJX.selA >= p.milestones.length) PJX.selA = null;
+  const tabs = rows.map(x => { const a = prjActStats(x.p); return `<button type="button" data-pjid="${x.p.id}" class="${x.p.id === p.id ? 'on' : ''}">${escapeHtml(tlClip(x.p.name, 28))}<em>${a.d}/${a.n}</em></button>`; }).join('');
+  let cols = '', ax = '';
+  for(let i = 0; i < N; i++){
+    const dn = w.w0 + i, dow = new Date(dn * 864e5).getUTCDay(), dom = new Date(dn * 864e5).getUTCDate(), l = (i / N * 100).toFixed(3);
+    cols += `<div class="pjx-col${(dow === 0 || dow === 6) ? ' we' : ''}" style="left:${l}%;width:${(100 / N).toFixed(3)}%"></div>`;
+    const show = N > 70 ? (dom === 1 || dom === 15) : (dow === 1 || dom === 1 || i === 0);
+    if(show) ax += `<span style="left:${l}%">${pjxF(dn)}</span>`;
+  }
+  const tdl = ((today - w.w0) / N * 100 + 100 / N / 2).toFixed(3);
+  const tdHtml = (today >= w.w0 && today <= w.w1) ? `<div class="pjx-td" style="left:${tdl}%" title="Hari ini"></div>` : '';
+  const body = p.milestones.map((m, j) => {
+    const sp = pjxSpan(m), st = pjxSt(m);
+    const nameCell = PJX.editing === j
+      ? `<input class="pjx-ne" id="pjxNe" value="${escapeHtml(m.name)}" aria-label="Nama aktivitas">`
+      : `<span class="pjx-t" data-px-ed="${j}" title="Klik untuk ubah nama">${escapeHtml(m.name) || '(tanpa nama)'}</span>`;
+    let track;
+    if(sp){
+      const len = sp.e - sp.s + 1;
+      track = `<div class="pjx-bar ${st}" tabindex="0" data-px-i="${j}" style="left:${((sp.s - w.w0) / N * 100).toFixed(3)}%;width:${(len / N * 100).toFixed(3)}%" title="${escapeHtml(m.name)} | ${PJX_LBL[st]}" role="group" aria-label="${escapeHtml(m.name)}, ${pjxF(sp.s)} sampai ${pjxF(sp.e)}, ${PJX_LBL[st]}"><b class="l" data-px-h="l"></b>${len >= 3 ? len + ' hr' : ''}<b class="r" data-px-h="r"></b></div>`;
+    } else track = `<button type="button" class="pjx-nodate" data-px-sel="${j}">Belum ada tanggal. Klik untuk mengisi.</button>`;
+    let r = `<div class="pjx-rw${PJX.selA === j ? ' sel' : ''}"><div class="pjx-nm${m.done ? ' dn' : ''}"><input type="checkbox" data-px-done="${j}" ${m.done ? 'checked' : ''} aria-label="Selesai">${nameCell}</div><div class="pjx-trk">${cols}${tdHtml}${track}</div></div>`;
+    if(PJX.selA === j) r += `<div class="pjx-dt"><div></div><div class="pjx-dti"><label>Mulai <input type="date" data-px-dk="s" value="${sp ? pjxIso(sp.s) : ''}"></label><label>Selesai <input type="date" data-px-dk="e" value="${sp ? pjxIso(sp.e) : ''}"></label><button type="button" class="btn btn-ghost" data-px-act="toggle">${m.done ? 'Batal selesai' : 'Tandai selesai'}</button><button type="button" class="btn btn-ghost" data-px-act="del" style="color:var(--red-fg)">Hapus</button>${PJX.err ? `<span class="pjx-er">${escapeHtml(PJX.err)}</span>` : ''}</div></div>`;
+    return r;
+  }).join('');
+  const seg = p.milestones.map(m => `<span class="${pjxSt(m)}" title="${escapeHtml(m.name)}: ${PJX_LBL[pjxSt(m)]}"></span>`).join('');
+  return `<div class="pjx" id="pjx">
+    <div class="pjx-tabs" role="tablist" aria-label="Pilih project">${tabs}</div>
+    <div class="pjx-hd"><div><h4>${escapeHtml(p.name)} ${prjPill(s0.st)}</h4>
+      <p>${s.d} dari ${s.n} aktivitas selesai, ${s.o} terlambat, ${s.n2} berjalan. Progres ${prog}%, target hari ini ${ex}%.</p></div>
+      <div class="pjx-tools"><button type="button" class="btn btn-ghost" data-px-act="undo" ${PJX.hist.length ? '' : 'disabled'}>Urungkan</button><button type="button" class="btn btn-ghost" data-px-act="redo" ${PJX.fut.length ? '' : 'disabled'}>Ulangi</button><button type="button" class="btn btn-ghost" data-px-act="shiftm" title="Geser semua aktivitas yang belum selesai mundur 1 hari">Semua -1 hari</button><button type="button" class="btn btn-ghost" data-px-act="shiftp" title="Geser semua aktivitas yang belum selesai maju 1 hari">Semua +1 hari</button><button type="button" class="btn btn-ghost" data-px-act="wide" title="Perluas rentang waktu">Perluas</button></div></div>
+    ${s.n ? `<div class="pjx-seg" aria-label="Status per aktivitas">${seg}</div>` : ''}
+    <div class="pjx-pb" aria-hidden="true"><i style="width:${prog}%"></i><u style="left:calc(${ex}% - 1px)" title="Target hari ini ${ex}%"></u></div>
+    <div class="pjx-ro" id="pjxRo" aria-live="polite">${s.n ? 'Seret batang untuk mengubah jadwal. Klik batang untuk mengisi tanggal manual.' : 'Belum ada aktivitas. Seret di baris kosong paling bawah untuk membuat yang pertama.'}</div>
+    <div class="pjx-tl" id="pjxTl"><div class="pjx-ax"><div></div><div class="pjx-axt">${ax}</div></div>${body}
+      <div class="pjx-rw pjx-new"><div class="pjx-nm">+ Aktivitas baru</div><div class="pjx-trk" id="pjxNew">${cols}${tdHtml}<div class="pjx-hint">Seret di sini untuk membuat aktivitas</div></div></div></div>
+    <div class="pjx-tip">Seret batang untuk memindah tanggal, seret ujungnya untuk mengubah durasi. Klik nama untuk mengganti teks. Dengan keyboard: fokus ke batang lalu <kbd>←</kbd> <kbd>→</kbd> geser, <kbd>Shift</kbd> + panah ubah durasi, <kbd>Spasi</kbd> centang selesai, <kbd>Ctrl</kbd>+<kbd>Z</kbd> urungkan. Perubahan tersimpan otomatis.</div></div>`;
+}
+function pjxPost(){
+  if(PJX.editing !== null){ const ne = document.getElementById('pjxNe'); if(ne){ ne.focus(); ne.select(); } }
+  else if(PJX.focus !== null){ const b = document.querySelector('.pjx-bar[data-px-i="' + PJX.focus + '"]'); if(b) b.focus({ preventScroll: true }); PJX.focus = null; }
+}
+
+/* ---- data: snapshot, undo, sinkron tanggal project ---- */
+function pjxSnap(p){ return JSON.stringify({ m: p.milestones, s: p.start, t: p.target }); }
+function pjxPush(snap){ PJX.hist.push(snap); if(PJX.hist.length > 40) PJX.hist.shift(); PJX.fut = []; }
+function pjxSync(p){
+  if(!(p.progressMode === 'acts' || p.progressMode === 'actsd')) return;
+  let lo = null, hi = null;
+  p.milestones.forEach(m => { const sp = pjxSpan(m); if(sp){ lo = lo === null ? sp.s : Math.min(lo, sp.s); hi = hi === null ? sp.e : Math.max(hi, sp.e); } });
+  if(lo !== null){ p.start = pjxIso(lo); p.target = pjxIso(hi); }
+}
+function pjxCommit(p, focusIdx){
+  pjxSync(p);
+  prjQueueSave(p);
+  PJX.focus = (focusIdx === undefined ? null : focusIdx);
+  prjRenderAll();
+}
+function pjxRestore(p, snap){ const o = JSON.parse(snap); p.milestones = o.m; p.start = o.s; p.target = o.t; }
+function pjxReadout(m){
+  const sp = pjxSpan(m); if(!sp) return;
+  document.getElementById('pjxRo').innerHTML = '<b>' + escapeHtml(m.name) + '</b> ' + pjxF(sp.s) + (sp.s === sp.e ? '' : ' - ' + pjxF(sp.e)) + ', ' + (sp.e - sp.s + 1) + ' hari';
+}
+(function pjxBind(){
+  const box = document.getElementById('pjMain');
+  const cur = () => prjById(prjSel);
+  const inPlan = (e) => prjMode === 'plan' && e.target.closest && e.target.closest('#pjx');
+  function placeGhost(){
+    const w = PJX.win, N = w.w1 - w.w0 + 1, s = Math.min(PJX.drag.d0, PJX.drag.d1), e = Math.max(PJX.drag.d0, PJX.drag.d1);
+    PJX.ghost.style.left = ((s - w.w0) / N * 100) + '%'; PJX.ghost.style.width = ((e - s + 1) / N * 100) + '%';
+  }
+  box.addEventListener('pointerdown', (e) => {
+    if(!inPlan(e) || e.button) return;
+    const p = cur(); if(!p) return;
+    const w = PJX.win, N = w.w1 - w.w0 + 1;
+    const bar = e.target.closest('.pjx-bar');
+    if(bar){
+      const j = +bar.dataset.pxI, sp = pjxSpan(p.milestones[j]); if(!sp) return;
+      PJX.drag = { j, mode: e.target.dataset.pxH || 'm', x0: e.clientX, s: sp.s, e: sp.e, dw: bar.parentElement.getBoundingClientRect().width / N, moved: false, before: pjxSnap(p), el: bar };
+      bar.setPointerCapture(e.pointerId); e.preventDefault(); return;
+    }
+    const nw = e.target.closest('#pjxNew');
+    if(nw){
+      const r = nw.getBoundingClientRect(), dw = r.width / N, d0 = Math.max(w.w0, Math.min(w.w1, w.w0 + Math.floor((e.clientX - r.left) / dw)));
+      PJX.drag = { mode: 'new', d0, d1: d0, dw, left: r.left, moved: false, before: pjxSnap(p) };
+      PJX.ghost = document.createElement('div'); PJX.ghost.className = 'pjx-gh'; nw.appendChild(PJX.ghost); placeGhost();
+      nw.setPointerCapture(e.pointerId); e.preventDefault();
+    }
+  });
+  box.addEventListener('pointermove', (e) => {
+    const dr = PJX.drag; if(!dr) return;
+    const p = cur(); if(!p){ PJX.drag = null; return; }
+    const w = PJX.win;
+    if(dr.mode === 'new'){
+      const d = Math.max(w.w0, Math.min(w.w1, w.w0 + Math.floor((e.clientX - dr.left) / dr.dw)));
+      if(d !== dr.d1){ dr.d1 = d; dr.moved = true; placeGhost(); const s = Math.min(dr.d0, dr.d1), en = Math.max(dr.d0, dr.d1); document.getElementById('pjxRo').innerHTML = '<b>Aktivitas baru</b> ' + pjxF(s) + (s === en ? '' : ' - ' + pjxF(en)) + ', ' + (en - s + 1) + ' hari'; }
+      return;
+    }
+    const dd = Math.round((e.clientX - dr.x0) / dr.dw);
+    if(dd !== 0) dr.moved = true;
+    if(!dr.moved) return;
+    const m = p.milestones[dr.j], N = w.w1 - w.w0 + 1;
+    let s = dr.s, en = dr.e;
+    if(dr.mode === 'm'){ const len = dr.e - dr.s; s = Math.max(w.w0, Math.min(w.w1 - len, dr.s + dd)); en = s + len; }
+    else if(dr.mode === 'l'){ s = Math.max(w.w0, Math.min(dr.e, dr.s + dd)); }
+    else { en = Math.min(w.w1, Math.max(dr.s, dr.e + dd)); }
+    m.start = pjxIso(s); m.date = pjxIso(en);
+    dr.el.style.left = ((s - w.w0) / N * 100) + '%'; dr.el.style.width = ((en - s + 1) / N * 100) + '%';
+    pjxReadout(m);
+  });
+  box.addEventListener('pointerup', (e) => {
+    const dr = PJX.drag; if(!dr) return;
+    PJX.drag = null;
+    const p = cur(); if(!p) return;
+    if(dr.mode === 'new'){
+      PJX.ghost = null;
+      const s = Math.min(dr.d0, dr.d1), en = Math.max(dr.d0, dr.d1);
+      pjxPush(dr.before);
+      if(p.progressMode === 'tasks' && !p.pmSet && prjTaskStats(p).n === 0) p.progressMode = 'acts';
+      p.milestones.push({ id: prjNid('pm'), name: 'Aktivitas baru', start: pjxIso(s), date: pjxIso(en), done: false });
+      PJX.editing = p.milestones.length - 1; PJX.selA = null; PJX.err = '';
+      pjxCommit(p);
+      return;
+    }
+    if(dr.moved){ pjxPush(dr.before); pjxCommit(p, dr.j); }
+    else { PJX.selA = PJX.selA === dr.j ? null : dr.j; PJX.err = ''; prjRenderMain(); }
+  });
+  box.addEventListener('pointercancel', () => {
+    const dr = PJX.drag; if(!dr) return;
+    PJX.drag = null; PJX.ghost = null;
+    const p = cur(); if(p){ pjxRestore(p, dr.before); prjRenderMain(); }
+  });
+  box.addEventListener('keydown', (e) => {
+    if(!inPlan(e)) return;
+    const p = cur(); if(!p) return;
+    if(e.target.id === 'pjxNe'){
+      if(e.key === 'Enter'){ e.preventDefault(); e.target.blur(); }
+      if(e.key === 'Escape'){ PJX.editing = null; prjRenderMain(); }
+      return;
+    }
+    if((e.ctrlKey || e.metaKey) && !/INPUT|TEXTAREA/.test(e.target.tagName)){
+      if(e.key === 'z' || e.key === 'Z'){ e.preventDefault(); pjxDo('undo'); return; }
+      if(e.key === 'y' || e.key === 'Y'){ e.preventDefault(); pjxDo('redo'); return; }
+    }
+    const bar = e.target.closest('.pjx-bar'); if(!bar) return;
+    const j = +bar.dataset.pxI, m = p.milestones[j], sp = pjxSpan(m); if(!sp) return;
+    if(e.key === ' '){ e.preventDefault(); pjxPush(pjxSnap(p)); m.done = !m.done; pjxCommit(p, j); return; }
+    const k = e.key === 'ArrowLeft' ? -1 : (e.key === 'ArrowRight' ? 1 : 0); if(!k) return;
+    e.preventDefault(); pjxPush(pjxSnap(p));
+    if(e.shiftKey){ m.date = pjxIso(Math.max(sp.s, sp.e + k)); m.start = pjxIso(sp.s); }
+    else { m.start = pjxIso(sp.s + k); m.date = pjxIso(sp.e + k); }
+    pjxCommit(p, j);
+  });
+  box.addEventListener('focusout', (e) => {
+    if(e.target.id !== 'pjxNe' || PJX.editing === null) return;
+    const p = cur(); if(!p) return;
+    const m = p.milestones[PJX.editing], v = e.target.value.trim();
+    PJX.editing = null;
+    if(m && v && v !== m.name){ pjxPush(pjxSnap(p)); m.name = v; pjxCommit(p); } else prjRenderMain();
+  });
+  function pjxDo(act){
+    const p = cur(); if(!p) return;
+    if(act === 'undo'){ if(!PJX.hist.length) return; PJX.fut.push(pjxSnap(p)); pjxRestore(p, PJX.hist.pop()); PJX.selA = null; prjQueueSave(p); prjRenderAll(); return; }
+    if(act === 'redo'){ if(!PJX.fut.length) return; PJX.hist.push(pjxSnap(p)); pjxRestore(p, PJX.fut.pop()); PJX.selA = null; prjQueueSave(p); prjRenderAll(); return; }
+    if(act === 'wide'){ if(PJX.win){ PJX.win.w0 -= 7; PJX.win.w1 += 14; } prjRenderMain(); return; }
+    if(act === 'shiftm' || act === 'shiftp'){
+      const k = act === 'shiftm' ? -1 : 1;
+      pjxPush(pjxSnap(p));
+      p.milestones.forEach(m => { const sp = pjxSpan(m); if(!m.done && sp){ m.start = pjxIso(sp.s + k); m.date = pjxIso(sp.e + k); } });
+      pjxCommit(p); return;
+    }
+    const j = PJX.selA, m = j === null ? null : p.milestones[j]; if(!m) return;
+    if(act === 'toggle'){ pjxPush(pjxSnap(p)); m.done = !m.done; pjxCommit(p); return; }
+    if(act === 'del'){ pjxPush(pjxSnap(p)); p.milestones.splice(j, 1); PJX.selA = null; pjxCommit(p); }
+  }
+  box.addEventListener('click', (e) => {
+    if(!inPlan(e)) return;
+    const p = cur(); if(!p) return;
+    const ed = e.target.closest('[data-px-ed]');
+    if(ed){ PJX.editing = +ed.dataset.pxEd; prjRenderMain(); return; }
+    const sel = e.target.closest('[data-px-sel]');
+    if(sel){ PJX.selA = +sel.dataset.pxSel; PJX.err = ''; prjRenderMain(); return; }
+    const act = e.target.closest('[data-px-act]');
+    if(act) pjxDo(act.dataset.pxAct);
+  });
+  box.addEventListener('change', (e) => {
+    if(!inPlan(e)) return;
+    const p = cur(); if(!p) return;
+    const t = e.target;
+    if(t.dataset.pxDone !== undefined){ pjxPush(pjxSnap(p)); p.milestones[+t.dataset.pxDone].done = t.checked; pjxCommit(p); return; }
+    const k = t.dataset.pxDk; if(!k) return;
+    const m = p.milestones[PJX.selA]; if(!m) return;
+    if(!t.value){ PJX.err = 'Tanggal tidak boleh kosong.'; prjRenderMain(); return; }
+    const sp = pjxSpan(m);
+    let ns = k === 's' ? pjxD(t.value) : (sp ? sp.s : pjxD(t.value));
+    let ne = k === 'e' ? pjxD(t.value) : (sp ? sp.e : pjxD(t.value));
+    if(ne < ns){ PJX.err = 'Tanggal selesai harus sama atau setelah tanggal mulai. Perubahan tidak disimpan.'; prjRenderMain(); return; }
+    pjxPush(pjxSnap(p)); m.start = pjxIso(ns); m.date = pjxIso(ne); PJX.err = '';
+    pjxCommit(p);
+  });
+})();
 
 /* ---- interaksi ---- */
 function prjSelProject(){ return prjById(prjSel); }
@@ -12519,7 +12881,7 @@ function prjOnPicClosed(){
       await prjSave(p); prjRenderAll();
       return;
     }
-    if(t.id === 'pjProgMode'){ p.progressMode = t.value; await prjSave(p); prjRenderAll(); return; }
+    if(t.id === 'pjProgMode'){ p.progressMode = t.value; p.pmSet = true; if(t.value === 'acts' || t.value === 'actsd') pjxSync(p); await prjSave(p); prjRenderAll(); return; }
     if(t.id === 'pjPicAdd'){
       if(t.value === '__add'){
         t.value = '';
