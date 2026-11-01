@@ -15174,6 +15174,18 @@ async function tpxOpen(id, cat){
     tpxItems.push(it);
     if(!TPX_STORE.isFailed()) TPX_STORE.save().catch(() => {});
   }
+  let upgraded = '';
+  if(it.id === 'wimbib' && (it.tpl || 0) < 44){
+    const old = JSON.parse(JSON.stringify(it)); old.id = 'wimbib-lama-' + Date.now().toString(36); old.title = (it.title || 'Topologi jaringan WIM BIB') + ' (versi lama)';
+    tpxItems.push(old);
+    const fd = tpxFindDoc('wimbib');
+    if(fd){ (sopDocsCache[fd.key] = sopDocsCache[fd.key] || []).push({ name:old.title, type:'topology', topoId:old.id, owner: it.au || '', size:'', url:'' }); try{ await sopSaveCatDocs(fd.key); }catch(e){} }
+    const fresh = tpxDefault(), keepAu = it.au;
+    Object.keys(it).forEach(k => { if(k !== 'id' && k !== 'updatedAt') delete it[k]; });
+    Object.assign(it, fresh, { id:'wimbib', au: keepAu || fresh.au });
+    upgraded = old.title;
+    if(!TPX_STORE.isFailed()) TPX_STORE.save().catch(() => {});
+  }
   const wasOld = !it.nodes;
   tpxNorm(it);
   T = { it, cat, sel:null, selP:null, hov:null, q:'', fn:'all', view:'dg', hist:[], fut:[], edit:false, ro: TPX_STORE.isFailed(), netsOpen:false, down:{}, tf:{ x:0, y:0, k:1 }, drag:null, resetArm:false, dirty:false, addTy:'dev' };
@@ -15184,7 +15196,7 @@ async function tpxOpen(id, cat){
   tpxFit();
   tpxDrawAll();
   if(wasOld){ tpxQueueSave(); tpxMsg('Topologi lama dikonversi ke kanvas bebas. Seret perangkat untuk merapikan.'); }
-  if(it.id === 'wimbib' && (it.tpl || 0) < 44 && !wasOld) tpxMsg('Template WIM BIB terbaru tersedia (3 lane, Switch POE 16 port, stripbar langsung ke WIM, gaya dokumen). Aktifkan Mode edit lalu klik Reset ke template dua kali.');
+  if(upgraded) tpxMsg('Topologi WIM BIB diperbarui ke template terbaru (3 lane, Switch POE 16 port). Versi sebelumnya tetap tersimpan sebagai "' + upgraded + '" di daftar topologi.');
   if(T.ro) tpxMsg('Data topologi gagal dimuat dari server. Tampilan hanya baca, perubahan tidak disimpan.');
 }
 async function tpxClose(){
