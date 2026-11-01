@@ -284,7 +284,7 @@
   .sop-detail-head #sopDetailTitle{font-size:13px;font-weight:600;color:var(--navy);font-family:var(--font-display);}
   .sop-detail-hint{font-size:10.5px;color:var(--text-muted);}
   .sop-docs{display:flex;flex-direction:column;}
-  /* ===== v40: Topologi Jaringan (kanvas bebas, gaya ruang kontrol) ===== */
+  /* ===== v44: Topologi Jaringan (kanvas bebas, gaya dokumen terang, 3 lane) ===== */
   .tpx{font-size:12.5px;color:var(--text);}
   .tpx *{box-sizing:border-box;}
   .tpx-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;}
@@ -307,26 +307,36 @@
   .tpx-sb:disabled{opacity:.4;pointer-events:none;}
   .tpx-sb.danger{color:var(--red-fg);}
   .tpx-sb.edit-on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600;}
-  .tpx-wrap{position:relative;border-radius:12px;overflow:hidden;background:#0E1A2B;border:1px solid #24405F;}
+  .tpx-wrap{position:relative;border-radius:12px;overflow:hidden;background:#FFFFFF;border:1px solid #C9D6EA;}
   #tpxCv{width:100%;height:auto;display:block;touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none;}
-  .tpx-hud{position:absolute;left:10px;top:10px;font-size:12px;color:#C9D8EA;background:#16263D;border:1px solid #2B4A6F;border-radius:8px;padding:6px 10px;max-width:68%;}
+  .tpx-hud{position:absolute;left:112px;top:10px;font-size:12px;color:#0A2A5E;background:#FFFFFF;border:1px solid #C9D6EA;border-radius:8px;padding:5px 10px;max-width:240px;}
   .tpx-hud b{font-weight:600;}
-  .tpx-hud span[data-a]{color:#7FD1FF;cursor:pointer;text-decoration:underline;}
-  .tpx-zm{position:absolute;right:10px;top:10px;display:flex;flex-direction:column;gap:4px;}
-  .tpx-zm button{width:28px;height:28px;border-radius:8px;border:1px solid #2B4A6F;background:#16263D;color:#C9D8EA;cursor:pointer;font-size:15px;line-height:1;padding:0;}
-  .tpx-zm button:hover{border-color:#7FD1FF;}
-  .tpx-tip{position:absolute;pointer-events:none;background:#16263D;border:1px solid #4C7BB0;border-radius:8px;padding:6px 9px;font-size:12px;color:#E6EEF7;display:none;white-space:nowrap;z-index:3;}
-  .tpx-leg{position:absolute;right:10px;bottom:6px;display:flex;gap:12px;font-size:11px;color:#9DB4CE;flex-wrap:wrap;justify-content:flex-end;max-width:70%;}
+  .tpx-hud span[data-a]{color:#2B6CD4;cursor:pointer;text-decoration:underline;}
+  .tpx-zm{position:absolute;left:10px;top:10px;display:flex;flex-direction:row;gap:4px;}
+  .tpx-zm button{width:28px;height:28px;border-radius:8px;border:1px solid #C9D6EA;background:#FFFFFF;color:#0A2A5E;cursor:pointer;font-size:15px;line-height:1;padding:0;}
+  .tpx-zm button:hover{border-color:#2B6CD4;color:#2B6CD4;}
+  .tpx-tip{position:absolute;pointer-events:none;background:#FFFFFF;border:1px solid #2B6CD4;border-radius:8px;padding:6px 9px;font-size:12px;color:#0A2A5E;display:none;white-space:nowrap;z-index:3;box-shadow:0 2px 10px rgba(10,42,94,.18);}
+  .tpx-leg{display:none;}
   .tpx-leg i{display:inline-block;width:16px;border-top:2px solid;vertical-align:middle;margin-right:4px;}
   .tpx-nd{cursor:grab;}.tpx-lk{cursor:pointer;}
-  .tpx-dm{opacity:.16;}
-  .tpx-fl{stroke-dasharray:2 11;stroke-linecap:round;animation:tpxfl 1.1s linear infinite;}
-  @keyframes tpxfl{to{stroke-dashoffset:-13;}}
-  .tpx-pr{transform-box:fill-box;transform-origin:center;animation:tpxpr 1.8s ease-out infinite;}
-  @keyframes tpxpr{from{transform:scale(1);opacity:.7;}to{transform:scale(3);opacity:0;}}
+  .tpx-dm{opacity:.28;}
+    .tpx-nm{font-size:12.5px;font-weight:700;fill:#0A2A5E;pointer-events:none;}
+  .tpx-ip{font-size:11px;font-weight:600;pointer-events:none;}
+  .tpx-tp{cursor:default;}
+  .editing .tpx-tp{cursor:move;}
+  .editing .tpx-tp:hover .tpx-th{fill:rgba(43,108,212,.08);stroke:#2B6CD4;stroke-width:1;stroke-dasharray:3 2;}
+  .tpx-zc,.tpx-sp,.tpx-pin{cursor:pointer;}
+  .tpx-zc:hover rect{fill:#FFF3E0;}
+  .tpx-sp:hover rect{stroke:#E8890C;stroke-width:1.8;}
+  .tpx-bt{cursor:pointer;}
+  .tpx-arr{animation:tpxar 1.4s ease-in-out infinite;}
+  @keyframes tpxar{0%,100%{transform:translateX(-2px);}50%{transform:translateX(3px);}}
+  .tpx-lane{border-color:var(--lc);color:var(--lc);font-weight:600;}
+  .tpx-lane:hover{border-color:var(--lc);color:var(--lc);}
+  .tpx-lane.on{background:var(--lc);color:#fff;border-color:var(--lc);}
   .tpx-hit .tpx-ring{animation:tpxhit 1s ease-in-out infinite;}
   @keyframes tpxhit{50%{opacity:.3;}}
-  @media (prefers-reduced-motion:reduce){.tpx-fl,.tpx-pr,.tpx-hit .tpx-ring{animation:none;}}
+  @media (prefers-reduced-motion:reduce){.tpx-arr,.tpx-hit .tpx-ring{animation:none;}}
   .tpx-dp{border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-top:10px;background:var(--surface);}
   .tpx-dp h4{margin:0 0 8px;font-size:13px;font-weight:700;font-family:var(--font-display);color:var(--navy);}
   .tpx-fg{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-bottom:8px;}
@@ -344,7 +354,7 @@
   .tpx-tb tr.cl:hover td{background:var(--hilite);}
   .tpx-ms{font-size:12px;color:var(--text-secondary);min-height:18px;margin:6px 0 0;}
   .tpx-nb{display:inline-block;padding:0 8px;border-radius:10px;font-size:11px;font-weight:600;border:1px solid currentColor;}
-  @media (max-width:640px){ .tpx-title{max-width:none;} .tpx-hud{max-width:calc(100% - 60px);} }
+  @media (max-width:640px){ .tpx-title{max-width:none;} .tpx-hud{left:10px;top:44px;max-width:calc(100% - 20px);} }
 
   .sop-doc-row{display:flex;align-items:center;gap:10px;padding:10px 8px;border-radius:8px;cursor:pointer;transition:background .12s ease;opacity:0;transform:translateY(4px);animation:sopDocIn .28s ease forwards;}
   .sop-doc-row:hover{background:var(--hilite);}
@@ -14837,69 +14847,93 @@ async function renderSop(){
 
 
 /* ==================================================================
-   v40: TOPOLOGI JARINGAN (SOP) -- kanvas bebas gaya ruang kontrol
+   v44: TOPOLOGI JARINGAN (SOP) -- gaya dokumen, 3 lane dalam 1 topologi
    - Satu dokumen SOP bertipe "topology" = satu topologi (store 'sop:topology', per-item).
-   - Perangkat & rak bebas diseret; garis ditarik dari titik sambung / nomor port; tekukan garis
-     bisa digeser; jenis kabel (LAN, Jitter, Loadcell, dst.) dan jaringan (VGT, BIB) bisa diatur.
-   - Aliran data beranimasi, uji dampak (simulasi putus), telusur jalur saat hover, zoom/pan.
+   - Gaya dokumen terang: panel lane berwarna, rak dengan pita judul, kartu ikon (ikon, nama, IP).
+   - Switch POE 16 port: tiap perangkat punya kabel LAN langsung ke port sendiri.
+   - Stripbar tersambung langsung ke pin WIM Logix High Speed (tanpa terminal).
+   - Kabel loadcell (Low Speed) dirutekan otomatis menghindari perangkat.
+   - Teks bisa diedit (klik 2x) dan digeser terpisah dari ikonnya; klik High Speed / Low Speed = zoom.
+   - Panah Entrance/Exit mengikuti posisi keduanya secara otomatis.
    - Data v39 (racks/devs) otomatis dimigrasi ke layout bebas saat dibuka.
    ================================================================== */
 let tpxItems = [], tpxLoaded = false, tpxLoadPromise = null, tpxUid = 0, tpxTimer = null;
 const TPX_STORE = createItemStore('sop:topology', () => tpxItems);
-const TPX_TY = { gw:'Gateway / Switch core', sw:'Switch POE', server:'Server', pc:'PC', mini:'Mini PC', cctv:'CCTV', rfid:'RFID', wim:'WIM Logix', wim4:'WIM 4CPU', strip:'Stripbar', loadcell:'Loadcell', jbox:'Junction Box', router:'Router', fw:'Firewall', ap:'Access Point', ups:'UPS', dev:'Perangkat lain' };
-const TPX_TC = { gw:'#FF8A72', sw:'#5DCAA5', server:'#B5A8FF', pc:'#7FD1FF', mini:'#7FD1FF', cctv:'#F5C26B', rfid:'#F5C26B', wim:'#F59FC4', wim4:'#F59FC4', strip:'#F5C26B', loadcell:'#F59FC4', jbox:'#9DB4CE', router:'#FF8A72', fw:'#FF8A72', ap:'#5DCAA5', ups:'#9DB4CE', dev:'#9DB4CE' };
-const TPX_DS = { strip:[42,42], loadcell:[150,30], jbox:[100,30], gw:[150,40], pc:[150,40], server:[170,40], sw:[170,30] };
-const TPX_VW = 1000, TPX_VH = 560;
+const TPX_TY = { gw:'Gateway / Switch core', sw:'Switch POE (kecil)', swp:'Switch POE 16 port', server:'Server', pc:'PC', mini:'Mini PC', cctv:'CCTV', rfid:'RFID', wim:'WIM Logix', wim4:'WIM 4CPU', strip:'Stripbar', loadcell:'Loadcell', jbox:'Junction Box', router:'Router', fw:'Firewall', ap:'Access Point', ups:'UPS', dev:'Perangkat lain', txt:'Teks / label', ttl:'Judul (banner)' };
+const TPX_TC = { gw:'#E8590C', sw:'#2B6CD4', swp:'#2B6CD4', server:'#5B4FC9', pc:'#2A5FB0', mini:'#2A5FB0', cctv:'#7C8798', rfid:'#7C8798', wim:'#2B6CD4', wim4:'#7C8798', strip:'#E8890C', loadcell:'#B3258A', jbox:'#6B7C98', router:'#E8590C', fw:'#E8590C', ap:'#2B6CD4', ups:'#6B7C98', dev:'#6B7C98', txt:'#6B7C98', ttl:'#0F3F82' };
+const TPX_DS = { txt:[90,24], strip:[54,80], loadcell:[36,36], jbox:[118,64], gw:[150,66], pc:[140,92], server:[140,92], sw:[170,30], swp:[392,64], ttl:[640,46], mini:[140,78], cctv:[140,78], rfid:[140,78], wim:[332,78], wim4:[140,78] };
+const TPX_VW = 1000, TPX_VH = 650;
 const TPX_OLD_TY = { switch:'sw', minipc:'mini' };
-let T = null;   // { it, cat, sel:{k,id}|null, hov, q, fn, view, hist, fut, edit, ro, netsOpen, down:{}, tf:{x,y,k}, drag, resetArm, dirty }
+const TPX_LANE = { 1:{ c:'#0F4C9E', t:'#F1F6FE', r:'#E3EDFB' }, 2:{ c:'#0B7A75', t:'#EEF8F7', r:'#DDF1EF' }, 3:{ c:'#5A3FA0', t:'#F5F2FC', r:'#E9E2F8' } };
+const TPX_LV = [1, 2, 0, 3, 4, 5, 6, 7];
+const TPX_INK = '#0A2A5E', TPX_HS = '#E8890C', TPX_LS = '#B3258A';
+let T = null;   // { it, cat, sel:{k,id}|null, selP, hov, q, fn, view, hist, fut, edit, ro, netsOpen, down:{}, tf:{x,y,k}, drag, resetArm, dirty }
 
 const tpxEsc = (s) => sopEsc(s);
 function tpxNid(){ return 'n' + Date.now().toString(36) + (tpxUid++).toString(36); }
-function tpxDefCables(){ return [ { k:'lan', n:'LAN (UTP/Fiber)', c:'' }, { k:'jitter', n:'Jitter: multi-conductor shielded analog (tembaga, STP/multi-core)', c:'#F5C26B', d:'1 3' }, { k:'loadcell', n:'Loadcell: multi-core shielded 4-wire / 6-wire', c:'#F59FC4', d:'7 4' } ]; }
-function tpxNets(){ return [ { k:'vgt', n:'VGT', pre:'118.103.62.', c:'#7FD1FF' }, { k:'bib', n:'BIB', pre:'172.20.32.', c:'#FF8A72' } ]; }
+function tpxDefCables(){ return [ { k:'lan', n:'LAN (UTP/Fiber)', c:'' }, { k:'jitter', n:'Kabel jitter sensor: multi-conductor shielded analog (tembaga, STP/multi-core)', c:'#E8890C', d:'1.5 3' }, { k:'loadcell', n:'Kabel loadcell: multi-core shielded 4-wire / 6-wire', c:'#B3258A', d:'7 4' } ]; }
+function tpxNets(){ return [ { k:'vgt', n:'VGT', pre:'118.103.62.', c:'#1A1A1A' }, { k:'bib', n:'BIB', pre:'172.20.32.', c:'#E01B1B' } ]; }
 
 /* ---------- template ---------- */
 function tpxDefault(){
   const v = x => ({ n:'vgt', ip:'118.103.62.' + x }), b = x => ({ n:'bib', ip:'172.20.32.' + x });
   const nodes = [], boxes = [], links = []; let lk = 0;
-  const N = (id, x, y, w, h, ty, nm, ips, ports, tag, note) => nodes.push({ id, x, y, w, h, ty, nm, ips: ips || [], note: note || '', ports: ports || 0, tag: tag || '' });
+  const N = (id, x, y, w, h, ty, nm, ips, ex) => { const n = Object.assign({ id, x, y, w, h, ty, nm, ips: ips || [], note:'', ports:0, tag:'', off:{} }, ex || {}); nodes.push(n); return n; };
   const Lk = (a, sa, bb, sb, n, o) => links.push(Object.assign({ id:'l' + (lk++), a, sa, pa:0, b:bb, sb, pb:0, n, k:'lan', m:.5, st:'o' }, o || {}));
-  const TAG = { 1:'B1 Ki', 3:'B1 Ka', 5:'B2 Ki', 7:'B2 Ka', 2:'B3 Ki', 4:'B3 Ka', 6:'B4 Ki', 8:'B4 Ka' };
-  const LCT = ['Entrance Ki', 'Entrance Ka', 'Exit Ki', 'Exit Ka'];
+  const nd = (id) => nodes.find(z => z.id === id);
+  const tm = (a, sa, bb, sb, gx) => { const p = tpxPt(nd(a), sa, 0), q = tpxPt(nd(bb), sb, 0); return (gx - p[0]) / (q[0] - p[0]); };
+  const TOPS = [8, 4, 7, 3], BOTS = [6, 2, 5, 1], SWY = 400, SWH = 64, CY0 = SWY + SWH + 104, HY = CY0 + 88 * 3 + 78 + 34;
   const lane = (k, X0, o) => {
-    if(o.srv) N('s' + k, X0 + 20, 210, 170, 40, 'server', o.srv[0], o.srv[1]);
-    N('w' + k, X0 + 20, 262, 170, 30, 'sw', 'Switch POE');
-    let y = 316;
-    o.ot.forEach((d, i) => { const id = 'o' + k + i; N(id, X0 + 125, y, 210, 30, d[0], d[1], d[2]); Lk('w' + k, 'b', id, 'l', 'vgt'); y += 36; });
-    const cy = y;
-    if(o.low){ N('f' + k, X0 + 125, y, 210, 30, 'wim4', o.low[0], o.low[1]); Lk('w' + k, 'b', 'f' + k, 'l', 'vgt'); y += 36; }
-    const hy = y + 8;
-    N('h' + k, X0 + 110, hy, 230, 30, 'wim', o.hs[0], o.hs[1], 8); Lk('w' + k, 'b', 'h' + k, 'l', 'vgt');
-    const sy = hy + 154, wc = X0 + 225;
-    for(let i = 1; i <= 8; i++){
-      N('b' + k + i, wc + (i - 4.5) * 46 - 21, sy, 42, 42, 'strip', 'SB' + i, [], 0, TAG[i], 'Baris ' + TAG[i].charAt(1) + ' dari Entrance, sisi ' + (TAG[i].slice(3) === 'Ki' ? 'kiri' : 'kanan') + ' (arah masuk kendaraan)');
-      Lk('h' + k, 'b', 'b' + k + i, 't', 'vgt', { pa:i, k:'jitter', m: i <= 4 ? .25 + (i - 1) * .1 : .25 + (8 - i) * .1 });
-    }
-    boxes.push({ id:'r' + k, x:X0, y:170, w:360, h:hy + 56 - 170, t:'Rak server Lane ' + k });
-    boxes.push({ id:'x' + k, x:wc - 198, y:sy - 28, w:396, h:102, t:'Sensor stripbar High Speed Lane ' + k, bot:1 });
+    const i0 = boxes.length, n = o.ot.length + (o.low ? 1 : 0), R = Math.ceil(n / 2), LK = TPX_LANE[k];
+    if(o.srv) N('s' + k, X0 + 140, 286, 140, 92, 'server', o.srv[0], o.srv[1]);
+    if(o.pc) N('pc', X0 + 140, 286, 140, 92, 'pc', 'PC User', [v(11), b(12)]);
+    N('w' + k, X0 + 14, SWY, 392, SWH, 'swp', 'Switch POE', [], { ports:16 });
+    if(o.srv) Lk('s' + k, 'b', 'w' + k, 't', 'vgt');
+    if(o.pc) Lk('pc', 'b', 'w' + k, 't', 'vgt');
+    const cell = (r, c) => [X0 + (c ? 264 : 16), CY0 + 88 * r], cab = [];
+    o.ot.forEach((d, i) => { const r = Math.floor(i / 2), c = i % 2, p = cell(r, c); N('o' + k + i, p[0], p[1], 140, 78, d[0], d[1], d[2]); cab.push({ b:'o' + k + i, sb: c ? 'l' : 'r', lo: c ? 244 - 12 * r : 148 + 12 * r, lx: c ? 258 - 12 * r : 162 + 12 * r }); });
+    let cpu = null;
+    if(o.low){ const r = R - 1, p = cell(r, 1); cpu = N('f' + k, p[0], p[1], 140, 78, 'wim4', o.low[0], o.low[1], { bd:'LOW SPEED', bc:TPX_LS, zg:'ls' + k }); cab.push({ b:'f' + k, sb:'l', lo:244 - 12 * r, lx:258 - 12 * r }); }
+    N('h' + k, X0 + 44, HY, 332, 78, 'wim', o.hs[0], o.hs[1], { ports:8, bd:'HIGH SPEED', bc:TPX_HS, zg:'hs' + k });
+    cab.push({ b:'h' + k, sb:'t', lo:196, lx:210 });
+    cab.sort((p, q) => p.lx - q.lx).forEach((c, i) => Lk('w' + k, 'p', c.b, c.sb, 'vgt', { st:'p', pn:i + 1, lo:c.lo }));
+    const yw = HY + 78, yT = yw + 150, ch0 = X0 + 73.5, bot = yT + 218;
+    boxes.push({ id:'r' + k, x:X0, y:250, w:420, h:yw + 30 - 250, t:'Rak Server Lane ' + k + ' · ' + (o.low ? 'High Speed + Low Speed' : 'High Speed'), rk:1, lc:LK.c, fl:LK.r });
+    boxes.push({ id:'x' + k, x:X0, y:yw + 44, w:450, h:bot - (yw + 44), t:'SENSOR HIGH SPEED · 8 STRIPBAR', z:'hs', bc:TPX_HS, zg:'hs' + k });
+    [[TOPS, 0], [BOTS, 1]].forEach(g => g[0].forEach((sb, c) => { N('b' + k + sb, ch0 + 78 * c + 12, yT + g[1] * 94, 54, 80, 'strip', 'SB' + sb, [], { sh:'p', lt:g[1], zg:'hs' + k, note:'Stripbar SB' + sb + ' tersambung ke pin ' + sb + ' WIM Logix High Speed. Isi nomor seri di sini.' }); }));
+    N('xe' + k, X0 + 8, yT + 64, 60, 50, 'txt', 'Exit', [], { ic:'out', pr:'xn' + k, zg:'hs' + k });
+    N('xn' + k, X0 + 385, yT + 64, 60, 50, 'txt', 'Entrance', [], { ic:'in', pr:'xe' + k, zg:'hs' + k });
+    for(let i = 1; i <= 8; i++) Lk('h' + k, 'b', 'b' + k + i, TOPS.includes(i) ? 't' : 'l', 'vgt', { k:'jitter', st:'j', pa:i });
     if(o.low){
-      N('j' + k, X0 + 380, cy, 120, 30, 'jbox', 'Junction Box'); Lk('f' + k, 'r', 'j' + k, 'l', 'vgt', { k:'loadcell' });
-      for(let i = 0; i < 4; i++){ N('c' + k + i, X0 + 520, cy - 54 + i * 36, 150, 30, 'loadcell', 'LC ' + (i + 1), [], 0, LCT[i], 'Loadcell ' + (i + 1) + ': sisi ' + (i < 2 ? 'Entrance' : 'Exit') + ', ' + (i % 2 ? 'kanan' : 'kiri') + ' (arah masuk kendaraan)'); Lk('j' + k, 'r', 'c' + k + i, 'l', 'vgt', { k:'loadcell', m:[.2, .45, .45, .2][i] }); }
-      boxes.push({ id:'q' + k, x:X0 + 372, y:cy - 84, w:308, h:204, t:'Loadcell Low Speed Lane ' + k, bot:1 });
+      const gx = X0 + 470, jx = gx + 24, jy = cpu.y + 7, pl = jx + 146, pt0 = jy + 32 - 95;
+      boxes.push({ id:'q' + k, x:gx, y:pt0 - 30, w:392, h:272, t:'SENSOR LOW SPEED · 4 LOADCELL', z:'ls', bc:TPX_LS, zg:'ls' + k });
+      N('j' + k, jx, jy, 118, 64, 'jbox', 'Junction Box', [], { zg:'ls' + k });
+      Lk('f' + k, 'r', 'j' + k, 'l', 'vgt', { k:'loadcell', st:'a' });
+      const LCN = [[1, 80, 146, 'Entrance, sisi kiri'], [2, 80, 8, 'Entrance, sisi kanan'], [3, 8, 146, 'Exit, sisi kiri'], [4, 8, 8, 'Exit, sisi kanan']];
+      LCN.forEach(c => N('c' + k + c[0], pl + c[1], pt0 + c[2], 36, 36, 'loadcell', 'LC' + c[0], [], { sh:'c', zg:'ls' + k, note:'Loadcell ' + c[0] + ': ' + c[3] + ' (arah masuk kendaraan). Isi nomor seri di sini.' }));
+      boxes.push({ id:'p' + k, x:pl, y:pt0, w:124, h:190, t:'', pl:1, zg:'ls' + k });
+      [2, 4, 3, 1].forEach(c => Lk('j' + k, 'r', 'c' + k + c, 'l', 'vgt', { k:'loadcell', st:'a' }));
+      N('xl' + k, pl + 130, pt0 + 70, 70, 50, 'txt', 'Entrance', [], { ic:'in', pr:'xo' + k, zg:'ls' + k });
+      N('xo' + k, gx + 8, pt0 + 4, 60, 50, 'txt', 'Exit', [], { ic:'out', pr:'xl' + k, zg:'ls' + k });
     }
+    boxes.splice(i0, 0, { id:'L' + k, x:X0 - 14, y:164, w:o.low ? 890 : 478, h:bot + 24 - 164, t:'LANE ' + k, lane:k, low:o.low ? 1 : 0, lc:LK.c, fl:LK.t, zg:'ln' + k });
   };
-  N('gw', 40, 64, 170, 40, 'gw', 'Switch BIB');
-  N('pc', 1170, 64, 150, 40, 'pc', 'PC user', [v(11), b(12)]);
-  lane(3, 20, { srv:['Server backup', [v(9), b('14/25')]], ot:[['mini','Mini PC Low Speed',[v(36)]],['mini','Mini PC High Speed',[v(37)]],['cctv','CCTV High Speed',[v(30)]],['cctv','CCTV Low Speed',[v(31)]],['rfid','RFID High Speed',[v(34)]],['rfid','RFID Low Speed',[v(35)]]], low:['WIM Logic Low Speed',[v(33)]], hs:['WIM Logic High Speed',[v(32)]] });
-  lane(2, 710, { srv:['Server', [v(10), b(10)]], ot:[['mini','Mini PC',[v(12)]],['cctv','CCTV High Speed',[v(13)]],['rfid','RFID High Speed',[v(14)]]], hs:['WIM Logix High Speed',[v(15)]] });
-  lane(1, 1140, { ot:[['mini','Mini PC High Speed',[v(27)]],['mini','Mini PC Low Speed',[v(26)]],['cctv','CCTV High Speed',[v(20)]],['cctv','CCTV Low Speed',[v(21)]],['rfid','RFID High Speed',[v(24)]],['rfid','RFID Low Speed',[v(25)]]], low:['WIM Logix Low Speed',[v(23)]], hs:['WIM Logix High Speed',[v(22)]] });
-  Lk('gw', 'r', 'pc', 'l', 'bib'); Lk('gw', 'b', 's3', 't', 'bib'); Lk('gw', 'b', 's2', 't', 'bib', { m:.35 });
-  Lk('w3', 'r', 'w2', 'l', 'vgt'); Lk('w2', 'r', 'w1', 'l', 'vgt'); Lk('pc', 'b', 'w1', 't', 'vgt');
-  return { id:'wimbib', tpl:41, title:'Topologi jaringan WIM BIB', au:'Zainal Fahriandy', rv:'4', nets: tpxNets(), cables: tpxDefCables(), boxes, nodes, links };
+  N('ttl', 850, 12, 640, 46, 'ttl', 'TOPOLOGI JARINGAN WIM BIB');
+  lane(1, 20, { pc:1, ot:[['mini','Mini PC High Speed',[v(27)]],['mini','Mini PC Low Speed',[v(26)]],['cctv','CCTV High Speed',[v(20)]],['cctv','CCTV Low Speed',[v(21)]],['rfid','RFID High Speed',[v(24)]],['rfid','RFID Low Speed',[v(25)]]], low:['WIM Logix Low Speed',[v(23)]], hs:['WIM Logix High Speed',[v(22)]] });
+  lane(2, 940, { srv:['Server', [v(10), b(10)]], ot:[['mini','Mini PC',[v(12)]],['cctv','CCTV High Speed',[v(13)]],['rfid','RFID High Speed',[v(14)]]], hs:['WIM Logix High Speed',[v(15)]] });
+  lane(3, 1442, { srv:['Server Backup', [v(9), b('14/25')]], ot:[['mini','Mini PC Low Speed',[v(36)]],['mini','Mini PC High Speed',[v(37)]],['cctv','CCTV High Speed',[v(30)]],['cctv','CCTV Low Speed',[v(31)]],['rfid','RFID High Speed',[v(34)]],['rfid','RFID Low Speed',[v(35)]]], low:['WIM Logic Low Speed',[v(33)]], hs:['WIM Logic High Speed',[v(32)]] });
+  N('gw', 1095, 80, 150, 66, 'gw', 'Switch BIB');
+  Lk('gw', 'l', 's2', 'l', 'bib', { m:tm('gw', 'l', 's2', 'l', 911) });
+  Lk('gw', 'l', 'pc', 'r', 'bib', { m:tm('gw', 'l', 'pc', 'r', 911) });
+  Lk('gw', 'r', 's3', 'l', 'bib', { m:tm('gw', 'r', 's3', 'l', 1416) });
+  Lk('w1', 't', 'w2', 't', 'vgt', { st:'u', yv:389 });
+  Lk('w2', 't', 'w3', 't', 'vgt', { st:'u', yv:389 });
+  boxes.push({ id:'lg', x:6, y:1436, w:1230, h:56, t:'', lg:1 });
+  return { id:'wimbib', tpl:44, title:'Topologi jaringan WIM BIB', au:'Zainal Fahriandy', rv:'6', nets: tpxNets(), cables: tpxDefCables(), boxes, nodes, links };
 }
 function tpxBlank(title){
-  const sw = { id:'sw' + tpxNid(), x:60, y:200, w:170, h:30, ty:'sw', nm:'Switch POE', ips:[], note:'', ports:0 };
-  return { id:'', title: title || 'Topologi baru', au:'', rv:'1', nets: tpxNets(), cables: tpxDefCables(), boxes:[{ id:'r1', x:40, y:150, w:300, h:200, t:'Rak 1' }], nodes:[sw], links:[] };
+  const sw = { id:'sw' + tpxNid(), x:60, y:200, w:170, h:30, ty:'sw', nm:'Switch POE', ips:[], note:'', ports:0, off:{} };
+  return { id:'', title: title || 'Topologi baru', au:'', rv:'1', nets: tpxNets(), cables: tpxDefCables(), boxes:[{ id:'r1', x:40, y:150, w:300, h:200, t:'Rak 1', rk:1, lc:'#2A5FB0', fl:'#EAF2FD' }], nodes:[sw], links:[] };
 }
 
 /* ---------- migrasi v39 (racks/devs) -> kanvas bebas ---------- */
@@ -14931,15 +14965,16 @@ function tpxMigrate(it){
   it.nodes = nodes; it.boxes = boxes; it.links = links; delete it.racks;
   return it;
 }
+const TPX_OLDC = { '#152029':'#1A1A1A', '#7FD1FF':'#1A1A1A', '#E24B4A':'#E01B1B', '#FF8A72':'#E01B1B', '#F5C26B':'#E8890C', '#F59FC4':'#B3258A' };
 function tpxNorm(it){
   tpxMigrate(it);
   if(!Array.isArray(it.nets) || !it.nets.length) it.nets = tpxNets();
-  it.nets.forEach(n => { if(n.c === '#152029') n.c = '#7FD1FF'; else if(n.c === '#E24B4A') n.c = '#FF8A72'; });
+  it.nets.forEach(n => { if(TPX_OLDC[n.c]) n.c = TPX_OLDC[n.c]; });
   if(!Array.isArray(it.cables) || !it.cables.length) it.cables = tpxDefCables();
   it.boxes = Array.isArray(it.boxes) ? it.boxes : []; it.nodes = Array.isArray(it.nodes) ? it.nodes : []; it.links = Array.isArray(it.links) ? it.links : [];
-  it.nodes.forEach(n => { n.ips = Array.isArray(n.ips) ? n.ips : []; n.note = n.note || ''; n.ports = n.ports || 0; n.tag = n.tag || ''; });
-  it.cables.forEach(c => { if(c.c && !c.d) c.d = c.k === 'loadcell' ? '7 4' : '1 3'; });
-  it.links.forEach(l => { l.k = l.k || 'lan'; l.pa = l.pa || 0; l.pb = l.pb || 0; if(typeof l.m !== 'number') l.m = .5; l.st = l.st === 's' ? 's' : 'o'; });
+  it.nodes.forEach(n => { n.ips = Array.isArray(n.ips) ? n.ips : []; n.note = n.note || ''; n.ports = n.ports || 0; n.tag = n.tag || ''; n.sh = n.sh || ''; n.ps = n.ps || ''; n.off = n.off && typeof n.off === 'object' ? n.off : {}; n.bd = n.bd || ''; });
+  it.cables.forEach(c => { if(c.c && TPX_OLDC[c.c]) c.c = TPX_OLDC[c.c]; if(c.c && !c.d) c.d = c.k === 'loadcell' ? '7 4' : '1.5 3'; });
+  it.links.forEach(l => { l.k = l.k || 'lan'; l.pa = l.pa || 0; l.pb = l.pb || 0; if(typeof l.m !== 'number') l.m = .5; l.st = ['s', 'p', 'u', 'j', 'a'].includes(l.st) ? l.st : 'o'; });
   it.title = it.title || 'Topologi'; it.au = it.au || ''; it.rv = it.rv || '';
   return it;
 }
@@ -14984,15 +15019,69 @@ function tpxFindDoc(id){
 const tpxNode = (id) => T.it.nodes.find(n => n.id === id);
 const tpxNetOf = (k) => T.it.nets.find(n => n.k === k);
 const tpxCableOf = (k) => T.it.cables.find(c => c.k === k);
-function tpxLc(l){ const c = tpxCableOf(l.k); return (c && c.c) ? c.c : ((tpxNetOf(l.n) || {}).c || '#7FD1FF'); }
-function tpxDash(l){ const c = tpxCableOf(l.k); return c && c.c ? (c.d || '1 3') : ''; }
+function tpxLc(l){ const c = tpxCableOf(l.k); return (c && c.c) ? c.c : ((tpxNetOf(l.n) || {}).c || '#1A1A1A'); }
+function tpxDash(l){ const c = tpxCableOf(l.k); return c && c.c ? (c.d || '1.5 3') : ''; }
 function tpxPt(n, s, p){
   if(p && n.ports && (s === 'b' || s === 't')) return [n.x + 10 + (n.w - 20) * (p - .5) / n.ports, s === 'b' ? n.y + n.h : n.y];
   return s === 'l' ? [n.x, n.y + n.h / 2] : s === 'r' ? [n.x + n.w, n.y + n.h / 2] : s === 't' ? [n.x + n.w / 2, n.y] : [n.x + n.w / 2, n.y + n.h];
 }
+/* kabel dari port Switch POE: turun dari port, belok ke jalurnya di celah rak, lalu masuk ke sisi perangkat */
+function tpxSwGeo(sw){ const pitch = (sw.w - 40) / 16; return { pitch, pw:pitch - 4, px: (pn) => sw.x + 20 + pitch * (pn - 1) }; }
+function tpxSwCables(sw){
+  if(!T.swc) T.swc = {};
+  if(T.swc[sw.id]) return T.swc[sw.id];
+  const g = tpxSwGeo(sw), cs = T.it.links.filter(l => l.st === 'p' && l.a === sw.id), R = [], Lf = [], m = {};
+  cs.forEach(l => { const px = g.px(l.pn || 1) + g.pw / 2, lx = sw.x + (l.lo || 0); (lx >= px ? R : Lf).push([l, px]); });
+  R.sort((a, b) => a[1] - b[1]); Lf.sort((a, b) => b[1] - a[1]);
+  const base = sw.y + sw.h + 14, n1 = R.length, n2 = Lf.length;
+  const mk = (l, yl) => {
+    const d = tpxNode(l.b); if(!d) return null;
+    const px = g.px(l.pn || 1) + g.pw / 2, sy = sw.y + sw.h, lx = sw.x + (l.lo || 0), q = tpxPt(d, l.sb, 0);
+    const p = [[px, sy], [px, yl], [lx, yl]];
+    if(l.sb === 't') p.push([lx, q[1] - 12], [q[0], q[1] - 12], q); else p.push([lx, q[1]], q);
+    return p;
+  };
+  R.forEach((e, i) => { m[e[0].id] = mk(e[0], base + 10 * (n1 - 1 - i)); });
+  Lf.forEach((e, i) => { m[e[0].id] = mk(e[0], base + 10 * (n1 + n2 - 1 - i)); });
+  T.swc[sw.id] = m;
+  return m;
+}
+function tpxPortMap(sw){ const m = {}; T.it.links.forEach(l => { if(l.st === 'p' && l.a === sw.id) m[l.pn] = l; }); return m; }
+/* kabel jitter: pin WIM Logix -> stripbar, siku dengan tingkat berbeda per pin */
+function tpxJPts(l){
+  const h = tpxNode(l.a), b = tpxNode(l.b); if(!h || !b) return null;
+  const i = Math.max(1, l.pa || 1), x = h.x + 10 + (h.w - 20) * (i - .5) / (h.ports || 8), yw = h.y + h.h, lv = yw + 24 + TPX_LV[(i - 1) % 8] * 12;
+  if(!b.lt){ const ex = b.x + b.w / 2; return b.y > lv + 8 ? [[x, yw], [x, lv], [ex, lv], [ex, b.y]] : [[x, yw], [x, b.y + b.h + 10], [ex, b.y + b.h + 10], [ex, b.y + b.h]]; }
+  const gx = b.x - 12, ey = b.y + b.h / 2;
+  return [[x, yw], [x, lv], [gx, lv], [gx, ey], [b.x, ey]];
+}
+/* kabel otomatis: pilih sisi dan rute terpendek yang tidak menembus perangkat lain */
+function tpxHitR(a, b, r){ const x1 = Math.min(a[0], b[0]), x2 = Math.max(a[0], b[0]), y1 = Math.min(a[1], b[1]), y2 = Math.max(a[1], b[1]); return x2 > r.x + 3 && x1 < r.x + r.w - 3 && y2 > r.y + 3 && y1 < r.y + r.h - 3; }
+function tpxAuto(l){
+  const a = tpxNode(l.a), b = tpxNode(l.b); if(!a || !b) return null;
+  const obs = T.it.nodes.filter(n => n.ty !== 'txt' && n.ty !== 'ttl'), S = ['l', 'r', 't', 'b'], MS = [.5, .25, .75, 1.2, 1.5, -.2, -.5];
+  let best = null, bs = 1e9;
+  S.forEach(sa => S.forEach(sb => {
+    const p = tpxPt(a, sa, 0), q = tpxPt(b, sb, 0), h1 = sa === 'l' || sa === 'r', h2 = sb === 'l' || sb === 'r', c = [];
+    if(h1 && h2) MS.forEach(m => { const mx = p[0] + (q[0] - p[0]) * m; c.push([p, [mx, p[1]], [mx, q[1]], q]); });
+    else if(!h1 && !h2) MS.forEach(m => { const my = p[1] + (q[1] - p[1]) * m; c.push([p, [p[0], my], [q[0], my], q]); });
+    else if(h1) c.push([p, [q[0], p[1]], q]); else c.push([p, [p[0], q[1]], q]);
+    c.forEach(pts => {
+      let len = 0, ok = true;
+      for(let i = 1; i < pts.length && ok; i++){ len += Math.abs(pts[i][0] - pts[i - 1][0]) + Math.abs(pts[i][1] - pts[i - 1][1]); for(const r of obs) if(tpxHitR(pts[i - 1], pts[i], r)){ ok = false; break; } }
+      const sc = len + 30 * (pts.length - 2) + (ok ? 0 : 1e6);
+      if(sc < bs){ bs = sc; best = pts; }
+    });
+  }));
+  return best;
+}
 function tpxPoly(l){
   const a = tpxNode(l.a), b = tpxNode(l.b); if(!a || !b) return null;
+  if(l.st === 'p' && a.ty === 'swp'){ const m = tpxSwCables(a), pts = m[l.id]; return pts ? { pts, hd:null } : null; }
+  if(l.st === 'j'){ const pts = tpxJPts(l); return pts ? { pts, hd:null } : null; }
+  if(l.st === 'a'){ const pts = tpxAuto(l); return pts ? { pts, hd:null } : null; }
   const p = tpxPt(a, l.sa, l.pa), q = tpxPt(b, l.sb, l.pb), h1 = l.sa === 'l' || l.sa === 'r', h2 = l.sb === 'l' || l.sb === 'r';
+  if(l.st === 'u' && typeof l.yv === 'number') return { pts:[p, [p[0], l.yv], [q[0], l.yv], q], hd:null };
   let pts, hd = null;
   if(l.st === 's'){ pts = [p, q]; hd = [(p[0] + q[0]) / 2, (p[1] + q[1]) / 2]; }
   else if(h1 && h2){ const mx = p[0] + (q[0] - p[0]) * l.m; pts = [p, [mx, p[1]], [mx, q[1]], q]; hd = [mx, (p[1] + q[1]) / 2]; }
@@ -15003,7 +15092,7 @@ function tpxPoly(l){
 }
 const TPX_JR = 6;
 function tpxPolyMap(){
-  if(!T.pc){ T.pc = {}; T.it.links.forEach(x => { const o = tpxPoly(x); if(o) T.pc[x.id] = o; }); }
+  if(!T.pc){ T.pc = {}; T.it.links.forEach(x => { if(x.hid) return; const o = tpxPoly(x); if(o) T.pc[x.id] = o; }); }
   return T.pc;
 }
 function tpxPath(l){
@@ -15033,13 +15122,20 @@ function tpxPath(l){
     else if(a[0] === b[0]) d += 'V' + b[1];
     else d += 'L' + b[0] + ' ' + b[1];
   }
-  return { d, hd:P.hd };
+  return { d, hd:P.hd, pts:P.pts };
 }
-function tpxUsedPorts(n){ const u = {}; T.it.links.forEach(l => { if(l.a === n.id && l.pa) u[l.pa] = 1; if(l.b === n.id && l.pb) u[l.pb] = 1; }); return u; }
+function tpxUsedPorts(n){
+  const u = {};
+  T.it.links.forEach(l => {
+    if(n.ty === 'swp'){ if(l.st === 'p' && l.a === n.id && l.pn) u[l.pn] = 1; return; }
+    if(l.a === n.id && l.pa) u[l.pa] = 1; if(l.b === n.id && l.pb) u[l.pb] = 1;
+  });
+  return u;
+}
 function tpxFreePort(n){ const u = tpxUsedPorts(n); for(let i = 1; i <= n.ports; i++) if(!u[i]) return i; return 0; }
 function tpxReach(){
   const ok = {}, qu = [];
-  T.it.nodes.forEach(n => { if(n.ty === 'gw' && !T.down[n.id]){ ok[n.id] = 1; qu.push(n.id); } });
+  T.it.nodes.forEach(n => { if(n.ty === 'gw' && !T.down[n.id]){ ok[n.id] = 1; qu.push(n.id); } if(n.ty === 'txt' || n.ty === 'ttl') ok[n.id] = 1; });
   while(qu.length){
     const c = qu.shift();
     T.it.links.forEach(l => { if(T.down[l.id]) return; const o = l.a === c ? l.b : l.b === c ? l.a : null; if(o && !ok[o] && !T.down[o]){ ok[o] = 1; qu.push(o); } });
@@ -15054,7 +15150,7 @@ function tpxHit(n){
   return n.nm.toLowerCase().includes(t) || (n.note || '').toLowerCase().includes(t) || n.ips.some(p => (p.ip || '').toLowerCase().includes(t));
 }
 function tpxSnap(){ return JSON.stringify({ boxes: T.it.boxes, nodes: T.it.nodes, links: T.it.links, nets: T.it.nets, cables: T.it.cables }); }
-function tpxPush(){ T.hist.push(tpxSnap()); if(T.hist.length > 40) T.hist.shift(); T.fut = []; }
+function tpxPush(){ T.hist.push(tpxSnap()); if(T.hist.length > 60) T.hist.shift(); T.fut = []; }
 function tpxRestore(s){ const o = JSON.parse(s); T.it.boxes = o.boxes; T.it.nodes = o.nodes; T.it.links = o.links; T.it.nets = o.nets; T.it.cables = o.cables; if(T.sel && !tpxSelObj()) T.sel = null; }
 function tpxSelObj(){
   if(!T.sel) return null;
@@ -15080,7 +15176,7 @@ async function tpxOpen(id, cat){
   }
   const wasOld = !it.nodes;
   tpxNorm(it);
-  T = { it, cat, sel:null, hov:null, q:'', fn:'all', view:'dg', hist:[], fut:[], edit:false, ro: TPX_STORE.isFailed(), netsOpen:false, down:{}, tf:{ x:0, y:0, k:1 }, drag:null, resetArm:false, dirty:false, addTy:'dev' };
+  T = { it, cat, sel:null, selP:null, hov:null, q:'', fn:'all', view:'dg', hist:[], fut:[], edit:false, ro: TPX_STORE.isFailed(), netsOpen:false, down:{}, tf:{ x:0, y:0, k:1 }, drag:null, resetArm:false, dirty:false, addTy:'dev' };
   tpxSopParts().forEach(e => { if(e) e.style.display = 'none'; });
   const host = document.getElementById('sopTopo');
   host.style.display = 'block';
@@ -15088,25 +15184,56 @@ async function tpxOpen(id, cat){
   tpxFit();
   tpxDrawAll();
   if(wasOld){ tpxQueueSave(); tpxMsg('Topologi lama dikonversi ke kanvas bebas. Seret perangkat untuk merapikan.'); }
-  if(it.id === 'wimbib' && (it.tpl || 0) < 41 && !wasOld) tpxMsg('Template WIM BIB terbaru tersedia (rapi, stripbar terpisah, loadcell). Aktifkan Mode edit lalu klik Reset ke template dua kali.');
+  if(it.id === 'wimbib' && (it.tpl || 0) < 44 && !wasOld) tpxMsg('Template WIM BIB terbaru tersedia (3 lane, Switch POE 16 port, stripbar langsung ke WIM, gaya dokumen). Aktifkan Mode edit lalu klik Reset ke template dua kali.');
   if(T.ro) tpxMsg('Data topologi gagal dimuat dari server. Tampilan hanya baca, perubahan tidak disimpan.');
 }
 async function tpxClose(){
   await tpxFlush();
+  if(T && T.anim) cancelAnimationFrame(T.anim);
   T = null;
   document.getElementById('sopTopo').style.display = 'none';
   tpxSopParts().forEach(e => { if(e) e.style.display = ''; });
   renderSop();
 }
-function tpxFit(){
+function tpxFitTf(){
   const it = T.it; let x1 = 1e9, y1 = 1e9, x2 = -1e9, y2 = -1e9;
   it.nodes.forEach(n => { x1 = Math.min(x1, n.x); y1 = Math.min(y1, n.y); x2 = Math.max(x2, n.x + n.w); y2 = Math.max(y2, n.y + n.h + (n.ports ? 14 : 0)); });
   it.boxes.forEach(b => { x1 = Math.min(x1, b.x); y1 = Math.min(y1, b.y); x2 = Math.max(x2, b.x + b.w); y2 = Math.max(y2, b.y + b.h); });
-  if(x1 > x2){ T.tf = { x:0, y:0, k:1 }; return; }
-  const w = x2 - x1 + 40, h = y2 - y1 + 70, k = Math.max(.3, Math.min(1.4, TPX_VW / w, TPX_VH / h));
-  T.tf = { k, x: (TPX_VW - (x2 - x1) * k) / 2 - x1 * k, y: 52 - y1 * k + Math.max(0, (TPX_VH - 52 - (y2 - y1) * k) / 2) };
+  if(x1 > x2) return { x:0, y:0, k:1 };
+  const w = x2 - x1 + 20, h = y2 - y1 + 20, k = Math.max(.2, Math.min(1.4, TPX_VW / w, TPX_VH / h));
+  return { k, x: (TPX_VW - (x2 - x1) * k) / 2 - x1 * k, y: (TPX_VH - (y2 - y1) * k) / 2 - y1 * k };
 }
+function tpxFit(){ T.tf = tpxFitTf(); }
 function tpxFocusOn(n){ T.tf.x = TPX_VW / 2 - (n.x + n.w / 2) * T.tf.k; T.tf.y = TPX_VH / 2 - (n.y + n.h / 2) * T.tf.k; }
+/* zoom halus ke sekelompok objek (High Speed / Low Speed / lane) */
+function tpxGroupRects(g){
+  const r = [];
+  T.it.nodes.forEach(n => { if(n.zg === g) r.push([n.x, n.y - (n.bd ? 14 : 0), n.x + n.w, n.y + n.h + (n.ports ? 14 : 0)]); });
+  T.it.boxes.forEach(b => { if(b.zg === g) r.push([b.x, b.y, b.x + b.w, b.y + b.h]); });
+  return r;
+}
+function tpxTfFor(rects, pad){
+  if(!rects.length) return null;
+  let x1 = 1e9, y1 = 1e9, x2 = -1e9, y2 = -1e9;
+  rects.forEach(r => { x1 = Math.min(x1, r[0]); y1 = Math.min(y1, r[1]); x2 = Math.max(x2, r[2]); y2 = Math.max(y2, r[3]); });
+  const w = x2 - x1 + pad * 2, h = y2 - y1 + pad * 2, k = Math.max(.25, Math.min(2.2, TPX_VW / w, TPX_VH / h));
+  return { k, x: TPX_VW / 2 - (x1 + x2) / 2 * k, y: TPX_VH / 2 - (y1 + y2) / 2 * k };
+}
+function tpxAnimTf(t){
+  if(!t || !T) return;
+  cancelAnimationFrame(T.anim);
+  const f = { x:T.tf.x, y:T.tf.y, k:T.tf.k }, t0 = performance.now();
+  const st = (now) => {
+    if(!T) return;
+    const q = Math.min(1, (now - t0) / 380), e = q < .5 ? 2 * q * q : 1 - Math.pow(-2 * q + 2, 2) / 2;
+    T.tf = { x:f.x + (t.x - f.x) * e, y:f.y + (t.y - f.y) * e, k:f.k + (t.k - f.k) * e };
+    const vp = document.getElementById('tpxVp'); if(vp) vp.setAttribute('transform', 'translate(' + T.tf.x + ' ' + T.tf.y + ') scale(' + T.tf.k + ')');
+    if(q < 1) T.anim = requestAnimationFrame(st);
+  };
+  T.anim = requestAnimationFrame(st);
+}
+function tpxZoomGroup(g){ const t = tpxTfFor(tpxGroupRects(g), 36); if(t) tpxAnimTf(t); }
+function tpxZoomLater(g){ clearTimeout(T.zt); T.zt = setTimeout(() => { if(T) tpxZoomGroup(g); }, 360); }
 
 /* ---------- kerangka UI ---------- */
 function tpxMount(host){
@@ -15117,12 +15244,13 @@ function tpxMount(host){
     + '<input type="text" class="tpx-title" id="tpxTitle" aria-label="Judul topologi" readonly>'
     + '<span class="tpx-sv" id="tpxSv">Tersimpan otomatis</span></div>'
     + '<div class="tpx-row" id="tpxChips"></div>'
+    + '<div class="tpx-row" id="tpxLv"></div>'
     + '<div class="tpx-row" id="tpxBar"></div>'
     + '<div class="tpx-row" id="tpxPal"></div>'
     + '<div id="tpxNetP" class="tpx-dp" style="display:none;margin:0 0 10px"></div>'
-    + '<div class="tpx-wrap" id="tpxWrap"><svg id="tpxCv" viewBox="0 0 ' + TPX_VW + ' ' + TPX_VH + '"><defs><pattern id="tpxGd" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="1" fill="#1D3452"/></pattern></defs><g id="tpxVp"></g></svg>'
-    + '<div class="tpx-hud" id="tpxHud"></div>'
+    + '<div class="tpx-wrap" id="tpxWrap"><svg id="tpxCv" viewBox="0 0 ' + TPX_VW + ' ' + TPX_VH + '"><g id="tpxVp"></g></svg>'
     + '<div class="tpx-zm"><button type="button" data-z="in" aria-label="Perbesar">+</button><button type="button" data-z="out" aria-label="Perkecil">−</button><button type="button" data-z="fit" aria-label="Pas layar" style="font-size:11px">fit</button></div>'
+    + '<div class="tpx-hud" id="tpxHud"></div>'
     + '<div class="tpx-tip" id="tpxTip"></div><div class="tpx-leg" id="tpxLeg"></div></div>'
     + '<div id="tpxTbv" style="display:none"></div>'
     + '<div class="tpx-dp" id="tpxDp"></div>'
@@ -15133,10 +15261,10 @@ function tpxMount(host){
 }
 
 /* ---------- render ---------- */
-function tpxIcon(ty, x, y, c){
-  const s = 'fill="none" stroke="' + c + '" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"';
+function tpxIcon(ty, x, y, c, sw){
+  const s = 'fill="none" stroke="' + c + '" stroke-width="' + (sw || 1.4) + '" stroke-linecap="round" stroke-linejoin="round"';
   if(ty === 'server') return '<g ' + s + '><rect x="' + x + '" y="' + y + '" width="14" height="5" rx="1.5"/><rect x="' + x + '" y="' + (y + 8) + '" width="14" height="5" rx="1.5"/><path d="M' + (x + 3) + ' ' + (y + 2.5) + 'h.1M' + (x + 3) + ' ' + (y + 10.5) + 'h.1"/></g>';
-  if(ty === 'sw') return '<g ' + s + '><rect x="' + x + '" y="' + (y + 3) + '" width="15" height="8" rx="1.5"/><path d="M' + (x + 4) + ' ' + (y + 7) + 'h.1M' + (x + 7.5) + ' ' + (y + 7) + 'h.1M' + (x + 11) + ' ' + (y + 7) + 'h.1"/></g>';
+  if(ty === 'sw' || ty === 'swp') return '<g ' + s + '><rect x="' + x + '" y="' + (y + 3) + '" width="15" height="8" rx="1.5"/><path d="M' + (x + 4) + ' ' + (y + 7) + 'h.1M' + (x + 7.5) + ' ' + (y + 7) + 'h.1M' + (x + 11) + ' ' + (y + 7) + 'h.1"/></g>';
   if(ty === 'gw' || ty === 'router' || ty === 'fw') return '<g ' + s + '><circle cx="' + (x + 7) + '" cy="' + (y + 7) + '" r="6"/><path d="M' + (x + 1) + ' ' + (y + 7) + 'h12M' + (x + 7) + ' ' + (y + 1) + 'v12"/></g>';
   if(ty === 'pc' || ty === 'mini') return '<g ' + s + '><rect x="' + x + '" y="' + (y + 1) + '" width="14" height="9" rx="1.5"/><path d="M' + (x + 4) + ' ' + (y + 13) + 'h6"/></g>';
   if(ty === 'cctv') return '<g ' + s + '><circle cx="' + (x + 6) + '" cy="' + (y + 7) + '" r="5"/><circle cx="' + (x + 6) + '" cy="' + (y + 7) + '" r="1.6"/><path d="M' + (x + 11) + ' ' + (y + 7) + 'l3 2"/></g>';
@@ -15146,79 +15274,198 @@ function tpxIcon(ty, x, y, c){
   if(ty === 'jbox') return '<g ' + s + '><rect x="' + x + '" y="' + (y + 1) + '" width="14" height="12" rx="2"/><path d="M' + (x + 4) + ' ' + (y + 5) + 'h6M' + (x + 4) + ' ' + (y + 9) + 'h6"/></g>';
   return '<rect x="' + x + '" y="' + (y + 2) + '" width="12" height="11" rx="2" ' + s + '/>';
 }
+const tpxIco = (ty, cx, cy, c, sc) => '<g transform="translate(' + (cx - 7.5 * sc) + ' ' + (cy - 7.5 * sc) + ') scale(' + sc + ')">' + tpxIcon(ty, 0, 0, c, 1.15) + '</g>';
+const tpxTW = (s, fs, b) => String(s == null ? '' : s).length * fs * (b ? .6 : .54);
+/* bagian teks yang bisa diedit (klik 2x) dan digeser terpisah dari ikonnya */
+function tpxTP(n, p, inner, r){
+  const o = (n.off && n.off[p]) || [0, 0];
+  return '<g class="tpx-tp" data-k="np" data-id="' + n.id + '" data-p="' + p + '" transform="translate(' + o[0] + ' ' + o[1] + ')"><rect class="tpx-th" x="' + r[0] + '" y="' + r[1] + '" width="' + r[2] + '" height="' + r[3] + '" rx="4" fill="transparent"/>' + inner + '</g>';
+}
+function tpxAng(n){
+  const p = tpxNode(n.pr); if(!p) return 0;
+  const ax = n.x + n.w / 2, ay = n.y + n.h / 2, bx = p.x + p.w / 2, by = p.y + p.h / 2;
+  const dx = n.ic === 'in' ? bx - ax : ax - bx, dy = n.ic === 'in' ? by - ay : ay - by;
+  return Math.abs(dx) >= Math.abs(dy) ? (dx >= 0 ? 0 : 180) : (dy >= 0 ? 90 : -90);
+}
+function tpxArrow(ic){
+  const col = ic === 'in' ? '#0F7B4B' : '#B54708';
+  return '<g fill="none" stroke="' + col + '" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">' + (ic === 'in' ? '<path d="M-13 0H8M2 -6L8 0L2 6"/><path d="M13 -8V8"/>' : '<path d="M-13 -8V8"/><path d="M-8 0H13M7 -6L13 0L7 6"/>') + '</g>';
+}
+function tpxIpCol(p){ const nt = tpxNetOf(p.n); return nt ? nt.c : TPX_INK; }
 function tpxPins(n){
   const u = tpxUsedPorts(n); let o = '';
   for(let i = 1; i <= n.ports; i++){
-    const p = tpxPt(n, 'b', i), w = Math.min(14, (n.w - 20) / n.ports - 2);
-    o += '<g data-k="pp" data-id="' + n.id + '" data-p="' + i + '"><rect x="' + (p[0] - w / 2) + '" y="' + (p[1] - 1) + '" width="' + w + '" height="13" rx="2" fill="' + (u[i] ? '#3A3016' : '#0E1A2B') + '" stroke="' + (u[i] ? '#F5C26B' : '#5C6B7E') + '" stroke-width="1"/><text x="' + p[0] + '" y="' + (p[1] + 9) + '" text-anchor="middle" style="font-size:' + (w < 12 ? 9 : 11) + 'px;fill:' + (u[i] ? '#F5C26B' : '#9DB4CE') + '">' + i + '</text></g>';
+    const p = tpxPt(n, 'b', i), w = Math.min(22, (n.w - 20) / n.ports - 3);
+    o += '<g data-k="pp" data-id="' + n.id + '" data-p="' + i + '" class="tpx-pin"><rect x="' + (p[0] - w / 2) + '" y="' + (n.y + n.h - 5) + '" width="' + w + '" height="14" rx="3" fill="' + (u[i] ? '#FDE3BE' : '#FFFFFF') + '" stroke="' + (u[i] ? TPX_HS : '#8A97AD') + '" stroke-width="1.1"/><text x="' + p[0] + '" y="' + (n.y + n.h + 5.5) + '" text-anchor="middle" style="font-size:10px;font-weight:700;fill:' + (u[i] ? '#8A4B00' : '#51607A') + '">' + i + '</text></g>';
   }
   return o;
 }
+function tpxSwSvg(n){
+  const g = tpxSwGeo(n), pm = tpxPortMap(n), cx = n.x + n.w / 2, sp = T.selP && T.selP.id === n.id ? T.selP.p : 0;
+  let o = '<rect x="' + n.x + '" y="' + n.y + '" width="' + n.w + '" height="' + n.h + '" rx="8" fill="#EDF1F8" stroke="#44546F" stroke-width="1.6"/>'
+    + '<rect x="' + (n.x + 5) + '" y="' + (n.y + 6) + '" width="8" height="' + (n.h - 24) + '" rx="2" fill="#C9D3E3"/><rect x="' + (n.x + n.w - 13) + '" y="' + (n.y + 6) + '" width="8" height="' + (n.h - 24) + '" rx="2" fill="#C9D3E3"/>'
+    + tpxTP(n, 'nm', '<text x="' + cx + '" y="' + (n.y + 21) + '" text-anchor="middle" class="tpx-nm" style="font-size:13px">' + tpxEsc(n.nm) + '</text>', [cx - (tpxTW(n.nm, 13, 1) + 12) / 2, n.y + 7, tpxTW(n.nm, 13, 1) + 12, 19])
+    + '<text x="' + cx + '" y="' + (n.y + 34) + '" text-anchor="middle" style="font-size:10px;fill:#6B7C98;pointer-events:none">PoE · 16 port · rackmount</text>';
+  for(let p = 1; p <= 16; p++){
+    const x = g.px(p), used = !!pm[p], on = sp === p;
+    o += '<g data-k="sp" data-id="' + n.id + '" data-p="' + p + '" class="tpx-sp"><rect x="' + x + '" y="' + (n.y + n.h - 18) + '" width="' + g.pw + '" height="18" rx="2.5" fill="' + (on ? '#FFD28A' : used ? '#BFD3F2' : '#FFFFFF') + '" stroke="' + (on ? '#E8890C' : used ? '#0F4C9E' : '#8A97AD') + '" stroke-width="' + (on ? 1.8 : 1) + '"/><text x="' + (x + g.pw / 2) + '" y="' + (n.y + n.h - 6) + '" text-anchor="middle" style="font-size:10px;font-weight:700;fill:' + (used || on ? '#0A2A5E' : '#7C8798') + ';pointer-events:none">' + p + '</text></g>';
+  }
+  return o;
+}
+function tpxNodeBody(n, st){
+  const cx = n.x + n.w / 2, c = TPX_TC[n.ty] || TPX_TC.dev;
+  if(n.ty === 'swp') return tpxSwSvg(n);
+  if(n.ty === 'ttl'){
+    const w = tpxTW(n.nm, 22, 1) + 24;
+    return '<rect x="' + n.x + '" y="' + n.y + '" width="' + n.w + '" height="' + n.h + '" rx="10" fill="#0F4C9E"/><rect x="' + n.x + '" y="' + (n.y + n.h - 5) + '" width="' + n.w + '" height="5" rx="2.5" fill="#E8890C"/>'
+      + tpxTP(n, 'nm', '<text x="' + cx + '" y="' + (n.y + n.h / 2 + 6) + '" text-anchor="middle" style="font-size:21px;font-weight:800;fill:#FFFFFF;letter-spacing:1px">' + tpxEsc(n.nm) + '</text>', [cx - w / 2, n.y + 7, w, 32]);
+  }
+  if(n.ty === 'txt'){
+    if(!n.ic) return '<rect x="' + n.x + '" y="' + n.y + '" width="' + n.w + '" height="' + n.h + '" fill="transparent"/>' + tpxTP(n, 'nm', '<text x="' + cx + '" y="' + (n.y + n.h / 2 + 4) + '" text-anchor="middle" class="tpx-nm" style="font-size:12px">' + tpxEsc(n.nm) + '</text>', [cx - (tpxTW(n.nm, 12, 1) + 12) / 2, n.y + n.h / 2 - 11, tpxTW(n.nm, 12, 1) + 12, 20]);
+    const w = tpxTW(n.nm, 11.5, 1) + 12;
+    return '<rect x="' + n.x + '" y="' + n.y + '" width="' + n.w + '" height="' + n.h + '" fill="transparent"/><g transform="translate(' + cx + ' ' + (n.y + 17) + ') rotate(' + tpxAng(n) + ')"><g class="tpx-arr">' + tpxArrow(n.ic) + '</g></g>'
+      + tpxTP(n, 'nm', '<text x="' + cx + '" y="' + (n.y + n.h - 6) + '" text-anchor="middle" class="tpx-nm" style="font-size:11.5px">' + tpxEsc(n.nm) + '</text>', [cx - w / 2, n.y + n.h - 19, w, 18]);
+  }
+  if(n.sh === 'c'){
+    const cy = n.y + n.h / 2;
+    return '<circle cx="' + cx + '" cy="' + cy + '" r="' + (n.w / 2) + '" fill="#FDF1F9" stroke="' + (st.off ? '#E01B1B' : TPX_LS) + '" stroke-width="1.7"/>'
+      + tpxTP(n, 'nm', '<text x="' + cx + '" y="' + (cy + 4) + '" text-anchor="middle" class="tpx-nm" style="font-size:10.5px">' + tpxEsc(n.nm) + '</text>', [cx - 15, cy - 8, 30, 16]);
+  }
+  if(n.sh === 'p'){
+    const w = tpxTW(n.nm, 12.5, 1) + 10;
+    return '<rect x="' + n.x + '" y="' + n.y + '" width="' + n.w + '" height="' + n.h + '" rx="7" fill="#FFF8EC" stroke="' + (st.off || st.wn ? '#E01B1B' : TPX_HS) + '" stroke-width="1.5"/>'
+      + '<rect x="' + (n.x + 9) + '" y="' + (n.y + 9) + '" width="' + (n.w - 18) + '" height="34" rx="4" fill="#FCE3BE" stroke="' + TPX_HS + '" stroke-width=".9"/><path d="M' + (cx - 10) + ' ' + (n.y + 18) + 'h20M' + (cx - 10) + ' ' + (n.y + 26) + 'h20M' + (cx - 10) + ' ' + (n.y + 34) + 'h20" stroke="' + TPX_HS + '" stroke-width="1.3" stroke-linecap="round"/>'
+      + tpxTP(n, 'nm', '<text x="' + cx + '" y="' + (n.y + n.h - 17) + '" text-anchor="middle" class="tpx-nm" style="font-size:12.5px">' + tpxEsc(n.nm) + '</text>', [cx - w / 2, n.y + n.h - 31, w, 18])
+      + (n.tag ? '<text x="' + cx + '" y="' + (n.y + n.h - 5) + '" text-anchor="middle" style="font-size:10px;fill:#6B7C98;pointer-events:none">' + tpxEsc(n.tag) + '</text>' : '');
+  }
+  if(n.h < 60){
+    const cy = n.y + n.h / 2, ipw = n.ips.map(p => p.ip).join(' / '), nw = Math.min(n.w - 40, tpxTW(n.nm, 12.5, 1) + 12);
+    return '<rect x="' + n.x + '" y="' + n.y + '" width="' + n.w + '" height="' + n.h + '" rx="8" fill="#FFFFFF" stroke="' + (st.off || st.wn ? '#E01B1B' : '#A9C1E8') + '" stroke-width="1.5"' + (st.wn ? ' stroke-dasharray="4 3"' : '') + '/>'
+      + tpxIco(n.ty, n.x + 20, cy, c, 1.1)
+      + tpxTP(n, 'nm', '<text x="' + (n.x + 36) + '" y="' + (cy + (ipw && n.h > 36 ? -2 : 4)) + '" class="tpx-nm">' + tpxEsc(n.nm) + '</text>', [n.x + 32, cy - (ipw && n.h > 36 ? 15 : 10), nw, 18])
+      + (ipw ? tpxTP(n, 'ip', '<text x="' + (n.x + 36) + '" y="' + (cy + (n.h > 36 ? 13 : 4)) + '" class="tpx-ip" style="fill:' + tpxEsc(tpxIpCol(n.ips[0])) + '"' + (n.h > 36 ? '' : ' text-anchor="end" transform="translate(' + (n.w - 50) + ' 0)"') + '>' + tpxEsc(ipw) + '</text>', [n.x + 32, cy + (n.h > 36 ? 2 : -7), Math.min(n.w - 40, tpxTW(ipw, 11, 1) + 8), 14]) : '')
+      + (n.ports ? tpxPins(n) : '');
+  }
+  /* kartu dokumen: ikon, nama, IP */
+  const L = n.ips.length, ny = n.y + n.h - 14 - 13 * L + (L ? 0 : 2), nw = Math.min(n.w - 2, tpxTW(n.nm, 12.5, 1) + 12);
+  let o = '<rect x="' + n.x + '" y="' + n.y + '" width="' + n.w + '" height="' + n.h + '" rx="8" fill="#FFFFFF" stroke="' + (st.off || st.wn ? '#E01B1B' : n.ty === 'gw' ? '#E01B1B' : '#A9C1E8') + '" stroke-width="1.5"' + (st.wn ? ' stroke-dasharray="4 3"' : '') + '/>'
+    + tpxIco(n.ty, cx, n.y + 25, c, 1.9)
+    + tpxTP(n, 'nm', '<text x="' + cx + '" y="' + ny + '" text-anchor="middle" class="tpx-nm">' + tpxEsc(n.nm) + '</text>', [cx - nw / 2, ny - 13, nw, 18]);
+  if(L){
+    let mw = 0, tx = '';
+    n.ips.forEach((p, i) => { mw = Math.max(mw, tpxTW(p.ip, 11, 1)); tx += '<text x="' + cx + '" y="' + (n.y + n.h - 10 - 13 * (L - 1 - i)) + '" text-anchor="middle" class="tpx-ip" style="fill:' + tpxEsc(tpxIpCol(p)) + '">' + tpxEsc(p.ip) + '</text>'; });
+    o += tpxTP(n, 'ip', tx, [cx - mw / 2 - 5, n.y + n.h - 10 - 13 * (L - 1) - 11, mw + 10, 13 * L + 3]);
+  }
+  if(n.bd){
+    const bw = Math.max(76, tpxTW(n.bd, 10, 1) + 24);
+    o += tpxTP(n, 'bd', '<rect x="' + (cx - bw / 2) + '" y="' + (n.y - 8) + '" width="' + bw + '" height="16" rx="8" fill="' + tpxEsc(n.bc || TPX_HS) + '"/><text x="' + cx + '" y="' + (n.y + 3.5) + '" text-anchor="middle" style="font-size:10px;font-weight:800;fill:#FFFFFF;letter-spacing:.6px">' + tpxEsc(n.bd) + '</text>', [cx - bw / 2, n.y - 8, bw, 16]);
+  }
+  return o + (n.ports ? tpxPins(n) : '');
+}
+/* kotak: panel lane, rak, zona sensor, platform, keterangan */
+function tpxBtT(r, x, y, fs, fill, anchor, w){
+  const tw = tpxTW(r.t, fs, 1) + 14, rx = anchor === 'middle' ? x - tw / 2 : anchor === 'end' ? x - tw : x - 4;
+  return '<g class="tpx-bt" data-k="bt" data-id="' + r.id + '"><rect x="' + rx + '" y="' + (y - fs - 3) + '" width="' + tw + '" height="' + (fs + 10) + '" rx="4" fill="transparent"/><text x="' + x + '" y="' + y + '" text-anchor="' + anchor + '" style="font-size:' + fs + 'px;font-weight:800;fill:' + fill + ';letter-spacing:.4px">' + tpxEsc(r.t) + '</text></g>';
+}
+function tpxBoxSvg(r){
+  const s = T.sel && T.sel.k === 'r' && T.sel.id === r.id, ink = s ? '#2B6CD4' : null;
+  let o = '<g class="tpx-nd" data-k="r" data-id="' + r.id + '">';
+  if(r.lane){
+    const k = r.lane;
+    o += '<rect x="' + r.x + '" y="' + r.y + '" width="' + r.w + '" height="' + r.h + '" rx="14" fill="' + r.fl + '" stroke="' + (ink || r.lc) + '" stroke-width="' + (s ? 2.4 : 1.6) + '"/>'
+      + '<rect x="' + r.x + '" y="' + r.y + '" width="' + r.w + '" height="34" rx="14" fill="' + r.lc + '"/><rect x="' + r.x + '" y="' + (r.y + 20) + '" width="' + r.w + '" height="14" fill="' + r.lc + '"/>'
+      + tpxBtT(r, r.x + 18, r.y + 23, 15, '#FFFFFF', 'start');
+    const chip = (z, tx, col, ink2, x) => '<g class="tpx-zc" data-k="zm" data-z="' + z + '"><rect x="' + x + '" y="' + (r.y + 7) + '" width="104" height="20" rx="10" fill="#FFFFFF" stroke="' + col + '" stroke-width="1.4"/><text x="' + (x + 52) + '" y="' + (r.y + 21) + '" text-anchor="middle" style="font-size:10.5px;font-weight:800;fill:' + ink2 + ';letter-spacing:.5px">' + tx + '</text></g>';
+    let x = r.x + r.w - 118;
+    if(r.low){ o += chip('ls' + k, 'LOW SPEED', TPX_LS, '#8E1C6E', x); x -= 110; }
+    o += chip('hs' + k, 'HIGH SPEED', TPX_HS, '#8A4B00', x);
+  } else if(r.rk){
+    o += '<rect x="' + r.x + '" y="' + r.y + '" width="' + r.w + '" height="' + r.h + '" rx="10" fill="' + r.fl + '" stroke="' + (ink || r.lc) + '" stroke-width="' + (s ? 2.4 : 1.5) + '"/>'
+      + '<rect x="' + r.x + '" y="' + r.y + '" width="' + r.w + '" height="26" rx="10" fill="' + r.lc + '" fill-opacity=".14"/><rect x="' + r.x + '" y="' + (r.y + 16) + '" width="' + r.w + '" height="10" fill="' + r.lc + '" fill-opacity=".14"/>'
+      + [[8, 8], [r.w - 8, 8], [8, r.h - 8], [r.w - 8, r.h - 8]].map(q => '<circle cx="' + (r.x + q[0]) + '" cy="' + (r.y + q[1]) + '" r="2.4" fill="' + r.lc + '" fill-opacity=".45"/>').join('')
+      + tpxBtT(r, r.x + r.w / 2, r.y + 18, 11.5, r.lc, 'middle');
+  } else if(r.z){
+    o += '<rect x="' + r.x + '" y="' + r.y + '" width="' + r.w + '" height="' + r.h + '" rx="12" fill="' + r.bc + '" fill-opacity=".05" stroke="' + (ink || r.bc) + '" stroke-width="' + (s ? 2.4 : 1.6) + '" stroke-dasharray="7 5"/>'
+      + tpxBtT(r, r.x + r.w / 2, r.y + r.h - 14, 11.5, r.z === 'hs' ? '#8A4B00' : '#8E1C6E', 'middle');
+  } else if(r.pl){
+    o += '<rect x="' + r.x + '" y="' + r.y + '" width="' + r.w + '" height="' + r.h + '" rx="8" fill="#F1F3F7" stroke="' + (ink || '#8C9BB5') + '" stroke-width="' + (s ? 2.4 : 1.5) + '"/><path d="M' + (r.x + 8) + ' ' + (r.y + r.h / 2) + 'H' + (r.x + r.w - 8) + '" stroke="#B7C2D6" stroke-width="1.6" stroke-dasharray="9 7"/>';
+  } else if(r.lg){
+    const it = T.it; let x = r.x + 20;
+    o += '<rect x="' + r.x + '" y="' + r.y + '" width="' + r.w + '" height="' + r.h + '" rx="8" fill="#FFFFFF" stroke="' + (ink || '#A9C1E8') + '" stroke-width="1.4"/><text x="' + (r.x + 20) + '" y="' + (r.y + 18) + '" style="font-size:11px;font-weight:800;fill:#6B7C98;letter-spacing:1px">KETERANGAN</text>';
+    const add = (col, dash, tx) => { o += '<path d="M' + x + ' ' + (r.y + 38) + 'h34" stroke="' + col + '" stroke-width="2.2"' + (dash ? ' stroke-dasharray="' + dash + '"' : '') + '/><text x="' + (x + 42) + '" y="' + (r.y + 42) + '" style="font-size:11.5px;font-weight:600;fill:' + TPX_INK + '">' + tpxEsc(tx) + '</text>'; x += 42 + tpxTW(tx, 11.5, 0) + 30; };
+    it.nets.forEach(n => add(n.c, '', 'Jaringan ' + n.n + (n.pre ? ' (' + n.pre + 'x)' : '')));
+    it.cables.filter(c => c.c).forEach(c => add(c.c, c.d || '1.5 3', c.n.split(':')[0]));
+    o += '<path d="M' + x + ' ' + (r.y + 40) + 'h8a4 4 0 0 1 8 0h8" fill="none" stroke="#51607A" stroke-width="1.6"/><text x="' + (x + 34) + '" y="' + (r.y + 42) + '" style="font-size:11.5px;font-weight:600;fill:' + TPX_INK + '">Kabel melompat (tidak tersambung)</text>';
+  } else {
+    o += '<rect x="' + r.x + '" y="' + r.y + '" width="' + r.w + '" height="' + r.h + '" rx="12" fill="#F6F9FE" stroke="' + (ink || '#8CA7D0') + '" stroke-width="' + (s ? 2.4 : 1.4) + '" stroke-dasharray="6 5"/>' + tpxBtT(r, r.x + r.w - 14, r.y + 22, 12, '#51607A', 'end');
+  }
+  if(s && T.edit) o += '<rect data-k="rz" data-id="' + r.id + '" x="' + (r.x + r.w - 12) + '" y="' + (r.y + r.h - 12) + '" width="12" height="12" rx="2" fill="#2B6CD4" style="cursor:nwse-resize"/>';
+  return o + '</g>';
+}
 function tpxDrawCanvas(){
-  T.pc = null;
+  T.pc = null; T.swc = null;
   const it = T.it, ok = tpxReach(), dm = tpxDupMap(), vp = document.getElementById('tpxVp');
-  const foc = T.hov || (T.sel && T.sel.k === 'n' ? T.sel.id : null), nb = {};
+  const foc = !T.edit ? T.hov : null, nb = {};
   if(foc){ nb[foc] = 1; it.links.forEach(l => { if(l.a === foc) nb[l.b] = 1; if(l.b === foc) nb[l.a] = 1; }); }
-  const hasQ = !!T.q, selK = T.sel && T.sel.k, selId = T.sel && T.sel.id;
+  const hasQ = !!T.q, selK = T.sel && T.sel.k, selId = T.sel && T.sel.id, sp = T.selP;
   const netOk = (n) => T.fn === 'all' || n.ips.some(p => p.n === T.fn) || it.links.some(l => l.n === T.fn && (l.a === n.id || l.b === n.id));
-  let o = '<rect x="-4000" y="-4000" width="9000" height="9000" fill="url(#tpxGd)"/>';
-  it.boxes.forEach(r => {
-    const s = selK === 'r' && selId === r.id;
-    o += '<g class="tpx-nd" data-k="r" data-id="' + r.id + '"><rect x="' + r.x + '" y="' + r.y + '" width="' + r.w + '" height="' + r.h + '" rx="14" fill="#12233A" stroke="' + (s ? '#7FD1FF' : '#2F5078') + '" stroke-width="' + (s ? 1.8 : 1) + '" stroke-dasharray="6 5"/><text x="' + (r.bot ? r.x + r.w / 2 : r.x + r.w - 14) + '" y="' + (r.bot ? r.y + r.h - 12 : r.y + 22) + '" text-anchor="' + (r.bot ? 'middle' : 'end') + '" style="font-size:12px;font-weight:600;fill:#9DB4CE">' + tpxEsc(r.t) + '</text>' + (s && T.edit ? '<rect data-k="rz" data-id="' + r.id + '" x="' + (r.x + r.w - 12) + '" y="' + (r.y + r.h - 12) + '" width="12" height="12" rx="2" fill="#7FD1FF" style="cursor:nwse-resize"/>' : '') + '</g>';
-  });
+  let o = '';
+  it.boxes.forEach(r => { o += tpxBoxSvg(r); });
   it.links.forEach(l => {
+    if(l.hid) return;
     const p = tpxPath(l); if(!p) return;
-    const A = tpxNode(l.a), B = tpxNode(l.b), s = selK === 'l' && selId === l.id;
+    const A = tpxNode(l.a), B = tpxNode(l.b), s = selK === 'l' && selId === l.id, hp = sp && l.st === 'p' && l.a === sp.id && l.pn === sp.p;
     const dead = T.down[l.id] || T.down[l.a] || T.down[l.b] || !ok[l.a] || !ok[l.b];
     const dim = (foc && l.a !== foc && l.b !== foc) || (hasQ && !(tpxHit(A) || tpxHit(B))) || (T.fn !== 'all' && l.n !== T.fn && l.k === 'lan');
-    const col = tpxLc(l);
-    o += '<g class="tpx-lk' + (dim ? ' tpx-dm' : '') + '" data-k="l" data-id="' + l.id + '"><path d="' + p.d + '" fill="none" stroke="transparent" stroke-width="14"/><path d="' + p.d + '" fill="none" stroke="' + (dead ? '#5C6B7E' : col) + '" stroke-width="' + (s ? 2.6 : 1.3) + '" ' + (dead ? 'stroke-dasharray="4 4"' : (tpxDash(l) ? 'stroke-dasharray="' + tpxDash(l) + '"' : '')) + '/>' + (dead ? '' : '<path class="tpx-fl" d="' + p.d + '" fill="none" stroke="' + col + '" stroke-width="3.2"/>') + '</g>';
+    const col = dead ? '#9AA6BA' : hp ? '#E8890C' : tpxLc(l), dash = dead ? '4 4' : tpxDash(l);
+    let dots = '';
+    if(l.st === 'p' || l.st === 'j' || l.st === 'a'){ const f = p.pts[0], e2 = p.pts[p.pts.length - 1]; dots = '<circle cx="' + f[0] + '" cy="' + f[1] + '" r="2.6" fill="' + col + '"/><circle cx="' + e2[0] + '" cy="' + e2[1] + '" r="2.6" fill="' + col + '"/>'; }
+    o += '<g class="tpx-lk' + (dim ? ' tpx-dm' : '') + '" data-k="l" data-id="' + l.id + '"><path d="' + p.d + '" fill="none" stroke="transparent" stroke-width="12"/><path d="' + p.d + '" fill="none" stroke="' + col + '" stroke-width="' + (s || hp ? 3 : 1.6) + '" stroke-linejoin="round"' + (dash ? ' stroke-dasharray="' + dash + '"' : '') + '/>' + dots + '</g>';
   });
   it.nodes.forEach(n => {
-    const s = selK === 'n' && selId === n.id, off = T.down[n.id], unr = !ok[n.id] && !off, c = TPX_TC[n.ty] || TPX_TC.dev;
+    const s = selK === 'n' && selId === n.id, off = T.down[n.id], unr = !ok[n.id] && !off;
     const hit = hasQ && tpxHit(n), dim = (foc && !nb[n.id]) || (hasQ && !hit) || !netOk(n);
-    const wn = n.ips.some(p => dm[(p.ip || '').trim()] > 1);
-    const compact = n.w < 60, one = n.h <= 32;
-    const ipt = n.ips.map(p => { const nt = tpxNetOf(p.n); return '<tspan fill="' + tpxEsc(nt ? nt.c : '#9DB4CE') + '">' + tpxEsc(tpxShort(p)) + '</tspan>'; }).join('<tspan fill="#5C6B7E"> / </tspan>');
-    let txt;
-    const tg = n.tag ? '<tspan fill="#9DB4CE">' + tpxEsc(n.tag) + '</tspan>' : '';
-    if(compact) txt = '<text x="' + (n.x + n.w / 2) + '" y="' + (n.y + (n.tag ? 17 : n.h / 2 + 4)) + '" text-anchor="middle" style="font-size:12px;font-weight:600;fill:#E6EEF7">' + tpxEsc(n.nm) + '</text>' + (n.tag ? '<text x="' + (n.x + n.w / 2) + '" y="' + (n.y + 33) + '" text-anchor="middle" style="font-size:11px;fill:#9DB4CE">' + tpxEsc(n.tag) + '</text>' : '');
-    else if(one) txt = '<text x="' + (n.x + 33) + '" y="' + (n.y + n.h / 2 + 4) + '" style="font-size:12px;font-weight:600;fill:#E6EEF7">' + tpxEsc(n.nm) + '</text>' + ((ipt || tg) ? '<text x="' + (n.x + n.w - 16) + '" y="' + (n.y + n.h / 2 + 4) + '" text-anchor="end" style="font-size:11px">' + (ipt || tg) + '</text>' : '');
-    else txt = '<text x="' + (n.x + 33) + '" y="' + (n.y + (ipt ? n.h / 2 - 2 : n.h / 2 + 4)) + '" style="font-size:12px;font-weight:600;fill:#E6EEF7">' + tpxEsc(n.nm) + '</text>' + (ipt ? '<text x="' + (n.x + 33) + '" y="' + (n.y + n.h / 2 + 12) + '" style="font-size:11px">' + ipt + '</text>' : '');
-    o += '<g class="tpx-nd' + (dim ? ' tpx-dm' : '') + (hit ? ' tpx-hit' : '') + '" data-k="n" data-id="' + n.id + '" opacity="' + (unr || off ? .5 : 1) + '"><rect class="tpx-ring" x="' + (n.x - 3) + '" y="' + (n.y - 3) + '" width="' + (n.w + 6) + '" height="' + (n.h + 6) + '" rx="11" fill="none" stroke="' + (hit ? '#F5C26B' : (s ? '#7FD1FF' : 'none')) + '" stroke-width="2"/><rect x="' + n.x + '" y="' + n.y + '" width="' + n.w + '" height="' + n.h + '" rx="8" fill="#16263D" stroke="' + (off || wn ? '#E24B4A' : '#2F5078') + '" stroke-width="1"' + (wn ? ' stroke-dasharray="4 3"' : '') + '/><rect x="' + n.x + '" y="' + (n.y + 6) + '" width="3" height="' + (n.h - 12) + '" rx="1.5" fill="' + c + '"/>'
-      + (compact ? '' : tpxIcon(n.ty, n.x + 12, n.y + n.h / 2 - 7, c)) + txt
-      + (compact ? '' : '<circle cx="' + (n.x + n.w - 9) + '" cy="' + (n.y + 9) + '" r="3.2" fill="' + (off || unr ? '#E24B4A' : '#4ADE80') + '"/>' + (off || unr ? '' : '<circle class="tpx-pr" cx="' + (n.x + n.w - 9) + '" cy="' + (n.y + 9) + '" r="3.2" fill="#4ADE80"/>'))
-      + (n.ports ? tpxPins(n) : '') + '</g>';
+    const wn = n.ips.some(p => dm[(p.ip || '').trim()] > 1), st = { off, wn, unr };
+    const pad = n.sh === 'c' ? n.w / 2 + 3 : null;
+    o += '<g class="tpx-nd' + (dim ? ' tpx-dm' : '') + (hit ? ' tpx-hit' : '') + '" data-k="n" data-id="' + n.id + '" opacity="' + (unr || off ? .5 : 1) + '">'
+      + (n.sh === 'c' ? '<circle class="tpx-ring" cx="' + (n.x + n.w / 2) + '" cy="' + (n.y + n.h / 2) + '" r="' + pad + '" fill="none" stroke="' + (hit ? TPX_HS : (s ? '#2B6CD4' : 'none')) + '" stroke-width="2.2"/>' : '<rect class="tpx-ring" x="' + (n.x - 3) + '" y="' + (n.y - 3) + '" width="' + (n.w + 6) + '" height="' + (n.h + 6) + '" rx="11" fill="none" stroke="' + (hit ? TPX_HS : (s ? '#2B6CD4' : 'none')) + '" stroke-width="2.2"/>')
+      + tpxNodeBody(n, st)
+      + (off || unr ? '<circle cx="' + (n.x + n.w - 9) + '" cy="' + (n.y + 9) + '" r="3.4" fill="#E01B1B"/>' : '')
+      + '</g>';
   });
-  if(selK === 'n' && T.edit){ const n = tpxNode(selId); if(n) ['l', 'r', 't', 'b'].forEach(sd => { const p = tpxPt(n, sd); o += '<circle data-k="pt" data-id="' + n.id + '" data-s="' + sd + '" cx="' + p[0] + '" cy="' + p[1] + '" r="6" fill="#0E1A2B" stroke="#7FD1FF" stroke-width="2" style="cursor:crosshair"/>'; }); }
-  if(selK === 'l' && T.edit){ const l = it.links.find(z => z.id === selId), p = l && tpxPath(l); if(p && p.hd && l.st !== 's') o += '<circle data-k="hd" data-id="' + l.id + '" cx="' + p.hd[0] + '" cy="' + p.hd[1] + '" r="6" fill="#7FD1FF" stroke="#0E1A2B" stroke-width="2" style="cursor:move"/>'; }
-  if(T.drag && T.drag.t === 'link') o += '<path d="M' + T.drag.p + 'L' + T.drag.q + '" stroke="' + (T.drag.jit ? '#F5C26B' : ((tpxNetOf('vgt') || { c:'#7FD1FF' }).c)) + '" stroke-width="2" stroke-dasharray="4 3" fill="none"/>';
+  if(selK === 'n' && T.edit){ const n = tpxNode(selId); if(n && n.ty !== 'ttl') ['l', 'r', 't', 'b'].forEach(sd => { if(sd === 't' && n.bd) return; const p = tpxPt(n, sd); o += '<circle data-k="pt" data-id="' + n.id + '" data-s="' + sd + '" cx="' + p[0] + '" cy="' + p[1] + '" r="6" fill="#FFFFFF" stroke="#2B6CD4" stroke-width="2" style="cursor:crosshair"/>'; }); }
+  if(selK === 'l' && T.edit){ const l = it.links.find(z => z.id === selId), p = l && tpxPath(l); if(p && p.hd && (l.st === 'o' || l.st === 's') && l.st !== 's') o += '<circle data-k="hd" data-id="' + l.id + '" cx="' + p.hd[0] + '" cy="' + p.hd[1] + '" r="6" fill="#2B6CD4" stroke="#FFFFFF" stroke-width="2" style="cursor:move"/>'; }
+  if(T.drag && T.drag.t === 'link') o += '<path d="M' + T.drag.p + 'L' + T.drag.q + '" stroke="' + (T.drag.jit ? TPX_HS : '#2B6CD4') + '" stroke-width="2" stroke-dasharray="4 3" fill="none"/>';
   vp.setAttribute('transform', 'translate(' + T.tf.x + ' ' + T.tf.y + ') scale(' + T.tf.k + ')');
   vp.innerHTML = o;
-  // HUD
   const bad = it.nodes.filter(n => !T.down[n.id] && !ok[n.id]), dn = Object.keys(T.down).length;
   document.getElementById('tpxHud').innerHTML = dn
-    ? '<b style="color:#FF8A72">Uji dampak:</b> ' + (bad.length ? bad.length + ' perangkat tidak terjangkau dari gateway (' + bad.slice(0, 4).map(n => tpxEsc(n.nm)).join(', ') + (bad.length > 4 ? ', ...' : '') + ')' : 'semua perangkat lain tetap terjangkau') + ' · <span data-a="rs">Pulihkan semua</span>'
-    : '<b style="color:#4ADE80">Semua perangkat terjangkau</b> · klik perangkat lalu "Simulasikan putus" untuk uji dampak';
-  document.getElementById('tpxLeg').innerHTML = it.nets.map(n => '<span><i style="border-color:' + tpxEsc(n.c) + '"></i>' + tpxEsc(n.n) + '</span>').join('') + it.cables.filter(c => c.c).map(c => '<span><i style="border-color:' + tpxEsc(c.c) + ';border-top-style:dotted"></i>' + tpxEsc(c.n.split(':')[0]) + '</span>').join('') + '<span><i style="border-color:#5C6B7E;border-top-style:dashed"></i>putus</span>' + '<span>&#8978; = kabel melompat (tidak tersambung)</span>';
+    ? '<b style="color:#C2410C">Uji dampak:</b> ' + (bad.length ? bad.length + ' perangkat tidak terjangkau (' + bad.slice(0, 3).map(n => tpxEsc(n.nm)).join(', ') + (bad.length > 3 ? ', ...' : '') + ')' : 'semua perangkat lain tetap terjangkau') + ' · <span data-a="rs">Pulihkan semua</span>'
+    : '<b style="color:#0F7B4B">Semua perangkat terjangkau</b>';
+  document.getElementById('tpxLeg').innerHTML = '';
 }
+
 function tpxDrawBar(){
   const it = T.it, ed = T.edit;
   const chips = [];
   Object.keys(sopDocsCache).forEach(k => (sopDocsCache[k] || []).forEach(d => { if(d.type === 'topology' && d.topoId) chips.push(d); }));
   document.getElementById('tpxChips').innerHTML = chips.map(d => '<button type="button" class="tpx-ch' + (d.topoId === it.id ? ' on' : '') + '" data-a="goto" data-tp="' + tpxEsc(d.topoId) + '">' + tpxEsc(d.name) + '</button>').join('')
     + (ed ? '<button type="button" class="tpx-ch" data-a="newtp">+ Topologi baru</button><button type="button" class="tpx-ch" data-a="copytp">Salin topologi ini</button>' + (it.id === 'wimbib' ? '<button type="button" class="tpx-ch" data-a="reset" style="color:var(--red-fg)">' + (T.resetArm ? 'Klik lagi untuk menimpa dengan template' : 'Reset ke template') + '</button>' : '') : '');
+  const lanes = it.boxes.filter(b => b.lane);
+  document.getElementById('tpxLv').innerHTML = lanes.length
+    ? '<span class="tpx-lbl">Tampilkan</span>' + lanes.map(b => '<button type="button" class="tpx-ch tpx-lane' + (T.lv === String(b.lane) ? ' on' : '') + '" data-a="lv" data-l="' + b.lane + '" style="--lc:' + tpxEsc(b.lc) + '">Lane ' + b.lane + '</button>').join('') + '<button type="button" class="tpx-ch' + (!T.lv || T.lv === '0' ? ' on' : '') + '" data-a="lv" data-l="0">All lane</button>'
+    : '';
   document.getElementById('tpxBar').innerHTML = '<input type="text" id="tpxQ" placeholder="Cari IP atau nama, mis. 62.15" style="width:190px" aria-label="Cari" value="' + tpxEsc(T.q) + '">'
     + '<button type="button" class="tpx-ch' + (T.fn === 'all' ? ' on' : '') + '" data-a="nf" data-f="all">Semua jaringan</button>' + it.nets.map(n => '<button type="button" class="tpx-ch' + (T.fn === n.k ? ' on' : '') + '" data-a="nf" data-f="' + tpxEsc(n.k) + '">' + tpxEsc(n.n) + '</button>').join('')
     + '<span style="flex:1"></span>'
     + '<button type="button" class="tpx-ch' + (T.view === 'dg' ? ' on' : '') + '" data-a="view" data-v="dg">Diagram</button><button type="button" class="tpx-ch' + (T.view === 'tb' ? ' on' : '') + '" data-a="view" data-v="tb">Tabel IP</button>'
     + '<button type="button" class="tpx-ch' + (T.netsOpen ? ' on' : '') + '" data-a="nets">Jaringan dan kabel</button>'
     + '<button type="button" class="tpx-sb" data-a="csv" title="Unduh tabel IP sebagai CSV"><i class="ti ti-download"></i> CSV</button>'
-    + '<button type="button" class="tpx-sb" data-a="undo"' + (T.hist.length && ed ? '' : ' disabled') + '>Urungkan</button><button type="button" class="tpx-sb" data-a="redo"' + (T.fut.length && ed ? '' : ' disabled') + '>Ulangi</button>'
+    + '<button type="button" class="tpx-sb" data-a="undo" title="Ctrl+Z"' + (T.hist.length && ed ? '' : ' disabled') + '>Undo</button><button type="button" class="tpx-sb" data-a="redo" title="Ctrl+Shift+Z"' + (T.fut.length && ed ? '' : ' disabled') + '>Redo</button>'
     + '<button type="button" class="tpx-sb' + (ed ? ' edit-on' : '') + '" data-a="edit"' + (T.ro ? ' disabled' : '') + '><i class="ti ti-pencil"></i> ' + (ed ? 'Mode edit: aktif' : 'Mode edit') + '</button>';
   document.getElementById('tpxPal').innerHTML = ed
-    ? '<span class="tpx-lbl">Tambah</span><select id="tpxAddTy" aria-label="Tipe perangkat">' + Object.keys(TPX_TY).map(k => '<option value="' + k + '"' + (T.addTy === k ? ' selected' : '') + '>' + TPX_TY[k] + '</option>').join('') + '</select><button type="button" class="tpx-sb" data-a="an">+ Perangkat</button><button type="button" class="tpx-sb" data-a="ar">+ Rak / grup</button><span class="tpx-lbl">Seret perangkat atau rak untuk memindahkan. Pilih perangkat, lalu tarik titik biru (atau nomor port) ke perangkat lain untuk membuat garis.</span>'
-    : '<span class="tpx-lbl">Mode lihat saja. Arahkan kursor ke perangkat untuk menelusuri jalurnya, scroll untuk zoom, seret latar untuk menggeser. Klik <b>Mode edit</b> untuk mengubah.</span>';
+    ? '<span class="tpx-lbl">Tambah</span><select id="tpxAddTy" aria-label="Tipe perangkat">' + Object.keys(TPX_TY).filter(k => k !== 'ttl').map(k => '<option value="' + k + '"' + (T.addTy === k ? ' selected' : '') + '>' + TPX_TY[k] + '</option>').join('') + '</select><button type="button" class="tpx-sb" data-a="an">+ Perangkat</button><button type="button" class="tpx-sb" data-a="ar">+ Rak / grup</button><span class="tpx-lbl">Seret ikon, teks, atau rak untuk memindah · klik 2x teks untuk mengubahnya · pilih perangkat lalu klik port kosong Switch POE untuk memindah kabelnya.</span>'
+    : '<span class="tpx-lbl">Mode lihat saja. Klik <b>High Speed</b> atau <b>Low Speed</b> untuk zoom ke area itu, arahkan kursor ke port Switch POE untuk melihat perangkatnya. Aktifkan <b>Mode edit</b> untuk menggeser ikon, kabel, dan teks.</span>';
 }
 function tpxDrawPanel(){
   const p = document.getElementById('tpxDp'), d = T.edit ? '' : ' disabled', it = T.it;
@@ -15231,27 +15478,41 @@ function tpxDrawPanel(){
     const ips = n.ips.map((q, i) => '<div class="tpx-ipr"><select data-pn="' + i + '"' + d + '>' + nopt(q.n) + '</select><input type="text" data-pi="' + i + '" value="' + tpxEsc(q.ip) + '"' + d + '><button type="button" class="tpx-xb" data-a="ipd" data-i="' + i + '" aria-label="Hapus IP"' + d + '>&times;</button></div>').join('');
     const cn = it.links.filter(l => l.a === n.id || l.b === n.id).map(l => { const o = tpxNode(l.a === n.id ? l.b : l.a); return o ? '<span class="tpx-chip" data-go="' + o.id + '" style="color:' + tpxEsc(tpxLc(l)) + '">' + tpxEsc(o.nm) + '</span>' : ''; }).join('');
     const u = n.ports ? Object.keys(tpxUsedPorts(n)).length : 0;
+    const tot = n.ty === 'swp' ? 16 : n.ports;
+    let swl = '';
+    if(n.ty === 'swp'){
+      const pl = it.links.filter(l => l.st === 'p' && l.a === n.id).sort((a, b) => a.pn - b.pn);
+      swl = '<span class="tpx-lb2" style="margin-top:6px">Kabel per port (ubah nomor port di sini, atau pilih perangkat lalu klik port di diagram)</span>' + (pl.map(l => { const o = tpxNode(l.b); return '<div class="tpx-ipr"><select data-pl="' + l.id + '"' + d + '>' + Array.from({ length:16 }, (_, i) => '<option value="' + (i + 1) + '"' + (i + 1 === l.pn ? ' selected' : '') + '>Port ' + (i + 1) + '</option>').join('') + '</select><span>' + tpxEsc(o ? o.nm : '?') + '</span></div>'; }).join('') || '<span class="tpx-lbl">Belum ada kabel</span>');
+    }
     p.innerHTML = '<h4>Detail perangkat</h4><div class="tpx-ms" id="tpxDup" style="color:var(--red-fg);margin:0 0 8px"></div>'
-      + '<div class="tpx-fg"><div><label>Nama</label><input type="text" id="tpxFnm" value="' + tpxEsc(n.nm) + '"' + d + '></div><div><label>Tipe</label><select id="tpxFty"' + d + '>' + ts + '</select></div><div><label>Label kecil (tag)</label><input type="text" id="tpxFtg" value="' + tpxEsc(n.tag) + '"' + d + '></div><div><label>Jumlah port sensor</label><input type="text" id="tpxFp" value="' + (n.ports || 0) + '" style="width:80px"' + d + '></div>'
-      + (n.ports ? '<button type="button" class="tpx-sb" data-a="sn"' + d + '>+ Tambah stripbar ke port kosong</button>' : '') + '</div>'
-      + (n.ports ? '<div class="tpx-lbl" style="margin-bottom:6px">Port terpakai ' + u + ' dari ' + n.ports + '. Tarik nomor port ke perangkat lain untuk membuat sambungan kabel.</div>' : '')
-      + '<span class="tpx-lb2">Alamat IP</span>' + ips + '<button type="button" class="tpx-sb" data-a="ipa"' + d + '>+ IP</button>'
+      + '<div class="tpx-fg"><div><label>Nama</label><input type="text" id="tpxFnm" value="' + tpxEsc(n.nm) + '"' + d + '></div><div><label>Tipe</label><select id="tpxFty"' + d + '>' + ts + '</select></div><div><label>Label kecil (tag)</label><input type="text" id="tpxFtg" value="' + tpxEsc(n.tag) + '"' + d + '></div>'
+      + (n.bd ? '<div><label>Badge</label><input type="text" id="tpxFbd" value="' + tpxEsc(n.bd) + '"' + d + '></div>' : '')
+      + (n.ty === 'swp' ? '' : '<div><label>Jumlah port sensor</label><input type="text" id="tpxFp" value="' + (n.ports || 0) + '" style="width:80px"' + d + '></div>')
+      + (n.ports && n.ty !== 'swp' ? '<button type="button" class="tpx-sb" data-a="sn"' + d + '>+ Tambah stripbar ke port kosong</button>' : '') + '<button type="button" class="tpx-sb" data-a="rtx"' + d + '>Reset posisi teks</button></div>'
+      + (n.ports ? '<div class="tpx-lbl" style="margin-bottom:6px">Port terpakai ' + u + ' dari ' + tot + '. ' + (n.ty === 'swp' ? '' : 'Tarik nomor pin ke stripbar untuk menyambungkan kabel.') + '</div>' : '')
+      + swl
+      + '<span class="tpx-lb2" style="margin-top:8px">Alamat IP</span>' + ips + '<button type="button" class="tpx-sb" data-a="ipa"' + d + '>+ IP</button>'
       + '<span class="tpx-lb2" style="margin-top:10px">Terhubung ke (klik untuk lompat)</span><div>' + (cn || '<span class="tpx-lbl">Belum ada koneksi</span>') + '</div>'
       + '<span class="tpx-lb2" style="margin-top:6px">Catatan</span><textarea id="tpxFnt" placeholder="Mis. nomor seri, posisi di jalur, tanggal pasang, kontak vendor"' + d + '>' + tpxEsc(n.note) + '</textarea>'
       + '<div class="tpx-row" style="margin-top:8px"><button type="button" class="tpx-sb" data-a="dn">' + (T.down[n.id] ? 'Pulihkan perangkat' : 'Simulasikan putus') + '</button><button type="button" class="tpx-sb" data-a="dup"' + d + '>Duplikat</button><button type="button" class="tpx-sb danger" data-a="dl"' + d + '>Hapus perangkat</button></div>';
     tpxUpdDup();
   } else if(T.sel.k === 'r'){
-    p.innerHTML = '<h4>Rak / grup</h4><div class="tpx-fg"><div><label>Judul</label><input type="text" id="tpxFnm" value="' + tpxEsc(cur.t) + '" style="width:260px"' + d + '></div><button type="button" class="tpx-sb danger" data-a="dl"' + d + '>Hapus rak</button></div><div class="tpx-lbl">Seret rak: perangkat di dalamnya ikut pindah. Seret kotak biru di pojok kanan bawah untuk mengubah ukuran.</div>';
+    p.innerHTML = '<h4>Rak / grup</h4><div class="tpx-fg"><div><label>Judul</label><input type="text" id="tpxFnm" value="' + tpxEsc(cur.t) + '" style="width:260px"' + d + '></div><button type="button" class="tpx-sb danger" data-a="dl"' + d + '>Hapus</button></div><div class="tpx-lbl">Seret rak: perangkat di dalamnya ikut pindah. Seret kotak biru di pojok kanan bawah untuk mengubah ukuran.</div>';
   } else {
     const l = cur, so = (v) => ['l', 'r', 't', 'b'].map(s => '<option value="' + s + '"' + (s === v ? ' selected' : '') + '>' + { l:'Kiri', r:'Kanan', t:'Atas', b:'Bawah' }[s] + '</option>').join('');
-    const A = tpxNode(l.a), B = tpxNode(l.b);
+    const A = tpxNode(l.a), B = tpxNode(l.b), auto = l.st === 'p' || l.st === 'j' || l.st === 'a' || l.st === 'u';
     const pp = (id, n, v) => n && n.ports ? '<div><label>Port ' + tpxEsc(n.nm) + '</label><select id="' + id + '"' + d + '><option value="0">-</option>' + Array.from({ length: n.ports }, (_, i) => '<option value="' + (i + 1) + '"' + (i + 1 === v ? ' selected' : '') + '>' + (i + 1) + '</option>').join('') + '</select></div>' : '';
+    let mid;
+    if(l.st === 'p') mid = '<div><label>Port Switch POE</label><select id="tpxFpn"' + d + '>' + Array.from({ length:16 }, (_, i) => '<option value="' + (i + 1) + '"' + (i + 1 === l.pn ? ' selected' : '') + '>' + (i + 1) + '</option>').join('') + '</select></div>';
+    else if(l.st === 'j') mid = '<div><label>Pin ' + tpxEsc(A ? A.nm : '') + '</label><select id="tpxFpa"' + d + '>' + Array.from({ length:(A && A.ports) || 8 }, (_, i) => '<option value="' + (i + 1) + '"' + (i + 1 === l.pa ? ' selected' : '') + '>' + (i + 1) + '</option>').join('') + '</select></div>';
+    else if(auto) mid = '<div class="tpx-lbl" style="align-self:center">Rute otomatis mengikuti posisi perangkat.</div>';
+    else mid = '<div><label>Bentuk</label><select id="tpxFst"' + d + '><option value="o"' + (l.st === 'o' ? ' selected' : '') + '>Siku</option><option value="s"' + (l.st === 's' ? ' selected' : '') + '>Lurus</option></select></div>'
+      + '<div><label>Keluar dari</label><select id="tpxFsa"' + d + '>' + so(l.sa) + '</select></div><div><label>Masuk ke</label><select id="tpxFsb"' + d + '>' + so(l.sb) + '</select></div>' + pp('tpxFpa', A, l.pa) + pp('tpxFpb', B, l.pb);
     p.innerHTML = '<h4>Garis: ' + tpxEsc(A ? A.nm : '?') + ' ↔ ' + tpxEsc(B ? B.nm : '?') + '</h4><div class="tpx-fg">'
       + '<div><label>Kabel</label><select id="tpxFcb"' + d + '>' + it.cables.map(c => '<option value="' + tpxEsc(c.k) + '"' + (c.k === l.k ? ' selected' : '') + '>' + tpxEsc(c.n.split(':')[0]) + '</option>').join('') + '</select></div>'
       + (l.k === 'lan' ? '<div><label>Jaringan</label><select id="tpxFnet"' + d + '>' + it.nets.map(x => '<option value="' + tpxEsc(x.k) + '"' + (x.k === l.n ? ' selected' : '') + '>' + tpxEsc(x.n) + '</option>').join('') + '</select></div>' : '')
-      + '<div><label>Bentuk</label><select id="tpxFst"' + d + '><option value="o"' + (l.st === 'o' ? ' selected' : '') + '>Siku</option><option value="s"' + (l.st === 's' ? ' selected' : '') + '>Lurus</option></select></div>'
-      + '<div><label>Keluar dari</label><select id="tpxFsa"' + d + '>' + so(l.sa) + '</select></div><div><label>Masuk ke</label><select id="tpxFsb"' + d + '>' + so(l.sb) + '</select></div>' + pp('tpxFpa', A, l.pa) + pp('tpxFpb', B, l.pb)
-      + '<button type="button" class="tpx-sb" data-a="dc">' + (T.down[l.id] ? 'Sambung kabel' : 'Simulasikan kabel putus') + '</button><button type="button" class="tpx-sb danger" data-a="dl"' + d + '>Hapus garis</button></div><div class="tpx-lbl">Seret titik biru di tengah garis untuk menggeser tekukannya.</div>';
+      + mid
+      + '<button type="button" class="tpx-sb" data-a="dc">' + (T.down[l.id] ? 'Sambung kabel' : 'Simulasikan kabel putus') + '</button><button type="button" class="tpx-sb danger" data-a="dl"' + d + '>Hapus garis</button></div>' + (auto ? '' : '<div class="tpx-lbl">Seret titik biru di tengah garis untuk menggeser tekukannya.</div>');
   }
 }
 function tpxUpdDup(){
@@ -15264,7 +15525,7 @@ function tpxDrawNets(){
   if(!T.netsOpen) return;
   const d = T.edit ? '' : ' disabled', it = T.it;
   el.innerHTML = '<h4>Jaringan (warna garis LAN, prefix IP)</h4>' + it.nets.map((n, i) => '<div class="tpx-ipr"><input type="color" data-nc="' + i + '" value="' + tpxEsc(n.c) + '"' + d + ' aria-label="Warna"><input type="text" data-nn="' + i + '" value="' + tpxEsc(n.n) + '" placeholder="Nama" style="max-width:130px"' + d + '><input type="text" data-np="' + i + '" value="' + tpxEsc(n.pre) + '" placeholder="Prefix IP, mis. 172.20.32."' + d + '><button type="button" class="tpx-xb" data-a="netd" data-i="' + i + '" aria-label="Hapus jaringan"' + d + '>&times;</button></div>').join('') + '<button type="button" class="tpx-sb" data-a="neta"' + d + '>+ Jaringan</button>'
-    + '<h4 style="margin-top:14px">Jenis kabel</h4>' + it.cables.map((c, i) => '<div class="tpx-ipr">' + (c.k === 'lan' ? '<span class="tpx-lbl" style="width:32px">auto</span>' : '<input type="color" data-cc="' + i + '" value="' + tpxEsc(c.c || '#F5C26B') + '"' + d + ' aria-label="Warna kabel">') + '<input type="text" data-cn="' + i + '" value="' + tpxEsc(c.n) + '"' + (c.k === 'lan' ? ' disabled' : d) + '>' + (c.k === 'lan' ? '' : '<button type="button" class="tpx-xb" data-a="cabd" data-i="' + i + '" aria-label="Hapus kabel"' + d + '>&times;</button>') + '</div>').join('') + '<button type="button" class="tpx-sb" data-a="caba"' + d + '>+ Jenis kabel</button><div class="tpx-lbl" style="margin-top:6px">Kabel bukan LAN digambar bertitik dengan warnanya sendiri. Jaringan atau kabel yang masih dipakai tidak bisa dihapus.</div>';
+    + '<h4 style="margin-top:14px">Jenis kabel</h4>' + it.cables.map((c, i) => '<div class="tpx-ipr">' + (c.k === 'lan' ? '<span class="tpx-lbl" style="width:32px">auto</span>' : '<input type="color" data-cc="' + i + '" value="' + tpxEsc(c.c || '#E8890C') + '"' + d + ' aria-label="Warna kabel">') + '<input type="text" data-cn="' + i + '" value="' + tpxEsc(c.n) + '"' + (c.k === 'lan' ? ' disabled' : d) + '>' + (c.k === 'lan' ? '' : '<button type="button" class="tpx-xb" data-a="cabd" data-i="' + i + '" aria-label="Hapus kabel"' + d + '>&times;</button>') + '</div>').join('') + '<button type="button" class="tpx-sb" data-a="caba"' + d + '>+ Jenis kabel</button><div class="tpx-lbl" style="margin-top:6px">Kabel bukan LAN digambar bertitik/putus-putus dengan warnanya sendiri. Jaringan atau kabel yang masih dipakai tidak bisa dihapus.</div>';
 }
 function tpxDrawTable(){
   const tv = document.getElementById('tpxTbv'), wr = document.getElementById('tpxWrap');
@@ -15272,15 +15533,17 @@ function tpxDrawTable(){
   if(T.view !== 'tb') return;
   const dm = tpxDupMap(); let rows = '';
   T.it.nodes.slice().sort((a, b) => a.nm.localeCompare(b.nm, 'id', { numeric:true })).forEach(x => {
+    if(x.ty === 'txt' || x.ty === 'ttl') return;
     if(T.q && !tpxHit(x)) return;
     if(T.fn !== 'all' && !x.ips.some(p => p.n === T.fn)) return;
-    const box = T.it.boxes.find(b => x.x + x.w / 2 > b.x && x.x + x.w / 2 < b.x + b.w && x.y + x.h / 2 > b.y && x.y + x.h / 2 < b.y + b.h);
+    const bxs = T.it.boxes.filter(b => !b.lg && !b.pl && x.x + x.w / 2 > b.x && x.x + x.w / 2 < b.x + b.w && x.y + x.h / 2 > b.y && x.y + x.h / 2 < b.y + b.h), box = bxs.length ? bxs[bxs.length - 1] : null;
+    const lane = bxs.find(b => b.lane);
     (x.ips.length ? x.ips : [null]).forEach(p => {
       const n = p && tpxNetOf(p.n);
-      rows += '<tr class="cl" data-tr="' + x.id + '"><td>' + tpxEsc(x.nm) + '</td><td>' + tpxEsc(TPX_TY[x.ty] || x.ty) + '</td><td>' + tpxEsc(box ? box.t : '-') + '</td><td>' + (p ? '<span class="tpx-nb" style="color:' + tpxEsc(n ? n.c : '#888') + '">' + tpxEsc(n ? n.n : p.n) + '</span>' : '-') + '</td><td' + (p && dm[(p.ip || '').trim()] > 1 ? ' style="color:var(--red-fg);font-weight:600"' : '') + '>' + (p ? tpxEsc(p.ip) : '-') + '</td><td>' + tpxEsc(x.note) + '</td></tr>';
+      rows += '<tr class="cl" data-tr="' + x.id + '"><td>' + tpxEsc(x.nm) + '</td><td>' + tpxEsc(TPX_TY[x.ty] || x.ty) + '</td><td>' + tpxEsc((lane ? lane.t + ' · ' : '') + (box && box !== lane ? box.t : '') || '-') + '</td><td>' + (p ? '<span class="tpx-nb" style="color:' + tpxEsc(n ? n.c : '#888') + '">' + tpxEsc(n ? n.n : p.n) + '</span>' : '-') + '</td><td' + (p && dm[(p.ip || '').trim()] > 1 ? ' style="color:var(--red-fg);font-weight:600"' : '') + '>' + (p ? tpxEsc(p.ip) : '-') + '</td><td>' + tpxEsc(x.note) + '</td></tr>';
     });
   });
-  tv.innerHTML = '<table class="tpx-tb"><thead><tr><th>Perangkat</th><th>Tipe</th><th>Rak / grup</th><th>Jaringan</th><th>IP</th><th>Catatan</th></tr></thead><tbody>' + (rows || '<tr><td colspan="6" class="tpx-lbl">Tidak ada data yang cocok.</td></tr>') + '</tbody></table>';
+  tv.innerHTML = '<table class="tpx-tb"><thead><tr><th>Perangkat</th><th>Tipe</th><th>Lane / rak / zona</th><th>Jaringan</th><th>IP</th><th>Catatan</th></tr></thead><tbody>' + (rows || '<tr><td colspan="6" class="tpx-lbl">Tidak ada data yang cocok.</td></tr>') + '</tbody></table>';
 }
 function tpxDrawAll(){
   if(!T) return;
@@ -15297,7 +15560,7 @@ function tpxDrawAll(){
 function tpxCsv(){
   const q = s => '"' + String(s == null ? '' : s).replace(/"/g, '""') + '"';
   const lines = [['Perangkat', 'Tipe', 'Jaringan', 'IP', 'Catatan'].map(q).join(',')];
-  T.it.nodes.forEach(x => (x.ips.length ? x.ips : [null]).forEach(p => { const n = p && tpxNetOf(p.n); lines.push([x.nm, TPX_TY[x.ty] || x.ty, p ? (n ? n.n : p.n) : '', p ? p.ip : '', x.note].map(q).join(',')); }));
+  T.it.nodes.filter(x => x.ty !== 'txt' && x.ty !== 'ttl').forEach(x => (x.ips.length ? x.ips : [null]).forEach(p => { const n = p && tpxNetOf(p.n); lines.push([x.nm, TPX_TY[x.ty] || x.ty, p ? (n ? n.n : p.n) : '', p ? p.ip : '', x.note].map(q).join(',')); }));
   const blob = new Blob(['﻿' + lines.join('\r\n')], { type:'text/csv;charset=utf-8' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob); a.download = (T.it.title || 'topologi').replace(/[^\w\- ]+/g, '').trim().replace(/\s+/g, '_') + '_IP.csv';
@@ -15309,15 +15572,15 @@ function tpxSvgPt(e){ const svg = document.getElementById('tpxCv'), m = svg.getS
 function tpxWorld(e){ const s = tpxSvgPt(e); return [(s[0] - T.tf.x) / T.tf.k, (s[1] - T.tf.y) / T.tf.k]; }
 function tpxAddSensors(n){
   tpxPush();
-  const u = tpxUsedPorts(n), tot = n.ports, x0 = Math.round((n.x + n.w / 2 - tot * 22) / 10) * 10; let k = 0;
+  const u = tpxUsedPorts(n), tot = n.ports, x0 = Math.round((n.x + n.w / 2 - tot * 32) / 10) * 10; let k = 0;
   for(let i = 1; i <= tot; i++){
     if(u[i]) continue;
     const sid = tpxNid();
-    T.it.nodes.push({ id:sid, x:x0 + (i - 1) * 44, y:n.y + n.h + 110, w:40, h:34, ty:'strip', nm:'SB' + i, ips:[], note:'', ports:0 });
-    T.it.links.push({ id:'l' + tpxNid(), a:n.id, sa:'b', pa:i, b:sid, sb:'t', pb:0, n:T.it.nets[0].k, k:'jitter', m: i <= tot / 2 ? .25 + (i - 1) * .1 : .25 + (tot - i) * .1, st:'o' });
+    T.it.nodes.push({ id:sid, x:x0 + (i - 1) * 64, y:n.y + n.h + 150, w:54, h:80, ty:'strip', nm:'SB' + i, ips:[], note:'', ports:0, tag:'', sh:'p', lt:0, off:{}, zg:n.zg || '' });
+    T.it.links.push({ id:'l' + tpxNid(), a:n.id, sa:'b', pa:i, b:sid, sb:'t', pb:0, n:T.it.nets[0].k, k:'jitter', m:.5, st:'j' });
     k++;
   }
-  tpxMsg(k ? k + ' stripbar ditambahkan dan disambung ke port kosong dengan kabel jitter. Seret ke posisi yang pas.' : 'Semua port sudah terpakai.');
+  tpxMsg(k ? k + ' stripbar ditambahkan dan disambung ke pin kosong dengan kabel jitter. Seret ke posisi yang pas.' : 'Semua pin sudah terpakai.');
   tpxChg();
 }
 function tpxDelSel(){
@@ -15326,44 +15589,97 @@ function tpxDelSel(){
   if(s.k === 'n'){ T.it.nodes = T.it.nodes.filter(n => n.id !== s.id); T.it.links = T.it.links.filter(l => l.a !== s.id && l.b !== s.id); }
   else if(s.k === 'r') T.it.boxes = T.it.boxes.filter(b => b.id !== s.id);
   else T.it.links = T.it.links.filter(l => l.id !== s.id);
-  T.sel = null; tpxChg();
+  T.sel = null; T.selP = null; tpxChg();
 }
-function tpxInline(k, id){
+/* ubah teks langsung di diagram (klik 2x) */
+function tpxInline(k, id, part){
   if(!T.edit || T.ro){ tpxMsg('Aktifkan Mode edit dulu untuk mengubah teks.'); return; }
-  const o = k === 'n' ? tpxNode(id) : T.it.boxes.find(b => b.id === id); if(!o) return;
-  const cur0 = k === 'n' ? o.nm : o.t;
+  let n = null, r = null, cur0, sel;
+  if(k === 'bt' || k === 'r'){ r = T.it.boxes.find(b => b.id === id); if(!r) return; cur0 = r.t; sel = '[data-k="bt"][data-id="' + id + '"]'; }
+  else {
+    n = tpxNode(id); if(!n) return;
+    part = (k === 'n' || !part) ? 'nm' : part;
+    cur0 = part === 'nm' ? n.nm : part === 'bd' ? n.bd : n.ips.map(p => p.ip).join(' / ');
+    sel = '[data-k="np"][data-id="' + id + '"][data-p="' + part + '"]';
+  }
   setTimeout(() => {
     if(!T) return;
-    const svg = document.getElementById('tpxCv'), wrap = document.getElementById('tpxWrap'), m = svg.getScreenCTM(), wr = wrap.getBoundingClientRect();
-    const sx = (o.x * T.tf.k + T.tf.x), sy = (o.y * T.tf.k + T.tf.y), sw = o.w * T.tf.k, sh = o.h * T.tf.k;
-    const p = new DOMPoint(sx, sy).matrixTransform(m), q = new DOMPoint(sx + sw, sy + sh).matrixTransform(m);
+    const el = document.querySelector('#tpxVp ' + sel), wrap = document.getElementById('tpxWrap');
+    if(!el){ tpxMsg('Bagian ini tidak punya teks yang bisa diubah di diagram. Gunakan panel detail di bawah.'); return; }
+    const b = el.getBoundingClientRect(), wr = wrap.getBoundingClientRect();
     const inp = document.createElement('input'); inp.type = 'text'; inp.value = cur0; inp.setAttribute('aria-label', 'Ubah teks');
-    inp.style.cssText = 'position:absolute;z-index:6;width:' + Math.max(130, Math.min(q.x - p.x, 260)) + 'px;left:' + (p.x - wr.left + 4) + 'px;top:' + (k === 'n' ? p.y - wr.top + Math.max(0, (q.y - p.y - 28) / 2) : p.y - wr.top + 6) + 'px';
+    const w = Math.max(150, Math.min(b.width + 40, 340));
+    inp.style.cssText = 'position:absolute;z-index:6;width:' + w + 'px;left:' + Math.max(4, Math.min(b.left - wr.left + b.width / 2 - w / 2, wr.width - w - 4)) + 'px;top:' + Math.max(4, b.top - wr.top + (b.height - 28) / 2) + 'px;box-shadow:0 2px 10px rgba(10,42,94,.25)';
     wrap.appendChild(inp); inp.focus(); inp.select();
     let done = 0;
-    const fin = (ok) => { if(done) return; done = 1; const v = inp.value.trim(); inp.remove(); if(ok && v && v !== cur0){ tpxPush(); if(k === 'n') o.nm = v; else o.t = v; tpxChg(); } };
+    const fin = (ok) => {
+      if(done) return; done = 1; const v = inp.value.trim(); inp.remove();
+      if(!ok || !v || v === cur0 || !T) return;
+      tpxPush();
+      if(r) r.t = v; else if(part === 'nm') n.nm = v; else if(part === 'bd') n.bd = v;
+      else {
+        const arr = v.split('/').map(z => z.trim()).filter(Boolean), last = n.ips.length ? n.ips[n.ips.length - 1].n : T.it.nets[0].k;
+        n.ips = arr.map((z, i) => ({ n: n.ips[i] ? n.ips[i].n : last, ip: z }));
+      }
+      tpxChg();
+    };
     inp.addEventListener('blur', () => fin(true));
     inp.addEventListener('keydown', (ev) => { ev.stopPropagation(); if(ev.key === 'Enter') fin(true); else if(ev.key === 'Escape') fin(false); });
   }, 40);
+}
+/* klik port Switch POE: sorot kabelnya, atau (mode edit + perangkat terpilih) pindahkan kabel perangkat itu ke port ini */
+function tpxPortClick(id, p){
+  const sw = tpxNode(id); if(!sw) return;
+  const pm = tpxPortMap(sw);
+  if(T.edit && !T.ro && T.sel && T.sel.k === 'n' && T.sel.id !== id){
+    const l = T.it.links.find(x => x.st === 'p' && x.a === id && x.b === T.sel.id);
+    if(l){
+      if(pm[p] && pm[p] !== l){ const o = tpxNode(pm[p].b); tpxMsg('Port ' + p + ' sudah dipakai ' + (o ? o.nm : 'perangkat lain') + '. Pilih port yang kosong.'); return; }
+      if(l.pn !== p){ tpxPush(); const nd = tpxNode(l.b); l.pn = p; tpxMsg((nd ? nd.nm : 'Kabel') + ' dipindah ke port ' + p + '. Klik Undo untuk membatalkan.'); T.selP = { id, p }; tpxChg(); }
+      return;
+    }
+  }
+  T.selP = (T.selP && T.selP.id === id && T.selP.p === p) ? null : { id, p };
+  const l = pm[p], d = l && tpxNode(l.b);
+  tpxMsg(T.selP ? ('Port ' + p + (d ? ': ' + d.nm + (d.ips.length ? ' (' + d.ips.map(q => q.ip).join(' / ') + ')' : '') + (T.edit ? '. Untuk memindah, pilih perangkatnya lalu klik port kosong.' : '') : ': kosong.')) : '');
+  tpxDrawCanvas();
 }
 function tpxBind(host){
   const inCv = (e) => e.target.closest && e.target.closest('#tpxCv');
   host.addEventListener('pointerdown', (e) => {
     if(!T || !inCv(e)) return;
     const svg = document.getElementById('tpxCv'), g = e.target.closest('[data-k]');
-    if(!g){ T.sel = null; const s = tpxSvgPt(e); T.drag = { t:'pan', sx:s[0], sy:s[1], ox:T.tf.x, oy:T.tf.y }; svg.setPointerCapture(e.pointerId); svg.style.cursor = 'grabbing'; tpxDrawAll(); return; }
-    const k = g.dataset.k, id = g.dataset.id, w = tpxWorld(e);
-    const nowT = performance.now();
-    if((k === 'n' || k === 'r') && T.lastDown && T.lastDown.id === id && nowT - T.lastDown.t < 400){ T.lastDown = null; tpxInline(k, id); return; }
-    T.lastDown = { id, t:nowT };
+    const pan = () => { cancelAnimationFrame(T.anim); const s = tpxSvgPt(e); T.drag = { t:'pan', sx:s[0], sy:s[1], ox:T.tf.x, oy:T.tf.y }; svg.setPointerCapture(e.pointerId); svg.style.cursor = 'grabbing'; };
+    if(!g){ T.sel = null; T.selP = null; pan(); tpxDrawAll(); return; }
+    let k = g.dataset.k, id = g.dataset.id; const w = tpxWorld(e), part = g.dataset.p || '';
+    if(k === 'zm'){ clearTimeout(T.zt); T.lv = null; tpxAnimTf(tpxTfFor(tpxGroupRects(g.dataset.z), 36)); tpxDrawBar(); return; }
+    if(k === 'sp'){ tpxPortClick(id, +g.dataset.p); return; }
+    if(k === 'r' && !T.edit){ pan(); return; }
+    const nowT = performance.now(), key = k + ':' + id + ':' + part;
+    if((k === 'np' || k === 'bt' || k === 'n' || k === 'r') && T.lastDown && T.lastDown.key === key && nowT - T.lastDown.t < 400){ T.lastDown = null; clearTimeout(T.zt); tpxInline(k, id, part); return; }
+    T.lastDown = { key, t:nowT };
     if(k === 'pt' && T.edit){ const n = tpxNode(id), p = tpxPt(n, g.dataset.s); T.drag = { t:'link', a:id, sa:g.dataset.s, pa:0, p, q:p }; svg.setPointerCapture(e.pointerId); return; }
     if(k === 'pp' && T.edit){ const n = tpxNode(id), p = tpxPt(n, 'b', +g.dataset.p); T.drag = { t:'link', a:id, sa:'b', pa:+g.dataset.p, jit:1, p, q:p }; svg.setPointerCapture(e.pointerId); return; }
     if((k === 'hd' || k === 'rz') && T.edit){ T.drag = { t:k, id, pre:tpxSnap(), moved:false }; svg.setPointerCapture(e.pointerId); return; }
     if(k === 'pp') return;
-    T.sel = { k, id };
+    if(k === 'np'){
+      const n = tpxNode(id); if(!n) return;
+      if(part === 'bd' && n.zg) tpxZoomLater(n.zg);
+      if(T.edit || part !== 'bd'){ T.sel = { k:'n', id }; T.selP = null; }
+      if(T.edit){ const o = (n.off && n.off[part]) || [0, 0]; T.drag = { t:'lab', n, part, ox:o[0], oy:o[1], sx:w[0], sy:w[1], pre:tpxSnap(), moved:false }; svg.setPointerCapture(e.pointerId); }
+      tpxDrawCanvas(); tpxDrawPanel(); return;
+    }
+    if(k === 'bt'){
+      const r = T.it.boxes.find(b => b.id === id); if(!r) return;
+      if(r.zg) tpxZoomLater(r.zg);
+      if(!T.edit){ return; }
+      k = 'r';
+    }
+    T.sel = { k, id }; T.selP = null;
     if(T.edit && (k === 'n' || k === 'r')){
       const o = k === 'n' ? tpxNode(id) : T.it.boxes.find(b => b.id === id), car = [];
       if(k === 'r') T.it.nodes.forEach(n => { if(n.x + n.w / 2 > o.x && n.x + n.w / 2 < o.x + o.w && n.y + n.h / 2 > o.y && n.y + n.h / 2 < o.y + o.h) car.push({ o:n, x:n.x, y:n.y }); });
+      if(k === 'r') T.it.boxes.forEach(bb => { if(bb !== o && bb.x >= o.x && bb.y >= o.y && bb.x + bb.w <= o.x + o.w && bb.y + bb.h <= o.y + o.h) car.push({ o:bb, x:bb.x, y:bb.y }); });
       T.drag = { t:'mv', o, ox:o.x, oy:o.y, sx:w[0], sy:w[1], car, pre:tpxSnap(), moved:false }; svg.setPointerCapture(e.pointerId);
     }
     tpxDrawCanvas(); tpxDrawPanel();
@@ -15373,13 +15689,16 @@ function tpxBind(host){
     const d = T.drag;
     if(!d){
       if(!inCv(e)) return;
+      const sp = e.target.closest('[data-k="sp"]');
+      if(sp){ tpxPortTip(e, sp); return; }
       const g = e.target.closest('[data-k="n"]'), id = g ? g.dataset.id : null;
-      if((id || null) !== T.hov){ T.hov = id || null; tpxDrawCanvas(); }
+      if((id || null) !== T.hov){ T.hov = id || null; if(!T.edit) tpxDrawCanvas(); }
       tpxTip(e, id); return;
     }
     const w = tpxWorld(e);
     if(d.t === 'pan'){ const s = tpxSvgPt(e); T.tf.x = d.ox + s[0] - d.sx; T.tf.y = d.oy + s[1] - d.sy; document.getElementById('tpxVp').setAttribute('transform', 'translate(' + T.tf.x + ' ' + T.tf.y + ') scale(' + T.tf.k + ')'); }
-    else if(d.t === 'mv'){ d.moved = true; const dx = tpxSn(d.ox + w[0] - d.sx) - d.ox, dy = tpxSn(d.oy + w[1] - d.sy) - d.oy; d.o.x = d.ox + dx; d.o.y = d.oy + dy; d.car.forEach(c => { c.o.x = c.x + dx; c.o.y = c.y + dy; }); tpxDrawCanvas(); }
+    else if(d.t === 'mv'){ const dx = tpxSn(d.ox + w[0] - d.sx) - d.ox, dy = tpxSn(d.oy + w[1] - d.sy) - d.oy; if(!d.moved && !dx && !dy) return; d.moved = true; clearTimeout(T.zt); d.o.x = d.ox + dx; d.o.y = d.oy + dy; d.car.forEach(c => { c.o.x = c.x + dx; c.o.y = c.y + dy; }); tpxDrawCanvas(); }
+    else if(d.t === 'lab'){ const dx = w[0] - d.sx, dy = w[1] - d.sy; if(!d.moved && Math.hypot(dx, dy) * T.tf.k < 3) return; d.moved = true; clearTimeout(T.zt); d.n.off = d.n.off || {}; d.n.off[d.part] = [Math.round(d.ox + dx), Math.round(d.oy + dy)]; tpxDrawCanvas(); }
     else if(d.t === 'rz'){ d.moved = true; const r = T.it.boxes.find(z => z.id === d.id); r.w = Math.max(100, tpxSn(w[0] - r.x)); r.h = Math.max(80, tpxSn(w[1] - r.y)); tpxDrawCanvas(); }
     else if(d.t === 'hd'){ d.moved = true; const l = T.it.links.find(z => z.id === d.id), a = tpxNode(l.a), b = tpxNode(l.b), p = tpxPt(a, l.sa, l.pa), z = tpxPt(b, l.sb, l.pb), h = l.sa === 'l' || l.sa === 'r'; const v = h ? ((z[0] - p[0]) ? (w[0] - p[0]) / (z[0] - p[0]) : .5) : ((z[1] - p[1]) ? (w[1] - p[1]) / (z[1] - p[1]) : .5); l.m = Math.max(-2, Math.min(3, v)); tpxDrawCanvas(); }
     else if(d.t === 'link'){ d.q = w; tpxDrawCanvas(); }
@@ -15389,39 +15708,66 @@ function tpxBind(host){
     const d = T.drag; T.drag = null; document.getElementById('tpxCv').style.cursor = '';
     if(d.t === 'pan'){ tpxDrawCanvas(); return; }
     if(d.t === 'link'){
-      const w = tpxWorld(e), tg = T.it.nodes.find(n => n.id !== d.a && w[0] >= n.x - 6 && w[0] <= n.x + n.w + 6 && w[1] >= n.y - 6 && w[1] <= n.y + n.h + 6);
+      const w = tpxWorld(e), tg = T.it.nodes.find(n => n.id !== d.a && n.ty !== 'txt' && n.ty !== 'ttl' && w[0] >= n.x - 6 && w[0] <= n.x + n.w + 6 && w[1] >= n.y - 6 && w[1] <= n.y + n.h + 6);
       if(tg){
-        const src = tpxNode(d.a), sb = Math.abs(src.x + src.w / 2 - (tg.x + tg.w / 2)) > Math.abs(src.y + src.h / 2 - (tg.y + tg.h / 2)) ? (src.x < tg.x ? 'l' : 'r') : (src.y < tg.y ? 't' : 'b');
-        tpxPush();
-        const nl = { id:'l' + tpxNid(), a:d.a, sa:d.sa, pa:d.pa || 0, b:tg.id, sb: d.pa ? 't' : sb, pb:0, n:T.it.nets[0].k, k:'lan', m:.5, st:'o' };
-        if(d.pa || tg.ty === 'strip' || tg.ty === 'loadcell') nl.k = d.pa || tg.ty === 'strip' ? 'jitter' : 'loadcell';
-        if(tg.ports && !d.pa){ const fp = tpxFreePort(tg); if(fp){ nl.pb = fp; nl.sb = 'b'; } }
-        T.it.links.push(nl); T.sel = { k:'l', id:nl.id }; tpxMsg('Garis dibuat. Atur kabel, bentuk, dan sisi di panel bawah.'); tpxChg(); return;
+        const src = tpxNode(d.a), net0 = T.it.nets[0].k;
+        let nl = null;
+        if(src.ty === 'swp' || tg.ty === 'swp'){
+          const sw = src.ty === 'swp' ? src : tg, dv = src.ty === 'swp' ? tg : src;
+          if(dv.ty === 'swp'){ tpxMsg('Dua Switch POE dihubungkan lewat jalur inter-switch di template. Buat kabel dari perangkat ke switch.'); tpxDrawCanvas(); return; }
+          if(T.it.links.some(x => x.st === 'p' && x.a === sw.id && x.b === dv.id)){ tpxMsg(dv.nm + ' sudah tersambung ke Switch POE ini. Pindahkan lewat klik port.'); tpxDrawCanvas(); return; }
+          const fp = tpxFreePort(sw);
+          if(!fp){ tpxMsg('Semua 16 port Switch POE sudah terpakai.'); tpxDrawCanvas(); return; }
+          nl = { id:'l' + tpxNid(), a:sw.id, sa:'b', pa:0, b:dv.id, sb:'t', pb:0, n:net0, k:'lan', m:.5, st:'p', pn:fp, lo:Math.round(dv.x + dv.w / 2 - sw.x) };
+        } else if((src.ports && tg.sh === 'p') || (tg.ports && src.sh === 'p')){
+          const wm = src.ports ? src : tg, sb = src.ports ? tg : src, fp = d.pa || tpxFreePort(wm);
+          if(!fp){ tpxMsg('Semua pin ' + wm.nm + ' sudah terpakai.'); tpxDrawCanvas(); return; }
+          tpxPush();
+          T.it.links = T.it.links.filter(x => !(x.st === 'j' && ((x.a === wm.id && x.pa === fp) || x.b === sb.id)));
+          nl = { id:'l' + tpxNid(), a:wm.id, sa:'b', pa:fp, b:sb.id, sb:'t', pb:0, n:net0, k:'jitter', m:.5, st:'j' };
+          T.it.links.push(nl); T.sel = { k:'l', id:nl.id }; tpxMsg('Kabel jitter dibuat dari pin ' + fp + '. Atur pin di panel bawah.'); tpxChg(); return;
+        } else if(src.ty === 'jbox' || tg.ty === 'jbox' || src.sh === 'c' || tg.sh === 'c'){
+          nl = { id:'l' + tpxNid(), a:d.a, sa:'r', pa:0, b:tg.id, sb:'l', pb:0, n:net0, k:'loadcell', m:.5, st:'a' };
+        } else {
+          const sb = Math.abs(src.x + src.w / 2 - (tg.x + tg.w / 2)) > Math.abs(src.y + src.h / 2 - (tg.y + tg.h / 2)) ? (src.x < tg.x ? 'l' : 'r') : (src.y < tg.y ? 't' : 'b');
+          nl = { id:'l' + tpxNid(), a:d.a, sa:d.sa, pa:d.pa || 0, b:tg.id, sb: d.pa ? 't' : sb, pb:0, n:net0, k:'lan', m:.5, st:'o' };
+          if(d.pa || tg.ty === 'strip') nl.k = 'jitter'; else if(tg.ty === 'loadcell') nl.k = 'loadcell';
+        }
+        tpxPush(); T.it.links.push(nl); T.sel = { k:'l', id:nl.id }; tpxMsg('Garis dibuat. Atur kabel dan port di panel bawah.'); tpxChg(); return;
       }
       tpxDrawCanvas(); return;
     }
-    if(d.moved){ T.hist.push(d.pre); if(T.hist.length > 40) T.hist.shift(); T.fut = []; tpxQueueSave(); }
+    if(d.moved){ T.hist.push(d.pre); if(T.hist.length > 60) T.hist.shift(); T.fut = []; tpxQueueSave(); }
     tpxDrawAll();
   });
-  host.addEventListener('pointerleave', () => { if(T && !T.drag){ T.hov = null; tpxDrawCanvas(); const t = document.getElementById('tpxTip'); if(t) t.style.display = 'none'; } });
+  host.addEventListener('pointerleave', () => { if(T && !T.drag){ const was = T.hov; T.hov = null; if(was && !T.edit) tpxDrawCanvas(); const t = document.getElementById('tpxTip'); if(t) t.style.display = 'none'; } });
   host.addEventListener('wheel', (e) => {
     if(!T || !inCv(e)) return;
-    e.preventDefault();
-    const s = tpxSvgPt(e), k = Math.max(.25, Math.min(3, T.tf.k * (e.deltaY < 0 ? 1.12 : .89)));
+    e.preventDefault(); cancelAnimationFrame(T.anim);
+    const s = tpxSvgPt(e), k = Math.max(.2, Math.min(3, T.tf.k * (e.deltaY < 0 ? 1.12 : .89)));
     T.tf.x = s[0] - (s[0] - T.tf.x) * k / T.tf.k; T.tf.y = s[1] - (s[1] - T.tf.y) * k / T.tf.k; T.tf.k = k; tpxDrawCanvas();
   }, { passive:false });
+  function tpxTipAt(e, html){
+    const t = document.getElementById('tpxTip'), w = document.getElementById('tpxWrap').getBoundingClientRect();
+    t.innerHTML = html; t.style.display = 'block'; t.style.left = Math.max(4, Math.min(e.clientX - w.left + 14, w.width - 250)) + 'px'; t.style.top = (e.clientY - w.top + 16) + 'px';
+  }
   function tpxTip(e, id){
     const t = document.getElementById('tpxTip'); if(!id){ t.style.display = 'none'; return; }
-    const n = tpxNode(id), w = document.getElementById('tpxWrap').getBoundingClientRect();
-    t.innerHTML = '<b style="font-weight:600">' + tpxEsc(n.nm) + '</b><br><span style="color:#9DB4CE">' + tpxEsc(TPX_TY[n.ty] || n.ty) + (n.ips.length ? ' · ' + tpxEsc(n.ips.map(p => p.ip).join(' / ')) : '') + (n.tag ? ' · ' + tpxEsc(n.tag) : '') + ' · ' + (T.down[id] ? 'putus (simulasi)' : 'online') + '</span>';
-    t.style.display = 'block'; t.style.left = Math.max(4, Math.min(e.clientX - w.left + 14, w.width - 230)) + 'px'; t.style.top = (e.clientY - w.top + 16) + 'px';
+    const n = tpxNode(id); if(!n || n.ty === 'txt' || n.ty === 'ttl' || n.ty === 'swp'){ t.style.display = 'none'; return; }
+    tpxTipAt(e, '<b style="font-weight:700">' + tpxEsc(n.nm) + '</b><br><span style="color:#51607A">' + tpxEsc(TPX_TY[n.ty] || n.ty) + (n.ips.length ? ' · ' + tpxEsc(n.ips.map(p => p.ip).join(' / ')) : '') + (n.tag ? ' · ' + tpxEsc(n.tag) : '') + ' · ' + (T.down[id] ? 'putus (simulasi)' : 'online') + '</span>');
+  }
+  function tpxPortTip(e, sp){
+    const sw = tpxNode(sp.dataset.id), p = +sp.dataset.p; if(!sw) return;
+    const l = T.it.links.find(x => x.st === 'p' && x.a === sw.id && x.pn === p), d = l && tpxNode(l.b);
+    tpxTipAt(e, d ? '<b style="font-weight:700">Port ' + p + '</b> · ' + tpxEsc(d.nm) + '<br><span style="color:#51607A">' + (d.ips.length ? tpxEsc(d.ips.map(q => q.ip).join(' / ')) : 'tanpa IP') + '</span>' : '<b style="font-weight:700">Port ' + p + '</b> · kosong');
   }
   host.addEventListener('click', (e) => {
     if(!T) return;
-    const t = e.target, z = t.closest('[data-z]');
+    const t = e.target, z = t.closest('.tpx-zm button[data-z]');
     if(z){
+      cancelAnimationFrame(T.anim);
       if(z.dataset.z === 'fit') tpxFit();
-      else { const k = Math.max(.25, Math.min(3, T.tf.k * (z.dataset.z === 'in' ? 1.25 : .8))), cx = TPX_VW / 2, cy = TPX_VH / 2; T.tf.x = cx - (cx - T.tf.x) * k / T.tf.k; T.tf.y = cy - (cy - T.tf.y) * k / T.tf.k; T.tf.k = k; }
+      else { const k = Math.max(.2, Math.min(3, T.tf.k * (z.dataset.z === 'in' ? 1.25 : .8))), cx = TPX_VW / 2, cy = TPX_VH / 2; T.tf.x = cx - (cx - T.tf.x) * k / T.tf.k; T.tf.y = cy - (cy - T.tf.y) * k / T.tf.k; T.tf.k = k; }
       tpxDrawCanvas(); return;
     }
     const go = t.closest('[data-go]');
@@ -15429,36 +15775,45 @@ function tpxBind(host){
     const tr = t.closest('[data-tr]');
     if(tr){ const n = tpxNode(tr.dataset.tr); T.sel = { k:'n', id:tr.dataset.tr }; T.view = 'dg'; if(n) tpxFocusOn(n); tpxDrawAll(); return; }
     const a = t.closest('[data-a]'); if(!a) return;
-    const act = a.dataset.a, needEdit = ['an', 'ar', 'ipa', 'ipd', 'dl', 'dup', 'sn', 'neta', 'netd', 'caba', 'cabd', 'newtp', 'copytp', 'reset', 'undo', 'redo'];
+    const act = a.dataset.a, needEdit = ['an', 'ar', 'ipa', 'ipd', 'dl', 'dup', 'sn', 'neta', 'netd', 'caba', 'cabd', 'newtp', 'copytp', 'reset', 'undo', 'redo', 'rtx'];
     if(needEdit.includes(act) && (!T.edit || T.ro)){ tpxMsg('Aktifkan mode edit dulu.'); return; }
     const cur = tpxSelObj();
     switch(act){
       case 'back': tpxClose(); return;
-      case 'edit': T.edit = !T.edit; tpxMsg(T.edit ? 'Mode edit aktif.' : 'Mode lihat saja: perubahan dikunci.'); break;
+      case 'edit': T.edit = !T.edit; tpxMsg(T.edit ? 'Mode edit aktif: seret ikon, teks, kabel, dan rak.' : 'Mode lihat saja: perubahan dikunci.'); break;
       case 'view': T.view = a.dataset.v; break;
       case 'nf': T.fn = a.dataset.f; break;
       case 'nets': T.netsOpen = !T.netsOpen; break;
       case 'csv': tpxCsv(); return;
       case 'goto': if(a.dataset.tp !== T.it.id) tpxOpen(a.dataset.tp, T.cat); return;
+      case 'lv': T.lv = a.dataset.l; clearTimeout(T.zt); T.view = 'dg'; if(T.lv === '0') tpxAnimTf(tpxFitTf()); else tpxZoomGroup('ln' + T.lv); tpxDrawAll(); return;
       case 'rs': T.down = {}; break;
       case 'dn': if(T.sel && T.sel.k === 'n'){ if(T.down[T.sel.id]) delete T.down[T.sel.id]; else T.down[T.sel.id] = 1; } break;
       case 'dc': if(T.sel && T.sel.k === 'l'){ if(T.down[T.sel.id]) delete T.down[T.sel.id]; else T.down[T.sel.id] = 1; } break;
       case 'undo': if(T.hist.length){ T.fut.push(tpxSnap()); tpxRestore(T.hist.pop()); tpxChg(); } return;
       case 'redo': if(T.fut.length){ T.hist.push(tpxSnap()); tpxRestore(T.fut.pop()); tpxChg(); } return;
-      case 'an': { tpxPush(); const ty = T.addTy || 'dev', ds = TPX_DS[ty] || [170, 30]; const x = tpxSn((TPX_VW / 2 - T.tf.x) / T.tf.k - ds[0] / 2), y = tpxSn((TPX_VH / 2 - T.tf.y) / T.tf.k); const n0 = T.it.nets[0]; const nn = { id:tpxNid(), x, y, w:ds[0], h:ds[1], ty, nm:(TPX_TY[ty] || ty) + ' baru', ips: ty === 'sw' || ty === 'strip' || ty === 'loadcell' || ty === 'jbox' ? [] : [{ n:n0.k, ip:n0.pre || '' }], note:'', ports:0 }; T.it.nodes.push(nn); T.sel = { k:'n', id:nn.id }; tpxMsg('Perangkat ditambahkan di tengah layar. Seret ke posisi yang diinginkan.'); tpxChg(); return; }
+      case 'an': {
+        tpxPush(); const ty = T.addTy || 'dev', ds = TPX_DS[ty] || [140, 78];
+        const x = tpxSn((TPX_VW / 2 - T.tf.x) / T.tf.k - ds[0] / 2), y = tpxSn((TPX_VH / 2 - T.tf.y) / T.tf.k), n0 = T.it.nets[0];
+        const noIp = ['sw', 'swp', 'strip', 'loadcell', 'jbox', 'txt'].includes(ty);
+        const nn = { id:tpxNid(), x, y, w:ds[0], h:ds[1], ty, nm:(TPX_TY[ty] || ty) + ' baru', sh: ty === 'strip' ? 'p' : ty === 'loadcell' ? 'c' : '', ips: noIp ? [] : [{ n:n0.k, ip:n0.pre || '' }], note:'', ports: ty === 'swp' ? 16 : ty === 'wim' ? 8 : 0, tag:'', off:{} };
+        if(ty === 'strip') nn.lt = 0;
+        T.it.nodes.push(nn); T.sel = { k:'n', id:nn.id }; tpxMsg('Perangkat ditambahkan di tengah layar. Seret ke posisi yang diinginkan.'); tpxChg(); return;
+      }
       case 'ar': { tpxPush(); const x = tpxSn((TPX_VW / 2 - T.tf.x) / T.tf.k - 150), y = tpxSn((TPX_VH / 2 - T.tf.y) / T.tf.k - 80); const nb = { id:'r' + tpxNid(), x, y, w:300, h:160, t:'Rak baru' }; T.it.boxes.push(nb); T.sel = { k:'r', id:nb.id }; tpxChg(); return; }
       case 'ipa': if(cur && T.sel.k === 'n'){ tpxPush(); const n0 = T.it.nets[0]; cur.ips.push({ n:n0.k, ip:n0.pre || '' }); tpxChg(); } return;
       case 'ipd': if(cur && T.sel.k === 'n'){ tpxPush(); cur.ips.splice(+a.dataset.i, 1); tpxChg(); } return;
       case 'dl': tpxDelSel(); return;
       case 'dup': if(cur && T.sel.k === 'n'){ tpxPush(); const cp = JSON.parse(JSON.stringify(cur)); cp.id = tpxNid(); cp.nm += ' (salinan)'; cp.x += 20; cp.y += 20; T.it.nodes.push(cp); T.sel = { k:'n', id:cp.id }; tpxChg(); } return;
       case 'sn': if(cur && T.sel.k === 'n') tpxAddSensors(cur); return;
-      case 'neta': { tpxPush(); const pal = ['#5DCAA5', '#B5A8FF', '#F5C26B', '#F59FC4']; T.it.nets.push({ k:'n' + tpxNid(), n:'Jaringan ' + (T.it.nets.length + 1), pre:'', c:pal[T.it.nets.length % pal.length] }); tpxChg(); return; }
+      case 'rtx': if(cur && T.sel.k === 'n'){ tpxPush(); cur.off = {}; tpxChg(); } return;
+      case 'neta': { tpxPush(); const pal = ['#0B7A75', '#5A3FA0', '#E8890C', '#B3258A']; T.it.nets.push({ k:'n' + tpxNid(), n:'Jaringan ' + (T.it.nets.length + 1), pre:'', c:pal[T.it.nets.length % pal.length] }); tpxChg(); return; }
       case 'netd': { const n = T.it.nets[+a.dataset.i]; if(!n) return; const used = T.it.links.some(l => l.k === 'lan' && l.n === n.k) || T.it.nodes.some(x => x.ips.some(p => p.n === n.k)); if(used){ tpxMsg('Jaringan "' + n.n + '" masih dipakai perangkat atau garis. Lepaskan dulu.'); return; } if(T.it.nets.length < 2){ tpxMsg('Minimal harus ada satu jaringan.'); return; } tpxPush(); T.it.nets.splice(+a.dataset.i, 1); if(T.fn === n.k) T.fn = 'all'; tpxChg(); return; }
-      case 'caba': { tpxPush(); const pal = ['#5DCAA5', '#B5A8FF', '#FF8A72', '#7FD1FF']; T.it.cables.push({ k:'c' + tpxNid(), n:'Kabel baru', c:pal[T.it.cables.length % pal.length] }); tpxChg(); return; }
+      case 'caba': { tpxPush(); const pal = ['#0B7A75', '#5A3FA0', '#E01B1B', '#2B6CD4']; T.it.cables.push({ k:'c' + tpxNid(), n:'Kabel baru', c:pal[T.it.cables.length % pal.length], d:'1.5 3' }); tpxChg(); return; }
       case 'cabd': { const c = T.it.cables[+a.dataset.i]; if(!c || c.k === 'lan') return; if(T.it.links.some(l => l.k === c.k)){ tpxMsg('Jenis kabel "' + c.n.split(':')[0] + '" masih dipakai garis. Ganti dulu.'); return; } tpxPush(); T.it.cables.splice(+a.dataset.i, 1); tpxChg(); return; }
       case 'newtp': tpxNewDoc(false); return;
       case 'copytp': tpxNewDoc(true); return;
-      case 'reset': if(!T.resetArm){ T.resetArm = true; tpxDrawBar(); setTimeout(() => { if(T){ T.resetArm = false; tpxDrawBar(); } }, 4000); return; } { tpxPush(); const fresh = tpxDefault(); T.it.boxes = fresh.boxes; T.it.nodes = fresh.nodes; T.it.links = fresh.links; T.it.nets = fresh.nets; T.it.cables = fresh.cables; T.it.tpl = fresh.tpl; T.sel = null; T.resetArm = false; tpxFit(); tpxMsg('Topologi dikembalikan ke template WIM BIB. Klik Urungkan untuk membatalkan.'); tpxChg(); return; }
+      case 'reset': if(!T.resetArm){ T.resetArm = true; tpxDrawBar(); setTimeout(() => { if(T){ T.resetArm = false; tpxDrawBar(); } }, 4000); return; } { tpxPush(); const fresh = tpxDefault(); T.it.boxes = fresh.boxes; T.it.nodes = fresh.nodes; T.it.links = fresh.links; T.it.nets = fresh.nets; T.it.cables = fresh.cables; T.it.tpl = fresh.tpl; T.sel = null; T.selP = null; T.resetArm = false; T.lv = null; tpxFit(); tpxMsg('Topologi dikembalikan ke template WIM BIB. Klik Undo untuk membatalkan.'); tpxChg(); return; }
     }
     tpxDrawAll();
   });
@@ -15480,6 +15835,7 @@ function tpxBind(host){
     else if(t.dataset.pi !== undefined && cur){ cur.ips[+t.dataset.pi].ip = t.value; tpxDrawCanvas(); tpxUpdDup(); }
     else if(t.id === 'tpxFnt' && cur && T.sel.k === 'n') cur.note = t.value;
     else if(t.id === 'tpxFtg' && cur && T.sel.k === 'n'){ cur.tag = t.value; tpxDrawCanvas(); }
+    else if(t.id === 'tpxFbd' && cur && T.sel.k === 'n'){ cur.bd = t.value; tpxDrawCanvas(); }
     else if(t.id === 'tpxFp' && cur && T.sel.k === 'n'){ cur.ports = Math.max(0, Math.min(24, parseInt(t.value) || 0)); tpxDrawCanvas(); }
     else if(t.dataset.nn !== undefined){ T.it.nets[+t.dataset.nn].n = t.value || ' '; tpxDrawCanvas(); tpxDrawBar(); }
     else if(t.dataset.np !== undefined){ T.it.nets[+t.dataset.np].pre = t.value.trim(); tpxDrawCanvas(); }
@@ -15495,7 +15851,9 @@ function tpxBind(host){
     if(t.id === 'tpxAddTy'){ T.addTy = t.value; return; }
     const cur = tpxSelObj();
     if(!cur || !T.edit) return;
+    const swapPn = (l, np) => { const o = T.it.links.find(x => x !== l && x.st === 'p' && x.a === l.a && x.pn === np); if(o) o.pn = l.pn; l.pn = np; };
     if(t.id === 'tpxFty' && T.sel.k === 'n'){ tpxPush(); cur.ty = t.value; tpxChg(); }
+    else if(t.dataset.pl !== undefined && T.sel.k === 'n'){ const l = T.it.links.find(x => x.id === t.dataset.pl); if(l){ tpxPush(); swapPn(l, +t.value); tpxChg(); } }
     else if(t.dataset.pn !== undefined && T.sel.k === 'n'){ tpxPush(); cur.ips[+t.dataset.pn].n = t.value; tpxChg(); }
     else if(T.sel.k === 'l'){
       if(t.id === 'tpxFcb'){ tpxPush(); cur.k = t.value; tpxChg(); }
@@ -15503,7 +15861,12 @@ function tpxBind(host){
       else if(t.id === 'tpxFst'){ tpxPush(); cur.st = t.value; tpxChg(); }
       else if(t.id === 'tpxFsa'){ tpxPush(); cur.sa = t.value; tpxChg(); }
       else if(t.id === 'tpxFsb'){ tpxPush(); cur.sb = t.value; tpxChg(); }
-      else if(t.id === 'tpxFpa'){ tpxPush(); cur.pa = +t.value; tpxChg(); }
+      else if(t.id === 'tpxFpn'){ tpxPush(); swapPn(cur, +t.value); tpxChg(); }
+      else if(t.id === 'tpxFpa'){
+        tpxPush(); const np = +t.value;
+        if(cur.st === 'j'){ const o = T.it.links.find(x => x !== cur && x.st === 'j' && x.a === cur.a && x.pa === np); if(o) o.pa = cur.pa; }
+        cur.pa = np; tpxChg();
+      }
       else if(t.id === 'tpxFpb'){ tpxPush(); cur.pb = +t.value; tpxChg(); }
     }
   });
