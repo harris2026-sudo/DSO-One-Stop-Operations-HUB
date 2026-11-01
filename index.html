@@ -284,6 +284,77 @@
   .sop-detail-head #sopDetailTitle{font-size:13px;font-weight:600;color:var(--navy);font-family:var(--font-display);}
   .sop-detail-hint{font-size:10.5px;color:var(--text-muted);}
   .sop-docs{display:flex;flex-direction:column;}
+  /* ===== v39: Topologi Jaringan (editor di menu SOP) ===== */
+  .tpx{font-size:12.5px;color:var(--text);}
+  .tpx *{box-sizing:border-box;}
+  .tpx-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;}
+  .tpx-bc{font-size:12px;color:var(--text-muted);white-space:nowrap;}
+  .tpx-title{font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--navy);border:1px solid transparent;border-radius:6px;padding:3px 8px;background:transparent;min-width:180px;flex:1;max-width:440px;}
+  .tpx-title:not([readonly]){border-color:var(--border);background:var(--surface);}
+  .tpx-sv{margin-left:auto;font-size:11px;color:var(--text-muted);}
+  .tpx-row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:8px;}
+  .tpx-lbl{font-size:11px;color:var(--text-secondary);}
+  .tpx input[type=text],.tpx select,.tpx textarea{font-size:12px;padding:4px 8px;height:28px;min-width:0;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font-family:inherit;}
+  .tpx input[type=text]:disabled,.tpx select:disabled,.tpx textarea:disabled{opacity:.6;background:var(--surface-alt);}
+  .tpx textarea{height:54px;width:100%;resize:vertical;}
+  .tpx input[type=color]{width:32px;height:28px;padding:1px;border:1px solid var(--border);border-radius:6px;background:var(--surface);cursor:pointer;}
+  .tpx-ch{padding:4px 11px;border:1px solid var(--border);border-radius:14px;background:var(--surface);cursor:pointer;font-size:12px;color:var(--text-secondary);font-family:inherit;white-space:nowrap;}
+  .tpx-ch:hover{border-color:var(--accent);color:var(--accent);}
+  .tpx-ch.on{background:var(--blue-bg);color:var(--blue-fg);border-color:var(--blue-fg);font-weight:600;}
+  .tpx-ch:disabled{opacity:.4;cursor:default;pointer-events:none;}
+  .tpx-sb{height:28px;padding:0 11px;font-size:12px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);cursor:pointer;font-family:inherit;}
+  .tpx-sb:hover{border-color:var(--accent);color:var(--accent);}
+  .tpx-sb:disabled{opacity:.4;cursor:default;pointer-events:none;}
+  .tpx-sb.danger{color:var(--red-fg);}
+  .tpx-sb.edit-on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600;}
+  .tpx-pal{padding:8px 10px;border:1px dashed var(--border);border-radius:10px;background:var(--surface-alt);}
+  .tpx-cv{position:relative;border:1px solid var(--border);border-radius:12px;padding:14px;background:var(--surface-alt);overflow:hidden;}
+  .tpx-g{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:30px;position:relative;}
+  .tpx-g:empty{display:none;}
+  .tpx-nd{border:1px solid #B8C2BE;border-radius:6px;background:var(--surface);padding:5px 8px;cursor:pointer;font-size:12px;position:relative;transition:opacity .15s,box-shadow .15s;}
+  .tpx-nd:hover{box-shadow:0 2px 8px rgba(15,27,44,.12);}
+  .tpx-nd.sw{background:var(--blue-bg);border-color:var(--blue-fg);color:var(--blue-fg);text-align:center;font-weight:600;}
+  .tpx-nd.gw{background:var(--red-bg);border-color:var(--red-fg);color:var(--red-fg);font-weight:600;}
+  .tpx-nd.sel{outline:2px solid var(--accent);outline-offset:1px;}
+  .tpx-nd.dim{opacity:.2;}
+  .tpx-nd.wn{border-color:var(--red-fg);border-style:dashed;}
+  .tpx-nm{font-weight:600;display:block;}
+  .tpx-ip{display:block;font-size:11px;color:var(--text-secondary);font-variant-numeric:tabular-nums;}
+  .tpx-nd.cp{display:flex;justify-content:space-between;gap:6px;margin-bottom:4px;align-items:baseline;}
+  .tpx-nd.cp .tpx-ip{display:inline;margin-left:auto;}
+  .tpx-dot{color:var(--accent);font-size:10px;margin-left:4px;}
+  .tpx-sp{border-left:1px solid var(--text);margin-left:10px;padding-left:9px;margin-top:8px;}
+  .tpx-sp .tpx-nd{margin-bottom:4px;}
+  .tpx-sp .tpx-nd::before{content:"";position:absolute;left:-10px;top:50%;width:9px;border-top:1px solid var(--text);}
+  .tpx-rk{border:1px dashed #B8C2BE;border-radius:12px;padding:10px;min-width:0;background:var(--surface-alt);}
+  .tpx-rt{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-weight:600;font-size:13px;gap:4px;font-family:var(--font-display);}
+  .tpx-rt span{padding:1px 4px;border-radius:4px;}
+  .tpx.editing .tpx-rt span{cursor:text;}
+  .tpx.editing .tpx-rt span:hover{background:var(--surface);}
+  .tpx-rt button,.tpx-xb{border:0;background:transparent;color:var(--text-muted);cursor:pointer;font-size:16px;padding:0 5px;line-height:1;}
+  .tpx-rt button:hover,.tpx-xb:hover{color:var(--red-fg);}
+  .tpx-slot{min-height:58px;margin-bottom:8px;}
+  .tpx-em{font-size:11px;color:var(--text-muted);padding:6px 0 0;text-align:center;}
+  .tpx-ln{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible;}
+  .tpx-ln path{fill:none;stroke-width:1.7;transition:opacity .15s;}
+  .tpx-ln path.dm{opacity:.12;}
+  .tpx-dp{border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-top:10px;background:var(--surface);}
+  .tpx-dp h4{margin:0 0 8px;font-size:13px;font-weight:700;font-family:var(--font-display);color:var(--navy);}
+  .tpx-fg{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:8px;}
+  .tpx-fg label,.tpx-lb2{display:block;font-size:11px;color:var(--text-secondary);margin-bottom:2px;}
+  .tpx-ipr{display:flex;gap:6px;margin-bottom:4px;align-items:center;}
+  .tpx-ipr input[type=text]{flex:1;}
+  .tpx-tb{width:100%;border-collapse:collapse;font-size:12px;background:var(--surface);}
+  .tpx-tb th{text-align:left;font-weight:600;color:var(--text-secondary);padding:7px 9px;border-bottom:1px solid var(--border);font-size:11px;}
+  .tpx-tb td{padding:6px 9px;border-bottom:1px solid var(--border);}
+  .tpx-tb tr.cl{cursor:pointer;}
+  .tpx-tb tr.cl:hover td{background:var(--hilite);}
+  .tpx-ms{font-size:12px;color:var(--text-secondary);min-height:18px;margin:6px 0 0;}
+  .tpx-nb{display:inline-block;padding:0 8px;border-radius:10px;font-size:11px;font-weight:600;border:1px solid currentColor;}
+  .tpx-leg{display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--text-secondary);align-items:center;}
+  .tpx-leg i{display:inline-block;width:18px;height:0;border-top:2px solid;vertical-align:middle;margin-right:4px;}
+  @media (max-width:640px){ .tpx-g{gap:20px;} .tpx-title{max-width:none;} }
+
   .sop-doc-row{display:flex;align-items:center;gap:10px;padding:10px 8px;border-radius:8px;cursor:pointer;transition:background .12s ease;opacity:0;transform:translateY(4px);animation:sopDocIn .28s ease forwards;}
   .sop-doc-row:hover{background:var(--hilite);}
   .sop-doc-row + .sop-doc-row{border-top:1px solid var(--border);}
@@ -2518,6 +2589,8 @@
       </div>
       <div class="sop-docs" id="sopDocs"></div>
     </div>
+
+    <div id="sopTopo" class="tpx" style="display:none"></div>
   </div>
 
   <!-- ================= MODAL: TAMBAH / EDIT KATEGORI SOP ================= -->
@@ -2559,12 +2632,13 @@
               <option value="pdf">PDF (.pdf)</option>
               <option value="doc">Word (.doc/.docx)</option>
               <option value="video">Video (.mp4)</option>
+              <option value="topology">Topologi jaringan (editor)</option>
               <option value="other">Lainnya</option>
             </select>
           </div>
-          <div class="grow"><label>Ukuran File</label><input type="text" id="sopDocSize" style="width:100%;" placeholder="Contoh: 2.2 MB"></div>
+          <div class="grow" id="sopDocSizeWrap"><label>Ukuran File</label><input type="text" id="sopDocSize" style="width:100%;" placeholder="Contoh: 2.2 MB"></div>
         </div>
-        <div><label>Link Dokumen (SharePoint / Google Drive / URL lain)</label><input type="text" id="sopDocUrl" style="width:100%;" placeholder="https://..."></div>
+        <div id="sopDocUrlWrap"><label>Link Dokumen (SharePoint / Google Drive / URL lain)</label><input type="text" id="sopDocUrl" style="width:100%;" placeholder="https://..."></div>
         <div><label>Owner / Pengunggah</label><input type="text" id="sopDocOwner" style="width:100%;" placeholder="Contoh: Nico Fahryan Sandy"></div>
         <button type="button" class="btn btn-primary" id="sopDocSaveBtn" style="width:100%;justify-content:center;">Simpan Dokumen</button>
       </div>
@@ -14547,6 +14621,9 @@ function sopSeedDocsFor(key){
     { name:'SOP WIM.pptx', type:'pptx', size:'3.6 MB', owner:'Nico Fahryan Sandy', url:'' },
     { name:'WIM Calibration.mp4', type:'video', size:'32.3 MB', owner:'Nico Fahryan Sandy', url:'' }
   ];
+  if(key === 'topologi') return [
+    { name:'Topologi jaringan WIM BIB', type:'topology', topoId:'wimbib', owner:'Zainal Fahriandy', size:'', url:'' }
+  ];
   return [];
 }
 
@@ -14554,7 +14631,7 @@ let sopMeta = null;          // { order:[...], categories:{ key:{title,desc,colo
 let sopDocsCache = {};       // { key: [ {name,type,size,owner,url}, ... ] } -- dimuat per-kategori
 let sopActiveCat = null;
 
-const SOP_TYPE_ICON = { pptx:['ti-presentation','#D85A30'], pdf:['ti-file-type-pdf','#A32D2D'], doc:['ti-file-type-doc','#2E6690'], video:['ti-video','#993556'], other:['ti-file','#8C9A9E'] };
+const SOP_TYPE_ICON = { pptx:['ti-presentation','#D85A30'], pdf:['ti-file-type-pdf','#A32D2D'], doc:['ti-file-type-doc','#2E6690'], video:['ti-video','#993556'], other:['ti-file','#8C9A9E'], topology:['ti-network','#185FA5'] };
 const SOP_COLOR_MAP = { blue:['blue-bg','blue-fg'], purple:['purple-bg','purple-fg'], gold:['gold-bg','gold-fg'], green:['green-bg','green-fg'], red:['red-bg','red-fg'] };
 
 /* Escape teks dari input pengguna (nama dokumen, deskripsi kategori, owner) sebelum
@@ -14597,14 +14674,29 @@ async function sopLoadMeta(){
         }
         await dsoSave(DSO_SOP_META_KEY, meta);
         await dsoSave(DSO_SOP_MIGRATED_FLAG, true);
-        sopMeta = meta;
+        sopMeta = await sopTopoMigrate(meta);
         return sopMeta;
       }
     }catch(e){ /* key lama belum ada / gagal ambil -> lanjut pakai seed baru di bawah */ }
     await dsoSave(DSO_SOP_MIGRATED_FLAG, true);
   }
-  sopMeta = await dsoLoad(DSO_SOP_META_KEY, sopSeedMeta());
+  sopMeta = await sopTopoMigrate(await dsoLoad(DSO_SOP_META_KEY, sopSeedMeta()));
   return sopMeta;
+}
+
+/* v39: tambahkan kategori 'Topologi Jaringan' sekali saja (data lama tidak berubah). */
+async function sopTopoMigrate(meta){
+  if(!meta || meta.topoSeeded) return meta;
+  if(!meta.categories.topologi){
+    meta.categories.topologi = { title:'Topologi Jaringan', desc:'Diagram jaringan & daftar IP yang bisa diedit', color:'blue', icon:'ti-network' };
+  }
+  if(!meta.order.includes('topologi')){
+    const ix = meta.order.indexOf('digitech');
+    meta.order.splice(ix >= 0 ? ix + 1 : meta.order.length, 0, 'topologi');
+  }
+  meta.topoSeeded = true;
+  try{ await dsoSave(DSO_SOP_META_KEY, meta); }catch(e){}
+  return meta;
 }
 
 async function sopLoadCatDocs(key){
@@ -14694,6 +14786,7 @@ function sopRenderDocs(key){
       <i class="ti ti-external-link sop-doc-open"></i>
       <button type="button" class="sop-doc-del" title="Hapus dokumen" aria-label="Hapus dokumen"><i class="ti ti-trash"></i></button>`;
     row.onclick = () => {
+      if(doc.type === 'topology' && doc.topoId){ tpxOpen(doc.topoId, key); return; }
       if(doc.url && sopIsSafeUrl(doc.url)) window.open(doc.url, '_blank', 'noopener');
       else if(doc.url){ alert('Link dokumen ini tidak valid (hanya link http/https yang diizinkan). Silakan perbaiki linknya.'); sopOpenDocModal(key); }
       else { sopOpenDocModal(key); document.getElementById('sopDocName').value = ''; }
@@ -14731,8 +14824,9 @@ document.getElementById('sopDocDeleteConfirmBtn').onclick = async () => {
   if(!sopDeleteTarget) return;
   const { key, index } = sopDeleteTarget;
   const docs = sopDocsCache[key] || [];
-  docs.splice(index, 1);
+  const removedDoc = docs.splice(index, 1)[0];
   sopDocsCache[key] = docs;
+  if(removedDoc && removedDoc.type === 'topology' && removedDoc.topoId){ try{ await tpxRemove(removedDoc.topoId); }catch(e){} }
   await sopSaveCatDocs(key); // hanya kategori ini yang dikirim ulang ke backend
   sopCloseDeleteDocModal();
   renderSop();
@@ -14748,6 +14842,497 @@ async function renderSop(){
   document.getElementById('sopSummarySub').textContent = sopMeta.order.length + ' kategori · ' + sopTotalDocs() + ' dokumen';
   sopRenderGrid(document.getElementById('sopSearchInput').value);
   sopRenderDocs(sopActiveCat);
+}
+
+
+/* ==================================================================
+   v39: TOPOLOGI JARINGAN (editor interaktif di menu SOP)
+   - Satu dokumen SOP bertipe "topology" = satu topologi (data di store terpisah
+     'sop:topology', dipecah per-item lewat createItemStore, jadi aman dari batas URL).
+   - Layout otomatis per rak (server -> switch -> daftar perangkat), garis antar-rak
+     digambar dari posisi DOM (SVG overlay). Jaringan (nama, prefix IP, warna) bisa diatur
+     per topologi, jadi topologi lain (UCAN, USEA, Red Zone, dst.) memakai editor yang sama.
+   ================================================================== */
+let tpxItems = [], tpxLoaded = false, tpxLoadPromise = null, tpxUid = 0, tpxTimer = null;
+const TPX_STORE = createItemStore('sop:topology', () => tpxItems);
+const TPX_TY = { switch:'Switch POE', server:'Server', pc:'PC', cctv:'CCTV', rfid:'RFID', wim:'WIM Logix', minipc:'Mini PC', router:'Router', fw:'Firewall', ap:'Access Point', ups:'UPS', gw:'Gateway' };
+const TPX_PAL = ['server','pc','cctv','rfid','wim','minipc','router','fw','ap','ups','gw'];
+let T = null;   // state editor aktif: { it, cat, sel, q, fn, view, hist, fut, edit, editing, ro, target, netsOpen, dirty }
+
+const tpxEsc = (s) => sopEsc(s);
+function tpxNid(){ return 'n' + Date.now().toString(36) + (tpxUid++).toString(36); }
+function tpxDev(id, ty, nm, ips){ return { id, ty, nm, ips: ips || [], note: '' }; }
+function tpxNets(){ return [ { k:'vgt', n:'VGT', pre:'118.103.62.', c:'#152029' }, { k:'bib', n:'BIB', pre:'172.20.32.', c:'#E24B4A' } ]; }
+function tpxDefault(){
+  const v = x => ({ n:'vgt', ip:'118.103.62.' + x }), b = x => ({ n:'bib', ip:'172.20.32.' + x });
+  const D = tpxDev;
+  return { id:'wimbib', title:'Topologi jaringan WIM BIB', au:'Zainal Fahriandy', rv:'2', nets: tpxNets(), racks:[
+    { id:'top', t:'', devs:[ D('gw','gw','Switch BIB',[]), D('pc','pc','PC user',[v(11), b(12)]) ] },
+    { id:'r3', t:'Rak server Lane 3', devs:[ D('s3','server','Server backup',[v(9), { n:'bib', ip:'172.20.32.14/25' }]), D('w3','switch','Switch POE',[]), D('a1','minipc','Mini PC Low Speed',[v(36)]), D('a2','minipc','Mini PC High Speed',[v(37)]), D('a3','cctv','CCTV High Speed',[v(30)]), D('a4','cctv','CCTV Low Speed',[v(31)]), D('a5','rfid','RFID High Speed',[v(34)]), D('a6','rfid','RFID Low Speed',[v(35)]), D('a7','wim','WIM Logic Low Speed',[v(33)]), D('a8','wim','WIM Logic High Speed',[v(32)]) ] },
+    { id:'r2', t:'Rak server Lane 2', devs:[ D('s2','server','Server',[v(10), b(10)]), D('w2','switch','Switch POE',[]), D('c1','wim','WIM Logix High Speed',[v(15)]), D('c2','minipc','Mini PC',[v(12)]), D('c3','cctv','CCTV High Speed',[v(13)]), D('c4','rfid','RFID High Speed',[v(14)]) ] },
+    { id:'r1', t:'Rak server Lane 1', devs:[ D('w1','switch','Switch POE',[]), D('e1','wim','WIM Logix High Speed',[v(22)]), D('e2','wim','WIM Logix Low Speed',[v(23)]), D('e3','minipc','Mini PC High Speed',[v(27)]), D('e4','minipc','Mini PC Low Speed',[v(26)]), D('e5','cctv','CCTV High Speed',[v(20)]), D('e6','cctv','CCTV Low Speed',[v(21)]), D('e7','rfid','RFID High Speed',[v(24)]), D('e8','rfid','RFID Low Speed',[v(25)]) ] }
+  ], links:[ {a:'gw',b:'pc',n:'bib'}, {a:'gw',b:'s3',n:'bib'}, {a:'gw',b:'s2',n:'bib'}, {a:'w3',b:'w2',n:'vgt'}, {a:'w2',b:'w1',n:'vgt'}, {a:'pc',b:'w2',n:'vgt'} ] };
+}
+function tpxBlank(title){
+  return { id:'', title: title || 'Topologi baru', au:'', rv:'1', nets: tpxNets(), racks:[ { id:'top', t:'', devs:[] }, { id:'r1', t:'Rak 1', devs:[ tpxDev('sw' + tpxNid(), 'switch', 'Switch POE', []) ] } ], links:[] };
+}
+function tpxNorm(it){
+  if(!Array.isArray(it.nets) || !it.nets.length) it.nets = tpxNets();
+  if(!Array.isArray(it.racks)) it.racks = [];
+  if(!it.racks.length || it.racks[0].id !== 'top') it.racks.unshift({ id:'top', t:'', devs:[] });
+  it.racks.forEach(r => { r.devs = Array.isArray(r.devs) ? r.devs : []; r.devs.forEach(d => { d.ips = Array.isArray(d.ips) ? d.ips : []; d.note = d.note || ''; }); });
+  if(!Array.isArray(it.links)) it.links = [];
+  it.title = it.title || 'Topologi'; it.au = it.au || ''; it.rv = it.rv || '';
+  return it;
+}
+
+/* ---------- penyimpanan ---------- */
+async function tpxEnsureLoaded(){
+  if(tpxLoaded) return;
+  if(!tpxLoadPromise) tpxLoadPromise = (async () => { const r = await TPX_STORE.load(); if(r) tpxItems = r; tpxLoaded = true; })();
+  await tpxLoadPromise;
+}
+function tpxSetSv(t){ const e = document.getElementById('tpxSv'); if(e) e.textContent = t; }
+function tpxQueueSave(){
+  if(T){ T.it.updatedAt = Date.now(); }
+  if(TPX_STORE.isFailed()){ tpxSetSv('Gagal memuat data: perubahan tidak disimpan'); return; }
+  tpxSetSv('Menyimpan...');
+  clearTimeout(tpxTimer);
+  tpxTimer = setTimeout(() => { TPX_STORE.save().then(() => tpxSetSv('Tersimpan otomatis'), () => tpxSetSv('Gagal menyimpan')); }, 700);
+}
+async function tpxFlush(){ clearTimeout(tpxTimer); tpxTimer = null; try{ await TPX_STORE.save(); }catch(e){} }
+async function tpxCreate(id, title, author){
+  await tpxEnsureLoaded();
+  if(tpxItems.some(x => x.id === id)) return;
+  const it = tpxBlank(title); it.id = id; it.au = author || '';
+  tpxItems.push(it);
+  await tpxFlush();
+}
+async function tpxRemove(id){
+  await tpxEnsureLoaded();
+  const n = tpxItems.length;
+  tpxItems = tpxItems.filter(x => x.id !== id);
+  if(tpxItems.length !== n) await tpxFlush();
+}
+function tpxFindDoc(id){
+  for(const key of Object.keys(sopDocsCache)){
+    const docs = sopDocsCache[key] || [];
+    for(let i = 0; i < docs.length; i++) if(docs[i].type === 'topology' && docs[i].topoId === id) return { key, doc: docs[i], i };
+  }
+  return null;
+}
+
+/* ---------- helper data ---------- */
+const tpxNetOf = (k) => T.it.nets.find(n => n.k === k);
+function tpxFind(id){
+  for(const r of T.it.racks){ const i = r.devs.findIndex(d => d.id === id); if(i >= 0) return { r, d: r.devs[i], i }; }
+  return null;
+}
+function tpxDupMap(){
+  const m = {};
+  T.it.racks.forEach(r => r.devs.forEach(d => d.ips.forEach(p => { const k = (p.ip || '').trim(); if(k) m[k] = (m[k] || 0) + 1; })));
+  return m;
+}
+function tpxShort(p){ const n = tpxNetOf(p.n); return n && n.pre && p.ip.indexOf(n.pre) === 0 && n.pre.slice(-1) === '.' ? '.' + p.ip.slice(n.pre.length) : p.ip; }
+function tpxHit(d){
+  if(!T.q) return true;
+  const t = T.q.toLowerCase();
+  return d.nm.toLowerCase().includes(t) || (d.note || '').toLowerCase().includes(t) || d.ips.some(p => (p.ip || '').toLowerCase().includes(t));
+}
+function tpxInNet(d){
+  if(T.fn === 'all') return true;
+  return d.ips.some(p => p.n === T.fn) || T.it.links.some(l => l.n === T.fn && (l.a === d.id || l.b === d.id));
+}
+function tpxSnap(){ return JSON.stringify({ racks: T.it.racks, links: T.it.links, nets: T.it.nets }); }
+function tpxPush(){ T.hist.push(tpxSnap()); if(T.hist.length > 40) T.hist.shift(); T.fut = []; }
+function tpxRestore(s){ const o = JSON.parse(s); T.it.racks = o.racks; T.it.links = o.links; T.it.nets = o.nets; if(T.sel && !tpxFind(T.sel)) T.sel = null; }
+function tpxMsg(t){ const e = document.getElementById('tpxMs'); if(e) e.textContent = t || ''; }
+function tpxChg(){ tpxRender(); tpxQueueSave(); }
+
+/* ---------- buka / tutup ---------- */
+function tpxSopParts(){ return [document.querySelector('#view-sop .sop-toolbar'), document.getElementById('sopGrid'), document.getElementById('sopDetail')]; }
+async function tpxOpen(id, cat){
+  await tpxEnsureLoaded();
+  if(T) await tpxFlush();
+  let it = tpxItems.find(x => x.id === id);
+  if(!it){
+    const f = tpxFindDoc(id);
+    it = id === 'wimbib' ? tpxDefault() : tpxBlank(f ? f.doc.name : 'Topologi baru');
+    it.id = id;
+    tpxItems.push(it);
+    if(!TPX_STORE.isFailed()) TPX_STORE.save().catch(() => {});
+  }
+  tpxNorm(it);
+  T = { it, cat, sel:null, q:'', fn:'all', view:'dg', hist:[], fut:[], edit:false, editing:null, ro: TPX_STORE.isFailed(), target:'auto', netsOpen:false, dirty:false };
+  tpxSopParts().forEach(e => { if(e) e.style.display = 'none'; });
+  const host = document.getElementById('sopTopo');
+  host.style.display = 'block';
+  tpxMount(host);
+  tpxRender();
+  if(T.ro) tpxMsg('Data topologi gagal dimuat dari server. Tampilan hanya baca, perubahan tidak disimpan.');
+}
+async function tpxClose(){
+  await tpxFlush();
+  T = null;
+  document.getElementById('sopTopo').style.display = 'none';
+  tpxSopParts().forEach(e => { if(e) e.style.display = ''; });
+  renderSop();
+}
+
+/* ---------- kerangka UI (sekali per pembukaan) ---------- */
+function tpxMount(host){
+  const catTitle = (sopMeta && sopMeta.categories[T.cat] && sopMeta.categories[T.cat].title) || 'Topologi Jaringan';
+  host.innerHTML =
+    '<div class="tpx-head"><button type="button" class="btn btn-ghost" data-a="back"><i class="ti ti-arrow-left"></i> Kembali</button>'
+    + '<span class="tpx-bc">SOP › ' + tpxEsc(catTitle) + ' ›</span>'
+    + '<input type="text" class="tpx-title" id="tpxTitle" aria-label="Judul topologi" readonly>'
+    + '<span class="tpx-sv" id="tpxSv">Tersimpan otomatis</span></div>'
+    + '<div class="tpx-row" id="tpxChips"></div>'
+    + '<div class="tpx-row"><input type="text" id="tpxQ" placeholder="Cari IP atau nama, mis. 62.15" style="width:200px" aria-label="Cari"><span class="tpx-lbl" id="tpxQc"></span>'
+    + '<span id="tpxNf" class="tpx-row" style="margin:0"></span>'
+    + '<span style="flex:1"></span>'
+    + '<button type="button" class="tpx-sb" data-a="undo" id="tpxUn">Urungkan</button><button type="button" class="tpx-sb" data-a="redo" id="tpxRe">Ulangi</button>'
+    + '<button type="button" class="tpx-sb" data-a="edit" id="tpxEd"><i class="ti ti-pencil"></i> Mode edit</button></div>'
+    + '<div class="tpx-pal tpx-row" id="tpxPal"></div>'
+    + '<div class="tpx-row"><button type="button" class="tpx-ch on" data-a="view" data-v="dg">Diagram</button><button type="button" class="tpx-ch" data-a="view" data-v="tb">Tabel IP</button>'
+    + '<button type="button" class="tpx-ch" data-a="nets">Atur jaringan</button>'
+    + '<button type="button" class="tpx-sb" data-a="csv" title="Unduh tabel IP sebagai CSV (bisa dibuka di Excel)"><i class="ti ti-download"></i> CSV</button>'
+    + '<span class="tpx-leg" id="tpxLeg" style="margin-left:auto"></span></div>'
+    + '<div id="tpxNetP" class="tpx-dp" style="display:none"></div>'
+    + '<div class="tpx-cv" id="tpxCv"><svg class="tpx-ln" id="tpxLn"></svg><div class="tpx-g" id="tpxTop"></div><div style="height:34px" id="tpxGap"></div><div class="tpx-g" id="tpxRks"></div></div>'
+    + '<div id="tpxTbv" style="display:none"></div>'
+    + '<div class="tpx-dp" id="tpxDp"></div>'
+    + '<div class="tpx-ms" id="tpxMs"></div>'
+    + '<div class="tpx-row" style="margin-top:8px"><span class="tpx-lbl">Author</span><input type="text" id="tpxAu" style="width:160px"><span class="tpx-lbl">Rev</span><input type="text" id="tpxRv" style="width:70px"><span class="tpx-lbl" id="tpxUpd"></span></div>';
+  host.classList.toggle('editing', false);
+  if(!host._tpxBound){ tpxBind(host); host._tpxBound = true; }
+  if(window.ResizeObserver && !host._tpxRO){ host._tpxRO = new ResizeObserver(() => { if(T) tpxRoute(); }); host._tpxRO.observe(document.getElementById('tpxCv')); }
+  else if(window.ResizeObserver && host._tpxRO){ host._tpxRO.disconnect(); host._tpxRO.observe(document.getElementById('tpxCv')); }
+}
+
+/* ---------- render ---------- */
+function tpxNodeHtml(d, compact, dm){
+  const nets = T.it.nets;
+  const dim = !tpxHit(d) || !tpxInNet(d);
+  const wn = d.ips.some(p => dm[(p.ip || '').trim()] > 1);
+  const cls = 'tpx-nd' + (d.ty === 'switch' ? ' sw' : '') + (d.ty === 'gw' ? ' gw' : '') + (T.sel === d.id ? ' sel' : '') + (dim ? ' dim' : '') + (wn ? ' wn' : '') + (compact ? ' cp' : '');
+  const ips = d.ips.map(p => {
+    const n = tpxNetOf(p.n), st = n && n !== nets[0] ? ' style="color:' + tpxEsc(n.c) + '"' : '';
+    const t = compact ? tpxShort(p) : (p.ip + ' · ' + (n ? n.n : p.n));
+    return '<span class="tpx-ip"' + st + '>' + tpxEsc(t) + '</span>';
+  }).join('');
+  const nm = T.editing === d.id
+    ? '<input type="text" id="tpxIe" value="' + tpxEsc(d.nm) + '" style="width:100%">'
+    : '<span class="tpx-nm" data-ed="' + d.id + '">' + tpxEsc(d.nm) + (d.note ? '<i class="tpx-dot" title="' + tpxEsc(d.note) + '">●</i>' : '') + '</span>';
+  return '<div class="' + cls + '" data-id="' + d.id + '" title="' + tpxEsc((TPX_TY[d.ty] || d.ty) + (d.note ? ' — ' + d.note : '')) + '">' + nm + ips + '</div>';
+}
+function tpxRender(){
+  if(!T) return;
+  const it = T.it, dm = tpxDupMap();
+  const host = document.getElementById('sopTopo');
+  host.classList.toggle('editing', T.edit);
+  const ti = document.getElementById('tpxTitle');
+  if(document.activeElement !== ti) ti.value = it.title;
+  ti.readOnly = !T.edit;
+  const ed = document.getElementById('tpxEd');
+  ed.classList.toggle('edit-on', T.edit); ed.disabled = T.ro;
+  ed.innerHTML = '<i class="ti ti-pencil"></i> ' + (T.edit ? 'Mode edit: aktif' : 'Mode edit');
+  // chip topologi lain
+  const chips = [];
+  Object.keys(sopDocsCache).forEach(k => (sopDocsCache[k] || []).forEach(d => { if(d.type === 'topology' && d.topoId) chips.push(d); }));
+  document.getElementById('tpxChips').innerHTML = chips.map(d => '<button type="button" class="tpx-ch' + (d.topoId === it.id ? ' on' : '') + '" data-a="goto" data-tp="' + tpxEsc(d.topoId) + '">' + tpxEsc(d.name) + '</button>').join('')
+    + (T.edit ? '<button type="button" class="tpx-ch" data-a="newtp">+ Topologi baru</button><button type="button" class="tpx-ch" data-a="copytp">Salin topologi ini</button>' : '');
+  // filter jaringan + legenda
+  document.getElementById('tpxNf').innerHTML = '<button type="button" class="tpx-ch' + (T.fn === 'all' ? ' on' : '') + '" data-a="nf" data-f="all">Semua jaringan</button>'
+    + it.nets.map(n => '<button type="button" class="tpx-ch' + (T.fn === n.k ? ' on' : '') + '" data-a="nf" data-f="' + tpxEsc(n.k) + '">' + tpxEsc(n.n) + '</button>').join('');
+  document.getElementById('tpxLeg').innerHTML = it.nets.map(n => '<span><i style="border-color:' + tpxEsc(n.c) + '"></i>' + tpxEsc(n.n) + (n.pre ? ' ' + tpxEsc(n.pre) + 'x' : '') + '</span>').join('');
+  // palet
+  const tg = '<option value="auto"' + (T.target === 'auto' ? ' selected' : '') + '>Rak terpilih</option>' + it.racks.map(r => '<option value="' + r.id + '"' + (T.target === r.id ? ' selected' : '') + '>' + (r.id === 'top' ? 'Zona atas (akses)' : tpxEsc(r.t || r.id)) + '</option>').join('');
+  document.getElementById('tpxPal').innerHTML = T.edit
+    ? '<span class="tpx-lbl">Tambah ke</span><select id="tpxTarget" aria-label="Rak tujuan">' + tg + '</select>'
+      + TPX_PAL.map(k => '<button type="button" class="tpx-ch" data-a="add" data-k="' + k + '">+ ' + TPX_TY[k] + '</button>').join('') + '<button type="button" class="tpx-ch" data-a="addsw">+ Switch POE</button><button type="button" class="tpx-ch" data-a="addrack">+ Rak</button>'
+    : '<span class="tpx-lbl">Mode lihat saja. Klik <b>Mode edit</b> untuk menambah, mengubah, atau menghapus perangkat dan teks.</span>';
+  // diagram
+  document.getElementById('tpxTop').innerHTML = it.racks[0].devs.map(d => '<div>' + tpxNodeHtml(d, false, dm) + '</div>').join('');
+  document.getElementById('tpxGap').style.display = it.racks[0].devs.length ? '' : 'none';
+  let rk = '';
+  it.racks.slice(1).forEach(r => {
+    const sv = r.devs.filter(x => x.ty === 'server'), sw = r.devs.filter(x => x.ty === 'switch'), ot = r.devs.filter(x => x.ty !== 'server' && x.ty !== 'switch');
+    rk += '<div class="tpx-rk"><div class="tpx-rt">' + (T.editing === 'rack:' + r.id ? '<input type="text" id="tpxIe" value="' + tpxEsc(r.t) + '" style="flex:1">' : '<span data-rt="' + r.id + '">' + tpxEsc(r.t || 'Rak tanpa nama') + '</span>')
+      + (T.edit ? '<button type="button" data-a="dr" data-r="' + r.id + '" aria-label="Hapus rak" title="Hapus rak">&times;</button>' : '') + '</div>'
+      + '<div class="tpx-slot">' + (sv.length ? sv.map(x => tpxNodeHtml(x, false, dm)).join('') : '<div class="tpx-em">Tanpa server lokal</div>') + '</div>'
+      + sw.map(x => tpxNodeHtml(x, false, dm)).join('')
+      + (ot.length ? '<div class="tpx-sp">' + ot.map(x => tpxNodeHtml(x, true, dm)).join('') + '</div>' : '') + '</div>';
+  });
+  document.getElementById('tpxRks').innerHTML = rk || '<div class="tpx-em" style="grid-column:1/-1">Belum ada rak. Aktifkan mode edit lalu klik "+ Rak".</div>';
+  tpxRoute(); tpxRenderPanel(); tpxRenderNets(); tpxRenderTable();
+  let n = 0; it.racks.forEach(r => r.devs.forEach(x => { if(T.q && tpxHit(x)) n++; }));
+  document.getElementById('tpxQc').textContent = T.q ? n + ' ditemukan' : '';
+  document.getElementById('tpxUn').disabled = !T.hist.length || !T.edit; document.getElementById('tpxRe').disabled = !T.fut.length || !T.edit;
+  const au = document.getElementById('tpxAu'), rv = document.getElementById('tpxRv');
+  if(document.activeElement !== au) au.value = it.au; if(document.activeElement !== rv) rv.value = it.rv;
+  au.disabled = rv.disabled = !T.edit;
+  document.getElementById('tpxUpd').textContent = it.updatedAt ? 'Diperbarui ' + new Date(it.updatedAt).toLocaleString('id-ID', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '';
+  if(T.editing){ const ie = document.getElementById('tpxIe'); if(ie){ ie.focus(); ie.select(); } }
+}
+function tpxP(id){
+  const e = document.querySelector('#tpxCv [data-id="' + id + '"]'); if(!e) return null;
+  const r = e.getBoundingClientRect(), c = document.getElementById('tpxCv').getBoundingClientRect();
+  return { l: r.left - c.left, r: r.right - c.left, t: r.top - c.top, b: r.bottom - c.top, cx: (r.left + r.right) / 2 - c.left, cy: (r.top + r.bottom) / 2 - c.top };
+}
+function tpxRoute(){
+  if(!T) return;
+  const topIds = T.it.racks[0].devs.map(x => x.id);
+  let out = '';
+  T.it.links.forEach(l => {
+    const a = tpxP(l.a), bb = tpxP(l.b); if(!a || !bb) return;
+    const fa = tpxFind(l.a), fb = tpxFind(l.b); if(!fa || !fb) return;
+    const A = fa.d, B = fb.d, ta = topIds.includes(l.a), tb = topIds.includes(l.b);
+    const dm = (T.fn !== 'all' && l.n !== T.fn) || (T.q && !(tpxHit(A) || tpxHit(B)));
+    let p;
+    if(ta && tb){
+      if(Math.abs(a.cy - bb.cy) < 12){ const L = a.cx < bb.cx ? [a, bb] : [bb, a]; p = 'M' + L[0].r + ' ' + L[0].cy + 'H' + L[1].l; }
+      else { const U = a.cy < bb.cy ? [a, bb] : [bb, a], my = (U[0].b + U[1].t) / 2; p = 'M' + U[0].cx + ' ' + U[0].b + 'V' + my + 'H' + U[1].cx + 'V' + U[1].t; }
+    }
+    else if(ta && B.ty === 'server' || tb && A.ty === 'server'){
+      const T1 = ta ? a : bb, S1 = ta ? bb : a, bus = T1.b + 17, xb = S1.r - 18;
+      p = 'M' + T1.cx + ' ' + T1.b + 'V' + bus + 'H' + xb + 'V' + (S1.t - 1);
+    }
+    else if(ta || tb){ const T1 = ta ? a : bb, W = ta ? bb : a, gx = W.r + 15; p = 'M' + T1.r + ' ' + T1.cy + 'H' + gx + 'V' + W.cy + 'H' + (W.r + 1); }
+    else if(a.b < bb.t - 4 || bb.b < a.t - 4){ const U = a.b < bb.t ? [a, bb] : [bb, a], my = (U[0].b + U[1].t) / 2; p = 'M' + U[0].cx + ' ' + U[0].b + 'V' + my + 'H' + U[1].cx + 'V' + U[1].t; }
+    else { const L = a.cx < bb.cx ? [a, bb] : [bb, a], mx = (L[0].r + L[1].l) / 2; p = 'M' + L[0].r + ' ' + L[0].cy + 'H' + mx + 'V' + L[1].cy + 'H' + L[1].l; }
+    const n = tpxNetOf(l.n);
+    out += '<path class="' + (dm ? 'dm' : '') + '" stroke="' + tpxEsc(n ? n.c : '#888') + '" d="' + p + '"/>';
+  });
+  document.getElementById('tpxLn').innerHTML = out;
+}
+function tpxRenderPanel(){
+  const dp = document.getElementById('tpxDp'), f = T.sel && tpxFind(T.sel);
+  if(!f){ dp.innerHTML = '<div class="tpx-lbl">Klik perangkat untuk melihat detailnya. Di mode edit: klik dua kali pada nama (perangkat atau rak) untuk mengganti teks langsung, atau ubah semuanya di panel ini.</div>'; return; }
+  const x = f.d, dis = T.edit ? '' : ' disabled', nets = T.it.nets;
+  const rs = T.it.racks.map(r => '<option value="' + r.id + '"' + (r.id === f.r.id ? ' selected' : '') + '>' + (r.id === 'top' ? 'Zona atas (akses)' : tpxEsc(r.t || r.id)) + '</option>').join('');
+  const ts = Object.keys(TPX_TY).map(k => '<option value="' + k + '"' + (k === x.ty ? ' selected' : '') + '>' + TPX_TY[k] + '</option>').join('');
+  const nopt = (sv) => nets.map(n => '<option value="' + tpxEsc(n.k) + '"' + (n.k === sv ? ' selected' : '') + '>' + tpxEsc(n.n) + '</option>').join('');
+  const ips = x.ips.map((p, i) => '<div class="tpx-ipr"><select data-pn="' + i + '"' + dis + '>' + nopt(p.n) + '</select><input type="text" data-pi="' + i + '" value="' + tpxEsc(p.ip) + '"' + dis + '><button type="button" class="tpx-xb" data-a="ipd" data-i="' + i + '" aria-label="Hapus IP"' + dis + '>&times;</button></div>').join('');
+  const lk = T.it.links.map((l, i) => {
+    if(l.a !== x.id && l.b !== x.id) return '';
+    const o = tpxFind(l.a === x.id ? l.b : l.a), n = tpxNetOf(l.n);
+    return o ? '<div class="tpx-ipr"><span class="tpx-nb" style="color:' + tpxEsc(n ? n.c : '#888') + '">' + tpxEsc(n ? n.n : l.n) + '</span><span style="flex:1">' + tpxEsc(o.d.nm) + '</span><button type="button" class="tpx-xb" data-a="ld" data-i="' + i + '" aria-label="Putus koneksi"' + dis + '>&times;</button></div>' : '';
+  }).join('') || '<div class="tpx-lbl">Belum ada koneksi antar-rak. Perangkat di dalam rak otomatis terhubung ke Switch POE rak.</div>';
+  const tg = [];
+  T.it.racks.forEach(r => r.devs.forEach(y => { if(y.id !== x.id) tg.push('<option value="' + y.id + '">' + tpxEsc(y.nm) + (r.t ? ' · ' + tpxEsc(r.t.replace('Rak server ', '')) : '') + '</option>'); }));
+  const dm = tpxDupMap(), dup = x.ips.filter(p => dm[(p.ip || '').trim()] > 1).map(p => p.ip);
+  dp.innerHTML = '<h4>Detail perangkat</h4><div class="tpx-ms" id="tpxDup" style="color:var(--red-fg);margin:0 0 8px">' + (dup.length ? 'IP ganda terdeteksi: ' + tpxEsc(dup.join(', ')) : '') + '</div>'
+    + '<div class="tpx-fg"><div><label>Nama</label><input type="text" id="tpxFnm" value="' + tpxEsc(x.nm) + '" style="width:100%"' + dis + '></div><div><label>Tipe</label><select id="tpxFty" style="width:100%"' + dis + '>' + ts + '</select></div><div><label>Rak</label><select id="tpxFrk" style="width:100%"' + dis + '>' + rs + '</select></div></div>'
+    + '<span class="tpx-lb2">Alamat IP</span>' + ips + '<button type="button" class="tpx-sb" data-a="ipa"' + dis + '>+ IP</button>'
+    + '<span class="tpx-lb2" style="margin-top:10px">Koneksi antar-rak</span>' + lk
+    + '<div class="tpx-ipr" style="margin-top:4px"><select id="tpxLt" style="flex:1"' + dis + '>' + tg.join('') + '</select><select id="tpxLn2"' + dis + '>' + nopt('') + '</select><button type="button" class="tpx-sb" data-a="alk"' + dis + '>Hubungkan</button></div>'
+    + '<span class="tpx-lb2" style="margin-top:10px">Catatan</span><textarea id="tpxFnt" placeholder="Mis. kabel diganti, lokasi fisik, kontak vendor"' + dis + '>' + tpxEsc(x.note) + '</textarea>'
+    + '<div class="tpx-row" style="margin-top:8px"><button type="button" class="tpx-sb" data-a="up"' + dis + '>↑ Naik</button><button type="button" class="tpx-sb" data-a="dn"' + dis + '>↓ Turun</button><button type="button" class="tpx-sb" data-a="dup"' + dis + '>Duplikat</button><button type="button" class="tpx-sb danger" data-a="del"' + dis + '>Hapus perangkat</button></div>';
+}
+function tpxRenderNets(){
+  const el = document.getElementById('tpxNetP');
+  el.style.display = T.netsOpen ? 'block' : 'none';
+  if(!T.netsOpen) return;
+  const dis = T.edit ? '' : ' disabled';
+  el.innerHTML = '<h4>Jaringan pada topologi ini</h4>' + T.it.nets.map((n, i) =>
+    '<div class="tpx-ipr"><input type="color" data-nc="' + i + '" value="' + tpxEsc(n.c) + '"' + dis + ' aria-label="Warna"><input type="text" data-nn="' + i + '" value="' + tpxEsc(n.n) + '" placeholder="Nama" style="max-width:130px"' + dis + '><input type="text" data-np="' + i + '" value="' + tpxEsc(n.pre) + '" placeholder="Prefix IP, mis. 172.20.32." ' + dis + '><button type="button" class="tpx-xb" data-a="netd" data-i="' + i + '" aria-label="Hapus jaringan"' + dis + '>&times;</button></div>').join('')
+    + '<button type="button" class="tpx-sb" data-a="neta"' + dis + '>+ Jaringan</button><div class="tpx-lbl" style="margin-top:6px">Prefix dipakai untuk menyingkat IP di diagram (mis. 118.103.62.11 tampil .11). Jaringan yang masih dipakai perangkat atau koneksi tidak bisa dihapus.</div>';
+}
+function tpxRenderTable(){
+  const tv = document.getElementById('tpxTbv'), cv = document.getElementById('tpxCv');
+  tv.style.display = T.view === 'tb' ? 'block' : 'none'; cv.style.display = T.view === 'dg' ? 'block' : 'none';
+  if(T.view !== 'tb') return;
+  const dm = tpxDupMap(); let rows = '';
+  T.it.racks.forEach(r => r.devs.forEach(x => {
+    if(!tpxHit(x) || !tpxInNet(x)) return;
+    (x.ips.length ? x.ips : [null]).forEach(p => {
+      const n = p && tpxNetOf(p.n);
+      rows += '<tr class="cl" data-tr="' + x.id + '"><td>' + tpxEsc(x.nm) + '</td><td>' + tpxEsc(TPX_TY[x.ty] || x.ty) + '</td><td>' + (r.id === 'top' ? 'Akses' : tpxEsc((r.t || '').replace('Rak server ', ''))) + '</td><td>' + (p ? '<span class="tpx-nb" style="color:' + tpxEsc(n ? n.c : '#888') + '">' + tpxEsc(n ? n.n : p.n) + '</span>' : '-') + '</td><td' + (p && dm[(p.ip || '').trim()] > 1 ? ' style="color:var(--red-fg);font-weight:600"' : '') + '>' + (p ? tpxEsc(p.ip) : '-') + '</td><td>' + tpxEsc(x.note) + '</td></tr>';
+    });
+  }));
+  tv.innerHTML = '<table class="tpx-tb"><thead><tr><th>Perangkat</th><th>Tipe</th><th>Rak</th><th>Jaringan</th><th>IP</th><th>Catatan</th></tr></thead><tbody>' + (rows || '<tr><td colspan="6" class="tpx-lbl">Tidak ada data yang cocok.</td></tr>') + '</tbody></table>';
+}
+function tpxCsv(){
+  const q = s => '"' + String(s == null ? '' : s).replace(/"/g, '""') + '"';
+  const lines = [['Perangkat','Tipe','Rak','Jaringan','IP','Catatan'].map(q).join(',')];
+  T.it.racks.forEach(r => r.devs.forEach(x => (x.ips.length ? x.ips : [null]).forEach(p => {
+    const n = p && tpxNetOf(p.n);
+    lines.push([x.nm, TPX_TY[x.ty] || x.ty, r.id === 'top' ? 'Akses' : r.t, p ? (n ? n.n : p.n) : '', p ? p.ip : '', x.note].map(q).join(','));
+  })));
+  const blob = new Blob(['﻿' + lines.join('\r\n')], { type:'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = (T.it.title || 'topologi').replace(/[^\w\- ]+/g, '').trim().replace(/\s+/g, '_') + '_IP.csv';
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+
+/* ---------- aksi ---------- */
+function tpxTargetRack(){
+  const it = T.it;
+  if(T.target && T.target !== 'auto'){ const r = it.racks.find(x => x.id === T.target); if(r) return r; }
+  const f = T.sel && tpxFind(T.sel);
+  if(f) return f.r;
+  return it.racks.length > 1 ? it.racks[it.racks.length - 1] : it.racks[0];
+}
+function tpxAddDev(ty){
+  const r = tpxTargetRack(), n0 = T.it.nets[0];
+  tpxPush();
+  const nx = tpxDev(tpxNid(), ty, (TPX_TY[ty] || ty) + ' baru', ty === 'switch' ? [] : [{ n: n0.k, ip: n0.pre || '' }]);
+  r.devs.push(nx); T.sel = nx.id; T.editing = nx.id;
+  tpxMsg('Ditambahkan ke ' + (r.id === 'top' ? 'zona atas' : r.t) + '. Ketik nama lalu Enter, isi IP di panel bawah.');
+  tpxChg();
+}
+function tpxBind(host){
+  host.addEventListener('click', (e) => {
+    if(!T) return;
+    const t = e.target, a = t.closest('[data-a]'), ed = t.closest('[data-ed]'), rt = t.closest('[data-rt]');
+    if(ed && T.edit && !T.ro && e.detail > 1){ T.editing = ed.dataset.ed; tpxRender(); return; }
+    if(rt && T.edit && !T.ro && e.detail > 1){ T.editing = 'rack:' + rt.dataset.rt; tpxRender(); return; }
+    const tr = t.closest('[data-tr]');
+    if(tr){ T.sel = tr.dataset.tr; T.view = 'dg'; host.querySelectorAll('[data-v]').forEach(x => x.classList.toggle('on', x.dataset.v === 'dg')); tpxRender(); return; }
+    if(!a){
+      const nd = t.closest('.tpx-nd[data-id]');
+      if(nd && t.id !== 'tpxIe'){ T.sel = nd.dataset.id; tpxRender(); }
+      return;
+    }
+    const act = a.dataset.a, needEdit = ['add','addsw','addrack','dr','ipa','ipd','ld','alk','del','dup','up','dn','neta','netd','newtp','copytp','undo','redo'];
+    if(needEdit.includes(act) && (!T.edit || T.ro)){ tpxMsg('Aktifkan mode edit dulu.'); return; }
+    const f = T.sel && tpxFind(T.sel);
+    switch(act){
+      case 'back': tpxClose(); break;
+      case 'edit': T.edit = !T.edit; T.editing = null; tpxMsg(T.edit ? 'Mode edit aktif.' : 'Mode lihat saja: perubahan dikunci.'); tpxRender(); break;
+      case 'view': T.view = a.dataset.v; host.querySelectorAll('[data-a="view"]').forEach(x => x.classList.toggle('on', x === a)); tpxRender(); break;
+      case 'nf': T.fn = a.dataset.f; tpxRender(); break;
+      case 'nets': T.netsOpen = !T.netsOpen; a.classList.toggle('on', T.netsOpen); tpxRender(); break;
+      case 'csv': tpxCsv(); break;
+      case 'goto': if(a.dataset.tp !== T.it.id) tpxOpen(a.dataset.tp, T.cat); break;
+      case 'undo': if(T.hist.length){ T.fut.push(tpxSnap()); tpxRestore(T.hist.pop()); tpxChg(); } break;
+      case 'redo': if(T.fut.length){ T.hist.push(tpxSnap()); tpxRestore(T.fut.pop()); tpxChg(); } break;
+      case 'add': tpxAddDev(a.dataset.k); break;
+      case 'addsw': tpxAddDev('switch'); break;
+      case 'addrack': { tpxPush(); const id = 'r' + tpxNid(); T.it.racks.push({ id, t:'Rak baru', devs:[tpxDev(tpxNid(), 'switch', 'Switch POE', [])] }); T.editing = 'rack:' + id; tpxMsg('Rak baru ditambahkan. Ketik nama rak lalu Enter.'); tpxChg(); break; }
+      case 'dr': {
+        const rr = T.it.racks.find(x => x.id === a.dataset.r); if(!rr) break;
+        tpxPush(); const ids = rr.devs.map(x => x.id);
+        T.it.racks = T.it.racks.filter(x => x !== rr);
+        T.it.links = T.it.links.filter(l => !ids.includes(l.a) && !ids.includes(l.b));
+        if(T.sel && ids.includes(T.sel)) T.sel = null;
+        tpxMsg('Rak "' + rr.t + '" dihapus beserta perangkatnya. Klik Urungkan untuk mengembalikan.'); tpxChg(); break;
+      }
+      case 'ipa': if(f){ tpxPush(); const n0 = T.it.nets[0]; f.d.ips.push({ n: n0.k, ip: n0.pre || '' }); tpxChg(); } break;
+      case 'ipd': if(f){ tpxPush(); f.d.ips.splice(+a.dataset.i, 1); tpxChg(); } break;
+      case 'ld': tpxPush(); T.it.links.splice(+a.dataset.i, 1); tpxChg(); break;
+      case 'alk': {
+        if(!f) break;
+        const to = document.getElementById('tpxLt').value, nt = document.getElementById('tpxLn2').value;
+        if(!to){ tpxMsg('Pilih perangkat tujuan.'); break; }
+        if(T.it.links.some(l => l.n === nt && ((l.a === T.sel && l.b === to) || (l.b === T.sel && l.a === to)))){ tpxMsg('Koneksi itu sudah ada.'); break; }
+        tpxPush(); T.it.links.push({ a: T.sel, b: to, n: nt }); tpxMsg('Koneksi ditambahkan. Garis mengikuti warna jaringan.'); tpxChg(); break;
+      }
+      case 'del': if(f){ tpxPush(); f.r.devs.splice(f.i, 1); T.it.links = T.it.links.filter(l => l.a !== T.sel && l.b !== T.sel); tpxMsg('"' + f.d.nm + '" dihapus. Klik Urungkan untuk mengembalikan.'); T.sel = null; tpxChg(); } break;
+      case 'dup': if(f){ tpxPush(); const cp = JSON.parse(JSON.stringify(f.d)); cp.id = tpxNid(); cp.nm += ' (salinan)'; f.r.devs.splice(f.i + 1, 0, cp); T.sel = cp.id; tpxMsg('Perangkat diduplikat. Ubah nama dan IP-nya.'); tpxChg(); } break;
+      case 'up': case 'dn': if(f){ const j = f.i + (act === 'up' ? -1 : 1); if(j >= 0 && j < f.r.devs.length){ tpxPush(); const tmp = f.r.devs[j]; f.r.devs[j] = f.r.devs[f.i]; f.r.devs[f.i] = tmp; tpxChg(); } } break;
+      case 'neta': { tpxPush(); const pal = ['#2E6690', '#1D9E75', '#BA7517', '#7F77DD']; const k = 'n' + tpxNid(); T.it.nets.push({ k, n:'Jaringan ' + (T.it.nets.length + 1), pre:'', c: pal[T.it.nets.length % pal.length] }); tpxChg(); break; }
+      case 'netd': {
+        const n = T.it.nets[+a.dataset.i]; if(!n) break;
+        const used = T.it.links.some(l => l.n === n.k) || T.it.racks.some(r => r.devs.some(d => d.ips.some(p => p.n === n.k)));
+        if(used){ tpxMsg('Jaringan "' + n.n + '" masih dipakai perangkat atau koneksi. Lepaskan dulu.'); break; }
+        if(T.it.nets.length < 2){ tpxMsg('Minimal harus ada satu jaringan.'); break; }
+        tpxPush(); T.it.nets.splice(+a.dataset.i, 1); if(T.fn === n.k) T.fn = 'all'; tpxChg(); break;
+      }
+      case 'newtp': tpxNewDoc(false); break;
+      case 'copytp': tpxNewDoc(true); break;
+    }
+  });
+  host.addEventListener('input', (e) => {
+    if(!T) return;
+    const t = e.target;
+    if(t.id === 'tpxQ'){ T.q = t.value.trim(); tpxRender(); return; }
+    if(!T.edit) return;
+    if(!T.dirty && t.id !== 'tpxIe'){ tpxPush(); T.dirty = true; }
+    const f = T.sel && tpxFind(T.sel);
+    if(t.id === 'tpxTitle'){ T.it.title = t.value; }
+    else if(t.id === 'tpxAu'){ T.it.au = t.value; }
+    else if(t.id === 'tpxRv'){ T.it.rv = t.value; }
+    else if(t.id === 'tpxFnm' && f){ f.d.nm = t.value; tpxLive(); }
+    else if(t.dataset.pi !== undefined && f){ f.d.ips[+t.dataset.pi].ip = t.value; tpxLive(); }
+    else if(t.id === 'tpxFnt' && f){ f.d.note = t.value; }
+    else if(t.dataset.nn !== undefined){ T.it.nets[+t.dataset.nn].n = t.value || ' '; tpxLive(); }
+    else if(t.dataset.np !== undefined){ T.it.nets[+t.dataset.np].pre = t.value.trim(); tpxLive(); }
+    else if(t.dataset.nc !== undefined){ T.it.nets[+t.dataset.nc].c = t.value; tpxLive(); }
+    else return;
+    tpxQueueSave();
+  });
+  // render ulang diagram saat mengetik di panel, tanpa membangun ulang panel (fokus input tetap)
+  function tpxLive(){
+    const dm = tpxDupMap(), it = T.it;
+    document.getElementById('tpxTop').innerHTML = it.racks[0].devs.map(d => '<div>' + tpxNodeHtml(d, false, dm) + '</div>').join('');
+    let rk = '';
+    it.racks.slice(1).forEach(r => {
+      const sv = r.devs.filter(x => x.ty === 'server'), sw = r.devs.filter(x => x.ty === 'switch'), ot = r.devs.filter(x => x.ty !== 'server' && x.ty !== 'switch');
+      rk += '<div class="tpx-rk"><div class="tpx-rt"><span data-rt="' + r.id + '">' + tpxEsc(r.t || 'Rak tanpa nama') + '</span>' + (T.edit ? '<button type="button" data-a="dr" data-r="' + r.id + '" aria-label="Hapus rak" title="Hapus rak">&times;</button>' : '') + '</div>'
+        + '<div class="tpx-slot">' + (sv.length ? sv.map(x => tpxNodeHtml(x, false, dm)).join('') : '<div class="tpx-em">Tanpa server lokal</div>') + '</div>'
+        + sw.map(x => tpxNodeHtml(x, false, dm)).join('') + (ot.length ? '<div class="tpx-sp">' + ot.map(x => tpxNodeHtml(x, true, dm)).join('') + '</div>' : '') + '</div>';
+    });
+    document.getElementById('tpxRks').innerHTML = rk;
+    document.getElementById('tpxLeg').innerHTML = it.nets.map(n => '<span><i style="border-color:' + tpxEsc(n.c) + '"></i>' + tpxEsc(n.n) + (n.pre ? ' ' + tpxEsc(n.pre) + 'x' : '') + '</span>').join('');
+    tpxRoute(); tpxRenderTable();
+    const f = T.sel && tpxFind(T.sel), du = document.getElementById('tpxDup');
+    if(du && f){ const dup = f.d.ips.filter(p => dm[(p.ip || '').trim()] > 1).map(p => p.ip); du.textContent = dup.length ? 'IP ganda terdeteksi: ' + dup.join(', ') : ''; }
+  }
+  host.addEventListener('focusout', (e) => {
+    if(!T) return;
+    T.dirty = false;
+    const t = e.target;
+    if(t.id === 'tpxIe' && T.editing){
+      const v = t.value.trim();
+      if(T.editing.indexOf('rack:') === 0){ const r = T.it.racks.find(x => x.id === T.editing.slice(5)); if(v && r && v !== r.t){ tpxPush(); r.t = v; tpxQueueSave(); } }
+      else { const f = tpxFind(T.editing); if(f && v && v !== f.d.nm){ tpxPush(); f.d.nm = v; tpxQueueSave(); } }
+      T.editing = null; tpxRender();
+    } else if(t.id === 'tpxTitle' && T.edit){
+      const v = t.value.trim() || 'Topologi'; T.it.title = v; t.value = v;
+      const fd = tpxFindDoc(T.it.id);
+      if(fd && fd.doc.name !== v){ fd.doc.name = v; sopSaveCatDocs(fd.key).catch(() => {}); tpxRender(); }
+      tpxQueueSave();
+    }
+  });
+  host.addEventListener('keydown', (e) => {
+    if(!T) return;
+    if(e.target.id === 'tpxIe'){ if(e.key === 'Enter') e.target.blur(); if(e.key === 'Escape'){ T.editing = null; tpxRender(); } return; }
+    if(e.target.id === 'tpxTitle' && e.key === 'Enter'){ e.target.blur(); return; }
+    const tag = (e.target.tagName || '').toLowerCase();
+    if(tag === 'input' || tag === 'textarea' || tag === 'select') return;
+    if(T.edit && !T.ro){
+      if((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z'){ e.preventDefault(); host.querySelector('[data-a="' + (e.shiftKey ? 'redo' : 'undo') + '"]').click(); }
+      else if(e.key === 'Delete' && T.sel){ const b = host.querySelector('[data-a="del"]'); if(b) b.click(); }
+    }
+  });
+  host.addEventListener('change', (e) => {
+    if(!T) return;
+    const t = e.target;
+    if(t.id === 'tpxTarget'){ T.target = t.value; return; }
+    const f = T.sel && tpxFind(T.sel);
+    if(!f || !T.edit) return;
+    if(t.id === 'tpxFty'){ tpxPush(); f.d.ty = t.value; tpxChg(); }
+    else if(t.id === 'tpxFrk'){ tpxPush(); const to = T.it.racks.find(r => r.id === t.value); if(to){ f.r.devs.splice(f.i, 1); to.devs.push(f.d); } tpxChg(); }
+    else if(t.dataset.pn !== undefined){ tpxPush(); f.d.ips[+t.dataset.pn].n = t.value; tpxChg(); }
+  });
+  window.addEventListener('resize', () => { if(T) tpxRoute(); });
+}
+async function tpxNewDoc(copy){
+  const src = T.it, fd = tpxFindDoc(src.id), key = fd ? fd.key : (T.cat || 'topologi');
+  await tpxFlush();
+  const docs = sopDocsCache[key] || (sopDocsCache[key] = []);
+  const id = 'tp' + Date.now().toString(36), name = copy ? src.title + ' (salinan)' : 'Topologi baru';
+  const it = copy ? JSON.parse(JSON.stringify(src)) : tpxBlank(name);
+  it.id = id; it.title = name; delete it.updatedAt;
+  tpxItems.push(it);
+  docs.push({ name, type:'topology', topoId:id, owner: it.au || '', size:'', url:'' });
+  try{ await sopSaveCatDocs(key); }catch(e){}
+  await tpxFlush();
+  await tpxOpen(id, key);
+  T.edit = true; tpxRender();
+  tpxMsg(copy ? 'Salinan dibuat. Ubah judul dan isinya.' : 'Topologi kosong dibuat. Tambah rak dan perangkat dari palet.');
 }
 
 document.getElementById('sopSearchInput').addEventListener('input', (e) => sopRenderGrid(e.target.value));
@@ -14789,16 +15374,24 @@ function sopOpenDocModal(presetCat){
   document.getElementById('sopDocSize').value = '';
   document.getElementById('sopDocUrl').value = '';
   document.getElementById('sopDocOwner').value = '';
+  sopDocTypeToggle();
   document.getElementById('sopDocModalOverlay').style.display = 'flex';
 }
+function sopDocTypeToggle(){
+  const topo = document.getElementById('sopDocType').value === 'topology';
+  document.getElementById('sopDocUrlWrap').style.display = topo ? 'none' : '';
+  document.getElementById('sopDocSizeWrap').style.display = topo ? 'none' : '';
+}
+document.getElementById('sopDocType').addEventListener('change', sopDocTypeToggle);
 document.getElementById('sopAddDocBtn').onclick = () => sopOpenDocModal();
 document.getElementById('sopDocModalCloseBtn').onclick = () => document.getElementById('sopDocModalOverlay').style.display = 'none';
 document.getElementById('sopDocSaveBtn').onclick = async () => {
   const name = document.getElementById('sopDocName').value.trim();
   const url = document.getElementById('sopDocUrl').value.trim();
   if(!name){ alert('Judul dokumen wajib diisi.'); return; }
-  if(!url){ alert('Link dokumen wajib diisi (SharePoint/Google Drive/URL lain).'); return; }
-  if(!sopIsSafeUrl(url)){ alert('Link dokumen tidak valid. Hanya link yang diawali http:// atau https:// yang diizinkan.'); return; }
+  const isTopo = document.getElementById('sopDocType').value === 'topology';
+  if(!isTopo && !url){ alert('Link dokumen wajib diisi (SharePoint/Google Drive/URL lain).'); return; }
+  if(!isTopo && !sopIsSafeUrl(url)){ alert('Link dokumen tidak valid. Hanya link yang diawali http:// atau https:// yang diizinkan.'); return; }
   const key = document.getElementById('sopDocCategory').value;
   // v9: tampilkan status "Menyimpan..." di tombol supaya jeda tunggu backend
   // tidak terlihat seperti macet/freeze, plus cegah klik ganda selama proses.
@@ -14808,17 +15401,20 @@ document.getElementById('sopDocSaveBtn').onclick = async () => {
   saveBtn.textContent = 'Menyimpan...';
   try{
     if(!sopDocsCache[key]) sopDocsCache[key] = await sopLoadCatDocs(key);
-    sopDocsCache[key].push({
+    const newDoc = {
       name, type: document.getElementById('sopDocType').value,
       size: document.getElementById('sopDocSize').value.trim(),
       owner: document.getElementById('sopDocOwner').value.trim(),
       url
-    });
+    };
+    if(isTopo){ newDoc.size = ''; newDoc.url = ''; newDoc.topoId = 'tp' + Date.now().toString(36); await tpxCreate(newDoc.topoId, name, newDoc.owner); }
+    sopDocsCache[key].push(newDoc);
     await sopSaveCatDocs(key); // HANYA kategori ini yang dikirim ulang ke backend, bukan semua kategori
     document.getElementById('sopDocModalOverlay').style.display = 'none';
     sopActiveCat = key;
     renderSop();
     showToast('✓ Dokumen tersimpan', 'success');
+    if(isTopo) tpxOpen(newDoc.topoId, key);
   }catch(e){
     showToast('✗ Gagal menyimpan dokumen', 'error');
   }finally{
