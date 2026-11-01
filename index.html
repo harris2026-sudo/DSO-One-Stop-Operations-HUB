@@ -2645,7 +2645,7 @@
           <div class="gt-seg" role="group" aria-label="View" id="pjViews">
             <button type="button" data-pjv="plan" class="on">Jadwal</button><button type="button" data-pjv="lanes">Lanes</button><button type="button" data-pjv="cards">Cards</button><button type="button" data-pjv="table">Table</button>
           </div>
-          <button type="button" class="btn btn-ghost" id="pjImportBtn" title="Impor 5 project dari Planning timeline Okt-Des 2026 (VGT BIB). Aman dijalankan ulang, tidak menimpa data.">Import plan Okt-Des</button>
+          <button type="button" class="btn btn-ghost" id="pjImportBtn" hidden style="display:none" title="Impor 5 project dari Planning timeline Okt-Des 2026 (VGT BIB). Aman dijalankan ulang, tidak menimpa data.">Import plan Okt-Des</button>
           <button type="button" class="btn btn-primary" id="pjAddBtn">+ Add project</button>
         </div>
       </div>
@@ -5910,7 +5910,7 @@ const WMX_PROJ_HIDE = /urise|synova/i;
 function wmxRenderProj(){
   let rows = [];
   try{ rows = prjItems.filter(p => !WMX_PROJ_HIDE.test(p.name || '')).map(p => ({ p, s: prjStatus(p) })).filter(x => x.s.st !== 'done'); }catch(e){ rows = []; }
-  rows.sort((a, b) => String(a.p.target || '9999').localeCompare(String(b.p.target || '9999')));
+  rows.sort((a, b) => prjRank(a.p) - prjRank(b.p) || String(a.p.target || '9999').localeCompare(String(b.p.target || '9999')));
   let body;
   if(!rows.length) body = '<div class="wmx-empty">Belum ada project aktif. Buka menu Projects, lalu klik Import plan Okt-Des atau tambah project.</div>';
   else body = '<div class="wmx-row hd"><span>Project</span><span>Jadwal</span><span>Progres</span><span>Status</span></div>' + rows.map(({ p, s }) => {
@@ -12272,9 +12272,17 @@ function prjAvatars(p){
 function prjRows(){
   return prjItems.map(p => ({ p, s: prjStatus(p) }));
 }
+/* Urutan tampil project (Projects dan Weekly Meeting WIM). Cocokkan berdasarkan nama; yang tidak cocok ditaruh setelahnya. */
+const PRJ_NAME_ORDER = [/perbaikan|planning/i, /ls lane 3/i, /ls lane 1/i, /scoreboard/i, /pavement lane 1/i, /pavement lane 3/i];
+const PRJ_NAME_RANK = [5, 0, 1, 2, 3, 4];
+function prjRank(p){
+  const n = String(p.name || '');
+  for(let i = 0; i < PRJ_NAME_ORDER.length; i++) if(PRJ_NAME_ORDER[i].test(n)) return PRJ_NAME_RANK[i];
+  return 99;
+}
 function prjVisible(){
   return prjRows().filter(x => !prjFilter || x.s.st === prjFilter)
-    .sort((a, b) => PRJ_ORDER.indexOf(a.s.st) - PRJ_ORDER.indexOf(b.s.st) || String(a.p.target || '9999').localeCompare(String(b.p.target || '9999')));
+    .sort((a, b) => prjRank(a.p) - prjRank(b.p) || PRJ_ORDER.indexOf(a.s.st) - PRJ_ORDER.indexOf(b.s.st) || String(a.p.target || '9999').localeCompare(String(b.p.target || '9999')));
 }
 
 /* ---- rendering ---- */
