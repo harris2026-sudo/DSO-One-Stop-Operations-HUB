@@ -1600,6 +1600,14 @@
   .wmx-br{display:grid;grid-template-columns:120px 1fr 22px;gap:8px;align-items:center;padding:3px 0;font-size:13px}
   .wmx-br .b{height:9px;border-radius:5px;background:var(--surface-alt);overflow:hidden}
   .wmx-br .b i{display:block;height:100%;background:var(--accent)}
+  .wmx-pe{border:1px solid transparent;background:transparent;border-radius:6px;font:inherit;color:var(--text);min-width:0;width:100%;padding:3px 6px;margin-left:-6px;}
+  .wmx-pe:hover{border-color:var(--border);}
+  .wmx-pe:focus{border-color:var(--accent);background:var(--surface);outline:none;}
+  .wmx-pe.nm{font-weight:500;}
+  .wmx-pl{display:flex;align-items:center;font-size:11px;color:var(--text-muted);}
+  .wmx-pl .ph{width:auto;min-width:60px;max-width:55%;font-size:11px;color:var(--text-muted);padding:1px 6px;}
+  .wmx-pl .ph::placeholder{color:var(--text-muted);opacity:.6;}
+  .wmx-pl span{white-space:nowrap;}
   .wmx-ev{font-size:12px;display:grid;grid-template-columns:56px 50px 1fr;gap:8px;padding:4px 0;border-top:1px solid var(--border)}
   @media (max-width:760px){
     .wmx-kp{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -5842,7 +5850,7 @@ function wmxSh(n, title, src){
 function wmxFoot(sec){
   const acts = wmxWk.acts.filter(a => a.sec === sec);
   return '<div class="wmx-ft" data-sec="' + sec + '"><label>Catatan</label>'
-    + '<textarea data-wf="note" placeholder="Catatan pembahasan bagian ini">' + escapeHtml(wmxWk.notes[sec] || '') + '</textarea>'
+    + '<textarea data-wf="note" aria-label="Catatan">' + escapeHtml(wmxWk.notes[sec] || '') + '</textarea>'
     + '<label style="margin-top:10px">Action item</label>'
     + (acts.length ? acts.map(a => '<div class="wmx-act ' + (a.done ? 'done' : '') + '" data-aid="' + a.id + '">'
         + '<input type="checkbox" data-wa="done" ' + (a.done ? 'checked' : '') + ' aria-label="Selesai">'
@@ -5851,7 +5859,7 @@ function wmxFoot(sec){
         + '<input type="date" data-wa="due" value="' + escapeHtml(a.due || '') + '" aria-label="Tenggat">'
         + '<button type="button" class="wmx-x" data-wm="delact" aria-label="Hapus">&times;</button></div>').join('')
       : '<div class="wmx-empty">Belum ada action item.</div>')
-    + '<div class="wmx-add"><input type="text" data-wf="new" placeholder="Tulis action item, lalu Enter"><button type="button" class="wmx-btn pri" data-wm="addact">Tambah</button></div></div>';
+    + '<div class="wmx-add"><input type="text" data-wf="new" aria-label="Action item baru"><button type="button" class="wmx-btn pri" data-wm="addact">Tambah</button></div></div>';
 }
 
 /* ---------- 1 Operasional ---------- */
@@ -5918,7 +5926,7 @@ function wmxRenderProj(){
   else body = '<div class="wmx-row hd"><span>Project</span><span>Jadwal</span><span>Progres</span><span>Status</span></div>' + rows.map(({ p, s }) => {
     const st = PRJ_STATUS[s.st];
     const sch = p.start && p.target ? (p.start === p.target ? wmxFds(p.start) : wmxFds(p.start) + ' – ' + wmxFds(p.target)) : '-';
-    return '<div class="wmx-row"><span><b style="font-weight:500">' + escapeHtml(p.name) + '</b><div style="font-size:11px;color:var(--text-muted)">' + escapeHtml(p.phase || '') + (p.pics.length ? ' · PIC ' + escapeHtml(p.pics.join(', ')) : ' · PIC belum diisi') + '</div></span><span>' + sch + '</span><span>' + prjProgress(p) + '%</span><span><span class="wmx-pill" style="background:var(--surface-alt);color:' + st.c + '">' + st.l + '</span></span></div>';
+    return '<div class="wmx-row"><span><input type="text" class="wmx-pe nm" data-wp="name" data-pid="' + escapeHtml(p.id) + '" value="' + escapeHtml(p.name) + '" aria-label="Nama project"><div class="wmx-pl"><input type="text" class="wmx-pe ph" data-wp="phase" data-pid="' + escapeHtml(p.id) + '" value="' + escapeHtml(p.phase || '') + '" placeholder="Fase" aria-label="Fase project"><span>' + (p.pics.length ? ' · PIC ' + escapeHtml(p.pics.join(', ')) : ' · PIC belum diisi') + '</span></div></span><span>' + sch + '</span><span>' + prjProgress(p) + '%</span><span><span class="wmx-pill" style="background:var(--surface-alt);color:' + st.c + '">' + st.l + '</span></span></div>';
   }).join('');
   document.getElementById('wmx-proj').innerHTML = wmxSh(3, 'Project', 'menu Projects, tampil langsung')
     + body + '<div class="wmx-add"><button type="button" class="wmx-btn" data-wm="gotoproj">Buka menu Projects</button></div>' + wmxFoot('proj');
@@ -6028,6 +6036,7 @@ function wmxBind(){
     if(t.dataset.sys){ wmxWk.sys[t.dataset.sys] = t.value; wmxSaveWk(); return; }
     if(t.dataset.hse){ wmxWk.hse[t.dataset.hse] = t.value; wmxSaveWk(); return; }
     if(t.dataset.iss === 'text' || t.dataset.iss === 'pic'){ const i = wmxWk.sys.issues.find(x => x.id === t.closest('.wmx-isu').dataset.iid); if(i){ i[t.dataset.iss] = t.value; wmxSaveWk(); } return; }
+    if(t.dataset.wp){ const pj = prjById(t.dataset.pid); if(pj){ pj[t.dataset.wp] = t.value; prjQueueSave(pj); } return; }
     if(t.dataset.pk){
       const name = t.closest('tr').dataset.p; wmxStock[name] = wmxStock[name] || {};
       if(t.dataset.pk === 'phys') wmxStock[name].phys = t.value === '' ? null : Math.max(0, parseInt(t.value, 10) || 0);
@@ -12406,7 +12415,7 @@ function prjDetailHtml(p){
     <h5>PIC</h5>
     <div class="pj-chips">${p.pics.map(n => `<span class="pj-chip">${escapeHtml(n)}<button type="button" data-pjpicdel="${escapeHtml(n)}" aria-label="Remove ${escapeHtml(n)}">&times;</button></span>`).join('')}${picAdd}</div>
     <h5>Aktivitas</h5>
-    <div class="pj-lk"><span>${aS.d} dari ${aS.n} selesai${aS.o ? `, <span style="color:var(--red-fg)">${aS.o} terlambat</span>` : ''}</span>${prjMode === 'plan' ? '' : '<button type="button" class="btn btn-ghost" data-pjv="plan">Buka editor Jadwal</button>'}</div>
+    <div class="pj-lk"><span>${aS.d} dari ${aS.n} selesai${aS.o ? `, <span style="color:var(--red-fg)">${aS.o} terlambat</span>` : ''}</span>${prjMode === 'plan' ? '' : '<button type="button" class="btn btn-ghost" data-pjv="plan">Open Schedule</button>'}</div>
     <div class="pj-why" style="margin-top:4px">Nama, tanggal mulai dan selesai aktivitas diedit langsung di tab Jadwal (seret batang atau klik untuk isi tanggal).</div>
     <h5>Risks and issues</h5>
     <div>${p.risks.map(r => `<div class="pj-row"><select class="pj-sev ${r.sev === 'h' ? 'h' : ''}" data-pjrk="${r.id}:sev" aria-label="Severity">${['h', 'm', 'l'].map(k => `<option value="${k}" ${r.sev === k ? 'selected' : ''}>${PRJ_SEV[k]}</option>`).join('')}</select><input type="text" data-pjrk="${r.id}:text" value="${escapeHtml(r.text)}" aria-label="Risk"><button type="button" class="x" data-pjrkdel="${r.id}" aria-label="Delete risk"><i class="ti ti-x"></i></button></div>`).join('') || '<div class="pj-why">None logged.</div>'}
@@ -12824,7 +12833,7 @@ function prjOnPicClosed(){
     const t = e.target.closest('[data-pjk],[data-pjv],[data-pjid],[data-pjact],[data-pjpicdel],[data-pjmsdel],[data-pjrkdel]');
     if(!t) return;
     if(t.dataset.pjk !== undefined){ const v = t.dataset.pjk || null; prjFilter = (prjFilter === v) ? null : v; prjRenderMain(); return; }
-    if(t.dataset.pjv){ prjMode = t.dataset.pjv; prjRenderMain(); return; }
+    if(t.dataset.pjv){ prjMode = t.dataset.pjv; prjRenderAll(); return; }
     if(t.dataset.pjid){ prjSel = t.dataset.pjid; prjRenderAll(); return; }
     const p = prjSelProject();
     if(!p) return;
