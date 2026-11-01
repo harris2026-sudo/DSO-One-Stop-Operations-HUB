@@ -14923,13 +14923,13 @@ function tpxDefault(){
   lane(2, 940, { srv:['Server', [v(10), b(10)]], ot:[['mini','Mini PC',[v(12)]],['cctv','CCTV High Speed',[v(13)]],['rfid','RFID High Speed',[v(14)]]], hs:['WIM Logix High Speed',[v(15)]] });
   lane(3, 1442, { srv:['Server Backup', [v(9), b('14/25')]], ot:[['mini','Mini PC Low Speed',[v(36)]],['mini','Mini PC High Speed',[v(37)]],['cctv','CCTV High Speed',[v(30)]],['cctv','CCTV Low Speed',[v(31)]],['rfid','RFID High Speed',[v(34)]],['rfid','RFID Low Speed',[v(35)]]], low:['WIM Logic Low Speed',[v(33)]], hs:['WIM Logic High Speed',[v(32)]] });
   N('gw', 1095, 80, 150, 66, 'gw', 'Switch BIB');
-  Lk('gw', 'l', 's2', 'l', 'bib', { m:tm('gw', 'l', 's2', 'l', 911) });
-  Lk('gw', 'l', 'pc', 'r', 'bib', { m:tm('gw', 'l', 'pc', 'r', 911) });
-  Lk('gw', 'r', 's3', 'l', 'bib', { m:tm('gw', 'r', 's3', 'l', 1416) });
+  Lk('gw', 'l', 's2', 'l', 'bib', { gx:911 });
+  Lk('gw', 'l', 'pc', 'r', 'bib', { gx:903, oa:12 });
+  Lk('gw', 'r', 's3', 'l', 'bib', { gx:1416 });
   Lk('w1', 't', 'w2', 't', 'vgt', { st:'u', yv:389 });
   Lk('w2', 't', 'w3', 't', 'vgt', { st:'u', yv:389 });
-  boxes.push({ id:'lg', x:6, y:1436, w:1230, h:56, t:'', lg:1 });
-  return { id:'wimbib', tpl:44, title:'Topologi jaringan WIM BIB', au:'Zainal Fahriandy', rv:'6', nets: tpxNets(), cables: tpxDefCables(), boxes, nodes, links };
+  boxes.push({ id:'lg', x:6, y:1436, w:1230, h:78, t:'', lg:1 });
+  return { id:'wimbib', tpl:45, title:'Topologi jaringan WIM BIB', au:'Zainal Fahriandy', rv:'6', nets: tpxNets(), cables: tpxDefCables(), boxes, nodes, links };
 }
 function tpxBlank(title){
   const sw = { id:'sw' + tpxNid(), x:60, y:200, w:170, h:30, ty:'sw', nm:'Switch POE', ips:[], note:'', ports:0, off:{} };
@@ -14973,7 +14973,8 @@ function tpxNorm(it){
   if(!Array.isArray(it.cables) || !it.cables.length) it.cables = tpxDefCables();
   it.boxes = Array.isArray(it.boxes) ? it.boxes : []; it.nodes = Array.isArray(it.nodes) ? it.nodes : []; it.links = Array.isArray(it.links) ? it.links : [];
   it.nodes.forEach(n => { n.ips = Array.isArray(n.ips) ? n.ips : []; n.note = n.note || ''; n.ports = n.ports || 0; n.tag = n.tag || ''; n.sh = n.sh || ''; n.ps = n.ps || ''; n.off = n.off && typeof n.off === 'object' ? n.off : {}; n.bd = n.bd || ''; });
-  it.cables.forEach(c => { if(c.c && TPX_OLDC[c.c]) c.c = TPX_OLDC[c.c]; if(c.c && !c.d) c.d = c.k === 'loadcell' ? '7 4' : '1.5 3'; });
+  it.sbLen = it.sbLen || '2 m';
+  it.cables.forEach(c => { delete c.len; if(c.c && TPX_OLDC[c.c]) c.c = TPX_OLDC[c.c]; if(c.c && !c.d) c.d = c.k === 'loadcell' ? '7 4' : '1.5 3'; });
   it.links.forEach(l => { l.k = l.k || 'lan'; l.pa = l.pa || 0; l.pb = l.pb || 0; if(typeof l.m !== 'number') l.m = .5; l.st = ['s', 'p', 'u', 'j', 'a'].includes(l.st) ? l.st : 'o'; });
   it.title = it.title || 'Topologi'; it.au = it.au || ''; it.rv = it.rv || '';
   return it;
@@ -15080,12 +15081,15 @@ function tpxPoly(l){
   if(l.st === 'p' && a.ty === 'swp'){ const m = tpxSwCables(a), pts = m[l.id]; return pts ? { pts, hd:null } : null; }
   if(l.st === 'j'){ const pts = tpxJPts(l); return pts ? { pts, hd:null } : null; }
   if(l.st === 'a'){ const pts = tpxAuto(l); return pts ? { pts, hd:null } : null; }
-  const p = tpxPt(a, l.sa, l.pa), q = tpxPt(b, l.sb, l.pb), h1 = l.sa === 'l' || l.sa === 'r', h2 = l.sb === 'l' || l.sb === 'r';
+  const h1 = l.sa === 'l' || l.sa === 'r', h2 = l.sb === 'l' || l.sb === 'r';
+  let p = tpxPt(a, l.sa, l.pa), q = tpxPt(b, l.sb, l.pb);
+  if(l.oa) p = h1 ? [p[0], p[1] + l.oa] : [p[0] + l.oa, p[1]];
+  if(l.ob) q = h2 ? [q[0], q[1] + l.ob] : [q[0] + l.ob, q[1]];
   if(l.st === 'u' && typeof l.yv === 'number') return { pts:[p, [p[0], l.yv], [q[0], l.yv], q], hd:null };
   let pts, hd = null;
   if(l.st === 's'){ pts = [p, q]; hd = [(p[0] + q[0]) / 2, (p[1] + q[1]) / 2]; }
-  else if(h1 && h2){ const mx = p[0] + (q[0] - p[0]) * l.m; pts = [p, [mx, p[1]], [mx, q[1]], q]; hd = [mx, (p[1] + q[1]) / 2]; }
-  else if(!h1 && !h2){ const my = p[1] + (q[1] - p[1]) * l.m; pts = [p, [p[0], my], [q[0], my], q]; hd = [(p[0] + q[0]) / 2, my]; }
+  else if(h1 && h2){ const mx = typeof l.gx === 'number' ? l.gx : p[0] + (q[0] - p[0]) * l.m; pts = [p, [mx, p[1]], [mx, q[1]], q]; hd = [mx, (p[1] + q[1]) / 2]; }
+  else if(!h1 && !h2){ const my = typeof l.gx === 'number' ? l.gx : p[1] + (q[1] - p[1]) * l.m; pts = [p, [p[0], my], [q[0], my], q]; hd = [(p[0] + q[0]) / 2, my]; }
   else if(h1) pts = [p, [q[0], p[1]], q];
   else pts = [p, [p[0], q[1]], q];
   return { pts, hd };
@@ -15180,7 +15184,7 @@ async function tpxOpen(id, cat){
     if(keep.length !== docs.length){ sopDocsCache[key] = keep; try{ await sopSaveCatDocs(key); }catch(e){} }
   }
   let upgraded = '';
-  if(it.id === 'wimbib' && (it.tpl || 0) < 44){
+  if(it.id === 'wimbib' && (it.tpl || 0) < 45){
     const old = JSON.parse(JSON.stringify(it)); old.id = 'wimbib-lama-' + Date.now().toString(36); old.title = (it.title || 'Topologi jaringan WIM BIB') + ' (versi lama)';
     tpxItems.push(old);
     const fresh = tpxDefault(), keepAu = it.au;
@@ -15410,7 +15414,9 @@ function tpxBoxSvg(r){
     const add = (col, dash, tx) => { o += '<path d="M' + x + ' ' + (r.y + 38) + 'h34" stroke="' + col + '" stroke-width="2.2"' + (dash ? ' stroke-dasharray="' + dash + '"' : '') + '/><text x="' + (x + 42) + '" y="' + (r.y + 42) + '" style="font-size:11.5px;font-weight:600;fill:' + TPX_INK + '">' + tpxEsc(tx) + '</text>'; x += 42 + tpxTW(tx, 11.5, 0) + 30; };
     it.nets.forEach(n => add(n.c, '', 'Jaringan ' + n.n + (n.pre ? ' (' + n.pre + 'x)' : '')));
     it.cables.filter(c => c.c).forEach(c => add(c.c, c.d || '1.5 3', c.n.split(':')[0]));
-    o += '<path d="M' + x + ' ' + (r.y + 40) + 'h8a4 4 0 0 1 8 0h8" fill="none" stroke="#51607A" stroke-width="1.6"/><text x="' + (x + 34) + '" y="' + (r.y + 42) + '" style="font-size:11.5px;font-weight:600;fill:' + TPX_INK + '">Kabel melompat (tidak tersambung)</text>';
+    o += '<path d="M' + (r.x + 20) + ' ' + (r.y + 22 + 36) + 'h' + (r.w - 40) + '" stroke="#D5DEEE" stroke-width="1" stroke-dasharray="3 3"/>';
+    const bdg = (bx, tx, fill, ink2, tt) => '<rect x="' + bx + '" y="' + (r.y + 55) + '" width="30" height="16" rx="4" fill="' + fill + '" stroke="' + ink2 + '" stroke-width=".8"/><text x="' + (bx + 15) + '" y="' + (r.y + 66.5) + '" text-anchor="middle" style="font-size:10.5px;font-weight:800;fill:' + ink2 + '">' + tx + '</text><text x="' + (bx + 36) + '" y="' + (r.y + 67) + '" style="font-size:11.5px;font-weight:600;fill:' + TPX_INK + '">' + tt + '</text>';
+    o += bdg(r.x + 20, 'SB', '#FDE3BE', '#8A4B00', '= Stripbar' + (it.sbLen ? ' (panjang sensor ' + it.sbLen + ')' : '')) + bdg(r.x + 300, 'LC', '#FDF1F9', '#8E1C6E', '= Load Cell');
   } else {
     o += '<rect x="' + r.x + '" y="' + r.y + '" width="' + r.w + '" height="' + r.h + '" rx="12" fill="#F6F9FE" stroke="' + (ink || '#8CA7D0') + '" stroke-width="' + (s ? 2.4 : 1.4) + '" stroke-dasharray="6 5"/>' + tpxBtT(r, r.x + r.w - 14, r.y + 22, 12, '#51607A', 'end');
   }
@@ -15449,7 +15455,7 @@ function tpxDrawCanvas(){
       + '</g>';
   });
   if(selK === 'n' && T.edit){ const n = tpxNode(selId); if(n && n.ty !== 'ttl') ['l', 'r', 't', 'b'].forEach(sd => { if(sd === 't' && n.bd) return; const p = tpxPt(n, sd); o += '<circle data-k="pt" data-id="' + n.id + '" data-s="' + sd + '" cx="' + p[0] + '" cy="' + p[1] + '" r="6" fill="#FFFFFF" stroke="#2B6CD4" stroke-width="2" style="cursor:crosshair"/>'; }); }
-  if(selK === 'l' && T.edit){ const l = it.links.find(z => z.id === selId), p = l && tpxPath(l); if(p && p.hd && (l.st === 'o' || l.st === 's') && l.st !== 's') o += '<circle data-k="hd" data-id="' + l.id + '" cx="' + p.hd[0] + '" cy="' + p.hd[1] + '" r="6" fill="#2B6CD4" stroke="#FFFFFF" stroke-width="2" style="cursor:move"/>'; }
+  if(selK === 'l' && T.edit){ const l = it.links.find(z => z.id === selId), p = l && tpxPath(l); if(p && l.st === 'o'){ if(p.hd) o += '<circle data-k="hd" data-id="' + l.id + '" cx="' + p.hd[0] + '" cy="' + p.hd[1] + '" r="6" fill="#2B6CD4" stroke="#FFFFFF" stroke-width="2" style="cursor:move"/>'; const f = p.pts[0]; o += '<rect data-k="ha" data-id="' + l.id + '" x="' + (f[0] - 5) + '" y="' + (f[1] - 5) + '" width="10" height="10" transform="rotate(45 ' + f[0] + ' ' + f[1] + ')" fill="#FFFFFF" stroke="#2B6CD4" stroke-width="2" style="cursor:grab"/>'; } }
   if(T.drag && T.drag.t === 'link') o += '<path d="M' + T.drag.p + 'L' + T.drag.q + '" stroke="' + (T.drag.jit ? TPX_HS : '#2B6CD4') + '" stroke-width="2" stroke-dasharray="4 3" fill="none"/>';
   vp.setAttribute('transform', 'translate(' + T.tf.x + ' ' + T.tf.y + ') scale(' + T.tf.k + ')');
   vp.innerHTML = o;
@@ -15540,7 +15546,7 @@ function tpxDrawNets(){
   if(!T.netsOpen) return;
   const d = T.edit ? '' : ' disabled', it = T.it;
   el.innerHTML = '<h4>Jaringan (warna garis LAN, prefix IP)</h4>' + it.nets.map((n, i) => '<div class="tpx-ipr"><input type="color" data-nc="' + i + '" value="' + tpxEsc(n.c) + '"' + d + ' aria-label="Warna"><input type="text" data-nn="' + i + '" value="' + tpxEsc(n.n) + '" placeholder="Nama" style="max-width:130px"' + d + '><input type="text" data-np="' + i + '" value="' + tpxEsc(n.pre) + '" placeholder="Prefix IP, mis. 172.20.32."' + d + '><button type="button" class="tpx-xb" data-a="netd" data-i="' + i + '" aria-label="Hapus jaringan"' + d + '>&times;</button></div>').join('') + '<button type="button" class="tpx-sb" data-a="neta"' + d + '>+ Jaringan</button>'
-    + '<h4 style="margin-top:14px">Jenis kabel</h4>' + it.cables.map((c, i) => '<div class="tpx-ipr">' + (c.k === 'lan' ? '<span class="tpx-lbl" style="width:32px">auto</span>' : '<input type="color" data-cc="' + i + '" value="' + tpxEsc(c.c || '#E8890C') + '"' + d + ' aria-label="Warna kabel">') + '<input type="text" data-cn="' + i + '" value="' + tpxEsc(c.n) + '"' + (c.k === 'lan' ? ' disabled' : d) + '>' + (c.k === 'lan' ? '' : '<button type="button" class="tpx-xb" data-a="cabd" data-i="' + i + '" aria-label="Hapus kabel"' + d + '>&times;</button>') + '</div>').join('') + '<button type="button" class="tpx-sb" data-a="caba"' + d + '>+ Jenis kabel</button><div class="tpx-lbl" style="margin-top:6px">Kabel bukan LAN digambar bertitik/putus-putus dengan warnanya sendiri. Jaringan atau kabel yang masih dipakai tidak bisa dihapus.</div>';
+    + '<h4 style="margin-top:14px">Jenis kabel</h4>' + it.cables.map((c, i) => '<div class="tpx-ipr">' + (c.k === 'lan' ? '<span class="tpx-lbl" style="width:32px">auto</span>' : '<input type="color" data-cc="' + i + '" value="' + tpxEsc(c.c || '#E8890C') + '"' + d + ' aria-label="Warna kabel">') + '<input type="text" data-cn="' + i + '" value="' + tpxEsc(c.n) + '"' + (c.k === 'lan' ? ' disabled' : d) + '>' + (c.k === 'lan' ? '' : '') + (c.k === 'lan' ? '' : '<button type="button" class="tpx-xb" data-a="cabd" data-i="' + i + '" aria-label="Hapus kabel"' + d + '>&times;</button>') + '</div>').join('') + '<button type="button" class="tpx-sb" data-a="caba"' + d + '>+ Jenis kabel</button><h4 style="margin-top:14px">Sensor stripbar</h4><div class="tpx-ipr"><span class="tpx-lbl">Panjang sensor stripbar</span><input type="text" data-sbl="1" value="' + tpxEsc(it.sbLen || '') + '" placeholder="mis. 2 m" style="max-width:130px"' + d + '></div><div class="tpx-lbl" style="margin-top:6px">Kabel bukan LAN digambar bertitik/putus-putus dengan warnanya sendiri. Jaringan atau kabel yang masih dipakai tidak bisa dihapus.</div>';
 }
 function tpxDrawTable(){
   const tv = document.getElementById('tpxTbv'), wr = document.getElementById('tpxWrap');
@@ -15675,7 +15681,8 @@ function tpxBind(host){
     T.lastDown = { key, t:nowT };
     if(k === 'pt' && T.edit){ const n = tpxNode(id), p = tpxPt(n, g.dataset.s); T.drag = { t:'link', a:id, sa:g.dataset.s, pa:0, p, q:p }; svg.setPointerCapture(e.pointerId); return; }
     if(k === 'pp' && T.edit){ const n = tpxNode(id), p = tpxPt(n, 'b', +g.dataset.p); T.drag = { t:'link', a:id, sa:'b', pa:+g.dataset.p, jit:1, p, q:p }; svg.setPointerCapture(e.pointerId); return; }
-    if((k === 'hd' || k === 'rz') && T.edit){ T.drag = { t:k, id, pre:tpxSnap(), moved:false }; svg.setPointerCapture(e.pointerId); return; }
+    if(k === 'l' && T.edit){ const lk = T.it.links.find(z => z.id === id), pp = lk && lk.st === 'o' && tpxPath(lk); T.sel = { k:'l', id }; T.selP = null; if(pp && pp.hd){ T.drag = { t:'hd', id, pre:tpxSnap(), moved:false }; svg.setPointerCapture(e.pointerId); } tpxDrawCanvas(); tpxDrawPanel(); return; }
+    if((k === 'hd' || k === 'rz' || k === 'ha') && T.edit){ T.drag = { t:k, id, pre:tpxSnap(), moved:false }; svg.setPointerCapture(e.pointerId); return; }
     if(k === 'pp') return;
     if(k === 'np'){
       const n = tpxNode(id); if(!n) return;
@@ -15715,7 +15722,8 @@ function tpxBind(host){
     else if(d.t === 'mv'){ const dx = tpxSn(d.ox + w[0] - d.sx) - d.ox, dy = tpxSn(d.oy + w[1] - d.sy) - d.oy; if(!d.moved && !dx && !dy) return; d.moved = true; clearTimeout(T.zt); d.o.x = d.ox + dx; d.o.y = d.oy + dy; d.car.forEach(c => { c.o.x = c.x + dx; c.o.y = c.y + dy; }); tpxDrawCanvas(); }
     else if(d.t === 'lab'){ const dx = w[0] - d.sx, dy = w[1] - d.sy; if(!d.moved && Math.hypot(dx, dy) * T.tf.k < 3) return; d.moved = true; clearTimeout(T.zt); d.n.off = d.n.off || {}; d.n.off[d.part] = [Math.round(d.ox + dx), Math.round(d.oy + dy)]; tpxDrawCanvas(); }
     else if(d.t === 'rz'){ d.moved = true; const r = T.it.boxes.find(z => z.id === d.id); r.w = Math.max(100, tpxSn(w[0] - r.x)); r.h = Math.max(80, tpxSn(w[1] - r.y)); tpxDrawCanvas(); }
-    else if(d.t === 'hd'){ d.moved = true; const l = T.it.links.find(z => z.id === d.id), a = tpxNode(l.a), b = tpxNode(l.b), p = tpxPt(a, l.sa, l.pa), z = tpxPt(b, l.sb, l.pb), h = l.sa === 'l' || l.sa === 'r'; const v = h ? ((z[0] - p[0]) ? (w[0] - p[0]) / (z[0] - p[0]) : .5) : ((z[1] - p[1]) ? (w[1] - p[1]) / (z[1] - p[1]) : .5); l.m = Math.max(-2, Math.min(3, v)); tpxDrawCanvas(); }
+    else if(d.t === 'hd'){ const l = T.it.links.find(z => z.id === d.id), h = l.sa === 'l' || l.sa === 'r'; const v = Math.round((h ? w[0] : w[1]) / 2) * 2; if(!d.moved && v === l.gx) return; d.moved = true; clearTimeout(T.zt); l.gx = v; tpxDrawCanvas(); }
+    else if(d.t === 'ha'){ const l = T.it.links.find(z => z.id === d.id), a = tpxNode(l.a), h = l.sa === 'l' || l.sa === 'r', lim = (h ? a.h : a.w) / 2 - 8; const v = Math.round(Math.max(-lim, Math.min(lim, h ? w[1] - (a.y + a.h / 2) : w[0] - (a.x + a.w / 2))) / 2) * 2; if(!d.moved && v === (l.oa || 0)) return; d.moved = true; l.oa = v; tpxDrawCanvas(); }
     else if(d.t === 'link'){ d.q = w; tpxDrawCanvas(); }
   });
   host.addEventListener('pointerup', (e) => {
@@ -15855,6 +15863,7 @@ function tpxBind(host){
     else if(t.dataset.nn !== undefined){ T.it.nets[+t.dataset.nn].n = t.value || ' '; tpxDrawCanvas(); tpxDrawBar(); }
     else if(t.dataset.np !== undefined){ T.it.nets[+t.dataset.np].pre = t.value.trim(); tpxDrawCanvas(); }
     else if(t.dataset.nc !== undefined){ T.it.nets[+t.dataset.nc].c = t.value; tpxDrawCanvas(); }
+    else if(t.dataset.sbl !== undefined){ T.it.sbLen = t.value.trim(); tpxDrawCanvas(); }
     else if(t.dataset.cn !== undefined){ T.it.cables[+t.dataset.cn].n = t.value || ' '; tpxDrawCanvas(); }
     else if(t.dataset.cc !== undefined){ T.it.cables[+t.dataset.cc].c = t.value; tpxDrawCanvas(); }
     else return;
