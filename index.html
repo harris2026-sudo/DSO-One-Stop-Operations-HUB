@@ -12788,7 +12788,7 @@ function pjxHtml(p, rows){
     <div class="pjx-tabs" role="tablist" aria-label="Pilih project">${tabs}</div>
     <div class="pjx-hd"><div><h4>${escapeHtml(p.name)} ${prjPill(s0.st)}</h4>
       <p>${s.d} dari ${s.n} aktivitas selesai, ${s.o} terlambat, ${s.n2} berjalan. Progres ${prog}%, target hari ini ${ex}%.</p></div>
-      <div class="pjx-tools"><button type="button" class="btn btn-ghost" data-px-act="undo" ${PJX.hist.length ? '' : 'disabled'}>Urungkan</button><button type="button" class="btn btn-ghost" data-px-act="redo" ${PJX.fut.length ? '' : 'disabled'}>Ulangi</button><button type="button" class="btn btn-ghost" data-px-act="shiftm" title="Geser semua aktivitas yang belum selesai mundur 1 hari">Semua -1 hari</button><button type="button" class="btn btn-ghost" data-px-act="shiftp" title="Geser semua aktivitas yang belum selesai maju 1 hari">Semua +1 hari</button><button type="button" class="btn btn-ghost" data-px-act="wide" title="Perluas rentang waktu">Perluas</button></div></div>
+      <div class="pjx-tools"><button type="button" class="btn btn-ghost" data-px-act="undo" title="Undo last change" ${PJX.hist.length ? '' : 'disabled'}>Undo</button><button type="button" class="btn btn-ghost" data-px-act="redo" title="Redo last undone change" ${PJX.fut.length ? '' : 'disabled'}>Redo</button><button type="button" class="btn btn-ghost" data-px-act="shiftm" title="Move all unfinished activities 1 day earlier">All -1 day</button><button type="button" class="btn btn-ghost" data-px-act="shiftp" title="Move all unfinished activities 1 day later">All +1 day</button><button type="button" class="btn btn-ghost" data-px-act="narrow" title="Shrink time range"><i class="ti ti-arrows-minimize" aria-hidden="true"></i> Shrink</button><button type="button" class="btn btn-ghost" data-px-act="wide" title="Expand time range"><i class="ti ti-arrows-maximize" aria-hidden="true"></i> Expand</button></div></div>
     ${s.n ? `<div class="pjx-seg" aria-label="Status per aktivitas">${seg}</div>` : ''}
     <div class="pjx-pb" aria-hidden="true"><i style="width:${prog}%"></i><u style="left:calc(${ex}% - 1px)" title="Target hari ini ${ex}%"></u></div>
     <div class="pjx-ro" id="pjxRo" aria-live="polite">${s.n ? 'Seret batang untuk mengubah jadwal. Klik batang untuk mengisi tanggal manual.' : 'Belum ada aktivitas. Seret di baris kosong paling bawah untuk membuat yang pertama.'}</div>
@@ -12922,6 +12922,7 @@ function pjxReadout(m){
     const p = cur(); if(!p) return;
     if(act === 'undo'){ if(!PJX.hist.length) return; PJX.fut.push(pjxSnap(p)); pjxRestore(p, PJX.hist.pop()); PJX.selA = null; prjQueueSave(p); prjRenderAll(); return; }
     if(act === 'redo'){ if(!PJX.fut.length) return; PJX.hist.push(pjxSnap(p)); pjxRestore(p, PJX.fut.pop()); PJX.selA = null; prjQueueSave(p); prjRenderAll(); return; }
+    if(act === 'narrow'){ if(PJX.win){ const cur = { w0: PJX.win.w0, w1: PJX.win.w1 }; pjxFit(p, false); const bs = PJX.win; PJX.win = { id: bs.id, w0: Math.min(cur.w0 + 7, bs.w0), w1: Math.max(cur.w1 - 14, bs.w1) }; } prjRenderMain(); return; }
     if(act === 'wide'){ if(PJX.win){ PJX.win.w0 -= 7; PJX.win.w1 += 14; } prjRenderMain(); return; }
     if(act === 'shiftm' || act === 'shiftp'){
       const k = act === 'shiftm' ? -1 : 1;
