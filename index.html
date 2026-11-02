@@ -983,6 +983,7 @@
   .pjx-pb i{position:absolute;left:0;top:0;bottom:0;border-radius:3px;background:#1B8A5A;}
   .pjx-pb u{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--text);opacity:.65;}
   .pjx-ro{font-size:12px;background:var(--zebra);border-radius:8px;padding:6px 10px;margin-bottom:8px;min-height:30px;color:var(--text-secondary);display:flex;align-items:center;}
+  .pjx-ro:empty{display:none;}
   .pjx-ro b{color:var(--text);font-weight:600;margin-right:4px;}
   .pjx-tl{border:1px solid var(--border);border-radius:12px;padding:8px 10px 10px;overflow-x:auto;overflow-y:hidden;background:#fff;position:relative;}
   .pjx-tli{position:relative;}
@@ -12894,10 +12895,10 @@ function pjxHtml(p, rows){
       <div class="pjx-tools"><button type="button" class="btn btn-ghost" data-px-act="undo" title="Undo last change" ${PJX.hist.length ? '' : 'disabled'}>Undo</button><button type="button" class="btn btn-ghost" data-px-act="redo" title="Redo last undone change" ${PJX.fut.length ? '' : 'disabled'}>Redo</button><button type="button" class="btn btn-ghost" data-px-act="shiftm" title="Move all unfinished activities 1 day earlier">All -1 day</button><button type="button" class="btn btn-ghost" data-px-act="shiftp" title="Move all unfinished activities 1 day later">All +1 day</button><span class="pjx-zs" role="group" aria-label="Zoom timeline">${[['fit', 'Fit'], ['q', 'Quarter'], ['m', 'Month'], ['w', 'Week']].map(z => `<button type="button" data-px-zoom="${z[0]}" class="${PJX.zoom === z[0] ? 'on' : ''}" aria-pressed="${PJX.zoom === z[0]}" title="Zoom: ${z[1]}">${z[1]}</button>`).join('')}</span><button type="button" class="btn btn-ghost pjx-tdy" data-px-act="today" title="Scroll to today"><i class="ti ti-target-arrow" aria-hidden="true"></i> Today</button></div></div>
     ${s.n ? `<div class="pjx-seg" aria-label="Status per aktivitas">${seg}</div>` : ''}
     <div class="pjx-pb" aria-hidden="true"><i style="width:${prog}%"></i><u style="left:calc(${ex}% - 1px)" title="Target hari ini ${ex}%"></u></div>
-    <div class="pjx-ro" id="pjxRo" aria-live="polite">${s.n ? 'Seret batang untuk mengubah jadwal. Klik batang untuk mengisi tanggal manual.' : 'Belum ada aktivitas. Seret di baris kosong paling bawah untuk membuat yang pertama.'}</div>
+    <div class="pjx-ro" id="pjxRo" aria-live="polite">${s.n ? '' : 'Belum ada aktivitas. Seret di baris kosong paling bawah untuk membuat yang pertama.'}</div>
     <div class="pjx-tl" id="pjxTl"><div class="pjx-tli" id="pjxTli" ${tliStyle}><div class="pjx-ax" style="height:auto"><div></div><div class="pjx-axt" style="height:40px"><div class="pjx-mb">${mbh}</div><div style="position:relative;height:22px">${ax.replace(/<span style="left:([^"]+)">/g, '<span style="left:$1;top:4px">')}</div>${tdLbl}</div></div>${body}
       <div class="pjx-rw pjx-new"><div class="pjx-nm">+ Aktivitas baru</div><div class="pjx-trk" id="pjxNew">${cols}${tdHtml}<div class="pjx-hint">Seret di sini untuk membuat aktivitas</div></div></div><div class="pjx-ch" id="pjxCh"></div><div class="pjx-chl" id="pjxChl"></div></div></div>
-    <div class="pjx-tip">Seret batang untuk memindah tanggal, seret ujungnya untuk mengubah durasi. Klik nama untuk mengganti teks. Dengan keyboard: fokus ke batang lalu <kbd>←</kbd> <kbd>→</kbd> geser, <kbd>Shift</kbd> + panah ubah durasi, <kbd>Spasi</kbd> centang selesai, <kbd>Ctrl</kbd>+<kbd>Z</kbd> urungkan. Perubahan tersimpan otomatis.</div></div>`;
+    <div class="pjx-tip" hidden style="display:none">Seret batang untuk memindah tanggal, seret ujungnya untuk mengubah durasi. Klik nama untuk mengganti teks. Dengan keyboard: fokus ke batang lalu <kbd>←</kbd> <kbd>→</kbd> geser, <kbd>Shift</kbd> + panah ubah durasi, <kbd>Spasi</kbd> centang selesai, <kbd>Ctrl</kbd>+<kbd>Z</kbd> urungkan. Perubahan tersimpan otomatis.</div></div>`;
 }
 function pjxScrollApply(){
   const tl = document.getElementById('pjxTl'); if(!tl) return;
