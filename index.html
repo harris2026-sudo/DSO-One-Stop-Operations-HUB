@@ -984,7 +984,31 @@
   .pjx-pb u{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--text);opacity:.65;}
   .pjx-ro{font-size:12px;background:var(--zebra);border-radius:8px;padding:6px 10px;margin-bottom:8px;min-height:30px;color:var(--text-secondary);display:flex;align-items:center;}
   .pjx-ro b{color:var(--text);font-weight:600;margin-right:4px;}
-  .pjx-tl{border:1px solid var(--border);border-radius:12px;padding:8px 10px 10px;overflow:hidden;background:#fff;}
+  .pjx-tl{border:1px solid var(--border);border-radius:12px;padding:8px 10px 10px;overflow-x:auto;overflow-y:hidden;background:#fff;position:relative;}
+  .pjx-tli{position:relative;}
+  .pjx-zs{display:inline-flex;border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+  .pjx-zs button{border:0;border-right:1px solid var(--border);border-radius:0;background:#fff;color:var(--text-secondary);font:500 12px var(--font-body);padding:4px 11px;cursor:pointer;}
+  .pjx-zs button:last-child{border-right:0;}
+  .pjx-zs button:hover{background:var(--surface-alt);}
+  .pjx-zs button.on{background:var(--navy);color:#fff;}
+  .pjx-tools .pjx-tdy{display:inline-flex;align-items:center;gap:4px;}
+  .pjx-mb{position:relative;height:18px;}
+  .pjx-mb span{position:absolute;top:0;height:18px;border-left:1px solid var(--border);padding-left:5px;font-size:10.5px;font-weight:600;color:var(--text-secondary);white-space:nowrap;overflow:clip;}
+  .pjx-mb span i{font-style:normal;position:sticky;left:calc(var(--lc) + 4px);}
+  .pjx-tdl{position:absolute;top:19px;transform:translateX(-50%);background:var(--red-fg);color:#fff;font-size:10px;padding:1px 6px;border-radius:0 0 5px 5px;pointer-events:none;z-index:4;}
+  .pjx-ch{position:absolute;top:0;bottom:0;width:1px;background:var(--text-secondary);opacity:.55;z-index:6;pointer-events:none;display:none;}
+  .pjx-chl{position:absolute;top:20px;transform:translateX(-50%);background:var(--navy);color:#fff;font-size:10.5px;padding:1px 7px;border-radius:5px;white-space:nowrap;pointer-events:none;z-index:7;display:none;}
+  .pjx-rw:hover{background:var(--zebra);}
+  .pjx-rw .pjx-nm,.pjx-ax>div:first-child{position:sticky;left:0;z-index:5;background:#fff;}
+  .pjx-rw:hover .pjx-nm,.pjx-rw.sel .pjx-nm{background:var(--zebra);}
+  .pjx-dt>div:first-child{position:sticky;left:0;z-index:5;background:var(--zebra);}
+  .pjx-dti{position:sticky;left:var(--lc);width:max-content;max-width:min(680px,calc(100vw - var(--lc) - 120px));}
+  .pjx-bar{transition:filter .15s,transform .15s;}
+  .pjx-bar:hover{filter:brightness(1.1);transform:scaleY(1.15);}
+  .pjx-bar span{pointer-events:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 10px;}
+  .pjx-bt{position:fixed;display:none;z-index:9999;pointer-events:none;background:#fff;border:1px solid var(--border);border-radius:10px;padding:8px 11px;font-size:12px;min-width:190px;max-width:300px;box-shadow:0 6px 20px rgba(15,27,44,.16);color:var(--text-secondary);line-height:1.5;}
+  .pjx-bt b{display:block;font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px;}
+  .pjx-bt em{font-style:normal;font-weight:600;}
   .pjx-ax,.pjx-rw,.pjx-dt{display:grid;grid-template-columns:var(--lc) minmax(0,1fr);}
   .pjx-ax{height:22px;font-size:10.5px;color:var(--text-secondary);}
   .pjx-axt{position:relative;}
@@ -12579,6 +12603,7 @@ function prjTableHtml(rows){
   }).join('') + '</tbody></table></div>';
 }
 function prjRenderMain(){
+  { const oldTl = document.getElementById('pjxTl'); if(oldTl && PJX.sx !== 'today') PJX.sx = oldTl.scrollLeft; }
   prjRenderSummary();
   const rows = prjVisible(), box = document.getElementById('pjMain');
   if(!prjItems.length) box.innerHTML = '<div class="pj-empty">No projects yet. Use "Add project" to create the first one.</div>';
@@ -12749,7 +12774,7 @@ document.getElementById('pjImportBtn').onclick = prjImportPlan;
    ================================================================== */
 const PJX_MON = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
 const PJX_LBL = { d:'Selesai', o:'Terlambat', n:'Berjalan', u:'Belum mulai' };
-const PJX = { hl:null, sel:null, win:null, selA:null, editing:null, focus:null, err:'', hist:[], fut:[], drag:null, ghost:null };
+const PJX = { zoom:'fit', sx:null, px:2, hl:null, sel:null, win:null, selA:null, editing:null, focus:null, err:'', hist:[], fut:[], drag:null, ghost:null };
 function pjxD(s){ const p = String(s).split('-'); return Math.round(Date.UTC(+p[0], +p[1] - 1, +p[2]) / 864e5); }
 function pjxIso(n){ const d = new Date(n * 864e5); return d.getUTCFullYear() + '-' + String(d.getUTCMonth() + 1).padStart(2, '0') + '-' + String(d.getUTCDate()).padStart(2, '0'); }
 function pjxF(n){ const d = new Date(n * 864e5); return d.getUTCDate() + ' ' + PJX_MON[d.getUTCMonth()]; }
@@ -12800,7 +12825,7 @@ function pjxFit(p, keep){
   PJX.win = { id: p.id, w0: lo, w1: hi };
 }
 function pjxHtml(p, rows){
-  if(PJX.sel !== p.id){ PJX.sel = p.id; PJX.hist = []; PJX.fut = []; PJX.selA = null; PJX.editing = null; PJX.err = ''; PJX.win = null; }
+  if(PJX.sel !== p.id){ PJX.sel = p.id; PJX.hist = []; PJX.fut = []; PJX.selA = null; PJX.editing = null; PJX.err = ''; PJX.win = null; PJX.sx = PJX.zoom === 'fit' ? null : 'today'; }
   pjxFit(p, !!PJX.win);
   const w = PJX.win, N = w.w1 - w.w0 + 1, today = pjxD(todayStr());
   const s = prjActStats(p), s0 = prjStatus(p), prog = prjProgress(p), ex = prjExpected(p);
@@ -12822,16 +12847,28 @@ function pjxHtml(p, rows){
     (i, dow, dom, mon) => dom === 1 && mon % 2 === 0,
     (i, dow, dom, mon) => dom === 1 && mon % 3 === 0
   ];
-  const dayInfo = [];
-  for(let i = 0; i < N; i++){ const dd = new Date((w.w0 + i) * 864e5); dayInfo.push([i, dd.getUTCDay(), dd.getUTCDate(), dd.getUTCMonth()]); }
-  let rule = tickRules[tickRules.length - 1];
-  for(const r of tickRules){ if(dayInfo.filter(d => r(d[0], d[1], d[2], d[3])).length * 46 <= 760){ rule = r; break; } }
+  const zpx = { q: 3, m: 9, w: 26 }[PJX.zoom];
+  const px = zpx || (760 / N);
+  PJX.px = px;
+  let mbh = '';
+  let mStart = 0;
   for(let i = 0; i < N; i++){
-    const dn = w.w0 + i, dow = dayInfo[i][1], dom = dayInfo[i][2], l = (i / N * 100).toFixed(3);
-    if(N <= 60) cols += `<div class="pjx-col${(dow === 0 || dow === 6) ? ' we' : ''}" style="left:${l}%;width:${(100 / N).toFixed(3)}%"></div>`;
+    const dd = new Date((w.w0 + i) * 864e5), dow = dd.getUTCDay(), dom = dd.getUTCDate(), mon = dd.getUTCMonth(), l = (i / N * 100).toFixed(3);
+    const wide = zpx ? px >= 6 : N <= 60;
+    if(wide) cols += `<div class="pjx-col${(dow === 0 || dow === 6) ? ' we' : ''}" style="left:${l}%;width:${(100 / N).toFixed(3)}%"></div>`;
     else if(dom === 1) cols += `<div class="pjx-col" style="left:${l}%;width:1px"></div>`;
-    if(rule(i, dow, dom, dayInfo[i][3])) ax += `<span style="left:${l}%">${pjxF(dn)}</span>`;
+    const showTick = px >= 18 ? true : (px >= 6.6 ? dow === 1 : (px >= 2.4 ? (dom === 1 || dom === 15) : false));
+    if(showTick) ax += `<span style="left:${l}%">${dom}</span>`;
+    const nx = new Date((w.w0 + i + 1) * 864e5);
+    if(i === N - 1 || nx.getUTCMonth() !== mon){
+      const len = i - mStart + 1;
+      const lab = len * px >= 30 ? PJX_MON[mon] + ((mon === 0 || mStart === 0) ? ' ' + String(dd.getUTCFullYear()).slice(2) : '') : '';
+      mbh += `<span style="left:${(mStart / N * 100).toFixed(3)}%;width:${(len / N * 100).toFixed(3)}%">${lab ? '<i>' + lab + '</i>' : ''}</span>`;
+      mStart = i + 1;
+    }
   }
+  const tdLbl = (today >= w.w0 && today <= w.w1) ? `<div class="pjx-tdl" style="left:${((today - w.w0) / N * 100 + 100 / N / 2).toFixed(3)}%">Hari ini</div>` : '';
+  const tliStyle = zpx ? `style="width:max(100%, calc(var(--lc) + ${Math.round(zpx * N)}px))"` : '';
   const tdl = ((today - w.w0) / N * 100 + 100 / N / 2).toFixed(3);
   const tdHtml = (today >= w.w0 && today <= w.w1) ? `<div class="pjx-td" style="left:${tdl}%" title="Hari ini"></div>` : '';
   const body = p.milestones.map((m, j) => {
@@ -12842,7 +12879,7 @@ function pjxHtml(p, rows){
     let track;
     if(sp){
       const len = sp.e - sp.s + 1;
-      track = `<div class="pjx-bar ${st}" tabindex="0" data-px-i="${j}" style="left:${((sp.s - w.w0) / N * 100).toFixed(3)}%;width:${(len / N * 100).toFixed(3)}%" title="${escapeHtml(m.name)} | ${PJX_LBL[st]}" role="group" aria-label="${escapeHtml(m.name)}, ${pjxF(sp.s)} sampai ${pjxF(sp.e)}, ${PJX_LBL[st]}"><b class="l" data-px-h="l"></b>${len / N * 760 >= 44 ? len + ' hr' : ''}<b class="r" data-px-h="r"></b></div>`;
+      track = `<div class="pjx-bar ${st}" tabindex="0" data-px-i="${j}" style="left:${((sp.s - w.w0) / N * 100).toFixed(3)}%;width:${(len / N * 100).toFixed(3)}%" role="group" aria-label="${escapeHtml(m.name)}, ${pjxF(sp.s)} sampai ${pjxF(sp.e)}, ${PJX_LBL[st]}"><b class="l" data-px-h="l"></b>${len * px >= 150 ? escapeHtml(m.name) + ' | ' + len + ' hr' : (len * px >= 44 ? len + ' hr' : '')}<b class="r" data-px-h="r"></b></div>`;
     } else track = `<button type="button" class="pjx-nodate" data-px-sel="${j}">Belum ada tanggal. Klik untuk mengisi.</button>`;
     let r = `<div class="pjx-rw${PJX.selA === j ? ' sel' : ''}"><div class="pjx-nm${m.done ? ' dn' : ''}"><input type="checkbox" data-px-done="${j}" ${m.done ? 'checked' : ''} aria-label="Selesai">${nameCell}<button type="button" class="pjx-x" data-px-del="${j}" title="Hapus aktivitas" aria-label="Hapus aktivitas ${escapeHtml(m.name)}">&times;</button></div><div class="pjx-trk">${cols}${tdHtml}${track}</div></div>`;
     if(PJX.selA === j) r += `<div class="pjx-dt"><div></div><div class="pjx-dti"><label>Mulai <input type="date" data-px-dk="s" value="${sp ? pjxIso(sp.s) : ''}"></label><label>Selesai <input type="date" data-px-dk="e" value="${sp ? pjxIso(sp.e) : ''}"></label><button type="button" class="btn btn-ghost" data-px-act="toggle">${m.done ? 'Batal selesai' : 'Tandai selesai'}</button><button type="button" class="btn btn-ghost" data-px-act="del" style="color:var(--red-fg)">Hapus</button>${PJX.err ? `<span class="pjx-er">${escapeHtml(PJX.err)}</span>` : ''}</div></div>`;
@@ -12854,15 +12891,28 @@ function pjxHtml(p, rows){
     <div class="pjx-tabs" role="tablist" aria-label="Pilih project">${tabs}</div>
     <div class="pjx-hd"><div><h4>${escapeHtml(p.name)} ${prjPill(s0.st)}</h4>
       <p>${s.d} dari ${s.n} aktivitas selesai, ${s.o} terlambat, ${s.n2} berjalan. Progres ${prog}%, target hari ini ${ex}%.</p></div>
-      <div class="pjx-tools"><button type="button" class="btn btn-ghost" data-px-act="undo" title="Undo last change" ${PJX.hist.length ? '' : 'disabled'}>Undo</button><button type="button" class="btn btn-ghost" data-px-act="redo" title="Redo last undone change" ${PJX.fut.length ? '' : 'disabled'}>Redo</button><button type="button" class="btn btn-ghost" data-px-act="shiftm" title="Move all unfinished activities 1 day earlier">All -1 day</button><button type="button" class="btn btn-ghost" data-px-act="shiftp" title="Move all unfinished activities 1 day later">All +1 day</button><button type="button" class="btn btn-ghost" data-px-act="narrow" title="Shrink time range"><i class="ti ti-arrows-minimize" aria-hidden="true"></i> Shrink</button><button type="button" class="btn btn-ghost" data-px-act="wide" title="Expand time range"><i class="ti ti-arrows-maximize" aria-hidden="true"></i> Expand</button></div></div>
+      <div class="pjx-tools"><button type="button" class="btn btn-ghost" data-px-act="undo" title="Undo last change" ${PJX.hist.length ? '' : 'disabled'}>Undo</button><button type="button" class="btn btn-ghost" data-px-act="redo" title="Redo last undone change" ${PJX.fut.length ? '' : 'disabled'}>Redo</button><button type="button" class="btn btn-ghost" data-px-act="shiftm" title="Move all unfinished activities 1 day earlier">All -1 day</button><button type="button" class="btn btn-ghost" data-px-act="shiftp" title="Move all unfinished activities 1 day later">All +1 day</button><span class="pjx-zs" role="group" aria-label="Zoom timeline">${[['fit', 'Fit'], ['q', 'Quarter'], ['m', 'Month'], ['w', 'Week']].map(z => `<button type="button" data-px-zoom="${z[0]}" class="${PJX.zoom === z[0] ? 'on' : ''}" aria-pressed="${PJX.zoom === z[0]}" title="Zoom: ${z[1]}">${z[1]}</button>`).join('')}</span><button type="button" class="btn btn-ghost pjx-tdy" data-px-act="today" title="Scroll to today"><i class="ti ti-target-arrow" aria-hidden="true"></i> Today</button></div></div>
     ${s.n ? `<div class="pjx-seg" aria-label="Status per aktivitas">${seg}</div>` : ''}
     <div class="pjx-pb" aria-hidden="true"><i style="width:${prog}%"></i><u style="left:calc(${ex}% - 1px)" title="Target hari ini ${ex}%"></u></div>
     <div class="pjx-ro" id="pjxRo" aria-live="polite">${s.n ? 'Seret batang untuk mengubah jadwal. Klik batang untuk mengisi tanggal manual.' : 'Belum ada aktivitas. Seret di baris kosong paling bawah untuk membuat yang pertama.'}</div>
-    <div class="pjx-tl" id="pjxTl"><div class="pjx-ax"><div></div><div class="pjx-axt">${ax}</div></div>${body}
-      <div class="pjx-rw pjx-new"><div class="pjx-nm">+ Aktivitas baru</div><div class="pjx-trk" id="pjxNew">${cols}${tdHtml}<div class="pjx-hint">Seret di sini untuk membuat aktivitas</div></div></div></div>
+    <div class="pjx-tl" id="pjxTl"><div class="pjx-tli" id="pjxTli" ${tliStyle}><div class="pjx-ax" style="height:auto"><div></div><div class="pjx-axt" style="height:40px"><div class="pjx-mb">${mbh}</div><div style="position:relative;height:22px">${ax.replace(/<span style="left:([^"]+)">/g, '<span style="left:$1;top:4px">')}</div>${tdLbl}</div></div>${body}
+      <div class="pjx-rw pjx-new"><div class="pjx-nm">+ Aktivitas baru</div><div class="pjx-trk" id="pjxNew">${cols}${tdHtml}<div class="pjx-hint">Seret di sini untuk membuat aktivitas</div></div></div><div class="pjx-ch" id="pjxCh"></div><div class="pjx-chl" id="pjxChl"></div></div></div>
     <div class="pjx-tip">Seret batang untuk memindah tanggal, seret ujungnya untuk mengubah durasi. Klik nama untuk mengganti teks. Dengan keyboard: fokus ke batang lalu <kbd>←</kbd> <kbd>→</kbd> geser, <kbd>Shift</kbd> + panah ubah durasi, <kbd>Spasi</kbd> centang selesai, <kbd>Ctrl</kbd>+<kbd>Z</kbd> urungkan. Perubahan tersimpan otomatis.</div></div>`;
 }
+function pjxScrollApply(){
+  const tl = document.getElementById('pjxTl'); if(!tl) return;
+  if(PJX.sx === 'today'){
+    const w = PJX.win; if(!w) return;
+    const t = pjxD(todayStr()), idx = t - w.w0, N = w.w1 - w.w0 + 1;
+    const lc = parseFloat(getComputedStyle(document.getElementById('pjx')).getPropertyValue('--lc')) || 250;
+    const trkW = document.querySelector('.pjx-trk') ? document.querySelector('.pjx-trk').getBoundingClientRect().width : (tl.clientWidth - lc);
+    const target = (idx + .5) / N * trkW - (tl.clientWidth - lc) / 2;
+    tl.scrollTo({ left: Math.max(0, target), behavior: PJX.smooth ? 'smooth' : 'auto' });
+    PJX.sx = Math.max(0, target); PJX.smooth = false;
+  } else if(typeof PJX.sx === 'number') tl.scrollLeft = PJX.sx;
+}
 function pjxPost(){
+  pjxScrollApply();
   if(PJX.editing !== null){ const ne = document.getElementById('pjxNe'); if(ne){ ne.focus(); ne.select(); } }
   else if(PJX.focus !== null){ const b = document.querySelector('.pjx-bar[data-px-i="' + PJX.focus + '"]'); if(b) b.focus({ preventScroll: true }); PJX.focus = null; }
 }
@@ -12887,6 +12937,38 @@ function pjxReadout(m){
   const sp = pjxSpan(m); if(!sp) return;
   document.getElementById('pjxRo').innerHTML = '<b>' + escapeHtml(m.name) + '</b> ' + pjxF(sp.s) + (sp.s === sp.e ? '' : ' - ' + pjxF(sp.e)) + ', ' + (sp.e - sp.s + 1) + ' hari';
 }
+(function pjxHover(){
+  const box = document.getElementById('pjMain');
+  const tip = document.createElement('div'); tip.className = 'pjx-bt'; document.body.appendChild(tip);
+  const hide = () => { tip.style.display = 'none'; const c = document.getElementById('pjxCh'), l = document.getElementById('pjxChl'); if(c) c.style.display = 'none'; if(l) l.style.display = 'none'; };
+  box.addEventListener('mouseleave', hide);
+  box.addEventListener('mousemove', (e) => {
+    const tli = document.getElementById('pjxTli');
+    if(!tli || prjMode !== 'plan' || !e.target.closest || !e.target.closest('#pjxTl')){ hide(); return; }
+    const trk = tli.querySelector('.pjx-trk'), w = PJX.win;
+    if(trk && w){
+      const r = trk.getBoundingClientRect(), N = w.w1 - w.w0 + 1, x = e.clientX - r.left, d = Math.floor(x / (r.width / N));
+      const c = document.getElementById('pjxCh'), l = document.getElementById('pjxChl');
+      if(d >= 0 && d < N && c && l){
+        const lx = e.clientX - tli.getBoundingClientRect().left;
+        c.style.display = 'block'; c.style.left = lx + 'px'; l.style.display = 'block'; l.style.left = lx + 'px'; l.textContent = pjxF(w.w0 + d) + ' ' + String(new Date((w.w0 + d) * 864e5).getUTCFullYear()).slice(2);
+      } else if(c && l){ c.style.display = 'none'; l.style.display = 'none'; }
+    }
+    const bar = e.target.closest('.pjx-bar');
+    if(bar && !PJX.drag){
+      const p = prjById(prjSel), m = p && p.milestones[+bar.dataset.pxI], sp = m && pjxSpan(m);
+      if(sp){
+        const t = pjxD(todayStr()), st = pjxSt(m), left = sp.e - t, len = sp.e - sp.s + 1;
+        tip.innerHTML = '<b>' + escapeHtml(m.name || '(tanpa nama)') + '</b>' + pjxF(sp.s) + ' sampai ' + pjxF(sp.e) + ' (' + len + ' hari)<br>Status: <em>' + PJX_LBL[st] + '</em><br>' + (st === 'd' ? 'Aktivitas sudah selesai' : (left >= 0 ? 'Selesai dalam ' + left + ' hari' : Math.abs(left) + ' hari lewat jadwal'));
+        tip.style.display = 'block';
+        tip.style.left = Math.min(e.clientX + 14, window.innerWidth - 310) + 'px'; tip.style.top = Math.min(e.clientY + 16, window.innerHeight - 110) + 'px';
+        return;
+      }
+    }
+    tip.style.display = 'none';
+  });
+  box.addEventListener('pointerdown', () => { tip.style.display = 'none'; });
+})();
 (function pjxBind(){
   const box = document.getElementById('pjMain');
   const cur = () => prjById(prjSel);
@@ -12986,9 +13068,11 @@ function pjxReadout(m){
   });
   function pjxDo(act){
     const p = cur(); if(!p) return;
+    if(act === 'today') PJX.smooth = true;
     if(act === 'undo'){ if(!PJX.hist.length) return; PJX.fut.push(pjxSnap(p)); pjxRestore(p, PJX.hist.pop()); PJX.selA = null; prjQueueSave(p); prjRenderAll(); return; }
     if(act === 'redo'){ if(!PJX.fut.length) return; PJX.hist.push(pjxSnap(p)); pjxRestore(p, PJX.fut.pop()); PJX.selA = null; prjQueueSave(p); prjRenderAll(); return; }
     if(act === 'narrow'){ if(PJX.win){ const cur = { w0: PJX.win.w0, w1: PJX.win.w1 }; pjxFit(p, false); const bs = PJX.win; PJX.win = { id: bs.id, w0: Math.min(cur.w0 + 7, bs.w0), w1: Math.max(cur.w1 - 14, bs.w1) }; } prjRenderMain(); return; }
+    if(act === 'today'){ PJX.sx = 'today'; prjRenderMain(); return; }
     if(act === 'wide'){ if(PJX.win){ PJX.win.w0 -= 7; PJX.win.w1 += 14; } prjRenderMain(); return; }
     if(act === 'shiftm' || act === 'shiftp'){
       const k = act === 'shiftm' ? -1 : 1;
@@ -13016,6 +13100,8 @@ function pjxReadout(m){
       showToast('Aktivitas "' + (m.name || '') + '" dihapus. Klik Urungkan untuk mengembalikan.', 'success');
       return;
     }
+    const zm = e.target.closest('[data-px-zoom]');
+    if(zm){ PJX.zoom = zm.dataset.pxZoom; PJX.sx = 'today'; prjRenderMain(); return; }
     const act = e.target.closest('[data-px-act]');
     if(act) pjxDo(act.dataset.pxAct);
   });
