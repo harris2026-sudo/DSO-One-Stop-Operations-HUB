@@ -935,10 +935,26 @@
   .pj-sg.n,.pj-sgs .n,.pjx-seg .n{background:#E8A33D;}
   .pj-sg.u,.pj-sgs .u,.pjx-seg .u{background:#CFE0F3;}
   .pjx{--lc:250px;user-select:none;}
-  .pjx-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
-  .pjx-tabs button{display:inline-flex;gap:7px;align-items:center;font-size:12.5px;padding:4px 11px;border-radius:14px;border:1px solid var(--border);background:transparent;color:var(--text-secondary);cursor:pointer;font-family:inherit;}
-  .pjx-tabs button.on{background:var(--zebra);color:var(--text);border-color:var(--text-secondary);font-weight:600;}
-  .pjx-tabs em{font-style:normal;font-size:11px;opacity:.8;}
+  .pjx-lg{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:8px;}
+  .pjx-lg span{font-size:11.5px;color:var(--text-muted);margin-right:2px;}
+  .pjx-lg button{display:inline-flex;align-items:center;gap:6px;font:500 12px var(--font-body);padding:3px 10px;border-radius:14px;border:1px solid var(--border);background:#fff;color:var(--text-secondary);cursor:pointer;transition:background .15s,border-color .15s;}
+  .pjx-lg button i{width:8px;height:8px;border-radius:50%;background:var(--c);display:inline-block;}
+  .pjx-lg button:hover{border-color:var(--c);}
+  .pjx-lg button.on{background:var(--c);border-color:var(--c);color:#fff;}
+  .pjx-lg button.on i{background:#fff;}
+  .pjx-tabs{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:8px;margin-bottom:12px;}
+  .pjx-tabs button{display:flex;flex-direction:column;gap:5px;align-items:stretch;text-align:left;min-width:0;font-size:12.5px;padding:8px 10px 7px;border-radius:10px;border:1px solid var(--border);background:#fff;color:var(--text-secondary);cursor:pointer;font-family:inherit;transition:transform .12s,border-color .15s,box-shadow .15s,opacity .2s;}
+  .pjx-tabs button:hover{border-color:var(--c);transform:translateY(-1px);box-shadow:0 2px 8px rgba(15,27,44,.08);}
+  .pjx-tabs button.on{background:var(--steel-light);color:var(--text);border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent);}
+  .pjx-tabs button.dim{opacity:.32;}
+  .pjx-tabs .r1{display:flex;align-items:center;gap:6px;min-width:0;}
+  .pjx-tabs .r1 i{flex:none;width:8px;height:8px;border-radius:50%;background:var(--c);}
+  .pjx-tabs .r1 b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;color:var(--text);}
+  .pjx-tabs em{font-style:normal;font-size:11px;color:var(--text-secondary);white-space:nowrap;}
+  .pjx-tabs .r2{font-size:11px;color:var(--c);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .pjx-tabs .r2 u{text-decoration:none;color:var(--text-muted);font-weight:500;}
+  .pjx-tabs .bar{height:3px;border-radius:2px;background:var(--border);overflow:hidden;}
+  .pjx-tabs .bar s{display:block;height:100%;background:var(--c);text-decoration:none;}
   .pjx-hd{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:flex-start;margin-bottom:8px;}
   .pjx-hd h4{margin:0;font-size:15px;font-weight:600;display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
   .pjx-hd p{margin:2px 0 0;font-size:12px;color:var(--text-secondary);}
@@ -12703,7 +12719,7 @@ document.getElementById('pjImportBtn').onclick = prjImportPlan;
    ================================================================== */
 const PJX_MON = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
 const PJX_LBL = { d:'Selesai', o:'Terlambat', n:'Berjalan', u:'Belum mulai' };
-const PJX = { sel:null, win:null, selA:null, editing:null, focus:null, err:'', hist:[], fut:[], drag:null, ghost:null };
+const PJX = { hl:null, sel:null, win:null, selA:null, editing:null, focus:null, err:'', hist:[], fut:[], drag:null, ghost:null };
 function pjxD(s){ const p = String(s).split('-'); return Math.round(Date.UTC(+p[0], +p[1] - 1, +p[2]) / 864e5); }
 function pjxIso(n){ const d = new Date(n * 864e5); return d.getUTCFullYear() + '-' + String(d.getUTCMonth() + 1).padStart(2, '0') + '-' + String(d.getUTCDate()).padStart(2, '0'); }
 function pjxF(n){ const d = new Date(n * 864e5); return d.getUTCDate() + ' ' + PJX_MON[d.getUTCMonth()]; }
@@ -12759,7 +12775,14 @@ function pjxHtml(p, rows){
   const w = PJX.win, N = w.w1 - w.w0 + 1, today = pjxD(todayStr());
   const s = prjActStats(p), s0 = prjStatus(p), prog = prjProgress(p), ex = prjExpected(p);
   if(PJX.selA !== null && PJX.selA >= p.milestones.length) PJX.selA = null;
-  const tabs = rows.map(x => { const a = prjActStats(x.p); return `<button type="button" data-pjid="${x.p.id}" class="${x.p.id === p.id ? 'on' : ''}">${escapeHtml(tlClip(x.p.name, 28))}<em>${a.d}/${a.n}</em></button>`; }).join('');
+  const tabs = rows.map(x => {
+    const a = prjActStats(x.p), st = PRJ_STATUS[x.s.st] || PRJ_STATUS.ok, pc = a.n ? Math.round(a.d / a.n * 100) : 0;
+    const sub = a.o ? a.o + ' late' : (a.n2 ? a.n2 + ' running' : (a.n ? (a.d === a.n ? 'all done' : a.u + ' not started') : 'no activity'));
+    const tip = x.p.name + ' | ' + st.l + (x.s.why ? ': ' + x.s.why : '') + ' | ' + a.d + '/' + a.n + ' done, ' + a.o + ' late, ' + a.n2 + ' running';
+    return `<button type="button" data-pjid="${x.p.id}" class="${x.p.id === p.id ? 'on' : ''}${PJX.hl && PJX.hl !== x.s.st ? ' dim' : ''}" style="--c:${st.c}" title="${escapeHtml(tip)}" aria-pressed="${x.p.id === p.id}"><span class="r1"><i></i><b>${escapeHtml(x.p.name)}</b><em>${a.d}/${a.n}</em></span><span class="bar"><s style="width:${pc}%"></s></span><span class="r2">${st.l} <u>&middot; ${sub}</u></span></button>`;
+  }).join('');
+  const lgc = {}; rows.forEach(x => { lgc[x.s.st] = (lgc[x.s.st] || 0) + 1; });
+  const lg = PRJ_ORDER.filter(k => lgc[k]).map(k => `<button type="button" data-pjhl="${k}" class="${PJX.hl === k ? 'on' : ''}" style="--c:${PRJ_STATUS[k].c}" aria-pressed="${PJX.hl === k}" title="Highlight ${PRJ_STATUS[k].l} projects"><i></i>${PRJ_STATUS[k].l} ${lgc[k]}</button>`).join('');
   let cols = '', ax = '';
   for(let i = 0; i < N; i++){
     const dn = w.w0 + i, dow = new Date(dn * 864e5).getUTCDay(), dom = new Date(dn * 864e5).getUTCDate(), l = (i / N * 100).toFixed(3);
@@ -12785,6 +12808,7 @@ function pjxHtml(p, rows){
   }).join('');
   const seg = p.milestones.map(m => `<span class="${pjxSt(m)}" title="${escapeHtml(m.name)}: ${PJX_LBL[pjxSt(m)]}"></span>`).join('');
   return `<div class="pjx" id="pjx">
+    <div class="pjx-lg"><span>Highlight</span>${lg}</div>
     <div class="pjx-tabs" role="tablist" aria-label="Pilih project">${tabs}</div>
     <div class="pjx-hd"><div><h4>${escapeHtml(p.name)} ${prjPill(s0.st)}</h4>
       <p>${s.d} dari ${s.n} aktivitas selesai, ${s.o} terlambat, ${s.n2} berjalan. Progres ${prog}%, target hari ini ${ex}%.</p></div>
@@ -12988,10 +13012,11 @@ function prjOnPicClosed(){
 (function prjBind(){
   const view = document.getElementById('view-projects');
   view.addEventListener('click', async (e) => {
-    const t = e.target.closest('[data-pjk],[data-pjv],[data-pjid],[data-pjact],[data-pjpicdel],[data-pjmsdel],[data-pjrkdel]');
+    const t = e.target.closest('[data-pjhl],[data-pjk],[data-pjv],[data-pjid],[data-pjact],[data-pjpicdel],[data-pjmsdel],[data-pjrkdel]');
     if(!t) return;
     if(t.dataset.pjk !== undefined){ const v = t.dataset.pjk || null; prjFilter = (prjFilter === v) ? null : v; prjRenderMain(); return; }
     if(t.dataset.pjv){ prjMode = t.dataset.pjv; prjRenderAll(); return; }
+    if(t.dataset.pjhl){ PJX.hl = PJX.hl === t.dataset.pjhl ? null : t.dataset.pjhl; prjRenderMain(); return; }
     if(t.dataset.pjid){ prjSel = t.dataset.pjid; prjRenderAll(); return; }
     const p = prjSelProject();
     if(!p) return;
