@@ -835,6 +835,22 @@
   .pj-clr{border:none;background:transparent;color:var(--accent);cursor:pointer;font-size:12.5px;padding:0 4px;font-family:inherit;}
   .pj-up{margin-top:14px;padding:10px 14px;border-radius:10px;background:var(--zebra);font-size:12.5px;}
   .pj-up h4{margin:0 0 6px;font-size:12.5px;font-weight:500;color:var(--text-secondary);}
+  .pj-mh{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px;}
+  .pj-mh h4{margin:0 6px 0 0;font:600 14px var(--font-display);color:var(--navy);}
+  .pj-mc{font:500 12px var(--font-body);padding:3px 11px;border-radius:14px;border:1px solid var(--border);background:#fff;color:var(--text-secondary);cursor:pointer;}
+  .pj-mc.on{background:var(--navy);border-color:var(--navy);color:#fff;}
+  .pj-mg{display:flex;align-items:center;gap:6px;font:600 12px var(--font-body);margin:10px 0 4px;}
+  .pj-mg.late{color:var(--red-fg);}.pj-mg.soon{color:var(--accent);}
+  .pj-ml{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:4px 12px;}
+  .pj-mr{display:grid;grid-template-columns:50px minmax(0,1fr) auto;gap:10px;align-items:center;padding:6px 8px;border-radius:9px;cursor:pointer;border:1px solid transparent;background:transparent;transition:background .15s,border-color .15s;}
+  .pj-mr:hover{background:#fff;border-color:var(--border);}
+  .pj-mdt{text-align:center;font-size:11px;line-height:1.15;padding:3px 0;border-radius:7px;background:#fff;border:1px solid var(--border);color:var(--text-secondary);}
+  .pj-mdt b{display:block;font-size:15px;font-weight:600;color:var(--text);}
+  .pj-mn{font:600 13px var(--font-body);color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .pj-mp{font-size:11.5px;color:var(--text-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .pj-bd{font-size:11.5px;font-weight:600;padding:2px 9px;border-radius:10px;white-space:nowrap;}
+  .pj-bd.late{background:var(--red-bg);color:var(--red-fg);}.pj-bd.tod{background:var(--yellow-bg);color:var(--yellow-fg);}.pj-bd.soon{background:var(--blue-bg);color:var(--blue-fg);}
+  .pj-mt{margin-top:8px;border:0;background:none;color:var(--accent);font:500 12px var(--font-body);cursor:pointer;padding:0;}
   .pj-upl{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:4px 18px;}
   .pj-upl div{display:flex;gap:8px;align-items:baseline;}
   .pj-upl .d{color:var(--text-secondary);width:46px;flex:none;}
@@ -12470,6 +12486,7 @@ function prjVisible(){
 }
 
 /* ---- rendering ---- */
+let PJ_UPF = 'all', PJ_UPALL = false;
 function prjRenderSummary(){
   prjRenderKpi();
   const rows = prjRows(), c = {};
@@ -12491,12 +12508,25 @@ function prjRenderSummary(){
     x.p.milestones.forEach(m => {
       if(m.done || !m.date) return;
       const d = prjDays(todayStr(), m.date);
-      if(d >= -7 && d <= 14) up.push({ d, n: m.name, p: x.p.name, dt: m.date });
+      if(d <= 14) up.push({ d, n: m.name, p: x.p.name, id: x.p.id, dt: m.date });
     });
   });
   up.sort((a, b) => a.d - b.d);
-  document.getElementById('pjUp').style.display = up.length ? '' : 'none';
-  document.getElementById('pjUp').innerHTML = '<h4>Milestones in the next 14 days</h4><div class="pj-upl">' + up.slice(0, 6).map(u => `<div><span class="d" ${u.d < 0 ? 'style="color:var(--red-fg)"' : ''}>${prjFd(u.dt)}</span><span>${escapeHtml(u.n)} <span style="color:var(--text-secondary)">(${escapeHtml(tlClip(u.p, 22))})</span>${u.d < 0 ? ' <b style="color:var(--red-fg);font-weight:600">overdue</b>' : ''}</span></div>`).join('') + '</div>';
+  const late = up.filter(u => u.d < 0), soon = up.filter(u => u.d >= 0);
+  const box = document.getElementById('pjUp');
+  box.style.display = up.length ? '' : 'none';
+  const f = PJ_UPF, lim = PJ_UPALL ? 999 : 5;
+  const row = u => {
+    const dd = tlParseDate(u.dt), cls = u.d < 0 ? 'late' : (u.d === 0 ? 'tod' : 'soon');
+    const tx = u.d < 0 ? Math.abs(u.d) + ' hari terlambat' : (u.d === 0 ? 'Hari ini' : u.d + ' hari lagi');
+    return `<div class="pj-mr" data-pjid="${u.id}" role="button" tabindex="0" title="Buka project: ${escapeHtml(u.p)}"><div class="pj-mdt"><b>${dd.getDate()}</b>${TL_MONTHS[dd.getMonth()]}</div><div class="pj-mtx"><div class="pj-mn">${escapeHtml(u.n || '(tanpa nama)')}</div><div class="pj-mp">${escapeHtml(u.p)}</div></div><span class="pj-bd ${cls}">${tx}</span></div>`;
+  };
+  const grp = (cls, icon, label, arr) => arr.length ? `<div class="pj-mg ${cls}"><i class="ti ${icon}"></i>${label} (${arr.length})</div><div class="pj-ml">${arr.slice(0, lim).map(row).join('')}</div>` : '';
+  const chip = (k, t, n) => `<button type="button" class="pj-mc ${f === k ? 'on' : ''}" data-pjupf="${k}" aria-pressed="${f === k}">${t} ${n}</button>`;
+  const shown = (f === 'late' ? late.length : (f === 'up' ? soon.length : up.length));
+  box.innerHTML = `<div class="pj-mh"><h4>Milestones</h4>${chip('all', 'Semua', up.length)}${chip('late', 'Overdue', late.length)}${chip('up', 'Mendatang', soon.length)}</div>` +
+    (f !== 'up' ? grp('late', 'ti-alert-triangle', 'Overdue', late) : '') + (f !== 'late' ? grp('soon', 'ti-calendar-event', '14 hari ke depan', soon) : '') +
+    (shown > 5 ? `<button type="button" class="pj-mt" data-pjupf="${PJ_UPALL ? 'less' : 'more'}">${PJ_UPALL ? 'Tampilkan lebih sedikit' : 'Tampilkan semua'}</button>` : '');
 }
 function prjRange(){
   const today = tlParseDate(todayStr());
@@ -12784,11 +12814,23 @@ function pjxHtml(p, rows){
   const lgc = {}; rows.forEach(x => { lgc[x.s.st] = (lgc[x.s.st] || 0) + 1; });
   const lg = PRJ_ORDER.filter(k => lgc[k]).map(k => `<button type="button" data-pjhl="${k}" class="${PJX.hl === k ? 'on' : ''}" style="--c:${PRJ_STATUS[k].c}" aria-pressed="${PJX.hl === k}" title="Highlight ${PRJ_STATUS[k].l} projects"><i></i>${PRJ_STATUS[k].l} ${lgc[k]}</button>`).join('');
   let cols = '', ax = '';
+  const tickRules = [
+    () => true,
+    (i, dow, dom) => dow === 1 || dom === 1 || i === 0,
+    (i, dow, dom) => dom === 1 || dom === 15 || i === 0,
+    (i, dow, dom) => dom === 1,
+    (i, dow, dom, mon) => dom === 1 && mon % 2 === 0,
+    (i, dow, dom, mon) => dom === 1 && mon % 3 === 0
+  ];
+  const dayInfo = [];
+  for(let i = 0; i < N; i++){ const dd = new Date((w.w0 + i) * 864e5); dayInfo.push([i, dd.getUTCDay(), dd.getUTCDate(), dd.getUTCMonth()]); }
+  let rule = tickRules[tickRules.length - 1];
+  for(const r of tickRules){ if(dayInfo.filter(d => r(d[0], d[1], d[2], d[3])).length * 46 <= 760){ rule = r; break; } }
   for(let i = 0; i < N; i++){
-    const dn = w.w0 + i, dow = new Date(dn * 864e5).getUTCDay(), dom = new Date(dn * 864e5).getUTCDate(), l = (i / N * 100).toFixed(3);
-    cols += `<div class="pjx-col${(dow === 0 || dow === 6) ? ' we' : ''}" style="left:${l}%;width:${(100 / N).toFixed(3)}%"></div>`;
-    const show = N > 70 ? (dom === 1 || dom === 15) : (dow === 1 || dom === 1 || i === 0);
-    if(show) ax += `<span style="left:${l}%">${pjxF(dn)}</span>`;
+    const dn = w.w0 + i, dow = dayInfo[i][1], dom = dayInfo[i][2], l = (i / N * 100).toFixed(3);
+    if(N <= 60) cols += `<div class="pjx-col${(dow === 0 || dow === 6) ? ' we' : ''}" style="left:${l}%;width:${(100 / N).toFixed(3)}%"></div>`;
+    else if(dom === 1) cols += `<div class="pjx-col" style="left:${l}%;width:1px"></div>`;
+    if(rule(i, dow, dom, dayInfo[i][3])) ax += `<span style="left:${l}%">${pjxF(dn)}</span>`;
   }
   const tdl = ((today - w.w0) / N * 100 + 100 / N / 2).toFixed(3);
   const tdHtml = (today >= w.w0 && today <= w.w1) ? `<div class="pjx-td" style="left:${tdl}%" title="Hari ini"></div>` : '';
@@ -12800,7 +12842,7 @@ function pjxHtml(p, rows){
     let track;
     if(sp){
       const len = sp.e - sp.s + 1;
-      track = `<div class="pjx-bar ${st}" tabindex="0" data-px-i="${j}" style="left:${((sp.s - w.w0) / N * 100).toFixed(3)}%;width:${(len / N * 100).toFixed(3)}%" title="${escapeHtml(m.name)} | ${PJX_LBL[st]}" role="group" aria-label="${escapeHtml(m.name)}, ${pjxF(sp.s)} sampai ${pjxF(sp.e)}, ${PJX_LBL[st]}"><b class="l" data-px-h="l"></b>${len >= 3 ? len + ' hr' : ''}<b class="r" data-px-h="r"></b></div>`;
+      track = `<div class="pjx-bar ${st}" tabindex="0" data-px-i="${j}" style="left:${((sp.s - w.w0) / N * 100).toFixed(3)}%;width:${(len / N * 100).toFixed(3)}%" title="${escapeHtml(m.name)} | ${PJX_LBL[st]}" role="group" aria-label="${escapeHtml(m.name)}, ${pjxF(sp.s)} sampai ${pjxF(sp.e)}, ${PJX_LBL[st]}"><b class="l" data-px-h="l"></b>${len / N * 760 >= 44 ? len + ' hr' : ''}<b class="r" data-px-h="r"></b></div>`;
     } else track = `<button type="button" class="pjx-nodate" data-px-sel="${j}">Belum ada tanggal. Klik untuk mengisi.</button>`;
     let r = `<div class="pjx-rw${PJX.selA === j ? ' sel' : ''}"><div class="pjx-nm${m.done ? ' dn' : ''}"><input type="checkbox" data-px-done="${j}" ${m.done ? 'checked' : ''} aria-label="Selesai">${nameCell}<button type="button" class="pjx-x" data-px-del="${j}" title="Hapus aktivitas" aria-label="Hapus aktivitas ${escapeHtml(m.name)}">&times;</button></div><div class="pjx-trk">${cols}${tdHtml}${track}</div></div>`;
     if(PJX.selA === j) r += `<div class="pjx-dt"><div></div><div class="pjx-dti"><label>Mulai <input type="date" data-px-dk="s" value="${sp ? pjxIso(sp.s) : ''}"></label><label>Selesai <input type="date" data-px-dk="e" value="${sp ? pjxIso(sp.e) : ''}"></label><button type="button" class="btn btn-ghost" data-px-act="toggle">${m.done ? 'Batal selesai' : 'Tandai selesai'}</button><button type="button" class="btn btn-ghost" data-px-act="del" style="color:var(--red-fg)">Hapus</button>${PJX.err ? `<span class="pjx-er">${escapeHtml(PJX.err)}</span>` : ''}</div></div>`;
@@ -13012,10 +13054,11 @@ function prjOnPicClosed(){
 (function prjBind(){
   const view = document.getElementById('view-projects');
   view.addEventListener('click', async (e) => {
-    const t = e.target.closest('[data-pjhl],[data-pjk],[data-pjv],[data-pjid],[data-pjact],[data-pjpicdel],[data-pjmsdel],[data-pjrkdel]');
+    const t = e.target.closest('[data-pjupf],[data-pjhl],[data-pjk],[data-pjv],[data-pjid],[data-pjact],[data-pjpicdel],[data-pjmsdel],[data-pjrkdel]');
     if(!t) return;
     if(t.dataset.pjk !== undefined){ const v = t.dataset.pjk || null; prjFilter = (prjFilter === v) ? null : v; prjRenderMain(); return; }
     if(t.dataset.pjv){ prjMode = t.dataset.pjv; prjRenderAll(); return; }
+    if(t.dataset.pjupf){ const v = t.dataset.pjupf; if(v === 'more') PJ_UPALL = true; else if(v === 'less') PJ_UPALL = false; else PJ_UPF = v; prjRenderSummary(); return; }
     if(t.dataset.pjhl){ PJX.hl = PJX.hl === t.dataset.pjhl ? null : t.dataset.pjhl; prjRenderMain(); return; }
     if(t.dataset.pjid){ prjSel = t.dataset.pjid; prjRenderAll(); return; }
     const p = prjSelProject();
@@ -13057,7 +13100,7 @@ function prjOnPicClosed(){
   });
   view.addEventListener('keydown', (e) => {
     const t = e.target;
-    if((e.key === 'Enter' || e.key === ' ') && t.matches && t.matches('tr[data-pjid]')){ e.preventDefault(); prjSel = t.dataset.pjid; prjRenderAll(); return; }
+    if((e.key === 'Enter' || e.key === ' ') && t.matches && t.matches('tr[data-pjid],.pj-mr[data-pjid]')){ e.preventDefault(); prjSel = t.dataset.pjid; prjRenderAll(); return; }
     if(e.key === 'Enter' && t.id === 'pjMsName'){ e.preventDefault(); view.querySelector('[data-pjact="msadd"]').click(); }
     if(e.key === 'Enter' && t.id === 'pjRkText'){ e.preventDefault(); view.querySelector('[data-pjact="rkadd"]').click(); }
   });
