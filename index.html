@@ -984,6 +984,11 @@
   .pjx-pb u{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--text);opacity:.65;}
   .pjx-ro{font-size:12px;background:var(--zebra);border-radius:8px;padding:6px 10px;margin-bottom:8px;min-height:30px;color:var(--text-secondary);display:flex;align-items:center;}
   .pjx-ro:empty{display:none;}
+  .pjx-upd{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--blue-bg);border:1px solid var(--accent);border-radius:12px;padding:10px 14px;margin-bottom:10px;font-size:12.5px;color:var(--navy);}
+  .pjx-upd>i{font-size:20px;color:var(--accent);}
+  .pjx-upd div{flex:1;min-width:200px;}
+  .pjx-upd b{font-weight:600;display:block;}
+  .pjx-upd span{color:var(--text-secondary);}
   .pjx-ro b{color:var(--text);font-weight:600;margin-right:4px;}
   .pjx-tl{border:1px solid var(--border);border-radius:12px;padding:8px 10px 10px;overflow-x:auto;overflow-y:hidden;background:#fff;position:relative;}
   .pjx-tli{position:relative;}
@@ -12890,6 +12895,7 @@ function pjxHtml(p, rows){
   return `<div class="pjx" id="pjx">
     <div class="pjx-lg"><span>Highlight</span>${lg}</div>
     <div class="pjx-tabs" role="tablist" aria-label="Pilih project">${tabs}</div>
+    ${pjxSynovaPending(p) ? `<div class="pjx-upd"><i class="ti ti-file-import" aria-hidden="true"></i><div><b>${pjxSynovaWasOld(p) ? 'Koreksi data ' + escapeHtml(p.name) + ' tersedia' : 'Update dari report validasi tersedia untuk ' + escapeHtml(p.name)}</b><span>${pjxSynovaWasOld(p) ? 'Menghapus isi update PPT sebelumnya yang salah, lalu menggantinya dengan Report Validasi 23-25 Okt 2026 (' : 'Report Validasi 23-25 Okt 2026 ('}${PJX_SYNOVA.ms.length} aktivitas, catatan status, ${PJX_SYNOVA.risks.length} risiko). PIC, tanggal project, dan progres tidak diubah.</span></div><button type="button" class="btn" data-px-act="synova">${pjxSynovaWasOld(p) ? 'Terapkan koreksi' : 'Terapkan update'}</button><button type="button" class="btn btn-ghost" data-px-act="synovalater">Nanti</button></div>` : ''}
     <div class="pjx-hd"><div><h4>${escapeHtml(p.name)} ${prjPill(s0.st)}</h4>
       <p>${s.d} dari ${s.n} aktivitas selesai, ${s.o} terlambat, ${s.n2} berjalan. Progres ${prog}%, target hari ini ${ex}%.</p></div>
       <div class="pjx-tools"><button type="button" class="btn btn-ghost" data-px-act="undo" title="Undo last change" ${PJX.hist.length ? '' : 'disabled'}>Undo</button><button type="button" class="btn btn-ghost" data-px-act="redo" title="Redo last undone change" ${PJX.fut.length ? '' : 'disabled'}>Redo</button><button type="button" class="btn btn-ghost" data-px-act="shiftm" title="Move all unfinished activities 1 day earlier">All -1 day</button><button type="button" class="btn btn-ghost" data-px-act="shiftp" title="Move all unfinished activities 1 day later">All +1 day</button><span class="pjx-zs" role="group" aria-label="Zoom timeline">${[['fit', 'Fit'], ['q', 'Quarter'], ['m', 'Month'], ['w', 'Week']].map(z => `<button type="button" data-px-zoom="${z[0]}" class="${PJX.zoom === z[0] ? 'on' : ''}" aria-pressed="${PJX.zoom === z[0]}" title="Zoom: ${z[1]}">${z[1]}</button>`).join('')}</span><button type="button" class="btn btn-ghost pjx-tdy" data-px-act="today" title="Scroll to today"><i class="ti ti-target-arrow" aria-hidden="true"></i> Today</button></div></div>
@@ -12911,6 +12917,74 @@ function pjxScrollApply(){
     tl.scrollTo({ left: Math.max(0, target), behavior: PJX.smooth ? 'smooth' : 'auto' });
     PJX.sx = Math.max(0, target); PJX.smooth = false;
   } else if(typeof PJX.sx === 'number') tl.scrollLeft = PJX.sx;
+}
+/* v52 (SALAH, hanya dipakai untuk menghapus): data dari PPT RFID crusher plant "Summary project - penambahan RFID pada CP". Hanya MENAMBAH data. */
+const PJX_SYNOVA_OLD_ID = 'ppt-synova-rfid-cp-1';
+const PJX_SYNOVA_OLD = {
+  phase: 'RFID Crusher Plant (RPPJ)',
+  note: 'Sistem hitung verifikasi transaksi DT pada crusher plant (RFID). Tujuan: verifikasi transaksi DT otomatis dan berkala, counting jumlah ritase dan tonase DT, informasi secara realtime, terintegrasi dengan data WIM dan COP. Sasaran: alat verifikasi terpasang di crusher plant dan block stockpile, pencatatan transaksi otomatis, implementasi sistem RFID. Sumber: PPT Summary project - penambahan RFID pada CP. Tanggal aktivitas masih usulan sementara.',
+  base: '2026-10-03',
+  ms: [
+    ['Alur proses transaksi DT ke port', 0, 9], ['Perhitungan ritase DT dumping di crusher plant dan block', 5, 13],
+    ['Pengadaan barang dan perlengkapan pendukung', 14, 24], ['Pemasangan RFID CP1', 25, 28], ['Pemasangan RFID CP2, CP2A, CP2B', 27, 31],
+    ['Pemasangan RFID CP3', 31, 34], ['Pemasangan RFID CP4 dan CP5', 34, 38], ['Pemasangan RFID CP6', 38, 41], ['Pemasangan RFID CP7', 41, 44],
+    ['Pemasangan RFID CP8', 44, 47], ['Pemasangan jaringan pendukung', 27, 44], ['Development program', 20, 47],
+    ['Test pembacaan RFID', 48, 51], ['Test keakuratan data', 51, 55], ['Test jaringan', 48, 55]
+  ],
+  risks: [
+    ['m', 'Pencatatan ritase DT masih manual di kertas dan diinput ulang ke CCM'],
+    ['m', 'Integrasi RFID dengan jaringan yang ada dan data WIM serta COP belum terbukti'],
+    ['h', 'Pemasangan di area antrian DT crusher plant, perlu faktor keselamatan']
+  ]
+};
+/* v53: Synova (RPPJ) = validasi data CCTV vs RPPJ Lane 3. Sumber: Report Validasi Synova 23-25 Okt 2026. */
+const PJX_SYNOVA_ID = 'rppj-validasi-23-25okt-1';
+const PJX_SYNOVA = {
+  phase: 'Validasi data CCTV dan RPPJ Lane 3',
+  note: 'Hasil validasi Synova Lane 3, 23-25 Okt 2026 (sampel 09:00-12:00 WITA): 375 data tervalidasi, 368 sesuai (98.13%), 7 tidak sesuai (1.87%). Per hari: 23 Okt 98.32% (CCTV 119 unit), 24 Okt 96.95% (131 unit), 25 Okt 99.20% (125 unit). Nolam kosong 3 data (AEK 0100, MAV 7054, GEC 9079). Nomor lambung dobel 16 data. Tindak lanjut: cek service RFID dan maintenance Mini PC antrian videotron Lane 3 oleh tim IT. Sumber: Report Validasi Synova 23-25 Okt 2026.',
+  ms: [
+    ['Validasi data CCTV vs RPPJ Lane 3 (23-25 Okt)', '2026-10-23', '2026-10-25', true],
+    ['Identifikasi nolam kosong (3 data)', '2026-10-23', '2026-10-25', true],
+    ['Identifikasi pembacaan nolam dobel (16 data)', '2026-10-23', '2026-10-25', true],
+    ['Cek ulang data database RPPJ dan hitung nolam tidak terbaca per tanggal', '', '', false],
+    ['Cek pembacaan berulang (waktu pembacaan dan kemungkinan redundant)', '', '', false],
+    ['Cek service RFID untuk penyebab nolam tidak terbaca dan dobel', '', '', false],
+    ['Koordinasi maintenance Mini PC antrian videotron Lane 3 dengan tim IT, lalu cek ulang', '', '', false]
+  ],
+  risks: [
+    ['m', 'Nolam kosong 3 data pada penarikan database RPPJ: AEK 0100, MAV 7054, GEC 9079'],
+    ['m', 'Indikasi pembacaan nolam dobel (duplicate) di 16 data, 3 kali baca untuk GEC 9079 dan AEK 0090'],
+    ['m', 'Mini PC antrian videotron Lane 3 sedang maintenance oleh tim IT']
+  ]
+};
+function pjxSynovaWasOld(p){ return Array.isArray(p.upd) && p.upd.includes(PJX_SYNOVA_OLD_ID); }
+function pjxSynovaPending(p){ return /synova|rppj/i.test(p.name || '') && !(Array.isArray(p.upd) && p.upd.includes(PJX_SYNOVA_ID)) && !PJX.updHide; }
+function pjxSynovaApply(p){
+  pjxPush(pjxSnap(p));
+  let removed = 0;
+  if(pjxSynovaWasOld(p)){
+    const oldN = new Set(PJX_SYNOVA_OLD.ms.map(x => x[0].toLowerCase()));
+    const before = p.milestones.length;
+    p.milestones = p.milestones.filter(m => !oldN.has(String(m.name || '').trim().toLowerCase()));
+    removed = before - p.milestones.length;
+    const oldR = new Set(PJX_SYNOVA_OLD.risks.map(x => x[1]));
+    p.risks = p.risks.filter(r => !oldR.has(r.text));
+    p.note = String(p.note || '').split(PJX_SYNOVA_OLD.note).join('').replace(/\n{3,}/g, '\n\n').trim();
+    if(p.phase === PJX_SYNOVA_OLD.phase) p.phase = '';
+  }
+  const have = new Set(p.milestones.map(m => String(m.name || '').trim().toLowerCase()));
+  let n = 0;
+  PJX_SYNOVA.ms.forEach(x => {
+    if(have.has(x[0].toLowerCase())) return;
+    p.milestones.push({ id: prjNid('pm'), name: x[0], start: x[1], date: x[2], done: x[3] }); n++;
+  });
+  if(!p.phase) p.phase = PJX_SYNOVA.phase;
+  p.note = p.note ? p.note + '\n\n' + PJX_SYNOVA.note : PJX_SYNOVA.note;
+  PJX_SYNOVA.risks.forEach(r => { if(!p.risks.some(x => x.text === r[1])) p.risks.push({ id: prjNid('pr'), text: r[1], sev: r[0] }); });
+  p.upd = (Array.isArray(p.upd) ? p.upd : []).concat(PJX_SYNOVA_ID);
+  PJX.selA = null;
+  pjxCommit(p);
+  showToast((removed ? 'Koreksi Synova diterapkan: ' + removed + ' aktivitas lama dihapus, ' : 'Update Synova diterapkan: ') + n + ' aktivitas baru, catatan status, dan risiko. Undo membatalkan aktivitas.', 'success');
 }
 function pjxPost(){
   pjxScrollApply();
@@ -13073,6 +13147,8 @@ function pjxReadout(m){
     if(act === 'undo'){ if(!PJX.hist.length) return; PJX.fut.push(pjxSnap(p)); pjxRestore(p, PJX.hist.pop()); PJX.selA = null; prjQueueSave(p); prjRenderAll(); return; }
     if(act === 'redo'){ if(!PJX.fut.length) return; PJX.hist.push(pjxSnap(p)); pjxRestore(p, PJX.fut.pop()); PJX.selA = null; prjQueueSave(p); prjRenderAll(); return; }
     if(act === 'narrow'){ if(PJX.win){ const cur = { w0: PJX.win.w0, w1: PJX.win.w1 }; pjxFit(p, false); const bs = PJX.win; PJX.win = { id: bs.id, w0: Math.min(cur.w0 + 7, bs.w0), w1: Math.max(cur.w1 - 14, bs.w1) }; } prjRenderMain(); return; }
+    if(act === 'synova'){ if(pjxSynovaPending(p)) pjxSynovaApply(p); return; }
+    if(act === 'synovalater'){ PJX.updHide = true; prjRenderMain(); return; }
     if(act === 'today'){ PJX.sx = 'today'; prjRenderMain(); return; }
     if(act === 'wide'){ if(PJX.win){ PJX.win.w0 -= 7; PJX.win.w1 += 14; } prjRenderMain(); return; }
     if(act === 'shiftm' || act === 'shiftp'){
