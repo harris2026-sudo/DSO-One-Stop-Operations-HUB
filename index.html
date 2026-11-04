@@ -989,6 +989,19 @@
   .pjx-upd div{flex:1;min-width:200px;}
   .pjx-upd b{font-weight:600;display:block;}
   .pjx-upd span{color:var(--text-secondary);}
+  .pjx-kp{background:#fff;border:1px solid var(--border);border-radius:12px;padding:10px 14px;margin:8px 0 10px;font-size:12.5px;}
+  .pjx-kp h5{margin:0 0 8px;font-size:12.5px;font-weight:600;color:var(--navy);}
+  .pjx-kg{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-bottom:8px;}
+  .pjx-kc{background:var(--zebra);border-radius:8px;padding:7px 10px;}
+  .pjx-kc small{display:block;font-size:11px;color:var(--text-secondary);}
+  .pjx-kc input{width:100%;border:1px solid transparent;background:transparent;font:600 18px var(--font-body);color:var(--navy);padding:0;}
+  .pjx-kc input:hover,.pjx-kc input:focus{border-color:var(--border);background:#fff;border-radius:6px;}
+  .pjx-kr{display:grid;grid-template-columns:54px 1fr 64px;gap:8px;align-items:center;margin-top:5px;}
+  .pjx-kr input{width:100%;border:1px solid transparent;background:transparent;font:500 12px var(--font-body);text-align:right;padding:1px 3px;color:var(--text);}
+  .pjx-kr input:hover,.pjx-kr input:focus{border-color:var(--border);background:#fff;border-radius:6px;}
+  .pjx-kb{height:7px;border-radius:4px;background:var(--zebra);overflow:hidden;}
+  .pjx-kb i{display:block;height:100%;border-radius:4px;}
+  .pjx-kb i.g{background:#1D9E75;}.pjx-kb i.a{background:#BA7517;}.pjx-kb i.r{background:#E24B4A;}
   .pjx-ro b{color:var(--text);font-weight:600;margin-right:4px;}
   .pjx-tl{border:1px solid var(--border);border-radius:12px;padding:8px 10px 10px;overflow-x:auto;overflow-y:hidden;background:#fff;position:relative;}
   .pjx-tli{position:relative;}
@@ -12896,10 +12909,12 @@ function pjxHtml(p, rows){
     <div class="pjx-lg"><span>Highlight</span>${lg}</div>
     <div class="pjx-tabs" role="tablist" aria-label="Pilih project">${tabs}</div>
     ${pjxSynovaPending(p) ? `<div class="pjx-upd"><i class="ti ti-file-import" aria-hidden="true"></i><div><b>${pjxSynovaWasOld(p) ? 'Koreksi data ' + escapeHtml(p.name) + ' tersedia' : 'Update dari report validasi tersedia untuk ' + escapeHtml(p.name)}</b><span>${pjxSynovaWasOld(p) ? 'Menghapus isi update PPT sebelumnya yang salah, lalu menggantinya dengan Report Validasi 23-25 Okt 2026 (' : 'Report Validasi 23-25 Okt 2026 ('}${PJX_SYNOVA.ms.length} aktivitas, catatan status, ${PJX_SYNOVA.risks.length} risiko). PIC, tanggal project, dan progres tidak diubah.</span></div><button type="button" class="btn" data-px-act="synova">${pjxSynovaWasOld(p) ? 'Terapkan koreksi' : 'Terapkan update'}</button><button type="button" class="btn btn-ghost" data-px-act="synovalater">Nanti</button></div>` : ''}
+    ${pjxRppj2Pending(p) ? `<div class="pjx-upd"><i class="ti ti-file-import" aria-hidden="true"></i><div><b>Update DOD dan Divert Lane tersedia untuk ${escapeHtml(p.name)}</b><span>${PJX_RPPJ2.ms.length} aktivitas (Stage-1/2, DOD 4 tahap, perbaikan reader) tanpa tanggal, ${PJX_RPPJ2.risks.length} risiko, catatan status, dan panel KPI. Data yang sudah ada tidak diubah.</span></div><button type="button" class="btn" data-px-act="rppj2">Terapkan update</button><button type="button" class="btn btn-ghost" data-px-act="synovalater">Nanti</button></div>` : ''}
     <div class="pjx-hd"><div><h4>${escapeHtml(p.name)} ${prjPill(s0.st)}</h4>
       <p>${s.d} dari ${s.n} aktivitas selesai, ${s.o} terlambat, ${s.n2} berjalan. Progres ${prog}%, target hari ini ${ex}%.</p></div>
       <div class="pjx-tools"><button type="button" class="btn btn-ghost" data-px-act="undo" title="Undo last change" ${PJX.hist.length ? '' : 'disabled'}>Undo</button><button type="button" class="btn btn-ghost" data-px-act="redo" title="Redo last undone change" ${PJX.fut.length ? '' : 'disabled'}>Redo</button><button type="button" class="btn btn-ghost" data-px-act="shiftm" title="Move all unfinished activities 1 day earlier">All -1 day</button><button type="button" class="btn btn-ghost" data-px-act="shiftp" title="Move all unfinished activities 1 day later">All +1 day</button><span class="pjx-zs" role="group" aria-label="Zoom timeline">${[['fit', 'Fit'], ['q', 'Quarter'], ['m', 'Month'], ['w', 'Week']].map(z => `<button type="button" data-px-zoom="${z[0]}" class="${PJX.zoom === z[0] ? 'on' : ''}" aria-pressed="${PJX.zoom === z[0]}" title="Zoom: ${z[1]}">${z[1]}</button>`).join('')}</span><button type="button" class="btn btn-ghost pjx-tdy" data-px-act="today" title="Scroll to today"><i class="ti ti-target-arrow" aria-hidden="true"></i> Today</button></div></div>
     ${s.n ? `<div class="pjx-seg" aria-label="Status per aktivitas">${seg}</div>` : ''}
+    ${pjxKpiHtml(p)}
     <div class="pjx-pb" aria-hidden="true"><i style="width:${prog}%"></i><u style="left:calc(${ex}% - 1px)" title="Target hari ini ${ex}%"></u></div>
     <div class="pjx-ro" id="pjxRo" aria-live="polite">${s.n ? '' : 'Belum ada aktivitas. Seret di baris kosong paling bawah untuk membuat yang pertama.'}</div>
     <div class="pjx-tl" id="pjxTl"><div class="pjx-tli" id="pjxTli" ${tliStyle}><div class="pjx-ax" style="height:auto"><div></div><div class="pjx-axt" style="height:40px"><div class="pjx-mb">${mbh}</div><div style="position:relative;height:22px">${ax.replace(/<span style="left:([^"]+)">/g, '<span style="left:$1;top:4px">')}</div>${tdLbl}</div></div>${body}
@@ -12985,6 +13000,65 @@ function pjxSynovaApply(p){
   PJX.selA = null;
   pjxCommit(p);
   showToast((removed ? 'Koreksi Synova diterapkan: ' + removed + ' aktivitas lama dihapus, ' : 'Update Synova diterapkan: ') + n + ' aktivitas baru, catatan status, dan risiko. Undo membatalkan aktivitas.', 'success');
+}
+/* v54: Synova (RPPJ) - Bunati Divert Lane (Stage-1/2), DOD 4 tahap, aksi perbaikan reader, risiko, KPI */
+const PJX_RPPJ2_ID = 'rppj-dod-bunati-1';
+const PJX_RPPJ2 = {
+  note: 'Update DOD dan Divert Lane: Stage-1 (digital signboard info antrian per lane dan tujuan crusher + stop and go) dan Stage-2 (mini dashboard LCD di unit + integrasi FMS) sesuai plan Bunati. DOD 4 tahap: Videotron 1 densitas lane, Videotron 2 status CP, deteksi antrian RFID (quick win CCTV), rekomendasi dumping (quick win drag and drop). Validasi reader: 8 dari 11 CP sehat, CP5, CP8, CP9 bermasalah karena penanda IN gabungan. Jadwal Stage-1/2 dan DOD belum ditentukan.',
+  ms: [
+    'Stage-1: Digital signboard info sisa antrian per lane (8 lane/koridor)',
+    'Stage-1: Digital signboard tujuan crusher dan lampu stop and go',
+    'Stage-2: Mini dashboard LCD di unit (port, status antrian, arah crusher, info FMS)',
+    'Stage-2: Integrasi FMS (queue, dump, crusher status)',
+    'DOD-1: Videotron 1 densitas lane (25/50/75/90%)',
+    'DOD-2: Videotron 2 status CP aktif dari UScavis/SCADA dan Safety/Ops Campaign',
+    'DOD-3: Deteksi antrian masuk port dan CP via RFID (quick win CCTV)',
+    'DOD-4: Rekomendasi lokasi dumping (drag and drop, FAMOUS/OBU, bandingkan realisasi)',
+    'Perbaikan reader IN CP5 (match 0%, IN gabungan dengan CP4)',
+    'Perbaikan reader IN CP8 (match 40%, IN gabungan dengan CP9)',
+    'Perbaikan spillover pembacaan CP9 (match 45%)',
+    'Cek posisi/orientasi antena IN dan reader aktif CP7',
+    'Atur threshold alert RFIDbot Telegram (kurang dari 4 hits)',
+    'Validasi ulang RFID vs CCTV setelah perbaikan reader'
+  ],
+  risks: [
+    ['m', 'Kapasitas CP terbaca lebih rendah dari aslinya, mengganggu assignment, alert, dan rerouting'],
+    ['m', '147 RFID tanpa Room In (15.1%)'],
+    ['l', '6 data CCTV BLUR tidak terbaca']
+  ],
+  kpi: [
+    ['m', 'Match RFID', '71.4%'], ['m', 'Match CCTV', '73.7%'], ['m', 'CP sehat', '8 / 11'], ['m', 'CP bermasalah', '3'],
+    ['cp', 'CP2A', '97'], ['cp', 'CP9', '45'], ['cp', 'CP8', '40'], ['cp', 'CP5', '0'],
+    ['cap', 'Kapasitas 3.5 Ha', '270 unit'], ['cap', 'Kapasitas 44-50 Ha', '980 unit']
+  ]
+};
+function pjxRppj2Pending(p){ return /synova|rppj/i.test(p.name || '') && !pjxSynovaPending(p) && !(Array.isArray(p.upd) && p.upd.includes(PJX_RPPJ2_ID)) && !PJX.updHide; }
+function pjxRppj2Apply(p){
+  pjxPush(pjxSnap(p));
+  const have = new Set(p.milestones.map(m => String(m.name || '').trim().toLowerCase()));
+  let n = 0;
+  PJX_RPPJ2.ms.forEach(x => {
+    if(have.has(x.toLowerCase())) return;
+    p.milestones.push({ id: prjNid('pm'), name: x, start: '', date: '', done: false }); n++;
+  });
+  p.phase = p.phase || 'Validasi RPPJ dan desain Divert Lane';
+  if(String(p.note || '').indexOf('Update DOD dan Divert Lane') < 0) p.note = p.note ? p.note + '\n\n' + PJX_RPPJ2.note : PJX_RPPJ2.note;
+  PJX_RPPJ2.risks.forEach(r => { if(!p.risks.some(x => x.text === r[1])) p.risks.push({ id: prjNid('pr'), text: r[1], sev: r[0] }); });
+  if(!Array.isArray(p.kpi) || !p.kpi.length) p.kpi = PJX_RPPJ2.kpi.map((k, i) => ({ id: 'k' + i, g: k[0], l: k[1], v: k[2] }));
+  p.upd = (Array.isArray(p.upd) ? p.upd : []).concat(PJX_RPPJ2_ID);
+  PJX.selA = null;
+  pjxCommit(p);
+  showToast('Update DOD dan Divert Lane diterapkan: ' + n + ' aktivitas baru (tanpa tanggal), risiko, catatan, dan panel KPI. Undo membatalkan aktivitas.', 'success');
+}
+function pjxKpiHtml(p){
+  if(!Array.isArray(p.kpi) || !p.kpi.length) return '';
+  const inp = (k, cls) => `<input type="text" value="${escapeHtml(k.v)}" data-px-kpi="${escapeHtml(k.id)}" aria-label="${escapeHtml(k.l)}">`;
+  const cards = p.kpi.filter(k => k.g !== 'cp').map(k => `<div class="pjx-kc"><small>${escapeHtml(k.l)}</small>${inp(k)}</div>`).join('');
+  const rows = p.kpi.filter(k => k.g === 'cp').map(k => {
+    const v = Math.max(0, Math.min(100, parseFloat(String(k.v).replace(',', '.')) || 0));
+    return `<div class="pjx-kr"><span>${escapeHtml(k.l)}</span><div class="pjx-kb"><i class="${v >= 80 ? 'g' : (v >= 60 ? 'a' : 'r')}" style="width:${v}%"></i></div>${inp(k)}</div>`;
+  }).join('');
+  return `<div class="pjx-kp"><h5>KPI validasi dan DOD</h5><div class="pjx-kg">${cards}</div>${rows ? '<div class="sub" style="font-size:11px;color:var(--text-secondary)">Match per CP (% terhadap transaksi CCTV)</div>' + rows : ''}</div>`;
 }
 function pjxPost(){
   pjxScrollApply();
@@ -13148,6 +13222,7 @@ function pjxReadout(m){
     if(act === 'redo'){ if(!PJX.fut.length) return; PJX.hist.push(pjxSnap(p)); pjxRestore(p, PJX.fut.pop()); PJX.selA = null; prjQueueSave(p); prjRenderAll(); return; }
     if(act === 'narrow'){ if(PJX.win){ const cur = { w0: PJX.win.w0, w1: PJX.win.w1 }; pjxFit(p, false); const bs = PJX.win; PJX.win = { id: bs.id, w0: Math.min(cur.w0 + 7, bs.w0), w1: Math.max(cur.w1 - 14, bs.w1) }; } prjRenderMain(); return; }
     if(act === 'synova'){ if(pjxSynovaPending(p)) pjxSynovaApply(p); return; }
+    if(act === 'rppj2'){ if(pjxRppj2Pending(p)) pjxRppj2Apply(p); return; }
     if(act === 'synovalater'){ PJX.updHide = true; prjRenderMain(); return; }
     if(act === 'today'){ PJX.sx = 'today'; prjRenderMain(); return; }
     if(act === 'wide'){ if(PJX.win){ PJX.win.w0 -= 7; PJX.win.w1 += 14; } prjRenderMain(); return; }
@@ -13186,6 +13261,11 @@ function pjxReadout(m){
     if(!inPlan(e)) return;
     const p = cur(); if(!p) return;
     const t = e.target;
+    if(t.dataset.pxKpi !== undefined){
+      const k = (p.kpi || []).find(x => x.id === t.dataset.pxKpi);
+      if(k && k.v !== t.value.trim()){ k.v = t.value.trim(); prjQueueSave(p); PJX.focus = null; prjRenderAll(); }
+      return;
+    }
     if(t.dataset.pxDone !== undefined){ pjxPush(pjxSnap(p)); p.milestones[+t.dataset.pxDone].done = t.checked; pjxCommit(p); return; }
     const k = t.dataset.pxDk; if(!k) return;
     const m = p.milestones[PJX.selA]; if(!m) return;
