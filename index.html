@@ -348,6 +348,33 @@
 .oi-del{color:var(--red-fg);}
 @media(max-width:1000px){.oi-bd{grid-template-columns:repeat(2,minmax(0,1fr));}.oi-sum{grid-template-columns:repeat(2,minmax(0,1fr));}}
 @media(max-width:560px){.oi-bd{grid-template-columns:1fr;}.oi-fg{grid-template-columns:1fr;}.oi-bar,.oi-sum,.oi-fl,.oi-bd{padding-left:12px;padding-right:12px;}}
+.oi-av{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font:600 9.5px var(--font-body);border:1.5px solid #fff;margin-left:-6px;flex:none;}
+.oi-avs{display:inline-flex;padding-left:6px;}
+.oi-np{font-size:11px;font-weight:500;padding:1px 8px;border-radius:5px;background:var(--yellow-bg);color:var(--yellow-fg);}
+.oi-na{font-size:11.5px;margin-top:7px;padding-top:6px;border-top:1px dashed var(--border);color:var(--text-secondary);line-height:1.4;}
+.oi-na b{font-weight:600;color:var(--text);}
+.oi-na .od{color:var(--red-fg);font-weight:600;}
+.oi-wt{font-size:11.5px;margin-top:5px;color:var(--yellow-fg);line-height:1.4;}
+.oi-ld{margin:0 20px 10px;border:1px solid var(--border);border-radius:12px;background:#fff;padding:10px 14px;}
+.oi-ld h4{margin:0 0 6px;font:600 12.5px var(--font-body);color:var(--text-secondary);}
+.oi-ld h4 span{font-weight:400;font-size:11.5px;margin-left:6px;}
+.oi-lr{display:grid;grid-template-columns:minmax(110px,170px) 1fr 130px;gap:10px;align-items:center;font-size:12.5px;padding:3px 6px;border-radius:8px;cursor:pointer;}
+.oi-lr:hover,.oi-lr.on{background:var(--surface-alt);}
+.oi-lr.on{outline:1px solid var(--accent);}
+.oi-ln{display:flex;align-items:center;gap:8px;min-width:0;}
+.oi-ln .oi-av{margin-left:0;}
+.oi-lb{height:8px;border-radius:4px;background:var(--surface-alt);overflow:hidden;display:flex;}
+.oi-lb i{display:block;height:100%;}
+.oi-lt{font-size:11.5px;color:var(--text-secondary);}.oi-lt b{color:var(--red-fg);font-weight:600;}
+.oi-pb{display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
+.oi-pc{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;padding:2px 4px 2px 3px;border-radius:14px;background:var(--surface-alt);}
+.oi-pc .oi-av{margin-left:0;border:0;}
+.oi-pc button{border:0;background:none;color:var(--text-secondary);cursor:pointer;font-size:15px;line-height:1;padding:0 4px;}
+.oi-pc button:hover{color:var(--red-fg);}
+.oi-pa{width:auto!important;padding:4px 8px;font-size:12px;}
+.oi-er{color:var(--red-fg);font-size:12px;margin-top:4px;}
+.oi-fl{padding:0 20px 10px;}
+@media(max-width:700px){.oi-ld,.oi-fl{margin-left:12px;margin-right:12px;padding-left:12px;padding-right:12px}.oi-lr{grid-template-columns:1fr 70px 100px}}
 
 .sap{padding-bottom:14px;}
 .sap-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:6px 20px 12px;}
@@ -11450,6 +11477,7 @@ function tlOpenPicModal(sel){
 }
 async function tlOnPicModalClosed(){
   if(typeof prjOnPicClosed === 'function') prjOnPicClosed();
+  if(typeof oiOnPicClosed === 'function') oiOnPicClosed();
   const p = tlPicPending;
   if(!p) return;
   tlPicPending = null;
@@ -16654,14 +16682,20 @@ function sapReport(kind){
 const OI_KEY = 'dso:openissue-v1';
 const OI_COLS = ['Open', 'In progress', 'Waiting', 'Closed'];
 const OI_PRI = { h: 'Tinggi', m: 'Sedang', l: 'Rendah' };
-const OI_SYS = ['WIM', 'AEBS', 'FAMOUS', 'RFID', 'Synova', 'Lainnya'];
+const OI_SYS = ['WIM', 'AEBS', 'FAMOUS', 'RFID', 'Synova', 'Other'];
+const OI_PRI_EN = { h: 'High', m: 'Medium', l: 'Low' };
 let oiData = null, oiFail = false, oiTimer = null, oiHist = [], oiEdit = null, oiDrag = null, oiClosedAll = false;
-let oiF = { sys: 'all', pic: 'all', pri: 'all', q: '' };
+let oiF = { sys: 'all', pic: 'all', pri: 'all', q: '' }, oiPicPend = null, oiWhyId = null;
+const OI_AV = [['--blue-bg', '--navy'], ['--green-bg', '--green-fg'], ['--yellow-bg', '--yellow-fg'], ['--red-bg', '--red-fg']];
 
 function oiToday(){ const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
 function oiD(iso){ const p = String(iso || '').split('-'); return p.length === 3 ? new Date(+p[0], +p[1] - 1, +p[2]) : null; }
 function oiDiff(a, b){ const x = oiD(a), y = oiD(b); return x && y ? Math.round((x - y) / 864e5) : 0; }
 function oiFmt(iso){ if(!iso) return '-'; const p = iso.split('-'); return p.length === 3 ? p[2] + '/' + p[1] + '/' + p[0] : iso; }
+function oiMe(){ return (typeof tlAuthorName === 'function' ? tlAuthorName() : '') || ''; }
+function oiIni(n){ const p = String(n || '?').trim().split(/\s+/); return ((p[0] || '?')[0] + (p.length > 1 ? p[p.length - 1][0] : (p[0][1] || ''))).toUpperCase(); }
+function oiAv(n){ let h = 0; for(const c of String(n)) h = (h * 31 + c.charCodeAt(0)) % 997; const a = OI_AV[h % OI_AV.length]; return `<span class="oi-av" title="${escapeHtml(n)}" style="background:var(${a[0]});color:var(${a[1]})">${escapeHtml(oiIni(n))}</span>`; }
+function oiOverdue(x){ return x.st < 3 && x.nd && oiDiff(oiToday(), x.nd) > 0; }
 function oiNid(){ return 'oi' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
 function oiAge(x){ return Math.max(0, oiDiff(x.st === 3 && x.closed ? x.closed : oiToday(), x.rep || oiToday())); }
 function oiAgeCls(x){ if(x.st === 3) return 'g'; const a = oiAge(x); return a > 14 ? 'r' : (a > 7 ? 'y' : 'g'); }
@@ -16677,93 +16711,124 @@ async function oiLoad(){
   }
   if(!d || typeof d !== 'object') d = { items: [] };
   if(!Array.isArray(d.items)) d.items = [];
-  d.items.forEach(x => { if(!Array.isArray(x.log)) x.log = []; x.st = Math.max(0, Math.min(3, +x.st || 0)); if(!OI_PRI[x.pri]) x.pri = 'm'; });
+  d.items.forEach(x => { if(!Array.isArray(x.pics)) x.pics = x.pic ? [String(x.pic)] : []; ['by', 'lok', 'vendor', 'na', 'nd', 'why'].forEach(k => { if(typeof x[k] !== 'string') x[k] = ''; }); if(!Array.isArray(x.log)) x.log = []; x.st = Math.max(0, Math.min(3, +x.st || 0)); if(!OI_PRI[x.pri]) x.pri = 'm'; });
   oiData = d;
 }
 function oiSave(now){
   if(oiFail || !oiData) return;
   clearTimeout(oiTimer);
-  const go = async () => { try{ await store.set(OI_KEY, JSON.stringify(oiData), true); }catch(e){ console.error('Open Issue: gagal simpan', e); showToast('Gagal menyimpan Open Issue', 'error'); } };
+  const go = async () => { try{ await store.set(OI_KEY, JSON.stringify(oiData), true); }catch(e){ console.error('Open Issue: gagal simpan', e); showToast('Failed to save Open Issue', 'error'); } };
   if(now) return go();
   oiTimer = setTimeout(go, 350);
 }
 function oiPush(){ oiHist.push(JSON.stringify(oiData.items)); if(oiHist.length > 30) oiHist.shift(); }
 function oiSystems(){ const s = new Set(OI_SYS); oiData.items.forEach(x => { if(x.sys) s.add(x.sys); }); return [...s]; }
-function oiPics(){ return [...new Set(oiData.items.map(x => x.pic).filter(Boolean))].sort(); }
+function oiPics(){ const s = new Set(typeof tlPicManager !== 'undefined' ? tlPicManager.getList() : []); oiData.items.forEach(x => x.pics.forEach(p => s.add(p))); return [...s].sort(); }
+function oiPicMatch(x){ const f = oiF.pic; return f === 'all' || (f === 'none' ? !x.pics.length : (f === 'me' ? x.pics.includes(oiMe()) : x.pics.includes(f))); }
 function oiVisible(){
   const q = oiF.q.trim().toLowerCase();
   return oiData.items.filter(x =>
-    (oiF.sys === 'all' || x.sys === oiF.sys) && (oiF.pic === 'all' || x.pic === oiF.pic) && (oiF.pri === 'all' || x.pri === oiF.pri) &&
-    (!q || (x.t + ' ' + (x.desc || '') + ' ' + (x.pic || '') + ' ' + (x.sys || '')).toLowerCase().includes(q)));
+    (oiF.sys === 'all' || x.sys === oiF.sys) && oiPicMatch(x) && (oiF.pri === 'all' || x.pri === oiF.pri) &&
+    (!q || (x.t + ' ' + (x.desc || '') + ' ' + x.pics.join(' ') + ' ' + (x.sys || '') + ' ' + x.lok + ' ' + x.vendor + ' ' + x.na).toLowerCase().includes(q)));
 }
 function oiMove(x, st){
   if(x.st === st) return;
+  if(st === 2 && !String(x.why || '').trim()){ oiWhyAsk(x); return false; }
   x.st = st;
   if(st === 3){ if(!x.closed) x.closed = oiToday(); } else x.closed = '';
-  x.log.push({ at: oiToday(), by: (typeof tlAuthorName === 'function' ? tlAuthorName() : '') || '', tx: 'Status: ' + OI_COLS[st] });
+  x.log.push({ at: oiToday(), by: oiMe(), tx: 'Status: ' + OI_COLS[st] + (st === 2 && x.why ? ' (' + x.why + ')' : '') });
+  return true;
 }
+function oiWhyAsk(x){
+  oiWhyId = x.id;
+  const ov = document.createElement('div'); ov.className = 'oi-ov'; ov.id = 'oiWhy'; ov.style.zIndex = 950;
+  ov.innerHTML = `<div class="oi-md" style="width:min(440px,100%)" role="dialog" aria-modal="true" aria-label="Waiting reason"><h3>Move to Waiting</h3><label for="oiWhyIn" style="font-size:11.5px;color:var(--text-secondary)">Waiting reason</label><input class="oi-in" id="oiWhyIn" style="width:100%;box-sizing:border-box" placeholder="e.g. waiting for spare part, arriving 10/11"><div class="oi-er" id="oiWhyEr" hidden>Enter a waiting reason first.</div><div class="oi-ft"><span class="oi-sp"></span><button type="button" class="oi-btn" data-oiact="whyno">Cancel</button><button type="button" class="oi-btn pri" data-oiact="whyok">Move</button></div></div>`;
+  document.getElementById('view-openissue').appendChild(ov);
+  setTimeout(() => { const f = document.getElementById('oiWhyIn'); if(f) f.focus(); }, 30);
+}
+function oiWhyClose(){ const o = document.getElementById('oiWhy'); if(o) o.remove(); oiWhyId = null; }
 
 function oiCard(x){
-  const a = oiAge(x), over = x.st < 3 && x.tgt && oiDiff(oiToday(), x.tgt) > 0;
-  const mv = (x.st > 0 ? `<button type="button" data-oim="-1">Mundur</button>` : '') + (x.st < 3 ? `<button type="button" data-oim="1">${x.st === 2 ? 'Close' : 'Maju'}</button>` : '');
-  return `<div class="oi-cd${x.pri === 'h' && x.st < 3 ? ' hi' : ''}${x.st === 3 ? ' cl' : ''}" draggable="true" data-oid="${x.id}" tabindex="0" title="Klik untuk buka detail">
-    <p class="oi-tt">${escapeHtml(x.t || '(tanpa judul)')}</p>
-    <div class="oi-mt"><span><span class="oi-sy">${escapeHtml(x.sys || '-')}</span>${escapeHtml(x.pic || 'Tanpa PIC')}</span><span class="oi-ag ${oiAgeCls(x)}">${x.st === 3 ? 'selesai ' + a + ' hr' : a + ' hari'}</span></div>
-    ${over ? `<div class="oi-tg">Lewat target ${oiFmt(x.tgt)}</div>` : ''}
+  const a = oiAge(x);
+  const mv = (x.st > 0 ? `<button type="button" data-oim="-1">Back</button>` : '') + (x.st < 3 ? `<button type="button" data-oim="1">${x.st === 2 ? 'Close' : 'Next'}</button>` : '');
+  const pic = x.pics.length ? `<span class="oi-avs">${x.pics.slice(0, 4).map(oiAv).join('')}${x.pics.length > 4 ? `<span class="oi-av" style="background:var(--surface-alt);color:var(--text-secondary)">+${x.pics.length - 4}</span>` : ''}</span>` : '<span class="oi-np">No PIC</span>';
+  const od = oiOverdue(x);
+  return `<div class="oi-cd${x.pri === 'h' && x.st < 3 ? ' hi' : ''}${x.st === 3 ? ' cl' : ''}" draggable="true" data-oid="${x.id}" tabindex="0" title="Click to open details">
+    <p class="oi-tt">${escapeHtml(x.t || '(untitled)')}</p>
+    <div class="oi-mt"><span><span class="oi-sy">${escapeHtml(x.sys || '-')}</span>${escapeHtml(x.lok)}</span><span class="oi-ag ${oiAgeCls(x)}">${x.st === 3 ? 'closed in ' + a + ' d' : a + (a === 1 ? ' day' : ' days')}</span></div>
+    <div class="oi-mt" style="margin-top:7px">${pic}</div>
+    ${x.na && x.st < 3 ? `<div class="oi-na">Next: <b>${escapeHtml(x.na)}</b>${x.nd ? ` <span class="${od ? 'od' : ''}">${od ? 'overdue ' : 'due '}${oiFmt(x.nd).slice(0, 5)}</span>` : ''}</div>` : (od ? `<div class="oi-na"><span class="od">Overdue ${oiFmt(x.nd).slice(0, 5)}</span></div>` : '')}
+    ${x.st === 2 && x.why ? `<div class="oi-wt">Waiting for: ${escapeHtml(x.why)}</div>` : ''}
     <div class="oi-mv">${mv}</div></div>`;
 }
 function oiBoard(){
   const host = document.getElementById('oiBoardHost'); if(!host) return;
   const all = oiData.items, vis = oiVisible();
   const act = vis.filter(x => x.st < 3);
-  const hi = act.filter(x => x.pri === 'h').length, old = act.filter(x => oiAge(x) > 14).length;
-  const od = act.filter(x => x.tgt && oiDiff(oiToday(), x.tgt) > 0).length;
+  const hi = act.filter(x => x.pri === 'h').length, nop = act.filter(x => !x.pics.length).length;
   const mc = (l, n, c) => `<div class="oi-mc ${c}"><small>${l}</small><b>${n}</b></div>`;
+  const allAct = all.filter(x => x.st < 3), nopAll = allAct.filter(x => !x.pics.length).length;
+  const pics = oiPics().map(n => { const a = allAct.filter(x => x.pics.includes(n)); return { n, c: a.length, o: a.filter(oiOverdue).length }; }).filter(r => r.c);
+  const mx = Math.max(1, ...pics.map(r => r.c));
+  const load = pics.length ? `<div class="oi-ld"><h4>Workload per PIC <span>click a name to filter</span></h4>${pics.sort((a, b) => b.c - a.c).map(r => `<div class="oi-lr${oiF.pic === r.n ? ' on' : ''}" data-oipic="${escapeHtml(r.n)}" role="button" tabindex="0"><span class="oi-ln">${oiAv(r.n)}${escapeHtml(r.n)}</span><div class="oi-lb"><i style="width:${(r.c - r.o) / mx * 100}%;background:var(--accent)"></i><i style="width:${r.o / mx * 100}%;background:var(--red-fg)"></i></div><span class="oi-lt">${r.c} active${r.o ? `, <b>${r.o} overdue</b>` : ''}</span></div>`).join('')}</div>` : '';
+  const chip = (k, t) => `<button type="button" class="oi-ch${oiF.pic === k ? ' on' : ''}" data-oipic="${escapeHtml(k)}" aria-pressed="${oiF.pic === k}">${t}</button>`;
+  const fl = `<div class="oi-fl" role="group" aria-label="Filter by PIC">${chip('all', 'All PICs')}${oiMe() ? chip('me', 'My issues') : ''}${chip('none', 'No PIC (' + nopAll + ')')}${oiPics().filter(n => pics.some(r => r.n === n)).map(n => chip(n, escapeHtml(n))).join('')}</div>`;
   let cols = '';
   OI_COLS.forEach((c, i) => {
     let col = vis.filter(x => x.st === i);
     col.sort(i === 3 ? ((a, b) => String(b.closed).localeCompare(String(a.closed))) : ((a, b) => (a.pri === b.pri ? oiAge(b) - oiAge(a) : ('hml'.indexOf(a.pri) - 'hml'.indexOf(b.pri)))));
     const lim = i === 3 && !oiClosedAll ? 8 : 999;
     cols += `<div class="oi-cl" data-ocol="${i}"><div class="oi-ct c${i}"><span>${c}</span><i>${col.length}</i></div>` +
-      (col.length ? col.slice(0, lim).map(oiCard).join('') : '<div class="oi-em">Kosong. Seret kartu ke sini.</div>') +
-      (col.length > 8 && i === 3 ? `<button type="button" class="oi-mr" data-oiact="closedall">${oiClosedAll ? 'Tampilkan lebih sedikit' : 'Tampilkan semua (' + col.length + ')'}</button>` : '') + '</div>';
+      (col.length ? col.slice(0, lim).map(oiCard).join('') : '<div class="oi-em">Empty. Drag a card here.</div>') +
+      (col.length > 8 && i === 3 ? `<button type="button" class="oi-mr" data-oiact="closedall">${oiClosedAll ? 'Show less' : 'Show all (' + col.length + ')'}</button>` : '') + '</div>';
   });
-  host.innerHTML = `<div class="oi-sum">${mc('Total aktif', act.length, '')}${mc('Prioritas tinggi', hi, hi ? 'r' : '')}${mc('Umur lebih 14 hari / lewat target', old + ' / ' + od, old || od ? 'y' : '')}${mc('Closed', vis.length - act.length, 'g')}</div><div class="oi-bd">${cols}</div>`;
+  host.innerHTML = `<div class="oi-sum">${mc('Total active', act.length, '')}${mc('High priority', hi, hi ? 'r' : '')}${mc('No PIC', nop, nop ? 'y' : '')}${mc('Closed', vis.length - act.length, 'g')}</div>${load}${fl}<div class="oi-bd">${cols}</div>`;
   const ub = document.getElementById('oiUndo'); if(ub) ub.disabled = !oiHist.length;
-  if(!all.length) host.insertAdjacentHTML('beforeend', '<div class="oi-em" style="padding:10px 20px">Belum ada issue. Klik "Tambah issue" untuk mulai.</div>');
+  if(!all.length) host.insertAdjacentHTML('beforeend', '<div class="oi-em" style="padding:10px 20px">No issues yet. Click "Add issue" to get started.</div>');
 }
 function oiRender(){
   const host = document.getElementById('view-openissue'); if(!host || !oiData) return;
   const sy = ['all'].concat(oiSystems());
-  const pics = oiPics();
   host.innerHTML = `<div class="oi">
     <div class="oi-bar">
-      <button type="button" class="oi-btn pri" data-oiact="add"><i class="ti ti-plus"></i>Tambah issue</button>
-      <input type="search" class="oi-in oi-q" id="oiQ" placeholder="Cari issue" aria-label="Cari issue" value="${escapeHtml(oiF.q)}">
-      <select class="oi-in" id="oiPic" aria-label="Filter PIC"><option value="all">Semua PIC</option>${pics.map(p => `<option ${oiF.pic === p ? 'selected' : ''}>${escapeHtml(p)}</option>`).join('')}</select>
-      <select class="oi-in" id="oiPri" aria-label="Filter prioritas"><option value="all">Semua prioritas</option>${Object.keys(OI_PRI).map(k => `<option value="${k}" ${oiF.pri === k ? 'selected' : ''}>${OI_PRI[k]}</option>`).join('')}</select>
+      <button type="button" class="oi-btn pri" data-oiact="add"><i class="ti ti-plus"></i>Add issue</button>
+      <input type="search" class="oi-in oi-q" id="oiQ" placeholder="Search issues" aria-label="Search issues" value="${escapeHtml(oiF.q)}">
+      <select class="oi-in" id="oiPri" aria-label="Filter by priority"><option value="all">All priorities</option>${Object.keys(OI_PRI_EN).map(k => `<option value="${k}" ${oiF.pri === k ? 'selected' : ''}>${OI_PRI_EN[k]}</option>`).join('')}</select>
       <span class="oi-sp"></span>
-      <button type="button" class="oi-btn" id="oiUndo" data-oiact="undo" title="Undo perubahan terakhir"><i class="ti ti-arrow-back-up"></i>Undo</button>
+      <button type="button" class="oi-btn" id="oiUndo" data-oiact="undo" title="Undo last change"><i class="ti ti-arrow-back-up"></i>Undo</button>
       <button type="button" class="oi-btn" data-oiact="xls"><i class="ti ti-file-spreadsheet"></i>Export Excel</button>
     </div>
-    <div class="oi-fl" role="group" aria-label="Filter sistem">${sy.map(s => `<button type="button" class="oi-ch${oiF.sys === s ? ' on' : ''}" data-oisys="${escapeHtml(s)}" aria-pressed="${oiF.sys === s}">${s === 'all' ? 'Semua sistem' : escapeHtml(s)}</button>`).join('')}</div>
+    <div class="oi-fl" role="group" aria-label="Filter by system">${sy.map(s => `<button type="button" class="oi-ch${oiF.sys === s ? ' on' : ''}" data-oisys="${escapeHtml(s)}" aria-pressed="${oiF.sys === s}">${s === 'all' ? 'All systems' : escapeHtml(s)}</button>`).join('')}</div>
     <div id="oiBoardHost"></div></div>`;
   oiBoard();
+}
+function oiPicBox(x){
+  const list = typeof tlPicManager !== 'undefined' ? tlPicManager.getList() : [];
+  const avail = list.filter(n => !x.pics.includes(n));
+  return `<div class="oi-pb">${x.pics.map(p => `<span class="oi-pc">${oiAv(p)}${escapeHtml(p)}<button type="button" data-oipd="${escapeHtml(p)}" aria-label="Hapus ${escapeHtml(p)}">&times;</button></span>`).join('') || '<span class="oi-np">Belum ada PIC</span>'}
+    <select class="oi-in oi-pa" id="oiPicAdd" aria-label="Tambah PIC"><option value="">+ Tambah PIC</option>${avail.map(n => `<option>${escapeHtml(n)}</option>`).join('')}<option value="__add">+ Daftar PIC baru...</option></select></div>`;
 }
 function oiModal(x, isNew){
   oiEdit = { id: x.id, isNew: !!isNew };
   const opt = (arr, v) => arr.map(a => `<option value="${a[0]}" ${String(v) === String(a[0]) ? 'selected' : ''}>${a[1]}</option>`).join('');
   const logs = x.log.slice().reverse().map(l => `<div class="oi-le">${escapeHtml(l.tx)}<small>${oiFmt(l.at)}${l.by ? ' oleh ' + escapeHtml(l.by) : ''}</small></div>`).join('') || '<div class="oi-le"><small>Belum ada update.</small></div>';
+  const fld = (id, k, lab, v, ph, cls) => `<div${cls ? ` class="${cls}"` : ''}><label for="${id}">${lab}</label><input class="oi-in" id="${id}" data-of="${k}" value="${escapeHtml(v)}" placeholder="${ph || ''}"></div>`;
   const ov = document.createElement('div'); ov.className = 'oi-ov'; ov.id = 'oiOv';
   ov.innerHTML = `<div class="oi-md" role="dialog" aria-modal="true" aria-label="Detail issue"><h3>${isNew ? 'Issue baru' : 'Detail issue'}</h3>
     <div class="oi-fg">
-      <div class="w"><label for="oiFt">Judul</label><input class="oi-in" id="oiFt" data-of="t" value="${escapeHtml(x.t)}" placeholder="Contoh: Reader IN CP5 tidak terbaca"></div>
+      ${fld('oiFt', 't', 'Judul', x.t, 'Contoh: Reader IN CP5 tidak terbaca', 'w')}
+      <div class="w"><label>PIC</label><div id="oiPicBox">${oiPicBox(x)}</div></div>
       <div><label for="oiFs">Sistem</label><input class="oi-in" id="oiFs" data-of="sys" list="oiSysL" value="${escapeHtml(x.sys)}"><datalist id="oiSysL">${oiSystems().map(s => `<option value="${escapeHtml(s)}">`).join('')}</datalist></div>
-      <div><label for="oiFp">PIC</label><input class="oi-in" id="oiFp" data-of="pic" value="${escapeHtml(x.pic)}" placeholder="Nama PIC"></div>
+      ${fld('oiFl', 'lok', 'Area / lokasi', x.lok, 'Contoh: Crusher Plant 3, CP5')}
       <div><label for="oiFr">Prioritas</label><select class="oi-in" id="oiFr" data-of="pri">${opt(Object.entries(OI_PRI), x.pri)}</select></div>
       <div><label for="oiFu">Status</label><select class="oi-in" id="oiFu" data-of="st">${opt(OI_COLS.map((c, i) => [i, c]), x.st)}</select></div>
+      ${fld('oiFy', 'why', 'Alasan menunggu (wajib bila status Waiting)', x.why, 'Contoh: menunggu sparepart tiba 10/11', 'w')}
+      ${fld('oiFb', 'by', 'Dilaporkan oleh', x.by, 'Nama pelapor')}
+      ${fld('oiFv', 'vendor', 'Vendor / pihak eksternal', x.vendor, 'Jika ada')}
       <div><label for="oiFd">Tanggal lapor</label><input type="date" class="oi-in" id="oiFd" data-of="rep" value="${x.rep || ''}"></div>
       <div><label for="oiFg">Target selesai</label><input type="date" class="oi-in" id="oiFg" data-of="tgt" value="${x.tgt || ''}"></div>
+      ${fld('oiFn', 'na', 'Aksi berikutnya', x.na, 'Contoh: geser antena IN CP5')}
+      <div><label for="oiFq">Batas waktu aksi</label><input type="date" class="oi-in" id="oiFq" data-of="nd" value="${x.nd || ''}"></div>
       <div class="w"><label for="oiFx">Deskripsi</label><textarea class="oi-in" id="oiFx" data-of="desc" placeholder="Detail masalah, dampak, dan langkah yang sudah dilakukan">${escapeHtml(x.desc)}</textarea></div>
     </div>
     <div class="oi-lg"><h4>Update dan riwayat</h4><div id="oiLogs">${logs}</div>
@@ -16772,16 +16837,23 @@ function oiModal(x, isNew){
   document.getElementById('view-openissue').appendChild(ov);
   setTimeout(() => { const f = document.getElementById('oiFt'); if(f) f.focus(); }, 30);
 }
+function oiOnPicClosed(){
+  const pd = oiPicPend; if(!pd) return; oiPicPend = null;
+  const x = oiCur(); if(!x) return;
+  const added = tlPicManager.getList().filter(n => !pd.includes(n));
+  if(added.length){ if(!oiEdit.isNew) oiPush(); added.forEach(n => { if(!x.pics.includes(n)) x.pics.push(n); }); if(!oiEdit.isNew){ oiSave(); oiBoard(); } }
+  const b = document.getElementById('oiPicBox'); if(b) b.innerHTML = oiPicBox(x);
+}
 function oiClose(){ const o = document.getElementById('oiOv'); if(o) o.remove(); oiEdit = null; }
 function oiCur(){ return oiEdit ? (oiEdit.isNew ? oiEdit.draft : oiData.items.find(x => x.id === oiEdit.id)) : null; }
 
 async function oiXls(){
-  const rows = oiData.items.map(x => ({ Judul: x.t, Sistem: x.sys, Prioritas: OI_PRI[x.pri], Status: OI_COLS[x.st], PIC: x.pic, 'Tgl lapor': x.rep, Target: x.tgt, 'Tgl closed': x.closed, 'Umur (hari)': oiAge(x), Deskripsi: x.desc, 'Update terakhir': x.log.length ? x.log[x.log.length - 1].tx : '' }));
-  if(!rows.length){ showToast('Belum ada issue untuk diexport', 'error'); return; }
+  const rows = oiData.items.map(x => ({ Title: x.t, System: x.sys, Priority: OI_PRI_EN[x.pri], Status: OI_COLS[x.st], PIC: x.pics.join(', '), 'Reported by': x.by, 'Area/location': x.lok, Vendor: x.vendor, 'Next action': x.na, 'Action due': x.nd, 'Waiting reason': x.why, 'Reported date': x.rep, 'Target date': x.tgt, 'Closed date': x.closed, 'Age (days)': oiAge(x), Description: x.desc, 'Last update': x.log.length ? x.log[x.log.length - 1].tx : '' }));
+  if(!rows.length){ showToast('No issues to export', 'error'); return; }
   const name = 'Open-Issue-' + oiToday() + '.xlsx';
   try{
     const X = await sapLoadXlsx();
-    const ws = X.utils.json_to_sheet(rows); ws['!cols'] = [46, 12, 11, 12, 14, 12, 12, 12, 11, 60, 40].map(w => ({ wch: w }));
+    const ws = X.utils.json_to_sheet(rows); ws['!cols'] = [46, 12, 10, 12, 22, 16, 18, 16, 28, 12, 30, 12, 12, 12, 10, 60, 40].map(w => ({ wch: w }));
     const wb = X.utils.book_new(); X.utils.book_append_sheet(wb, ws, 'Open Issue');
     sapDownload(new Blob([X.write(wb, { bookType: 'xlsx', type: 'array' })], { type: 'application/octet-stream' }), name);
   }catch(e){
@@ -16792,41 +16864,55 @@ async function oiXls(){
 }
 async function renderOpenIssue(){
   if(!oiData) await oiLoad();
-  if(oiFail) showToast('Open Issue: koneksi ke penyimpanan gagal, perubahan tidak disimpan', 'error');
+  try{ await tlPicManager.load(); }catch(e){}
+  if(oiFail) showToast('Open Issue: storage connection failed, changes will not be saved', 'error');
   oiRender();
 }
 (function oiBind(){
   const v = document.getElementById('view-openissue');
   v.addEventListener('click', async e => {
     if(e.target.id === 'oiOv'){ oiClose(); oiRender(); return; }
+    if(e.target.id === 'oiWhy'){ oiWhyClose(); return; }
+    const pf = e.target.closest('[data-oipic]'); if(pf){ oiF.pic = oiF.pic === pf.dataset.oipic && pf.classList.contains('oi-lr') ? 'all' : pf.dataset.oipic; oiBoard(); return; }
+    const pd = e.target.closest('[data-oipd]');
+    if(pd){ const x = oiCur(); if(x){ if(!oiEdit.isNew) oiPush(); x.pics = x.pics.filter(p => p !== pd.dataset.oipd); if(!oiEdit.isNew){ oiSave(); oiBoard(); } document.getElementById('oiPicBox').innerHTML = oiPicBox(x); } return; }
     const sy = e.target.closest('[data-oisys]'); if(sy){ oiF.sys = sy.dataset.oisys; oiRender(); return; }
     const mvb = e.target.closest('[data-oim]');
     if(mvb){ const x = oiData.items.find(i => i.id === mvb.closest('.oi-cd').dataset.oid); if(x){ oiPush(); oiMove(x, Math.max(0, Math.min(3, x.st + +mvb.dataset.oim))); oiSave(); oiBoard(); } return; }
     const ab = e.target.closest('[data-oiact]');
     if(ab){
       const a = ab.dataset.oiact;
-      if(a === 'add'){ const d = { id: oiNid(), t: '', desc: '', sys: oiF.sys !== 'all' ? oiF.sys : 'WIM', pri: 'm', st: 0, pic: oiF.pic !== 'all' ? oiF.pic : '', rep: oiToday(), tgt: '', closed: '', log: [] }; oiModal(d, true); oiEdit.draft = d; return; }
+      if(a === 'add'){ const d = { id: oiNid(), t: '', desc: '', sys: oiF.sys !== 'all' ? oiF.sys : 'WIM', pri: 'm', st: 0, pics: (oiF.pic === 'me' ? [oiMe()] : (!['all', 'none'].includes(oiF.pic) ? [oiF.pic] : [])).filter(Boolean), by: '', lok: '', vendor: '', na: '', nd: '', why: '', rep: oiToday(), tgt: '', closed: '', log: [] }; oiModal(d, true); oiEdit.draft = d; return; }
+      if(a === 'whyno'){ oiWhyClose(); return; }
+      if(a === 'whyok'){
+        const inp = document.getElementById('oiWhyIn'), v = inp ? inp.value.trim() : '';
+        if(!v){ document.getElementById('oiWhyEr').hidden = false; if(inp) inp.focus(); return; }
+        const x = oiData.items.find(i => i.id === oiWhyId); oiWhyClose();
+        if(x){ oiPush(); x.why = v; oiMove(x, 2); oiSave(); oiBoard(); if(oiEdit && oiEdit.id === x.id){ const u = document.getElementById('oiFu'); if(u) u.value = 2; const y = document.getElementById('oiFy'); if(y) y.value = v; } }
+        return;
+      }
       if(a === 'undo'){ if(!oiHist.length) return; oiData.items = JSON.parse(oiHist.pop()); oiSave(true); oiRender(); return; }
       if(a === 'xls'){ oiXls(); return; }
       if(a === 'closedall'){ oiClosedAll = !oiClosedAll; oiBoard(); return; }
       if(a === 'cancel'){ oiClose(); oiRender(); return; }
       if(a === 'create'){
         const d = oiCur(); if(!d) return;
-        if(!String(d.t).trim()){ showToast('Judul issue wajib diisi', 'error'); const f = document.getElementById('oiFt'); if(f) f.focus(); return; }
-        oiPush(); d.t = d.t.trim(); d.log.push({ at: oiToday(), by: (typeof tlAuthorName === 'function' ? tlAuthorName() : '') || '', tx: 'Issue dibuat' });
+        if(!String(d.t).trim()){ showToast('Issue title is required', 'error'); const f = document.getElementById('oiFt'); if(f) f.focus(); return; }
+        if(d.st === 2 && !String(d.why).trim()){ showToast('Enter a waiting reason first', 'error'); const f = document.getElementById('oiFy'); if(f) f.focus(); return; }
+        oiPush(); d.t = d.t.trim(); d.log.push({ at: oiToday(), by: oiMe(), tx: 'Issue created' });
         if(d.st === 3) d.closed = oiToday();
-        oiData.items.push(d); oiSave(true); oiClose(); oiRender(); showToast('Issue ditambahkan', 'success'); return;
+        oiData.items.push(d); oiSave(true); oiClose(); oiRender(); showToast('Issue added', 'success'); return;
       }
       if(a === 'addlog'){
         const x = oiCur(), inp = document.getElementById('oiLn'); if(!x || !inp || !inp.value.trim()){ if(inp) inp.focus(); return; }
         if(!oiEdit.isNew) oiPush();
-        x.log.push({ at: oiToday(), by: (typeof tlAuthorName === 'function' ? tlAuthorName() : '') || '', tx: inp.value.trim() });
+        x.log.push({ at: oiToday(), by: oiMe(), tx: inp.value.trim() });
         if(!oiEdit.isNew) oiSave();
         const id = oiEdit.id, nw = oiEdit.isNew, dr = oiEdit.draft; oiClose(); oiModal(x, nw); if(nw) oiEdit.draft = dr; return;
       }
       if(a === 'del'){
         const x = oiCur(); if(!x) return;
-        if(!confirm('Hapus issue "' + (x.t || 'tanpa judul') + '"? Bisa dibatalkan dengan Undo.')) return;
+        if(!confirm('Delete issue "' + (x.t || 'untitled') + '"? You can undo this.')) return;
         oiPush(); oiData.items = oiData.items.filter(i => i.id !== x.id); oiSave(true); oiClose(); oiRender(); return;
       }
     }
@@ -16834,7 +16920,10 @@ async function renderOpenIssue(){
     if(cd){ const x = oiData.items.find(i => i.id === cd.dataset.oid); if(x) oiModal(x, false); }
   });
   v.addEventListener('keydown', e => {
+    if(e.key === 'Escape' && oiWhyId){ oiWhyClose(); return; }
     if(e.key === 'Escape' && oiEdit){ oiClose(); oiRender(); return; }
+    if(e.key === 'Enter' && e.target.id === 'oiWhyIn'){ e.preventDefault(); const b = document.querySelector('[data-oiact="whyok"]'); if(b) b.click(); return; }
+    if((e.key === 'Enter' || e.key === ' ') && e.target.dataset && e.target.dataset.oipic && e.target.classList.contains('oi-lr')){ e.preventDefault(); e.target.click(); }
     if((e.key === 'Enter' || e.key === ' ') && e.target.classList && e.target.classList.contains('oi-cd')){ e.preventDefault(); e.target.click(); }
     if(e.key === 'Enter' && e.target.id === 'oiLn'){ e.preventDefault(); const b = document.querySelector('[data-oiact="addlog"]'); if(b) b.click(); }
   });
@@ -16846,10 +16935,19 @@ async function renderOpenIssue(){
     if(!oiEdit.isNew){ clearTimeout(oiEdit.t); oiEdit.t = setTimeout(() => { oiSave(); oiBoard(); }, 250); }
   });
   v.addEventListener('change', e => {
-    if(e.target.id === 'oiPic'){ oiF.pic = e.target.value; oiBoard(); return; }
     if(e.target.id === 'oiPri'){ oiF.pri = e.target.value; oiBoard(); return; }
+    if(e.target.id === 'oiPicAdd' && oiEdit){
+      const x = oiCur(), val = e.target.value; if(!x) return;
+      if(val === '__add'){ oiPicPend = tlPicManager.getList().slice(); e.target.value = ''; document.getElementById('tlPicManageBtn').click(); return; }
+      if(val && !x.pics.includes(val)){ if(!oiEdit.isNew) oiPush(); x.pics.push(val); if(!oiEdit.isNew){ oiSave(); oiBoard(); } }
+      document.getElementById('oiPicBox').innerHTML = oiPicBox(x); return;
+    }
     const k = e.target.dataset && e.target.dataset.of; if(!k || !oiEdit) return;
     const x = oiCur(); if(!x) return;
+    if(k === 'st' && +e.target.value === 2 && !String(x.why || '').trim()){
+      showToast('Enter a waiting reason first', 'error'); e.target.value = x.st;
+      const y = document.getElementById('oiFy'); if(y) y.focus(); return;
+    }
     if(!oiEdit.isNew) oiPush();
     if(k === 'st'){ if(oiEdit.isNew){ x.st = +e.target.value; } else oiMove(x, +e.target.value); }
     else x[k] = e.target.value;
