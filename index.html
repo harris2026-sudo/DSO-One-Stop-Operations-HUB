@@ -283,7 +283,11 @@
   .sop-detail-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:4px;}
   .sop-detail-head #sopDetailTitle{font-size:13px;font-weight:600;color:var(--navy);font-family:var(--font-display);}
   .sop-detail-hint{font-size:10.5px;color:var(--text-muted);}
-  .sop-docs{display:flex;flex-direction:column;}
+  .sop-docs{display:flex;flex-direction:column;}.gt-rep2{display:inline-flex;align-items:center;gap:6px;margin-left:auto;}
+.gt-rep2 select{border:1px solid var(--border);background:#fff;border-radius:8px;padding:5px 8px;font:500 12px var(--font-body);color:var(--text);}
+.gt-rep2 button{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--navy);background:var(--navy);color:#fff;border-radius:8px;padding:6px 12px;font:500 12.5px var(--font-body);cursor:pointer;transition:background .15s,transform .1s;}
+.gt-rep2 button:hover{background:var(--navy-light);}.gt-rep2 button:active{transform:scale(.97);}.gt-rep2 button:disabled{opacity:.6;cursor:default;}
+
 .oi{padding-bottom:16px;}
 .oi-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:6px 20px 10px;}
 .oi-bar .oi-sp{flex:1;}
@@ -2926,7 +2930,7 @@
   <!-- ================= VIEW: TASK LIST ================= -->
   <div class="view" id="view-tasklist">
     <div class="gt">
-      <div class="gt-head"><h3>Task List</h3><span class="gt-count" id="tlCount"></span></div>
+      <div class="gt-head"><h3>Task List</h3><span class="gt-count" id="tlCount"></span><span class="gt-rep2"><select id="tlRepPeriod" aria-label="Report period"><option value="7">Last 7 days</option><option value="30">Last 30 days</option><option value="m">This month</option></select><button type="button" id="tlRepBtn" title="Download SUMMARY TASK LIST &amp; OPEN ISSUE as PDF"><i class="ti ti-file-type-pdf"></i>Summary PDF</button></span></div>
       <div class="gt-filters" id="tlFilterBar"></div>
       <div class="gt-add" id="tlAddRow" role="button" tabindex="0"><i class="ti ti-plus"></i><span>Add task</span></div>
       <div class="gt-form" id="tlAddForm" style="display:none;">
@@ -16967,6 +16971,123 @@ async function renderOpenIssue(){
     oiBoard();
   });
 })();
+
+
+/* ================= SUMMARY TASK LIST & OPEN ISSUE (v60): laporan PDF satu halaman =================
+   Tombol di menu Task List. Data dibaca langsung dari Task List (tanpa task "SAP") dan Open Issue. PDF dibuat di browser (html2pdf.js,
+   dimuat saat dibutuhkan); bila gagal dimuat, laporan dibuka lewat jendela cetak (Save as PDF). */
+let tlRepPeriod = '7';
+function tlRepRange(){
+  const t = todayStr();
+  if(tlRepPeriod === 'm') return [t.slice(0, 8) + '01', t];
+  return [tlAddDays(t, -(+tlRepPeriod - 1)), t];
+}
+function tlRepFmt(iso){ const p = String(iso).split('-'); return p[2] + '/' + p[1] + '/' + p[0]; }
+function tlRepDoneTs(it){
+  const L = Array.isArray(it.activity) ? it.activity : [];
+  for(let i = L.length - 1; i >= 0; i--){
+    const m = /^Status: .* → (.+?)( \(auto\))?$/.exec(L[i].tx || '');
+    if(m && taskStatusManager.isDone(m[1])) return L[i].ts;
+  }
+  return 0;
+}
+function tlRepLoadLib(){
+  if(window.html2pdf) return Promise.resolve(window.html2pdf);
+  return new Promise((res, rej) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js';
+    s.onload = () => window.html2pdf ? res(window.html2pdf) : rej(new Error('html2pdf')); s.onerror = () => rej(new Error('html2pdf'));
+    document.head.appendChild(s);
+  });
+}
+function tlRepBuild(){
+  const today = todayStr(), [from, to] = tlRepRange();
+  const tli = tlVisItems(), open = tli.filter(it => !tlIsDone(it));
+  const eff = it => tlEffectiveStatus(it);
+  const late = open.filter(it => eff(it) === 'Overdue').map(it => ({ it, d: Math.max(1, Math.round((tlParseDate(today) - tlParseDate(it.deadline)) / 864e5)) })).sort((a, b) => b.d - a.d);
+  const f0 = tlParseDate(from).getTime(), f1 = tlParseDate(to).getTime() + 864e5;
+  const doneP = tli.filter(it => tlIsDone(it)).filter(it => { const ts = tlRepDoneTs(it); return ts >= f0 && ts < f1; }).length;
+  const cnt = {}; open.forEach(it => { const s = eff(it) || '-'; cnt[s] = (cnt[s] || 0) + 1; });
+  const pal = ['#2c6a9b', '#5a8fb8', '#8a98a6', '#7d6aa8', '#2e8b78', '#b0b8c0'];
+  let pi = 0; const col = n => n === 'Overdue' ? '#c0392b' : (tlIsHold(n) ? '#b9770e' : pal[(pi++) % pal.length]);
+  const order = Object.keys(cnt).sort((a, b) => (a === 'Overdue' ? -1 : b === 'Overdue' ? 1 : cnt[b] - cnt[a]));
+  const colors = {}; order.forEach(n => { colors[n] = col(n); });
+  const bar = (obj, ord, cols, tot) => tot ? `<div class="sb">${ord.map(n => `<i style="width:${obj[n] / tot * 100}%;background:${cols[n]}"></i>`).join('')}</div><div class="lg">${ord.map(n => `<span><i style="background:${cols[n]}"></i>${escapeHtml(n)} ${obj[n]}</span>`).join('')}</div>` : '<div class="mo">No data</div>';
+  const rec = open.filter(it => it.rec).length;
+  // Open Issue
+  const oi = oiData ? oiData.items : [];
+  const act = oi.filter(x => x.st < 3), hi = act.filter(x => x.pri === 'h');
+  const ic = { 'Open': act.filter(x => x.st === 0).length, 'In progress': act.filter(x => x.st === 1).length, 'Waiting': act.filter(x => x.st === 2).length };
+  const icol = { 'Open': '#c0392b', 'In progress': '#2c6a9b', 'Waiting': '#b9770e' };
+  const nop = act.filter(x => !x.pics.length);
+  const names = [...new Set(act.flatMap(x => x.pics))];
+  const load = names.map(n => { const a = act.filter(x => x.pics.includes(n)); return { n, c: a.length, o: a.filter(oiOverdue).length }; }).sort((a, b) => b.c - a.c).slice(0, 5);
+  if(nop.length) load.push({ n: 'No PIC', c: nop.length, o: 0, w: 1 });
+  const mx = Math.max(1, ...load.map(r => r.c));
+  const ageCls = x => { const a = oiAge(x); return a > 14 ? 'r' : (a > 7 ? 'y' : 'g'); };
+  const topI = act.slice().sort((a, b) => ('hml'.indexOf(a.pri) - 'hml'.indexOf(b.pri)) || (oiAge(b) - oiAge(a))).slice(0, 5);
+  // highlights
+  const hl = [];
+  if(late.length) hl.push(`${late.length} task${late.length > 1 ? 's' : ''} overdue${late.filter(x => x.d > 5).length ? `, ${late.filter(x => x.d > 5).length} of them more than 5 days` : ''}.`); else hl.push('No overdue tasks.');
+  if(doneP) hl.push(`${doneP} task${doneP > 1 ? 's' : ''} completed in this period.`);
+  if(hi.length){ const o = hi.slice().sort((a, b) => oiAge(b) - oiAge(a))[0]; hl.push(`${hi.length} high-priority issue${hi.length > 1 ? 's are' : ' is'} still active; the oldest is "${escapeHtml(o.t)}" (${oiAge(o)} days).`); } else hl.push('No high-priority issues are active.');
+  if(nop.length) hl.push(`${nop.length} issue${nop.length > 1 ? 's have' : ' has'} no PIC assigned${nop.length === 1 ? ' (' + escapeHtml(nop[0].t) + ')' : ''}.`);
+  if(ic['Waiting']) hl.push(`${ic['Waiting']} issue${ic['Waiting'] > 1 ? 's are' : ' is'} waiting on parts, vendor, or other dependencies.`);
+  const od = act.filter(oiOverdue).length; if(od) hl.push(`${od} issue action${od > 1 ? 's are' : ' is'} past the due date.`);
+  const css = `.rp{width:794px;box-sizing:border-box;padding:34px 38px 30px;background:#fff;color:#1b2733;font:12.5px/1.45 'Segoe UI',Arial,sans-serif;}
+.rp *{box-sizing:border-box}.rp .hd{display:flex;justify-content:space-between;align-items:center;border-bottom:2.5px solid #0f1b2b;padding-bottom:10px;margin-bottom:14px}
+.rp h1{margin:0;font-size:20px;font-weight:700;letter-spacing:.03em;color:#0f1b2b}.rp .dt{font-size:12px;color:#5b6b7b}
+.rp .k{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}.rp .k div{background:#f2f5f7;border-radius:7px;padding:8px 10px}
+.rp .k small{display:block;font-size:11px;color:#5b6b7b}.rp .k b{font-size:24px;font-weight:600;color:#0f1b2b}.rp .k .r b{color:#c0392b}.rp .k .y b{color:#b9770e}
+.rp h2{font-size:14px;font-weight:700;margin:14px 0 7px;color:#0f1b2b;display:flex;align-items:center;gap:7px}.rp h2::before{content:"";width:5px;height:15px;background:#2c6a9b;border-radius:2px}.rp h2.o::before{background:#c0392b}
+.rp .two{display:grid;grid-template-columns:1fr 1.15fr;gap:18px}.rp .sb{display:flex;height:11px;border-radius:6px;overflow:hidden;margin:5px 0 7px}
+.rp .lg{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:11.5px;color:#46586a}.rp .lg i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px}
+.rp .mo{font-size:11.5px;color:#5b6b7b;margin-top:7px}.rp .mo b{font-weight:600;color:#1e8449}
+.rp table{width:100%;border-collapse:collapse;font-size:11.5px}.rp th{text-align:left;font-weight:600;color:#5b6b7b;border-bottom:1px solid #d5dde4;padding:4px 5px}
+.rp td{padding:4px 5px;border-bottom:1px solid #e6ebef;vertical-align:top}.rp .t{font-size:10.5px;padding:1px 6px;border-radius:4px;white-space:nowrap;font-weight:600}
+.rp .t.r{background:#fbe3e0;color:#a93226}.rp .t.y{background:#fcefd6;color:#8a5a0b}.rp .t.g{background:#dff2e6;color:#1e7a45}
+.rp .pb{height:7px;background:#eef2f5;border-radius:4px;overflow:hidden;display:flex;margin:2px 0 6px}.rp .pn{display:flex;justify-content:space-between;font-size:11px}
+.rp .hl{background:#fff7ec;border-left:4px solid #e67e22;padding:9px 12px;border-radius:0 7px 7px 0;margin-top:14px}.rp .hl b{font-weight:700}.rp .hl ul{margin:4px 0 0;padding-left:17px}.rp .hl li{margin:3px 0}
+.rp .em{color:#8a98a6;font-size:11.5px;padding:6px 0}`;
+  const lateRows = late.slice(0, 5).map(x => `<tr><td>${escapeHtml(x.it.desc)}</td><td>${escapeHtml(x.it.pic || '-')}</td><td><span class="t r">${x.d} d</span></td></tr>`).join('');
+  const issRows = topI.map(x => `<tr><td>${escapeHtml(x.t)}</td><td>${escapeHtml(x.pics.join(', ') || 'No PIC')}</td><td><span class="t ${ageCls(x)}">${oiAge(x)} d</span></td></tr>`).join('');
+  const html = `<div class="rp"><style>${css}</style>
+<div class="hd"><h1>SUMMARY TASK LIST &amp; OPEN ISSUE</h1><div class="dt">${tlRepFmt(from)} – ${tlRepFmt(to)}</div></div>
+<div class="k"><div><small>Open tasks</small><b>${open.length}</b></div><div class="r"><small>Overdue tasks</small><b>${late.length}</b></div><div class="y"><small>Active issues</small><b>${act.length}</b></div><div class="r"><small>High priority issues</small><b>${hi.length}</b></div></div>
+<h2>Task List</h2><div class="two"><div><div class="mo" style="margin:0">Status breakdown (${open.length} open)</div>${bar(cnt, order, colors, open.length)}<div class="mo">Completed in period: <b>${doneP}</b> task${doneP === 1 ? '' : 's'}${rec ? ` &middot; Recurring: ${rec}` : ''}</div></div>
+<div>${late.length ? `<table><tr><th>Top ${Math.min(5, late.length)} overdue</th><th>PIC</th><th>Late</th></tr>${lateRows}</table>` : '<div class="em">No overdue tasks.</div>'}</div></div>
+<h2 class="o">Open Issue</h2><div class="two"><div><div class="mo" style="margin:0">By status (${act.length} active)</div>${bar(ic, Object.keys(ic), icol, act.length)}
+<div class="mo">Workload per PIC</div>${load.length ? load.map(r => `<div class="pn"><span>${escapeHtml(r.n)}</span><span style="color:#5b6b7b">${r.c}${r.o ? ` &middot; ${r.o} overdue` : ''}</span></div><div class="pb"><i style="width:${(r.c - r.o) / mx * 100}%;background:${r.w ? '#b9770e' : '#2c6a9b'}"></i><i style="width:${r.o / mx * 100}%;background:#c0392b"></i></div>`).join('') : '<div class="em">No active issues.</div>'}</div>
+<div>${topI.length ? `<table><tr><th>Top ${topI.length} issues</th><th>PIC</th><th>Age</th></tr>${issRows}</table>` : '<div class="em">No active issues.</div>'}</div></div>
+<div class="hl"><b>Highlights</b><ul>${hl.map(x => `<li>${x}</li>`).join('')}</ul></div></div>`;
+  return { html, name: 'Summary-Task-List-Open-Issue-' + today + '.pdf' };
+}
+async function tlRepPdf(btn){
+  if(btn){ btn.disabled = true; btn.dataset.t = btn.textContent; btn.textContent = 'Preparing…'; }
+  const done = () => { if(btn){ btn.disabled = false; btn.textContent = btn.dataset.t || 'Summary PDF'; } };
+  let host;
+  try{
+    if(!oiData) await oiLoad();
+    const r = tlRepBuild();
+    host = document.createElement('div');
+    host.style.cssText = 'position:fixed;left:-10000px;top:0;width:794px;background:#fff;z-index:-1;';
+    host.innerHTML = r.html; document.body.appendChild(host);
+    try{
+      const lib = await tlRepLoadLib();
+      await lib().set({ margin: 0, filename: r.name, image: { type: 'jpeg', quality: 0.96 }, html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' }, jsPDF: { unit: 'px', format: [794, 1123], orientation: 'portrait', hotfixes: ['px_scaling'] }, pagebreak: { mode: ['avoid-all'] } }).from(host.firstElementChild).save();
+      showToast('Summary PDF downloaded', 'success');
+    }catch(e){
+      console.error('Summary PDF: html2pdf gagal, pakai jendela cetak', e);
+      const w = window.open('', '_blank');
+      if(!w){ showToast('Could not create the PDF. Allow pop-ups and try again.', 'error'); }
+      else { w.document.write('<!doctype html><title>' + r.name.replace('.pdf', '') + '</title><style>@page{size:A4;margin:0}body{margin:0}</style>' + r.html); w.document.close(); setTimeout(() => { try{ w.focus(); w.print(); }catch(_){} }, 400); showToast('Choose "Save as PDF" in the print window', 'success'); }
+    }
+  }catch(e){ console.error('Summary PDF', e); showToast('Could not create the report', 'error'); }
+  if(host) host.remove();
+  done();
+}
+document.getElementById('tlRepPeriod').addEventListener('change', e => { tlRepPeriod = e.target.value; });
+document.getElementById('tlRepBtn').addEventListener('click', e => { tlRepPdf(e.currentTarget); });
 
 document.getElementById('sopSearchInput').addEventListener('input', (e) => sopRenderGrid(e.target.value));
 
