@@ -286,6 +286,14 @@
   .sop-docs{display:flex;flex-direction:column;}.gt-rep2{display:inline-flex;align-items:center;gap:6px;margin-left:auto;}
 .gt-rep2 select{border:1px solid var(--border);background:#fff;border-radius:8px;padding:5px 8px;font:500 12px var(--font-body);color:var(--text);}
 .gt-rep2 button{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--navy);background:var(--navy);color:#fff;border-radius:8px;padding:6px 12px;font:500 12.5px var(--font-body);cursor:pointer;transition:background .15s,transform .1s;}
+.gt-rep2 button.gt-pv{background:#fff;color:#b9650b;border:1.5px solid #e67e22;padding:5px 8px;}.gt-rep2 button.gt-pv:hover{background:#fff7ec;}
+.rpv-ov{position:fixed;inset:0;background:rgba(15,27,43,.6);z-index:10000;display:flex;align-items:center;justify-content:center;padding:16px;}
+.rpv-md{background:#fff;border-radius:12px;width:min(880px,100%);max-height:94vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.35);}
+.rpv-h{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--border);flex-wrap:wrap;}.rpv-h b{flex:1;font:500 14px var(--font-body);display:flex;align-items:center;gap:7px;min-width:140px;}
+.rpv-h select{border:1px solid var(--border);background:#fff;border-radius:8px;padding:5px 8px;font:500 12px var(--font-body);}
+.rpv-b{background:#e8edf1;overflow:auto;padding:16px;flex:1;display:flex;justify-content:center;align-items:flex-start;}.rpv-w{position:relative;flex:none;box-shadow:0 2px 12px rgba(0,0,0,.25);background:#fff;}.rpv-w>div{position:absolute;left:0;top:0;transform-origin:0 0;width:794px;}
+.rpv-f{display:flex;gap:8px;justify-content:flex-end;padding:10px 16px;border-top:1px solid var(--border);}
+.rpv-f button{display:inline-flex;align-items:center;gap:6px;border-radius:8px;padding:7px 14px;font:500 12.5px var(--font-body);cursor:pointer;border:1px solid var(--border);background:#fff;color:var(--text);}.rpv-f button.p{background:var(--navy);border-color:var(--navy);color:#fff;}.rpv-f button:disabled{opacity:.6;cursor:default;}
 .gt-rep2 button:hover{background:var(--navy-light);}.gt-rep2 button:active{transform:scale(.97);}.gt-rep2 button:disabled{opacity:.6;cursor:default;}
 
 .oi{padding-bottom:16px;}
@@ -2930,7 +2938,7 @@
   <!-- ================= VIEW: TASK LIST ================= -->
   <div class="view" id="view-tasklist">
     <div class="gt">
-      <div class="gt-head"><h3>Task List</h3><span class="gt-count" id="tlCount"></span><span class="gt-rep2"><select id="tlRepPeriod" aria-label="Report period"><option value="7">Last 7 days</option><option value="30">Last 30 days</option><option value="m">This month</option></select><button type="button" id="tlRepBtn" title="Download SUMMARY TASK LIST &amp; OPEN ISSUE as PDF"><i class="ti ti-file-type-pdf"></i>Summary PDF</button></span></div>
+      <div class="gt-head"><h3>Task List</h3><span class="gt-count" id="tlCount"></span><span class="gt-rep2"><select id="tlRepPeriod" aria-label="Report period"><option value="7">Last 7 days</option><option value="30">Last 30 days</option><option value="m">This month</option></select><button type="button" id="tlRepPv" class="gt-pv" title="Preview report" aria-label="Preview report"><i class="ti ti-eye"></i></button><button type="button" id="tlRepBtn" title="Download SUMMARY TASK LIST &amp; OPEN ISSUE as PDF"><i class="ti ti-file-type-pdf"></i>Summary PDF</button></span></div>
       <div class="gt-filters" id="tlFilterBar"></div>
       <div class="gt-add" id="tlAddRow" role="button" tabindex="0"><i class="ti ti-plus"></i><span>Add task</span></div>
       <div class="gt-form" id="tlAddForm" style="display:none;">
@@ -17140,6 +17148,34 @@ async function tlRepPdf(btn){
 }
 document.getElementById('tlRepPeriod').addEventListener('change', e => { tlRepPeriod = e.target.value; });
 document.getElementById('tlRepBtn').addEventListener('click', e => { tlRepPdf(e.currentTarget); });
+/* ---- Preview laporan (v65) ---- */
+let tlRepPv = null;
+async function tlRepPvDraw(){
+  if(!tlRepPv) return;
+  try{ if(!oiData) await oiLoad(); }catch(_){}
+  const w = tlRepPv.querySelector('.rpv-w'), body = tlRepPv.querySelector('.rpv-b');
+  const sc = Math.min(1, (body.clientWidth - 32) / 794);
+  w.style.width = Math.round(794 * sc) + 'px'; w.style.height = Math.round(1122 * sc) + 'px';
+  w.innerHTML = '<div style="transform:scale(' + sc + ')">' + tlBuildSafe() + '</div>';
+}
+function tlBuildSafe(){ try{ return tlRepBuild().html; }catch(e){ console.error('Report preview', e); return '<div style="padding:20px">Could not build the report.</div>'; } }
+function tlRepPvClose(){ if(tlRepPv){ tlRepPv.remove(); tlRepPv = null; document.removeEventListener('keydown', tlRepPvKey); window.removeEventListener('resize', tlRepPvDraw); } }
+function tlRepPvKey(e){ if(e.key === 'Escape') tlRepPvClose(); }
+async function tlRepPvOpen(){
+  if(tlRepPv) return;
+  const ov = document.createElement('div'); ov.className = 'rpv-ov';
+  ov.innerHTML = '<div class="rpv-md" role="dialog" aria-label="Report preview"><div class="rpv-h"><b><i class="ti ti-eye" style="color:#b9650b"></i>Report preview</b><select id="tlRepPvPeriod" aria-label="Report period"><option value="7">Last 7 days</option><option value="30">Last 30 days</option><option value="m">This month</option></select></div><div class="rpv-b"><div class="rpv-w"></div></div><div class="rpv-f"><button type="button" id="tlRepPvClose">Close</button><button type="button" class="p" id="tlRepPvDl"><i class="ti ti-download"></i>Download PDF</button></div></div>';
+  document.body.appendChild(ov); tlRepPv = ov;
+  const sel = ov.querySelector('#tlRepPvPeriod'); sel.value = tlRepPeriod;
+  sel.addEventListener('change', () => { tlRepPeriod = sel.value; document.getElementById('tlRepPeriod').value = sel.value; tlRepPvDraw(); });
+  ov.addEventListener('click', e => { if(e.target === ov) tlRepPvClose(); });
+  ov.querySelector('#tlRepPvClose').addEventListener('click', tlRepPvClose);
+  ov.querySelector('#tlRepPvDl').addEventListener('click', async e => { await tlRepPdf(e.currentTarget); });
+  document.addEventListener('keydown', tlRepPvKey); window.addEventListener('resize', tlRepPvDraw);
+  await tlRepPvDraw();
+}
+document.getElementById('tlRepPv').addEventListener('click', tlRepPvOpen);
+
 
 document.getElementById('sopSearchInput').addEventListener('input', (e) => sopRenderGrid(e.target.value));
 
