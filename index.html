@@ -17030,7 +17030,7 @@ function tlRepBuild(){
   const MO = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const dt = iso => { const p = String(iso || '').split('-'); return p.length === 3 && p[0] ? p[2] + ' ' + MO[+p[1] - 1] + ' ' + p[0] : '-'; };
   const cut = (s, n) => { s = String(s || '').replace(/\s+/g, ' ').trim(); return s.length > n ? s.slice(0, n - 1) + '…' : s; };
-  const NT = 8, NI = 6;
+  const NT = 10, NI = 8;
   // icons (inline SVG, stroke = currentColor)
   const P = { clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>', play: '<path d="M5 3l14 9-14 9z"/>', pause: '<path d="M8 5v14M16 5v14"/>', circ: '<circle cx="12" cy="12" r="8"/>',
     up: '<path d="M6 15l6-6 6 6"/>', mid: '<path d="M5 12h14"/>', down: '<path d="M6 9l6 6 6-6"/>', chk: '<path d="M20 6L9 17l-5-5"/>', warn: '<path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/>',
@@ -17117,8 +17117,6 @@ function tlRepBuild(){
 ${open.length ? `<table><tr><th>No</th><th>Task / Activity</th><th>PIC</th><th>Due date</th><th>Status</th><th>Remarks / Progress</th></tr>${tRows}</table><div class="nn">Overdue first, then nearest due date.</div>` : '<div class="em0">No open tasks.</div>'}
 <div class="sec o"><i>${ic('warn', 14, 2.4)}</i>Open Issues &amp; Critical Issues <span>${Math.min(NI, act.length)} of ${act.length} active issue${s1(act.length)}</span></div>
 ${act.length ? `<table><tr><th>No</th><th>Issue description</th><th>Priority</th><th>PIC / Owner</th><th>Target date</th><th>Next action</th></tr>${iRows}</table><div class="nn">Priority first, then oldest.</div>` : '<div class="em0">No active issues.</div>'}
-<div class="sec n"><i>${ic('bulb', 14, 2.4)}</i>Notes &amp; Recommendations</div>
-<div class="tk"><div class="t0">Key takeaways and what to do</div>${tkHtml}</div>
 </div></div></div>`;
   return { html, name: 'Summary-Task-List-Open-Issue-' + today + '.pdf' };
 }
