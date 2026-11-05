@@ -17059,7 +17059,7 @@ function tlRepBuild(){
   const tkHtml = tk.slice(0, 6).map(t => `<div class="r"><span class="d" style="background:${t[0]}"></span><div>${t[1]}${t[2] ? ` <em>Action: ${t[2]}</em>` : ''}</div></div>`).join('');
   const css = `.rp{width:794px;min-height:1116px;display:flex;flex-direction:column;box-sizing:border-box;background:#fff;color:#18222d;font:12px/1.45 Inter,'Segoe UI',Arial,sans-serif;overflow:hidden}
 .rp *{box-sizing:border-box}.rp .hb{background:#0f1b2b;color:#fff;padding:24px 34px 18px;position:relative}.rp .hb:after{content:"";position:absolute;right:0;top:0;bottom:0;width:9px;background:#e67e22}
-.rp h1{margin:0;font:700 24px 'Space Grotesk',Inter,sans-serif;letter-spacing:.04em}.rp .s{display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:12px;color:#a9bbcd}
+.rp h1{margin:0;font:700 24px 'Space Grotesk',Inter,sans-serif;letter-spacing:.04em}.rp .s{display:block;margin-top:10px;font-size:12px;color:#a9bbcd}
 .rp .pill{font-size:11px;font-weight:600;letter-spacing:.06em;padding:4px 13px;border-radius:14px;color:#fff}
 .rp .bd{padding:18px 34px 14px;flex:1}.rp .hd{background:#fff7ec;border:1px solid #f3d3a8;border-radius:10px;padding:11px 14px;margin-bottom:14px;font-size:13px;line-height:1.5}.rp .hd b{font-weight:600}
 .rp .k{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}.rp .k>div{border:1px solid #dde4ea;border-radius:10px;padding:10px 12px;border-top:4px solid #2c6a9b}
@@ -17074,6 +17074,7 @@ function tlRepBuild(){
 .rp td{padding:6px 5px;border-bottom:1px solid #e6ebef;vertical-align:middle}.rp .dy{display:flex;align-items:center;gap:6px}.rp .dy i{display:block;height:7px;border-radius:4px;background:#c0392b}.rp .dy b{font-weight:600;color:#a93226;min-width:20px}
 .rp .av{display:inline-flex;width:19px;height:19px;border-radius:50%;font-size:8.5px;font-weight:600;align-items:center;justify-content:center;margin-right:5px;vertical-align:middle}
 .rp .pr{font-size:10px;font-weight:600;padding:1px 7px;border-radius:5px}.rp .pr.h{background:#fbe3e0;color:#a93226}.rp .pr.m{background:#fcefd6;color:#8a5a0b}.rp .pr.l{background:#e8edf1;color:#5b6b7b}
+.rp .st{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.rp .st.f{grid-template-columns:repeat(2,1fr)}.rp .st>div{border:1px solid #dde4ea;border-radius:10px;padding:8px 10px;border-top:4px solid}.rp .st small{display:block;font-size:11px;color:#5b6b7b}.rp .st b{font:700 24px/1.1 'Space Grotesk',Inter,sans-serif;color:#0f1b2b}
 .rp .fn{display:flex;height:26px;border-radius:7px;overflow:hidden;font-size:11px;color:#fff;font-weight:600}.rp .fn div{display:flex;align-items:center;justify-content:center;white-space:nowrap}
 .rp .ag{margin-top:10px}.rp .ag .t{font-weight:600;color:#0f1b2b;margin-bottom:4px;font-size:11.5px}.rp .ag div.g{display:grid;grid-template-columns:70px 1fr 16px;gap:8px;align-items:center;font-size:11px;color:#46586a;margin:4px 0}.rp .ag i{display:block;height:8px;border-radius:4px}
 .rp .tk{background:#f6f9fb;border:1px solid #dde4ea;border-radius:10px;padding:11px 14px;margin-top:4px}.rp .tk .t{font:600 13.5px 'Space Grotesk',Inter,sans-serif;margin-bottom:5px;color:#0f1b2b}
@@ -17081,20 +17082,19 @@ function tlRepBuild(){
 .rp .ft{display:flex;gap:18px;flex-wrap:wrap;padding:10px 34px;background:#f2f5f7;font-size:10.5px;color:#5b6b7b;border-top:1px solid #dde4ea}.rp .ft b{font-weight:600;color:#2d3d4c}
 .rp .em0{color:#8a98a6;font-size:12px;padding:8px 0}`;
   const html = `<div class="rp"><style>${css}</style>
-<div class="hb"><h1>SUMMARY TASK LIST &amp; OPEN ISSUE</h1><div class="s"><span>${tlRepFmt(from)} – ${tlRepFmt(to)} · ${tlRepPeriod === 'm' ? 'this month' : 'last ' + tlRepPeriod + ' days'}</span><span class="pill" style="background:${st[1]}">${st[0]}</span></div></div>
-<div class="bd"><div class="hd"><b>In one line:</b> ${headline}</div>
+<div class="hb"><h1>SUMMARY TASK LIST &amp; OPEN ISSUE</h1><div class="s"><span>${tlRepFmt(from)} – ${tlRepFmt(to)} · ${tlRepPeriod === 'm' ? 'this month' : 'last ' + tlRepPeriod + ' days'}</span></div></div>
+<div class="bd">
 <div class="k"><div><small>Open tasks</small><b>${open.length}</b><em>${doneP} completed this period</em></div><div class="r"><small>Overdue tasks</small><b>${late.length}</b><em>${pct(late.length, open.length)}% of open tasks</em></div><div class="y"><small>Active issues</small><b>${act.length}</b><em>${closedP} closed this period</em></div><div class="r"><small>High priority issues</small><b>${hi.length}</b><em>${pct(hi.length, act.length)}% of active issues</em></div></div>
-<div class="sec"><i>T</i>Task List <span>status of all open tasks</span></div>
-<div class="two"><div><div class="dn">${donut}<div class="lg">${order.length ? order.map(n => `<div><i style="background:${colors[n]}"></i>${e(n)}<b>${cnt[n]}</b></div>`).join('') : '<div>No open tasks</div>'}</div></div>
+<div class="sec"><i>T</i>Task List <span>${open.length} open task${s1(open.length)}</span></div>
+<div class="two"><div>${order.length ? `<div class="st${order.length > 3 ? ' f' : ''}">${order.map(n => `<div style="border-top-color:${colors[n]}"><small>${e(n)}</small><b>${cnt[n]}</b></div>`).join('')}</div>` : '<div class="em0">No open tasks</div>'}
 <div class="mini"><span>Due in next 7 days<b>${dueSoon}</b></span><span>Recurring<b>${rec}</b></span></div></div>
 <div>${late.length ? `<table><tr><th>Most overdue tasks</th><th>PIC</th><th>Days late</th></tr>${lateRows}</table>` : '<div class="em0">No overdue tasks. Good job.</div>'}</div></div>
 <div class="sec o"><i>I</i>Open Issue <span>${act.length} active issue${s1(act.length)}</span></div>
-<div class="two"><div>${act.length ? `<div class="fn">${Object.keys(ic).filter(k => ic[k]).map(k => `<div style="width:${ic[k] / act.length * 100}%;background:${icol[k]}">${k} ${ic[k]}</div>`).join('')}</div>
-<div class="ag"><div class="t">How long issues have been open</div><div class="g"><span>0–7 days</span><i style="width:${b1 / bm * 100}%;background:#2e8b57"></i><b>${b1}</b></div><div class="g"><span>8–14 days</span><i style="width:${b2 / bm * 100}%;background:#e67e22"></i><b>${b2}</b></div><div class="g"><span>&gt; 14 days</span><i style="width:${b3 / bm * 100}%;background:#c0392b"></i><b>${b3}</b></div></div>
+<div class="two"><div>${act.length ? `<div class="st">${Object.keys(ic).map(k => `<div style="border-top-color:${icol[k]}"><small>${k}</small><b>${ic[k]}</b></div>`).join('')}</div>
 <div class="mini"><span>No PIC yet<b style="color:${nop.length ? '#b9650b' : '#0f1b2b'}">${nop.length}</b></span><span>Past action due<b style="color:${pastDue.length ? '#c0392b' : '#0f1b2b'}">${pastDue.length}</b></span></div>` : '<div class="em0">No active issues.</div>'}</div>
 <div>${topI.length ? `<table><tr><th>Issues to watch</th><th>Prio</th><th>PIC</th><th>Age</th></tr>${issRows}</table>` : ''}</div></div>
 <div class="tk"><div class="t">Key takeaways and what to do</div>${tkHtml}</div></div>
-<div class="ft"><span><b>Overdue</b> = deadline passed and not done</span><span><b>Age</b> = days since the issue was reported</span><span><b>Colors</b>: green normal, orange watch, red act now</span></div></div>`;
+<div class="ft"><span><b>Overdue</b> = deadline passed and not done</span><span><b>Colors</b>: green normal, orange watch, red act now</span></div></div>`;
   return { html, name: 'Summary-Task-List-Open-Issue-' + today + '.pdf' };
 }
 async function tlRepPdf(btn){
