@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DSO One Stop Ops HUB</title>
+<title>DOM One Stop Ops HUB</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <!-- TAMBAHAN KEAMANAN: versi dikunci (bukan @latest lagi) supaya isi file tidak
@@ -1945,7 +1945,7 @@
     <div class="sidebar-brand">
       <div class="brand-mark">DSO</div>
       <header>
-        <h1 contenteditable="true" id="headerTitle">DSO One Stop Ops HUB</h1>
+        <h1 contenteditable="true" id="headerTitle">DOM One Stop Ops HUB</h1>
         <p id="headerSubtitle">Digital Sustainability Operation</p>
       </header>
     </div>
@@ -3316,7 +3316,7 @@
     </div>
   </div>
 
-  <footer>Maintain. Monitor. Improve. — Digitech Monitoring Team</footer>
+  <footer>Maintain. Monitor. Improve</footer>
   </div></main>
 </div>
 
@@ -3850,7 +3850,11 @@ async function loadHeaderConfig(){
     const res = await store.get(HEADER_KEY);
     if(res && res.value){
       const data = JSON.parse(res.value);
-      if(data.title) headerFields.headerTitle.textContent = data.title;
+      if(data.title){
+        // v59: judul bawaan lama diganti ke DOM sekali jalan; judul yang pernah diedit sendiri tidak diubah.
+        if(String(data.title).trim() === 'DSO One Stop Ops HUB'){ headerFields.headerTitle.textContent = 'DOM One Stop Ops HUB'; saveHeaderConfig(); }
+        else headerFields.headerTitle.textContent = data.title;
+      }
       // subtitle sengaja TIDAK dimuat lagi dari server - teksnya sudah dipermanenkan
       // langsung di HTML ("Digital Sustainability Operation") dan tidak lagi bisa diedit.
       if(data.badge) headerFields.storageBadge.textContent = data.badge;
