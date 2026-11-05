@@ -17004,48 +17004,60 @@ function tlRepBuild(){
   const today = todayStr(), [from, to] = tlRepRange();
   const tli = tlVisItems(), open = tli.filter(it => !tlIsDone(it));
   const eff = it => tlEffectiveStatus(it);
-  const late = open.filter(it => eff(it) === 'Overdue').map(it => ({ it, d: Math.max(1, Math.round((tlParseDate(today) - tlParseDate(it.deadline)) / 864e5)) })).sort((a, b) => b.d - a.d);
+  const e = escapeHtml, s1 = n => n === 1 ? '' : 's';
+  const pct = (a, b) => b ? Math.round(a / b * 100) : 0;
+  const dayD = it => Math.max(1, Math.round((tlParseDate(today) - tlParseDate(it.deadline)) / 864e5));
+  const late = open.filter(it => eff(it) === 'Overdue').map(it => ({ it, d: dayD(it) })).sort((a, b) => b.d - a.d);
   const f0 = tlParseDate(from).getTime(), f1 = tlParseDate(to).getTime() + 864e5;
-  const doneP = tli.filter(it => tlIsDone(it)).filter(it => { const ts = tlRepDoneTs(it); return ts >= f0 && ts < f1; }).length;
+  const doneAll = tli.filter(it => tlIsDone(it));
+  const doneP = doneAll.filter(it => { const ts = tlRepDoneTs(it); return ts >= f0 && ts < f1; }).length;
   const d7 = tlAddDays(today, 7);
   const dueSoon = open.filter(it => it.deadline && it.deadline >= today && it.deadline <= d7 && eff(it) !== 'Overdue').length;
-  const rec = open.filter(it => it.rec).length;
-  const cnt = {}; open.forEach(it => { const s = eff(it) || '-'; cnt[s] = (cnt[s] || 0) + 1; });
-  const pal = ['#2c6a9b', '#7d6aa8', '#9aa7b3', '#2e8b78', '#5a8fb8', '#b0b8c0'];
-  let pi = 0; const colOf = n => n === 'Overdue' ? '#c0392b' : (tlIsHold(n) ? '#e67e22' : pal[(pi++) % pal.length]);
-  const order = Object.keys(cnt).sort((a, b) => (a === 'Overdue' ? -1 : b === 'Overdue' ? 1 : cnt[b] - cnt[a]));
-  const colors = {}; order.forEach(n => { colors[n] = colOf(n); });
+  const inProg = open.filter(it => { const s = eff(it); return s !== 'Overdue' && !tlIsHold(s); }).length + late.length;
   // Open Issue
   const oi = oiData ? oiData.items : [];
   const act = oi.filter(x => x.st < 3), hi = act.filter(x => x.pri === 'h');
-  const closedP = oi.filter(x => x.st === 3 && x.closed && x.closed >= from && x.closed <= to).length;
-  const ic = { 'Open': act.filter(x => x.st === 0).length, 'In progress': act.filter(x => x.st === 1).length, 'Waiting': act.filter(x => x.st === 2).length };
-  const icol = { 'Open': '#c0392b', 'In progress': '#2c6a9b', 'Waiting': '#e67e22' };
+  const ic = { 'Waiting': act.filter(x => x.st === 2).length };
   const nop = act.filter(x => !x.pics.length), pastDue = act.filter(oiOverdue);
-  const b1 = act.filter(x => oiAge(x) <= 7).length, b2 = act.filter(x => oiAge(x) > 7 && oiAge(x) <= 14).length, b3 = act.filter(x => oiAge(x) > 14).length;
-  const bm = Math.max(1, b1, b2, b3);
-  const topI = act.slice().sort((a, b) => ('hml'.indexOf(a.pri) - 'hml'.indexOf(b.pri)) || (oiAge(b) - oiAge(a))).slice(0, 5);
   const oldHi = hi.slice().sort((a, b) => oiAge(b) - oiAge(a))[0];
-  const pct = (a, b) => b ? Math.round(a / b * 100) : 0;
-  // status keseluruhan
-  const critical = (oldHi && oiAge(oldHi) > 14) || pct(late.length, open.length) > 30;
-  const st = critical ? ['CRITICAL', '#c0392b'] : ((late.length || hi.length) ? ['NEEDS ATTENTION', '#e67e22'] : ['ON TRACK', '#2e8b57']);
-  const e = escapeHtml, s1 = n => n === 1 ? '' : 's';
-  const headline = (late.length || hi.length)
-    ? `<b>${late.length}</b> of <b>${open.length}</b> open task${s1(open.length)} ${late.length === 1 ? 'is' : 'are'} overdue (${pct(late.length, open.length)}%) and <b>${hi.length}</b> high-priority issue${s1(hi.length)} ${hi.length === 1 ? 'is' : 'are'} still active.${oldHi ? ` The oldest is <b>${e(oldHi.t)}, ${oiAge(oldHi)} days</b>.` : ''}`
-    : `No overdue tasks and no high-priority issues are active. <b>${open.length}</b> task${s1(open.length)} and <b>${act.length}</b> issue${s1(act.length)} remain open.`;
-  // donut
-  let off = 25, ring = '';
-  order.forEach(n => { const l = cnt[n] / (open.length || 1) * 100; ring += `<circle cx="21" cy="21" r="15.9155" fill="none" stroke="${colors[n]}" stroke-width="6" stroke-dasharray="${l.toFixed(2)} ${(100 - l).toFixed(2)}" stroke-dashoffset="${off.toFixed(2)}"/>`; off -= l; });
-  const donut = `<svg width="92" height="92" viewBox="0 0 42 42"><circle cx="21" cy="21" r="15.9155" fill="none" stroke="#e6ebef" stroke-width="6"/>${open.length ? ring : ''}<text x="21" y="23.4" text-anchor="middle" font-size="9" font-weight="600" fill="#0f1b2b" font-family="Space Grotesk,Inter,sans-serif">${open.length}</text></svg>`;
+  const MO = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const dt = iso => { const p = String(iso || '').split('-'); return p.length === 3 && p[0] ? p[2] + ' ' + MO[+p[1] - 1] + ' ' + p[0] : '-'; };
+  const cut = (s, n) => { s = String(s || '').replace(/\s+/g, ' ').trim(); return s.length > n ? s.slice(0, n - 1) + '…' : s; };
   const avP = [['#dbe8f3', '#1f5a85'], ['#dff2e6', '#1e7a45'], ['#fcefd6', '#8a5a0b'], ['#ece4f5', '#5b3f8c']];
   const av = n => { let h = 0; for(const c of String(n)) h = (h * 31 + c.charCodeAt(0)) % 997; const p = avP[h % avP.length]; return `<span class="av" style="background:${p[0]};color:${p[1]}">${e(oiIni(n))}</span>`; };
-  const pic1 = n => n ? av(n) + e(n) : '<span style="color:#b9650b">No PIC</span>';
-  const mxl = Math.max(1, ...late.slice(0, 5).map(x => x.d));
-  const lateRows = late.slice(0, 5).map(x => `<tr><td>${e(x.it.desc)}</td><td>${pic1(x.it.pic)}</td><td><div class="dy"><i style="width:${Math.max(4, x.d / mxl * 56)}px"></i><b>${x.d}</b></div></td></tr>`).join('');
-  const ageC = x => { const a = oiAge(x); return a > 14 ? '#a93226' : (a > 7 ? '#b9650b' : '#2e8b57'); };
-  const prl = { h: ['High', 'h'], m: ['Med', 'm'], l: ['Low', 'l'] };
-  const issRows = topI.map(x => `<tr><td>${e(x.t)}</td><td><span class="pr ${prl[x.pri][1]}">${prl[x.pri][0]}</span></td><td>${x.pics.length ? x.pics.slice(0, 2).map(pic1).join(' ') : pic1('')}</td><td><b style="color:${ageC(x)};font-weight:600">${oiAge(x)} d</b></td></tr>`).join('');
+  const pic1 = n => n ? av(n) + e(n) : '<span style="color:#b9650b">No PIC yet</span>';
+  // Task rows: overdue first, then nearest due date
+  const lateMap = new Map(late.map(x => [x.it, x.d]));
+  const sorted = open.slice().sort((a, b) => {
+    const la = lateMap.get(a) || 0, lb = lateMap.get(b) || 0;
+    if(la || lb) return (lb - la) || 0;
+    return String(a.deadline || '9999').localeCompare(String(b.deadline || '9999'));
+  });
+  const tagOf = it => {
+    const s = eff(it) || '-';
+    if(s === 'Overdue') return '<span class="t r">OVERDUE</span>';
+    if(tlIsHold(s)) return '<span class="t y">HOLD</span>';
+    if(/^(not|belum|open|new|todo|to do)/i.test(s)) return `<span class="t n">${e(s.toUpperCase())}</span>`;
+    return `<span class="t b">${e(s.toUpperCase())}</span>`;
+  };
+  const remark = it => {
+    const ns = (it.notes || []).filter(n => n && n.tx).slice().sort((a, b) => b.ts - a.ts);
+    const parts = []; const d = lateMap.get(it);
+    if(d) parts.push(d + ' day' + s1(d) + ' late.');
+    if(ns[0]) parts.push(cut(ns[0].tx, 70));
+    return parts.length ? e(parts.join(' ')) : '-';
+  };
+  const tRows = sorted.slice(0, 10).map((it, i) => `<tr><td>${i + 1}</td><td>${e(cut(it.desc, 60))}</td><td>${pic1(it.pic)}</td><td>${dt(it.deadline)}</td><td>${tagOf(it)}</td><td>${remark(it)}</td></tr>`).join('');
+  // Issue rows: priority first, then oldest
+  const prl = { h: ['HIGH', 'r'], m: ['MEDIUM', 'y'], l: ['LOW', 'n'] };
+  const issS = act.slice().sort((a, b) => ('hml'.indexOf(a.pri) - 'hml'.indexOf(b.pri)) || (oiAge(b) - oiAge(a)));
+  const nextA = x => {
+    let t = '';
+    if(x.na) t = cut(x.na, 70) + (x.nd ? (oiOverdue(x) ? ` (was due ${dt(x.nd)}, overdue)` : ` (due ${dt(x.nd)})`) : '');
+    else if(x.st === 2 && x.why) t = 'Waiting: ' + cut(x.why, 60);
+    return t ? e(t) : '-';
+  };
+  const iRows = issS.slice(0, 10).map((x, i) => `<tr><td>${i + 1}</td><td>${e(cut(x.t, 55))} <span class="ag">(${oiAge(x)} d)</span></td><td><span class="t ${prl[x.pri][1]}">${prl[x.pri][0]}</span></td><td>${x.pics.length ? x.pics.slice(0, 2).map(pic1).join(' ') : pic1('')}</td><td>${dt(x.tgt)}</td><td>${nextA(x)}</td></tr>`).join('');
   // takeaways
   const tk = [];
   if(late.length){ const big = late.filter(x => x.d > 5).length; const who = [...new Set(late.slice(0, 2).map(x => x.it.pic).filter(Boolean))]; tk.push([big ? '#c0392b' : '#e67e22', `${late.length} task${s1(late.length)} ${late.length === 1 ? 'is' : 'are'} overdue${big ? `, ${big} of them by more than 5 days` : ''}.`, `confirm new deadlines${who.length ? ' with ' + e(who.join(' and ')) : ''}.`]); }
@@ -17056,45 +17068,41 @@ function tlRepBuild(){
   if(dueSoon) tk.push(['#2c6a9b', `${dueSoon} task${s1(dueSoon)} ${dueSoon === 1 ? 'is' : 'are'} due in the next 7 days.`, '']);
   if(doneP) tk.push(['#2e8b57', `${doneP} task${s1(doneP)} completed in this period.`, '']);
   if(!tk.length) tk.push(['#2e8b57', 'Nothing needs escalation right now.', '']);
-  const tkHtml = tk.slice(0, 6).map(t => `<div class="r"><span class="d" style="background:${t[0]}"></span><div>${t[1]}${t[2] ? ` <em>Action: ${t[2]}</em>` : ''}</div></div>`).join('');
-  const css = `.rp{width:794px;min-height:1116px;display:flex;flex-direction:column;box-sizing:border-box;background:#fff;color:#18222d;font:12px/1.45 Inter,'Segoe UI',Arial,sans-serif;overflow:hidden}
-.rp *{box-sizing:border-box}.rp .hb{background:#0f1b2b;color:#fff;padding:24px 34px 18px;position:relative}.rp .hb:after{content:"";position:absolute;right:0;top:0;bottom:0;width:9px;background:#e67e22}
-.rp h1{margin:0;font:700 24px 'Space Grotesk',Inter,sans-serif;letter-spacing:.04em}.rp .s{display:block;margin-top:10px;font-size:12px;color:#a9bbcd}
-.rp .pill{font-size:11px;font-weight:600;letter-spacing:.06em;padding:4px 13px;border-radius:14px;color:#fff}
-.rp .bd{padding:18px 34px 14px;flex:1}.rp .hd{background:#fff7ec;border:1px solid #f3d3a8;border-radius:10px;padding:11px 14px;margin-bottom:14px;font-size:13px;line-height:1.5}.rp .hd b{font-weight:600}
-.rp .k{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}.rp .k>div{border:1px solid #dde4ea;border-radius:10px;padding:10px 12px;border-top:4px solid #2c6a9b}
-.rp .k .r{border-top-color:#c0392b}.rp .k .y{border-top-color:#e67e22}.rp .k small{display:block;font-size:11px;color:#5b6b7b}
-.rp .k b{font:700 30px/1.1 'Space Grotesk',Inter,sans-serif;color:#0f1b2b}.rp .k .r b{color:#c0392b}.rp .k .y b{color:#b9650b}.rp .k em{display:block;font-style:normal;font-size:10.5px;color:#7b8a98;margin-top:2px}
-.rp .sec{display:flex;align-items:center;gap:9px;margin:6px 0 9px;font:600 15px 'Space Grotesk',Inter,sans-serif;color:#0f1b2b}
-.rp .sec i{font-style:normal;width:22px;height:22px;border-radius:6px;background:#2c6a9b;color:#fff;font:600 12px Inter,sans-serif;display:flex;align-items:center;justify-content:center}.rp .sec.o i{background:#c0392b}
-.rp .sec span{font:400 11px Inter,sans-serif;color:#7b8a98}.rp .two{display:grid;grid-template-columns:.9fr 1.25fr;gap:20px;margin-bottom:14px}
-.rp .dn{display:flex;align-items:center;gap:12px}.rp .lg{font-size:11.5px;color:#3d4e5e;flex:1}.rp .lg div{display:flex;align-items:center;gap:7px;margin:3px 0}.rp .lg i{width:10px;height:10px;border-radius:3px;flex:none}.rp .lg b{margin-left:auto;font-weight:600;padding-left:10px}
-.rp .mini{display:flex;gap:8px;margin-top:10px}.rp .mini span{flex:1;background:#f2f5f7;border-radius:8px;padding:6px 9px;font-size:10.5px;color:#5b6b7b}.rp .mini b{display:block;font:700 18px 'Space Grotesk',Inter,sans-serif;color:#0f1b2b}
-.rp table{width:100%;border-collapse:collapse;font-size:11.5px}.rp th{text-align:left;font-weight:600;color:#7b8a98;font-size:10px;text-transform:uppercase;letter-spacing:.05em;border-bottom:1.5px solid #cfd8df;padding:4px 5px}
-.rp td{padding:6px 5px;border-bottom:1px solid #e6ebef;vertical-align:middle}.rp .dy{display:flex;align-items:center;gap:6px}.rp .dy i{display:block;height:7px;border-radius:4px;background:#c0392b}.rp .dy b{font-weight:600;color:#a93226;min-width:20px}
-.rp .av{display:inline-flex;width:19px;height:19px;border-radius:50%;font-size:8.5px;font-weight:600;align-items:center;justify-content:center;margin-right:5px;vertical-align:middle}
-.rp .pr{font-size:10px;font-weight:600;padding:1px 7px;border-radius:5px}.rp .pr.h{background:#fbe3e0;color:#a93226}.rp .pr.m{background:#fcefd6;color:#8a5a0b}.rp .pr.l{background:#e8edf1;color:#5b6b7b}
-.rp .st{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.rp .st.f{grid-template-columns:repeat(2,1fr)}.rp .st>div{border:1px solid #dde4ea;border-radius:10px;padding:8px 10px;border-top:4px solid}.rp .st small{display:block;font-size:11px;color:#5b6b7b}.rp .st b{font:700 24px/1.1 'Space Grotesk',Inter,sans-serif;color:#0f1b2b}
-.rp .fn{display:flex;height:26px;border-radius:7px;overflow:hidden;font-size:11px;color:#fff;font-weight:600}.rp .fn div{display:flex;align-items:center;justify-content:center;white-space:nowrap}
-.rp .ag{margin-top:10px}.rp .ag .t{font-weight:600;color:#0f1b2b;margin-bottom:4px;font-size:11.5px}.rp .ag div.g{display:grid;grid-template-columns:70px 1fr 16px;gap:8px;align-items:center;font-size:11px;color:#46586a;margin:4px 0}.rp .ag i{display:block;height:8px;border-radius:4px}
-.rp .tk{background:#f6f9fb;border:1px solid #dde4ea;border-radius:10px;padding:11px 14px;margin-top:4px}.rp .tk .t{font:600 13.5px 'Space Grotesk',Inter,sans-serif;margin-bottom:5px;color:#0f1b2b}
-.rp .tk .r{display:flex;gap:9px;margin:5px 0;align-items:flex-start;font-size:12px}.rp .tk .d{width:9px;height:9px;border-radius:50%;margin-top:5px;flex:none}.rp .tk em{font-style:normal;color:#0f6a4f;font-weight:600}
-.rp .ft{display:flex;gap:18px;flex-wrap:wrap;padding:10px 34px;background:#f2f5f7;font-size:10.5px;color:#5b6b7b;border-top:1px solid #dde4ea}.rp .ft b{font-weight:600;color:#2d3d4c}
-.rp .em0{color:#8a98a6;font-size:12px;padding:8px 0}`;
+  const tkHtml = tk.slice(0, 7).map(t => `<div class="r"><span class="d" style="background:${t[0]}"></span><div>${t[1]}${t[2] ? ` <em>Action: ${t[2]}</em>` : ''}</div></div>`).join('');
+  const css = `.rp-pg{width:794px;height:1123px;display:block;box-sizing:border-box;background:#fff;color:#18222d;font:12px/1.45 Inter,'Segoe UI',Arial,sans-serif;overflow:hidden}
+@media print{.rp-pg:first-child{page-break-after:always}}.rp-pg *{box-sizing:border-box}.rp-pg .hb{background:#0f1b2b;color:#fff;padding:24px 34px 18px;position:relative}.rp-pg .hb:after{content:"";position:absolute;right:0;top:0;bottom:0;width:9px;background:#e67e22}
+.rp-pg h1{margin:0;font:700 24px 'Space Grotesk',Inter,sans-serif;letter-spacing:.04em}.rp-pg .s{display:block;margin-top:10px;font-size:12px;color:#a9bbcd}
+.rp-pg .bd{padding:18px 34px 14px}
+.rp-pg .k{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}.rp-pg .k>div{border:1px solid #dde4ea;border-radius:10px;padding:10px 12px;border-top:4px solid #2c6a9b}
+.rp-pg .k .r{border-top-color:#c0392b}.rp-pg .k .y{border-top-color:#e67e22}.rp-pg .k .g{border-top-color:#2e8b57}.rp-pg .k small{display:block;font-size:11px;color:#5b6b7b}
+.rp-pg .k b{font:700 30px/1.1 'Space Grotesk',Inter,sans-serif;color:#0f1b2b}.rp-pg .k .r b{color:#c0392b}.rp-pg .k .y b{color:#b9650b}.rp-pg .k .g b{color:#1e7a45}.rp-pg .k em{display:block;font-style:normal;font-size:10.5px;color:#7b8a98;margin-top:2px}
+.rp-pg .sec{display:flex;align-items:center;gap:9px;margin:6px 0 10px;font:600 15px 'Space Grotesk',Inter,sans-serif;color:#0f1b2b}
+.rp-pg .sec i{font-style:normal;width:22px;height:22px;border-radius:6px;background:#2c6a9b;color:#fff;font:600 12px Inter,sans-serif;display:flex;align-items:center;justify-content:center}.rp-pg .sec.o i{background:#c0392b}.rp-pg .sec.n i{background:#2e8b57}
+.rp-pg .sec span{font:400 11px Inter,sans-serif;color:#7b8a98}
+.rp-pg table{width:100%;border-collapse:collapse;font-size:11px}.rp-pg th{text-align:left;font-weight:600;color:#7b8a98;font-size:9.5px;text-transform:uppercase;letter-spacing:.05em;border-bottom:1.5px solid #cfd8df;padding:5px 5px}
+.rp-pg td{padding:9px 5px;border-bottom:1px solid #e6ebef;vertical-align:middle}
+.rp-pg .av{display:inline-flex;width:19px;height:19px;border-radius:50%;font-size:8.5px;font-weight:600;align-items:center;justify-content:center;margin-right:5px;vertical-align:middle}
+.rp-pg .t{font-size:9.5px;font-weight:600;padding:2px 7px;border-radius:5px;white-space:nowrap;display:inline-block}
+.rp-pg .t.r{background:#fbe3e0;color:#a93226}.rp-pg .t.b{background:#e0ecf5;color:#1f5a85}.rp-pg .t.y{background:#fcefd6;color:#8a5a0b}.rp-pg .t.n{background:#e8edf1;color:#5b6b7b}
+.rp-pg .ag{color:#8a98a6;font-size:10px}.rp-pg .nn{font-size:10.5px;color:#7b8a98;margin-top:7px}
+.rp-pg .tk{background:#f6f9fb;border:1px solid #dde4ea;border-radius:10px;padding:12px 15px}.rp-pg .tk .t0{font:600 13.5px 'Space Grotesk',Inter,sans-serif;margin-bottom:5px;color:#0f1b2b}
+.rp-pg .tk .r{display:flex;gap:9px;margin:6px 0;align-items:flex-start;font-size:12px}.rp-pg .tk .d{width:9px;height:9px;border-radius:50%;margin-top:5px;flex:none}.rp-pg .tk em{font-style:normal;color:#0f6a4f;font-weight:600}
+.rp-pg .em0{color:#8a98a6;font-size:12px;padding:10px 0}`;
+  const range = `${tlRepFmt(from)} – ${tlRepFmt(to)} · ${tlRepPeriod === 'm' ? 'this month' : 'last ' + tlRepPeriod + ' days'}`;
+  const head = `<div class="hb"><h1>SUMMARY TASK LIST &amp; OPEN ISSUE</h1><div class="s"><span>${range}</span></div></div>`;
+  const total = tli.length;
   const html = `<div class="rp"><style>${css}</style>
-<div class="hb"><h1>SUMMARY TASK LIST &amp; OPEN ISSUE</h1><div class="s"><span>${tlRepFmt(from)} – ${tlRepFmt(to)} · ${tlRepPeriod === 'm' ? 'this month' : 'last ' + tlRepPeriod + ' days'}</span></div></div>
-<div class="bd">
-<div class="k"><div><small>Open tasks</small><b>${open.length}</b><em>${doneP} completed this period</em></div><div class="r"><small>Overdue tasks</small><b>${late.length}</b><em>${pct(late.length, open.length)}% of open tasks</em></div><div class="y"><small>Active issues</small><b>${act.length}</b><em>${closedP} closed this period</em></div><div class="r"><small>High priority issues</small><b>${hi.length}</b><em>${pct(hi.length, act.length)}% of active issues</em></div></div>
-<div class="sec"><i>T</i>Task List <span>${open.length} open task${s1(open.length)}</span></div>
-<div class="two"><div>${order.length ? `<div class="st${order.length > 3 ? ' f' : ''}">${order.map(n => `<div style="border-top-color:${colors[n]}"><small>${e(n)}</small><b>${cnt[n]}</b></div>`).join('')}</div>` : '<div class="em0">No open tasks</div>'}
-<div class="mini"><span>Due in next 7 days<b>${dueSoon}</b></span><span>Recurring<b>${rec}</b></span></div></div>
-<div>${late.length ? `<table><tr><th>Most overdue tasks</th><th>PIC</th><th>Days late</th></tr>${lateRows}</table>` : '<div class="em0">No overdue tasks. Good job.</div>'}</div></div>
-<div class="sec o"><i>I</i>Open Issue <span>${act.length} active issue${s1(act.length)}</span></div>
-<div class="two"><div>${act.length ? `<div class="st">${Object.keys(ic).map(k => `<div style="border-top-color:${icol[k]}"><small>${k}</small><b>${ic[k]}</b></div>`).join('')}</div>
-<div class="mini"><span>No PIC yet<b style="color:${nop.length ? '#b9650b' : '#0f1b2b'}">${nop.length}</b></span><span>Past action due<b style="color:${pastDue.length ? '#c0392b' : '#0f1b2b'}">${pastDue.length}</b></span></div>` : '<div class="em0">No active issues.</div>'}</div>
-<div>${topI.length ? `<table><tr><th>Issues to watch</th><th>Prio</th><th>PIC</th><th>Age</th></tr>${issRows}</table>` : ''}</div></div>
-<div class="tk"><div class="t">Key takeaways and what to do</div>${tkHtml}</div></div>
-<div class="ft"><span><b>Overdue</b> = deadline passed and not done</span><span><b>Colors</b>: green normal, orange watch, red act now</span></div></div>`;
+<div class="rp-pg">${head}<div class="bd">
+<div class="k"><div><small>Total tasks</small><b>${total}</b><em>All tasks (excl. SAP)</em></div><div class="g"><small>Done</small><b>${doneAll.length}</b><em>${pct(doneAll.length, total)}% completed</em></div><div class="y"><small>In progress</small><b>${inProg}</b><em>${late.length} overdue</em></div><div class="r"><small>Open issues</small><b>${act.length}</b><em>${hi.length} high priority</em></div></div>
+<div class="sec"><i>T</i>Task List Status <span>${Math.min(10, open.length)} of ${open.length} open task${s1(open.length)}</span></div>
+${open.length ? `<table><tr><th>No</th><th>Task / Activity</th><th>PIC</th><th>Due date</th><th>Status</th><th>Remarks / Progress</th></tr>${tRows}</table><div class="nn">Overdue first, then nearest due date.</div>` : '<div class="em0">No open tasks.</div>'}
+</div></div>
+<div class="rp-pg">${head}<div class="bd">
+<div class="sec o"><i>I</i>Open Issues &amp; Critical Issues <span>${Math.min(10, act.length)} of ${act.length} active issue${s1(act.length)}</span></div>
+${act.length ? `<table><tr><th>No</th><th>Issue description</th><th>Priority</th><th>PIC / Owner</th><th>Target date</th><th>Next action</th></tr>${iRows}</table><div class="nn">Priority first, then oldest.</div>` : '<div class="em0">No active issues.</div>'}
+<div class="sec n" style="margin-top:22px"><i>N</i>Notes &amp; Recommendations</div>
+<div class="tk"><div class="t0">Key takeaways and what to do</div>${tkHtml}</div>
+</div></div></div>`;
   return { html, name: 'Summary-Task-List-Open-Issue-' + today + '.pdf' };
 }
 async function tlRepPdf(btn){
@@ -17109,7 +17117,7 @@ async function tlRepPdf(btn){
     host.innerHTML = r.html; document.body.appendChild(host);
     try{
       const lib = await tlRepLoadLib();
-      await lib().set({ margin: 0, filename: r.name, image: { type: 'jpeg', quality: 0.96 }, html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' }, jsPDF: { unit: 'px', format: [794, 1123], orientation: 'portrait', hotfixes: ['px_scaling'] }, pagebreak: { mode: ['avoid-all'] } }).from(host.firstElementChild).save();
+      await lib().set({ margin: 0, filename: r.name, image: { type: 'jpeg', quality: 0.96 }, html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' }, jsPDF: { unit: 'px', format: [794, 1123], orientation: 'portrait', hotfixes: ['px_scaling'] }, pagebreak: { mode: ['css'], after: '.rp-pg:first-child' } }).from(host.firstElementChild).save();
       showToast('Summary PDF downloaded', 'success');
     }catch(e){
       console.error('Summary PDF: html2pdf gagal, pakai jendela cetak', e);
