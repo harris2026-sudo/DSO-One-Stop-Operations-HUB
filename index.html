@@ -17014,93 +17014,102 @@ function tlRepBuild(){
   const d7 = tlAddDays(today, 7);
   const dueSoon = open.filter(it => it.deadline && it.deadline >= today && it.deadline <= d7 && eff(it) !== 'Overdue').length;
   const inProg = open.filter(it => { const s = eff(it); return s !== 'Overdue' && !tlIsHold(s); }).length + late.length;
-  // Open Issue
   const oi = oiData ? oiData.items : [];
   const act = oi.filter(x => x.st < 3), hi = act.filter(x => x.pri === 'h');
-  const ic = { 'Waiting': act.filter(x => x.st === 2).length };
+  const wait = act.filter(x => x.st === 2).length;
   const nop = act.filter(x => !x.pics.length), pastDue = act.filter(oiOverdue);
   const oldHi = hi.slice().sort((a, b) => oiAge(b) - oiAge(a))[0];
   const MO = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const dt = iso => { const p = String(iso || '').split('-'); return p.length === 3 && p[0] ? p[2] + ' ' + MO[+p[1] - 1] + ' ' + p[0] : '-'; };
   const cut = (s, n) => { s = String(s || '').replace(/\s+/g, ' ').trim(); return s.length > n ? s.slice(0, n - 1) + '…' : s; };
+  const NT = 8, NI = 6;
+  // icons (inline SVG, stroke = currentColor)
+  const P = { clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>', play: '<path d="M5 3l14 9-14 9z"/>', pause: '<path d="M8 5v14M16 5v14"/>', circ: '<circle cx="12" cy="12" r="8"/>',
+    up: '<path d="M6 15l6-6 6 6"/>', mid: '<path d="M5 12h14"/>', down: '<path d="M6 9l6 6 6-6"/>', chk: '<path d="M20 6L9 17l-5-5"/>', warn: '<path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/>',
+    list: '<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>', task: '<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>', cal: '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+    bulb: '<path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/>', user: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>', bang: '<path d="M12 6v8M12 18h.01"/>' };
+  const ic = (k, sz, sw, col) => `<svg width="${sz}" height="${sz}" viewBox="0 0 24 24" fill="none" stroke="${col || 'currentColor'}" stroke-width="${sw || 2.4}" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;flex:none">${P[k]}</svg>`;
   const avP = [['#dbe8f3', '#1f5a85'], ['#dff2e6', '#1e7a45'], ['#fcefd6', '#8a5a0b'], ['#ece4f5', '#5b3f8c']];
   const av = n => { let h = 0; for(const c of String(n)) h = (h * 31 + c.charCodeAt(0)) % 997; const p = avP[h % avP.length]; return `<span class="av" style="background:${p[0]};color:${p[1]}">${e(oiIni(n))}</span>`; };
   const pic1 = n => n ? av(n) + e(n) : '<span style="color:#b9650b">No PIC yet</span>';
-  // Task rows: overdue first, then nearest due date
   const lateMap = new Map(late.map(x => [x.it, x.d]));
   const sorted = open.slice().sort((a, b) => {
     const la = lateMap.get(a) || 0, lb = lateMap.get(b) || 0;
     if(la || lb) return (lb - la) || 0;
     return String(a.deadline || '9999').localeCompare(String(b.deadline || '9999'));
   });
+  const tg = (cls, k, txt) => `<span class="t ${cls}">${ic(k, 9, 3)}${e(txt)}</span>`;
   const tagOf = it => {
     const s = eff(it) || '-';
-    if(s === 'Overdue') return '<span class="t r">OVERDUE</span>';
-    if(tlIsHold(s)) return '<span class="t y">HOLD</span>';
-    if(/^(not|belum|open|new|todo|to do)/i.test(s)) return `<span class="t n">${e(s.toUpperCase())}</span>`;
-    return `<span class="t b">${e(s.toUpperCase())}</span>`;
+    if(s === 'Overdue') return tg('r', 'clock', 'OVERDUE');
+    if(tlIsHold(s)) return tg('y', 'pause', 'HOLD');
+    if(/^(not|belum|open|new|todo|to do)/i.test(s)) return tg('n', 'circ', s.toUpperCase());
+    return tg('b', 'play', s.toUpperCase());
   };
   const remark = it => {
     const ns = (it.notes || []).filter(n => n && n.tx).slice().sort((a, b) => b.ts - a.ts);
     const parts = []; const d = lateMap.get(it);
     if(d) parts.push(d + ' day' + s1(d) + ' late.');
-    if(ns[0]) parts.push(cut(ns[0].tx, 70));
+    if(ns[0]) parts.push(cut(ns[0].tx, 60));
     return parts.length ? e(parts.join(' ')) : '-';
   };
-  const tRows = sorted.slice(0, 10).map((it, i) => `<tr><td>${i + 1}</td><td>${e(cut(it.desc, 60))}</td><td>${pic1(it.pic)}</td><td>${dt(it.deadline)}</td><td>${tagOf(it)}</td><td>${remark(it)}</td></tr>`).join('');
-  // Issue rows: priority first, then oldest
-  const prl = { h: ['HIGH', 'r'], m: ['MEDIUM', 'y'], l: ['LOW', 'n'] };
+  const tRows = sorted.slice(0, NT).map((it, i) => `<tr><td>${i + 1}</td><td>${e(cut(it.desc, 55))}</td><td>${pic1(it.pic)}</td><td>${dt(it.deadline)}</td><td>${tagOf(it)}</td><td>${remark(it)}</td></tr>`).join('');
+  const prl = { h: ['HIGH', 'r', 'up'], m: ['MEDIUM', 'y', 'mid'], l: ['LOW', 'n', 'down'] };
   const issS = act.slice().sort((a, b) => ('hml'.indexOf(a.pri) - 'hml'.indexOf(b.pri)) || (oiAge(b) - oiAge(a)));
   const nextA = x => {
     let t = '';
-    if(x.na) t = cut(x.na, 70) + (x.nd ? (oiOverdue(x) ? ` (was due ${dt(x.nd)}, overdue)` : ` (due ${dt(x.nd)})`) : '');
-    else if(x.st === 2 && x.why) t = 'Waiting: ' + cut(x.why, 60);
+    if(x.na) t = cut(x.na, 55) + (x.nd ? (oiOverdue(x) ? ` (was due ${dt(x.nd)}, overdue)` : ` (due ${dt(x.nd)})`) : '');
+    else if(x.st === 2 && x.why) t = 'Waiting: ' + cut(x.why, 55);
     return t ? e(t) : '-';
   };
-  const iRows = issS.slice(0, 10).map((x, i) => `<tr><td>${i + 1}</td><td>${e(cut(x.t, 55))} <span class="ag">(${oiAge(x)} d)</span></td><td><span class="t ${prl[x.pri][1]}">${prl[x.pri][0]}</span></td><td>${x.pics.length ? x.pics.slice(0, 2).map(pic1).join(' ') : pic1('')}</td><td>${dt(x.tgt)}</td><td>${nextA(x)}</td></tr>`).join('');
-  // takeaways
+  const iRows = issS.slice(0, NI).map((x, i) => `<tr><td>${i + 1}</td><td>${e(cut(x.t, 45))} <span class="ag">(${oiAge(x)} d)</span></td><td>${tg(prl[x.pri][1], prl[x.pri][2], prl[x.pri][0])}</td><td>${x.pics.length ? x.pics.slice(0, 2).map(pic1).join(' ') : pic1('')}</td><td>${dt(x.tgt)}</td><td>${nextA(x)}</td></tr>`).join('');
+  // takeaways: [icon, text, action, tone]
+  const TN = { r: ['#fbe3e0', '#c0392b'], o: ['#fcefd6', '#b9650b'], b: ['#e0ecf5', '#2c6a9b'], g: ['#dff2e6', '#1e7a45'] };
   const tk = [];
-  if(late.length){ const big = late.filter(x => x.d > 5).length; const who = [...new Set(late.slice(0, 2).map(x => x.it.pic).filter(Boolean))]; tk.push([big ? '#c0392b' : '#e67e22', `${late.length} task${s1(late.length)} ${late.length === 1 ? 'is' : 'are'} overdue${big ? `, ${big} of them by more than 5 days` : ''}.`, `confirm new deadlines${who.length ? ' with ' + e(who.join(' and ')) : ''}.`]); }
-  if(oldHi) tk.push([oiAge(oldHi) > 14 ? '#c0392b' : '#e67e22', `High-priority issue "${e(oldHi.t)}" has been open for ${oiAge(oldHi)} days.`, oiAge(oldHi) > 14 ? 'escalate or schedule the fix.' : 'keep it on the weekly review.']);
-  if(nop.length) tk.push(['#e67e22', `${nop.length} issue${s1(nop.length)} ${nop.length === 1 ? 'has' : 'have'} no PIC${nop.length === 1 ? ' (' + e(nop[0].t) + ')' : ''}.`, 'assign an owner.']);
-  if(ic['Waiting']) tk.push(['#e67e22', `${ic['Waiting']} issue${s1(ic['Waiting'])} ${ic['Waiting'] === 1 ? 'is' : 'are'} waiting on parts, vendor, or other dependencies.`, 'follow up on the dependency.']);
-  if(pastDue.length) tk.push(['#e67e22', `${pastDue.length} issue action${s1(pastDue.length)} ${pastDue.length === 1 ? 'is' : 'are'} past the due date.`, 'update the next action date.']);
-  if(dueSoon) tk.push(['#2c6a9b', `${dueSoon} task${s1(dueSoon)} ${dueSoon === 1 ? 'is' : 'are'} due in the next 7 days.`, '']);
-  if(doneP) tk.push(['#2e8b57', `${doneP} task${s1(doneP)} completed in this period.`, '']);
-  if(!tk.length) tk.push(['#2e8b57', 'Nothing needs escalation right now.', '']);
-  const tkHtml = tk.slice(0, 7).map(t => `<div class="r"><span class="d" style="background:${t[0]}"></span><div>${t[1]}${t[2] ? ` <em>Action: ${t[2]}</em>` : ''}</div></div>`).join('');
-  const css = `.rp-pg{width:794px;height:1123px;display:block;box-sizing:border-box;background:#fff;color:#18222d;font:12px/1.45 Inter,'Segoe UI',Arial,sans-serif;overflow:hidden}
-@media print{.rp-pg:first-child{page-break-after:always}}.rp-pg *{box-sizing:border-box}.rp-pg .hb{background:#0f1b2b;color:#fff;padding:24px 34px 18px;position:relative}.rp-pg .hb:after{content:"";position:absolute;right:0;top:0;bottom:0;width:9px;background:#e67e22}
-.rp-pg h1{margin:0;font:700 24px 'Space Grotesk',Inter,sans-serif;letter-spacing:.04em}.rp-pg .s{display:block;margin-top:10px;font-size:12px;color:#a9bbcd}
-.rp-pg .bd{padding:18px 34px 14px}
-.rp-pg .k{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}.rp-pg .k>div{border:1px solid #dde4ea;border-radius:10px;padding:10px 12px;border-top:4px solid #2c6a9b}
-.rp-pg .k .r{border-top-color:#c0392b}.rp-pg .k .y{border-top-color:#e67e22}.rp-pg .k .g{border-top-color:#2e8b57}.rp-pg .k small{display:block;font-size:11px;color:#5b6b7b}
-.rp-pg .k b{font:700 30px/1.1 'Space Grotesk',Inter,sans-serif;color:#0f1b2b}.rp-pg .k .r b{color:#c0392b}.rp-pg .k .y b{color:#b9650b}.rp-pg .k .g b{color:#1e7a45}.rp-pg .k em{display:block;font-style:normal;font-size:10.5px;color:#7b8a98;margin-top:2px}
-.rp-pg .sec{display:flex;align-items:center;gap:9px;margin:6px 0 10px;font:600 15px 'Space Grotesk',Inter,sans-serif;color:#0f1b2b}
-.rp-pg .sec i{font-style:normal;width:22px;height:22px;border-radius:6px;background:#2c6a9b;color:#fff;font:600 12px Inter,sans-serif;display:flex;align-items:center;justify-content:center}.rp-pg .sec.o i{background:#c0392b}.rp-pg .sec.n i{background:#2e8b57}
+  if(late.length){ const big = late.filter(x => x.d > 5).length; const who = [...new Set(late.slice(0, 2).map(x => x.it.pic).filter(Boolean))]; tk.push(['clock', big ? 'r' : 'o', `${late.length} task${s1(late.length)} ${late.length === 1 ? 'is' : 'are'} overdue${big ? `, ${big} of them by more than 5 days` : ''}.`, `confirm new deadlines${who.length ? ' with ' + e(who.join(' and ')) : ''}.`]); }
+  if(oldHi) tk.push(['bang', oiAge(oldHi) > 14 ? 'r' : 'o', `High-priority issue "${e(oldHi.t)}" has been open for ${oiAge(oldHi)} days.`, oiAge(oldHi) > 14 ? 'escalate or schedule the fix.' : 'keep it on the weekly review.']);
+  if(nop.length) tk.push(['user', 'o', `${nop.length} issue${s1(nop.length)} ${nop.length === 1 ? 'has' : 'have'} no PIC${nop.length === 1 ? ' (' + e(nop[0].t) + ')' : ''}.`, 'assign an owner.']);
+  if(wait) tk.push(['pause', 'o', `${wait} issue${s1(wait)} ${wait === 1 ? 'is' : 'are'} waiting on parts, vendor, or other dependencies.`, 'follow up on the dependency.']);
+  if(pastDue.length) tk.push(['cal', 'o', `${pastDue.length} issue action${s1(pastDue.length)} ${pastDue.length === 1 ? 'is' : 'are'} past the due date.`, 'update the next action date.']);
+  if(dueSoon) tk.push(['cal', 'b', `${dueSoon} task${s1(dueSoon)} ${dueSoon === 1 ? 'is' : 'are'} due in the next 7 days.`, '']);
+  if(doneP) tk.push(['chk', 'g', `${doneP} task${s1(doneP)} completed in this period.`, '']);
+  if(!tk.length) tk.push(['chk', 'g', 'Nothing needs escalation right now.', '']);
+  const tkHtml = tk.slice(0, 6).map(t => `<div class="r"><span class="d" style="background:${TN[t[1]][0]};color:${TN[t[1]][1]}">${ic(t[0], 11, 3)}</span><div>${t[2]}${t[3] ? ` <em>Action: ${t[3]}</em>` : ''}</div></div>`).join('');
+  const css = `.rp-pg{width:794px;height:1122px;display:block;box-sizing:border-box;background:#fff;color:#18222d;font:12px/1.4 Inter,'Segoe UI',Arial,sans-serif;overflow:hidden}
+.rp-pg *{box-sizing:border-box}.rp-pg .hb{background:#0f1b2b;color:#fff;padding:18px 34px 15px;position:relative;display:flex;align-items:center;gap:14px}.rp-pg .hb:after{content:"";position:absolute;right:0;top:0;bottom:0;width:9px;background:#e67e22}
+.rp-pg .lg{width:40px;height:40px;border-radius:10px;background:#1d3047;display:flex;align-items:center;justify-content:center;color:#e67e22;flex:none}
+.rp-pg h1{margin:0;font:700 23px 'Space Grotesk',Inter,sans-serif;letter-spacing:.04em}.rp-pg .s{display:flex;align-items:center;gap:6px;margin-top:6px;font-size:12px;color:#a9bbcd}
+.rp-pg .bd{padding:16px 34px 12px}
+.rp-pg .k{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:15px}.rp-pg .k>div{border:1px solid #dde4ea;border-radius:10px;padding:9px 12px;border-top:4px solid #2c6a9b;position:relative}
+.rp-pg .k .r{border-top-color:#c0392b}.rp-pg .k .y{border-top-color:#e67e22}.rp-pg .k .g{border-top-color:#2e8b57}
+.rp-pg .k .ic{position:absolute;right:10px;top:11px;width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:#e0ecf5;color:#2c6a9b}
+.rp-pg .k .r .ic{background:#fbe3e0;color:#c0392b}.rp-pg .k .y .ic{background:#fcefd6;color:#b9650b}.rp-pg .k .g .ic{background:#dff2e6;color:#1e7a45}
+.rp-pg .k small{display:block;font-size:11px;color:#5b6b7b}.rp-pg .k b{font:700 28px/1.1 'Space Grotesk',Inter,sans-serif;color:#0f1b2b}.rp-pg .k .r b{color:#c0392b}.rp-pg .k .y b{color:#b9650b}.rp-pg .k .g b{color:#1e7a45}
+.rp-pg .k em{display:block;font-style:normal;font-size:10.5px;color:#7b8a98;margin-top:1px}
+.rp-pg .sec{display:flex;align-items:center;gap:9px;margin:4px 0 7px;font:600 14.5px 'Space Grotesk',Inter,sans-serif;color:#0f1b2b}
+.rp-pg .sec i{width:24px;height:24px;border-radius:7px;background:#2c6a9b;color:#fff;display:flex;align-items:center;justify-content:center}.rp-pg .sec.o i{background:#c0392b}.rp-pg .sec.n i{background:#2e8b57}
 .rp-pg .sec span{font:400 11px Inter,sans-serif;color:#7b8a98}
-.rp-pg table{width:100%;border-collapse:collapse;font-size:11px}.rp-pg th{text-align:left;font-weight:600;color:#7b8a98;font-size:9.5px;text-transform:uppercase;letter-spacing:.05em;border-bottom:1.5px solid #cfd8df;padding:5px 5px}
-.rp-pg td{padding:9px 5px;border-bottom:1px solid #e6ebef;vertical-align:middle}
-.rp-pg .av{display:inline-flex;width:19px;height:19px;border-radius:50%;font-size:8.5px;font-weight:600;align-items:center;justify-content:center;margin-right:5px;vertical-align:middle}
-.rp-pg .t{font-size:9.5px;font-weight:600;padding:2px 7px;border-radius:5px;white-space:nowrap;display:inline-block}
+.rp-pg table{width:100%;border-collapse:collapse;font-size:11.2px}.rp-pg th{text-align:left;font-weight:600;color:#7b8a98;font-size:9.8px;text-transform:uppercase;letter-spacing:.05em;border-bottom:1.5px solid #cfd8df;padding:4px 5px}
+.rp-pg td{padding:5.5px 5px;border-bottom:1px solid #e6ebef;vertical-align:middle}
+.rp-pg .av{display:inline-flex;width:18px;height:18px;border-radius:50%;font-size:8px;font-weight:600;align-items:center;justify-content:center;margin-right:5px;vertical-align:middle}
+.rp-pg .t{font-size:9.8px;font-weight:600;padding:2px 7px;border-radius:5px;white-space:nowrap;display:inline-flex;align-items:center;gap:4px}
 .rp-pg .t.r{background:#fbe3e0;color:#a93226}.rp-pg .t.b{background:#e0ecf5;color:#1f5a85}.rp-pg .t.y{background:#fcefd6;color:#8a5a0b}.rp-pg .t.n{background:#e8edf1;color:#5b6b7b}
-.rp-pg .ag{color:#8a98a6;font-size:10px}.rp-pg .nn{font-size:10.5px;color:#7b8a98;margin-top:7px}
-.rp-pg .tk{background:#f6f9fb;border:1px solid #dde4ea;border-radius:10px;padding:12px 15px}.rp-pg .tk .t0{font:600 13.5px 'Space Grotesk',Inter,sans-serif;margin-bottom:5px;color:#0f1b2b}
-.rp-pg .tk .r{display:flex;gap:9px;margin:6px 0;align-items:flex-start;font-size:12px}.rp-pg .tk .d{width:9px;height:9px;border-radius:50%;margin-top:5px;flex:none}.rp-pg .tk em{font-style:normal;color:#0f6a4f;font-weight:600}
-.rp-pg .em0{color:#8a98a6;font-size:12px;padding:10px 0}`;
+.rp-pg .ag{color:#8a98a6;font-size:10px}.rp-pg .nn{font-size:10.2px;color:#7b8a98;margin:4px 0 11px}
+.rp-pg .tk{background:#f6f9fb;border:1px solid #dde4ea;border-radius:10px;padding:9px 14px}.rp-pg .tk .t0{font:600 13px 'Space Grotesk',Inter,sans-serif;margin-bottom:4px;color:#0f1b2b}
+.rp-pg .tk .r{display:flex;gap:9px;margin:5px 0;align-items:flex-start;font-size:11.8px}.rp-pg .tk .d{width:20px;height:20px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center}.rp-pg .tk em{font-style:normal;color:#0f6a4f;font-weight:600}
+.rp-pg .em0{color:#8a98a6;font-size:12px;padding:8px 0}`;
   const range = `${tlRepFmt(from)} – ${tlRepFmt(to)} · ${tlRepPeriod === 'm' ? 'this month' : 'last ' + tlRepPeriod + ' days'}`;
-  const head = `<div class="hb"><h1>SUMMARY TASK LIST &amp; OPEN ISSUE</h1><div class="s"><span>${range}</span></div></div>`;
   const total = tli.length;
+  const kp = (cls, k, lab, num, sub) => `<div class="${cls}"><span class="ic">${ic(k, 15, 2.4)}</span><small>${lab}</small><b>${num}</b><em>${sub}</em></div>`;
   const html = `<div class="rp"><style>${css}</style>
-<div class="rp-pg">${head}<div class="bd">
-<div class="k"><div><small>Total tasks</small><b>${total}</b><em>All tasks (excl. SAP)</em></div><div class="g"><small>Done</small><b>${doneAll.length}</b><em>${pct(doneAll.length, total)}% completed</em></div><div class="y"><small>In progress</small><b>${inProg}</b><em>${late.length} overdue</em></div><div class="r"><small>Open issues</small><b>${act.length}</b><em>${hi.length} high priority</em></div></div>
-<div class="sec"><i>T</i>Task List Status <span>${Math.min(10, open.length)} of ${open.length} open task${s1(open.length)}</span></div>
+<div class="rp-pg"><div class="hb"><span class="lg">${ic('task', 22, 2)}</span><div><h1>SUMMARY TASK LIST &amp; OPEN ISSUE</h1><div class="s">${ic('cal', 12, 2, '#a9bbcd')}<span>${range}</span></div></div></div>
+<div class="bd">
+<div class="k">${kp('', 'list', 'Total tasks', total, 'All tasks (excl. SAP)')}${kp('g', 'chk', 'Done', doneAll.length, pct(doneAll.length, total) + '% completed')}${kp('y', 'clock', 'In progress', inProg, late.length + ' overdue')}${kp('r', 'warn', 'Open issues', act.length, hi.length + ' high priority')}</div>
+<div class="sec"><i>${ic('task', 14, 2.4)}</i>Task List Status <span>${Math.min(NT, open.length)} of ${open.length} open task${s1(open.length)}</span></div>
 ${open.length ? `<table><tr><th>No</th><th>Task / Activity</th><th>PIC</th><th>Due date</th><th>Status</th><th>Remarks / Progress</th></tr>${tRows}</table><div class="nn">Overdue first, then nearest due date.</div>` : '<div class="em0">No open tasks.</div>'}
-</div></div>
-<div class="rp-pg">${head}<div class="bd">
-<div class="sec o"><i>I</i>Open Issues &amp; Critical Issues <span>${Math.min(10, act.length)} of ${act.length} active issue${s1(act.length)}</span></div>
+<div class="sec o"><i>${ic('warn', 14, 2.4)}</i>Open Issues &amp; Critical Issues <span>${Math.min(NI, act.length)} of ${act.length} active issue${s1(act.length)}</span></div>
 ${act.length ? `<table><tr><th>No</th><th>Issue description</th><th>Priority</th><th>PIC / Owner</th><th>Target date</th><th>Next action</th></tr>${iRows}</table><div class="nn">Priority first, then oldest.</div>` : '<div class="em0">No active issues.</div>'}
-<div class="sec n" style="margin-top:22px"><i>N</i>Notes &amp; Recommendations</div>
+<div class="sec n"><i>${ic('bulb', 14, 2.4)}</i>Notes &amp; Recommendations</div>
 <div class="tk"><div class="t0">Key takeaways and what to do</div>${tkHtml}</div>
 </div></div></div>`;
   return { html, name: 'Summary-Task-List-Open-Issue-' + today + '.pdf' };
@@ -17117,7 +17126,7 @@ async function tlRepPdf(btn){
     host.innerHTML = r.html; document.body.appendChild(host);
     try{
       const lib = await tlRepLoadLib();
-      await lib().set({ margin: 0, filename: r.name, image: { type: 'jpeg', quality: 0.96 }, html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' }, jsPDF: { unit: 'px', format: [794, 1123], orientation: 'portrait', hotfixes: ['px_scaling'] }, pagebreak: { mode: ['css'], after: '.rp-pg:first-child' } }).from(host.firstElementChild).save();
+      await lib().set({ margin: 0, filename: r.name, image: { type: 'jpeg', quality: 0.96 }, html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' }, jsPDF: { unit: 'px', format: [794, 1123], orientation: 'portrait', hotfixes: ['px_scaling'] }, pagebreak: { mode: ['avoid-all'] } }).from(host.firstElementChild).save();
       showToast('Summary PDF downloaded', 'success');
     }catch(e){
       console.error('Summary PDF: html2pdf gagal, pakai jendela cetak', e);
