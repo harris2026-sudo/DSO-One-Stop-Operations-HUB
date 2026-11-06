@@ -2018,6 +2018,26 @@
   .cal-blk b{display:block;font-weight:600}
   .cal-nowline{position:absolute;left:0;right:0;height:2px;background:var(--red-fg);z-index:1}
   .cal-foot{font-size:12px;color:var(--text-muted);margin-top:10px}
+  /* ===== PROJECT AEBS: PETA INPUT (bisa diedit) ===== */
+  .pjx-io{margin-top:14px;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--surface);user-select:text}
+  .pjx-io-h{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 14px}
+  .pjx-io-h b{font-size:14px;font-family:var(--font-display)}
+  .pjx-io-h span{font-size:12px;color:var(--text-secondary)}
+  .pjx-io table{width:100%;border-collapse:collapse;font-size:13px}
+  .pjx-io th{background:#cf2a1b;color:#fff;font-weight:500;text-align:left;padding:8px 10px}
+  .pjx-io td{padding:6px 10px;border-top:1px solid var(--border)}
+  .pjx-io tbody tr:nth-child(odd) td{background:var(--zebra)}
+  .pjx-io input[type=text]{width:100%;border:1px solid transparent;background:transparent;border-radius:6px;padding:4px 6px;font:inherit;color:inherit}
+  .pjx-io input[type=text]:hover{border-color:var(--border)}
+  .pjx-io input[type=text]:focus{border-color:var(--accent);background:var(--surface);outline:none}
+  .pjx-io input.io-in{color:#fff;font-weight:500;text-align:center;width:76px}
+  .pjx-io input.io-in:focus{color:var(--text)}
+  .pjx-io select{border:0;border-radius:6px;padding:4px 8px;font:inherit;font-size:12px;font-weight:500;cursor:pointer}
+  .pjx-io .io-x{border:0;background:transparent;color:var(--text-muted);font-size:16px;cursor:pointer;border-radius:6px;padding:0 8px;line-height:1.6}
+  .pjx-io .io-x:hover{color:var(--red-fg);background:var(--red-bg)}
+  .pjx-io .io-x.arm{color:#fff;background:var(--red-fg);font-size:12px}
+  .pjx-io-add{padding:8px 14px;font-size:12px;color:var(--text-secondary);cursor:pointer;border-top:1px solid var(--border)}
+  .pjx-io-add:hover{background:var(--zebra);color:var(--text)}
 </style>
 </head>
 <body>
@@ -2048,7 +2068,7 @@
       <div class="tab" data-view="workload" data-label="Workload Analysis"><i class="ti ti-gauge"></i><span>Workload Analysis</span></div>
       <div class="tab" data-view="openpoint" data-label="Open Point" style="display:none" hidden><i class="ti ti-alert-triangle"></i><span>Open Point</span></div>
       <div class="tab" data-view="weeklywim" data-label="Weekly Meeting WIM"><i class="ti ti-calendar-event"></i><span>Weekly Meeting WIM</span></div>
-      <div class="tab" data-view="kalender" data-label="Kalender"><i class="ti ti-calendar-time"></i><span>Kalender</span></div>
+      <div class="tab" data-view="kalender" data-label="Kalender" style="display:none" hidden><i class="ti ti-calendar-time"></i><span>Kalender</span></div>
       <div class="tab" data-view="pjp" data-label="Penilaian Jasa Pertambangan"><i class="ti ti-building-factory-2"></i><span>Penilaian Jasa Pertambangan</span></div>
     </div>
 
@@ -12912,7 +12932,9 @@ function prjLeft(p, st){
 }
 function prjNextMs(p){
   const m = p.milestones.filter(x => !x.done && x.date).sort((a, b) => a.date.localeCompare(b.date))[0];
-  return m ? m.name + ', ' + prjFd(m.date) : 'No open milestones';
+  if(m) return m.name + ', ' + prjFd(m.date);
+  const und = p.milestones.filter(x => !x.done && !x.date).length;
+  return und ? und + ' aktivitas belum dijadwalkan' : 'No open milestones';
 }
 function prjPill(st){ const s = PRJ_STATUS[st]; return `<span class="pj-pill" style="--c:${s.c}"><i class="ti ${s.i}"></i>${s.l}</span>`; }
 function prjAvatars(p){
@@ -13092,6 +13114,7 @@ async function renderProjects(){
   await loadTaskList();
   await tlLoadAuthor();
   await prjLoad(true);
+  await prjAutoSeedAebs();
   if(prjSel && !prjById(prjSel)) prjSel = null;
   if(!prjSel){
     const first = prjVisible()[0];
@@ -13192,12 +13215,15 @@ async function prjImportPlan(){
 }
 document.getElementById('pjImportBtn').onclick = prjImportPlan;
 
-/* ---- Plan AEBS: integrasi input controller (aktivitas TANPA tanggal) ----
+/* ---- Plan AEBS: integrasi input controller (aktivitas TANPA tanggal) + Peta input yang bisa diedit ----
    Sumber: tabel plan Input / Pin / Fungsi / Integrasi / Status. Hanya butir berstatus "Plan" menjadi aktivitas,
-   supaya progres tidak naik karena IN-1/IN-2 yang sudah Aktif di AEBS V1. Peta lengkap disimpan di catatan project.
-   Tanggal sengaja kosong: isi lewat jadwal (klik "Belum ada tanggal"). Aman dijalankan ulang (dikenali dari seed). */
+   supaya progres tidak naik karena IN-1/IN-2 yang sudah Active di AEBS V1. Peta lengkap ada di p.ioMap (tabel di bawah jadwal).
+   Dibuat OTOMATIS satu kali saat Projects dibuka. Penanda sekali-saja disimpan di store (PRJ_AEBS_FLAG), jadi kalau
+   project ini dihapus, ia tidak muncul lagi sendiri. Tombol "+ Plan AEBS" tetap ada sebagai cadangan. */
 const PRJ_AEBS_SEED = 'plan-aebs-input-v2-tailgate';
-const PRJ_AEBS_NOTE = 'Plan integrasi input AEBS. Tanggal pelaksanaan belum ditentukan; isi di jadwal setelah ditetapkan.\n\nPeta input (Input / Pin / Fungsi / Integrasi / Status):\nIN-1 / 27 / Softbrake AEBS / AEBS V1 / Active\nIN-2 / 26 / Fullbrake AEBS / AEBS V1 / Active\nIN-3 / 11 / Heartbeat / AEBS V2 / Plan\nIN-4 / 25 / Reserve / - / Cadangan\nIN-5 / 24 / Fatigue Trigger AEBS / AEBS V2 / Plan\nIN-6 / 6 / Geofence TIA AEBS / AEBS V2 / Plan\nIN-7 / 20 / PTO / Tailgate / Plan\nIN-9 / 9 / Proximity / Tailgate / Plan';
+const PRJ_AEBS_ID = 'pjaebsplan001';
+const PRJ_AEBS_FLAG = 'projects:aebs-seeded:v1';
+const PRJ_AEBS_NOTE = 'Plan integrasi input AEBS. Tanggal pelaksanaan belum ditentukan; isi di jadwal setelah ditetapkan. Peta input (pin, fungsi, integrasi, status) ada di tabel di bawah jadwal.';
 const PRJ_AEBS_MS = [
   'IN-3 Heartbeat, Pin 11 (AEBS V2)',
   'IN-5 Fatigue Trigger AEBS, Pin 24 (AEBS V2)',
@@ -13205,9 +13231,46 @@ const PRJ_AEBS_MS = [
   'IN-7 PTO, Pin 20 (Tailgate)',
   'IN-9 Proximity, Pin 9 (Tailgate)'
 ];
+const PRJ_AEBS_IO = [
+  ['IN-1','27','Softbrake AEBS','AEBS V1','Active'], ['IN-2','26','Fullbrake AEBS','AEBS V1','Active'],
+  ['IN-3','11','Heartbeat','AEBS V2','Plan'], ['IN-4','25','Reserve','-','Cadangan'],
+  ['IN-5','24','Fatigue Trigger AEBS','AEBS V2','Plan'], ['IN-6','6','Geofence TIA AEBS','AEBS V2','Plan'],
+  ['IN-7','20','PTO','Tailgate','Plan'], ['IN-9','9','Proximity','Tailgate','Plan']
+];
+function prjAebsIoRows(){ return PRJ_AEBS_IO.map((r, k) => ({ id: 'io' + k, input: r[0], pin: r[1], fn: r[2], integ: r[3], status: r[4] })); }
+function prjAebsBuild(){
+  const t0 = Date.now();
+  const p = prjNormalize({
+    id: PRJ_AEBS_ID, seed: PRJ_AEBS_SEED, name: 'AEBS - Integrasi Input V2 dan Tailgate', phase: 'Plan integrasi', start: '', target: '',
+    progress: 0, progressMode: 'acts', statusMode: 'manual', status: 'plan', note: PRJ_AEBS_NOTE, createdAt: t0,
+    milestones: PRJ_AEBS_MS.map((n, k) => ({ id: 'pmaebs' + k, name: n, start: '', date: '', done: false })),
+    ioMap: prjAebsIoRows()
+  });
+  p.updatedAt = t0; p.updatedBy = tlAuthorName();
+  return p;
+}
 function prjSyncAebsBtn(){
   const b = document.getElementById('pjAebsBtn'); if(!b) return;
   b.style.display = prjItems.some(p => p.seed === PRJ_AEBS_SEED) ? 'none' : '';
+}
+async function prjAutoSeedAebs(){
+  try{
+    if(prjStore.isFailed()) return;
+    const ex = prjItems.find(p => p.seed === PRJ_AEBS_SEED);
+    if(ex){
+      if(!Array.isArray(ex.ioMap)){ ex.ioMap = prjAebsIoRows(); await prjSave(ex); }   // project dari v68/v69: tambahkan tabel
+      return;
+    }
+    let seeded = false;
+    try{ const r = await store.get(PRJ_AEBS_FLAG); seeded = !!(r && r.value); }
+    catch(e){ if(!tlIsNotFound(e)) return; }   // gagal konek: jangan membuat apa pun
+    if(seeded) return;
+    prjItems.unshift(prjAebsBuild());
+    await prjStore.save();
+    if(prjStore.isFailed()) return;
+    await store.set(PRJ_AEBS_FLAG, new Date().toISOString());
+    showToast('Project AEBS ditambahkan otomatis (5 aktivitas tanpa tanggal dan Peta input).', 'success');
+  }catch(err){ console.error('Auto-seed AEBS gagal', err); }
 }
 async function prjImportAebs(){
   const btn = document.getElementById('pjAebsBtn'), label = btn.textContent;
@@ -13216,19 +13279,12 @@ async function prjImportAebs(){
     await prjLoad(true);
     if(prjStore.isFailed()){ showToast('Backend tidak terjangkau. Penambahan dibatalkan dan tidak ada data yang diubah.', 'error'); return; }
     if(prjItems.some(p => p.seed === PRJ_AEBS_SEED)){ prjSyncAebsBtn(); showToast('Project AEBS sudah ada di Projects.', 'success'); return; }
-    const t0 = Date.now();
-    const p = prjNormalize({
-      id: 'pj' + t0 + 'x' + Math.floor(Math.random() * 1000), seed: PRJ_AEBS_SEED,
-      name: 'AEBS - Integrasi Input V2 dan Tailgate', phase: 'Plan integrasi', start: '', target: '',
-      progress: 0, progressMode: 'acts', statusMode: 'manual', status: 'plan',
-      note: PRJ_AEBS_NOTE, createdAt: t0,
-      milestones: PRJ_AEBS_MS.map((n, k) => ({ id: 'pm' + t0 + 'x' + k, name: n, start: '', date: '', done: false }))
-    });
-    p.updatedAt = t0; p.updatedBy = tlAuthorName();
+    const p = prjAebsBuild();
     prjItems.unshift(p);
     prjFilter = null; prjSel = p.id;
     prjRenderAll();
     await prjStore.save();
+    try{ await store.set(PRJ_AEBS_FLAG, new Date().toISOString()); }catch(e){}
     showToast('Project AEBS ditambahkan (' + PRJ_AEBS_MS.length + ' aktivitas tanpa tanggal). Isi tanggal dan PIC di panel detail.', 'success');
   }catch(err){
     showToast('Gagal menambah project AEBS: ' + (err && err.message ? err.message : err), 'error');
@@ -13237,6 +13293,57 @@ async function prjImportAebs(){
   }
 }
 document.getElementById('pjAebsBtn').onclick = prjImportAebs;
+
+/* ---- Peta input AEBS: tabel bisa diedit (teks langsung, Integrasi/Status lewat pilihan), tersimpan otomatis ---- */
+const PJX_IO_INT = ['AEBS V1', 'AEBS V2', 'Tailgate', '-'];
+const PJX_IO_ST = ['Active', 'Plan', 'Cadangan'];
+const PJX_IO_ISTY = { 'AEBS V1': 'background:#e6e9f2;color:#1f2a52', 'AEBS V2': 'background:#dbe8f6;color:#1d5fa8', 'Tailgate': 'background:#f6cfcf;color:#b3261e', '-': 'background:var(--grey-bg);color:var(--text-muted)' };
+const PJX_IO_SSTY = { 'Active': 'background:#d8ecd5;color:#2e7d32', 'Plan': 'background:#fbe6cf;color:#b36b14', 'Cadangan': 'background:var(--grey-bg);color:var(--text-secondary)' };
+const PJX_IO_PILL = { 'Active': '#2e7d32', 'Plan': '#b8741a', 'Cadangan': '#9e9e9e' };
+function pjxIoHtml(p){
+  if(!Array.isArray(p.ioMap)) return '';
+  const c = { Active: 0, Plan: 0, Cadangan: 0 };
+  p.ioMap.forEach(r => { if(c[r.status] !== undefined) c[r.status]++; });
+  const opt = (arr, v) => arr.map(o => `<option value="${escapeHtml(o)}"${o === v ? ' selected' : ''}>${escapeHtml(o)}</option>`).join('');
+  const rows = p.ioMap.map(r => {
+    const id = escapeHtml(r.id);
+    return `<tr data-io-r="${id}"><td style="width:96px"><input type="text" class="io-in" style="background:${PJX_IO_PILL[r.status] || '#9e9e9e'}" data-io-f="input" value="${escapeHtml(r.input)}" placeholder="IN-" aria-label="Input"></td>` +
+      `<td style="width:76px"><input type="text" data-io-f="pin" value="${escapeHtml(r.pin)}" aria-label="Pin"></td>` +
+      `<td><input type="text" data-io-f="fn" value="${escapeHtml(r.fn)}" style="font-weight:500;${r.status === 'Cadangan' ? 'color:var(--text-muted)' : ''}" aria-label="Fungsi"></td>` +
+      `<td style="width:128px"><select data-io-f="integ" style="${PJX_IO_ISTY[r.integ] || PJX_IO_ISTY['-']}" aria-label="Integrasi">${opt(PJX_IO_INT, r.integ)}</select></td>` +
+      `<td style="width:120px"><select data-io-f="status" style="${PJX_IO_SSTY[r.status] || PJX_IO_SSTY.Cadangan}" aria-label="Status">${opt(PJX_IO_ST, r.status)}</select></td>` +
+      `<td style="width:56px;text-align:center"><button type="button" class="io-x" data-io-del="${id}" title="Hapus input" aria-label="Hapus input ${escapeHtml(r.input)}">&times;</button></td></tr>`;
+  }).join('');
+  return `<div class="pjx-io" id="pjxIo"><div class="pjx-io-h"><b>Peta input</b><span>${p.ioMap.length} input: ${c.Active} Active, ${c.Plan} Plan, ${c.Cadangan} Cadangan. Klik sel untuk mengedit, tersimpan otomatis.</span></div><div style="overflow-x:auto"><table><thead><tr><th>Input</th><th>Pin</th><th>Fungsi</th><th>Integrasi</th><th>Status</th><th></th></tr></thead><tbody>${rows}</tbody></table></div><div class="pjx-io-add" data-io-add="1">+ Tambah input</div></div>`;
+}
+(function(){
+  const box = document.getElementById('pjMain'); if(!box) return;
+  const cur = () => prjById(prjSel);
+  const redraw = (p) => { const el = document.getElementById('pjxIo'); if(el) el.outerHTML = pjxIoHtml(p); };
+  box.addEventListener('change', (e) => {
+    const t = e.target; if(!t.dataset || t.dataset.ioF === undefined) return;
+    const p = cur(); if(!p || !Array.isArray(p.ioMap)) return;
+    const tr = t.closest('[data-io-r]'); if(!tr) return;
+    const r = p.ioMap.find(x => x.id === tr.dataset.ioR); if(!r) return;
+    r[t.dataset.ioF] = t.value.trim();
+    prjQueueSave(p);
+    if(t.tagName === 'SELECT' || t.dataset.ioF === 'input') redraw(p);
+  });
+  box.addEventListener('click', (e) => {
+    const p = cur(); if(!p || !Array.isArray(p.ioMap)) return;
+    if(e.target.closest('[data-io-add]')){
+      const id = 'io' + Date.now().toString(36) + Math.floor(Math.random() * 1000);
+      p.ioMap.push({ id, input: '', pin: '', fn: '', integ: '-', status: 'Plan' });
+      prjQueueSave(p); redraw(p);
+      const last = document.querySelector('#pjxIo tr[data-io-r="' + id + '"] input'); if(last) last.focus();
+      return;
+    }
+    const del = e.target.closest('[data-io-del]'); if(!del) return;
+    if(del.dataset.arm === '1'){ p.ioMap = p.ioMap.filter(x => x.id !== del.dataset.ioDel); prjQueueSave(p); redraw(p); return; }
+    del.dataset.arm = '1'; del.textContent = 'Hapus?'; del.classList.add('arm');
+    setTimeout(() => { if(del.isConnected){ del.dataset.arm = ''; del.innerHTML = '&times;'; del.classList.remove('arm'); } }, 3000);
+  });
+})();
 
 
 /* ==================================================================
@@ -13373,6 +13480,7 @@ function pjxHtml(p, rows){
     <div class="pjx-ro" id="pjxRo" aria-live="polite">${s.n ? '' : 'Belum ada aktivitas. Seret di baris kosong paling bawah untuk membuat yang pertama.'}</div>
     <div class="pjx-tl" id="pjxTl"><div class="pjx-tli" id="pjxTli" ${tliStyle}><div class="pjx-ax" style="height:auto"><div></div><div class="pjx-axt" style="height:40px"><div class="pjx-mb">${mbh}</div><div style="position:relative;height:22px">${ax.replace(/<span style="left:([^"]+)">/g, '<span style="left:$1;top:4px">')}</div>${tdLbl}</div></div>${body}
       <div class="pjx-rw pjx-new"><div class="pjx-nm">+ Aktivitas baru</div><div class="pjx-trk" id="pjxNew">${cols}${tdHtml}<div class="pjx-hint">Seret di sini untuk membuat aktivitas</div></div></div><div class="pjx-ch" id="pjxCh"></div><div class="pjx-chl" id="pjxChl"></div></div></div>
+    ${pjxIoHtml(p)}
     <div class="pjx-tip" hidden style="display:none">Seret batang untuk memindah tanggal, seret ujungnya untuk mengubah durasi. Klik nama untuk mengganti teks. Dengan keyboard: fokus ke batang lalu <kbd>←</kbd> <kbd>→</kbd> geser, <kbd>Shift</kbd> + panah ubah durasi, <kbd>Spasi</kbd> centang selesai, <kbd>Ctrl</kbd>+<kbd>Z</kbd> urungkan. Perubahan tersimpan otomatis.</div></div>`;
 }
 function pjxScrollApply(){
