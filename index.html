@@ -1947,6 +1947,77 @@
     .wmx-src{display:none}
   }
 
+  /* ===== KALENDER (Google Calendar) ===== */
+  .cal{max-width:1180px}
+  .cal-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+  .cal-acc{display:flex;align-items:center;gap:10px}
+  .cal-av{width:36px;height:36px;border-radius:50%;background:var(--steel-light);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:14px;font-family:var(--font-display)}
+  .cal-acc b{display:block;font-size:14px;font-family:var(--font-display)}
+  .cal-acc small{color:var(--text-secondary);font-size:12px}
+  .cal-tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .cal-sync{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-secondary)}
+  .cal-dot{width:8px;height:8px;border-radius:50%;background:var(--text-muted)}
+  .cal-dot.ok{background:var(--green)}.cal-dot.err{background:var(--red-fg)}.cal-dot.demo{background:var(--yellow-fg)}.cal-dot.load{background:var(--accent);animation:calPulse 1s infinite}
+  @keyframes calPulse{50%{opacity:.3}}
+  .cal-btn{border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:8px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+  .cal-btn:hover{background:var(--surface-alt)}
+  .cal-btn.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .cal-seg{display:inline-flex}
+  .cal-seg .cal-btn{border-radius:0}.cal-seg .cal-btn:first-child{border-radius:8px 0 0 8px}.cal-seg .cal-btn:last-child{border-radius:0 8px 8px 0;margin-left:-1px}
+  .cal-banner{background:var(--yellow-bg);color:#7a5314;border:1px solid #f0d9a8;border-radius:8px;padding:8px 12px;font-size:13px;margin-bottom:12px}
+  .cal-banner.err{background:var(--red-bg);color:#8d2f1c;border-color:#f0c4ba}
+  .cal-strip{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;margin-bottom:12px}
+  .cal-nav{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+  .cal-nav h3{margin:0;font-size:15px;font-family:var(--font-display);min-width:150px;text-align:center}
+  .cal-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;text-align:center}
+  .cal-d{cursor:pointer;padding:6px 0;border-radius:8px;border:1px solid transparent}
+  .cal-d:hover{background:var(--surface-alt)}
+  .cal-d.sel{background:var(--steel-light);border-color:var(--accent)}
+  .cal-d small{display:block;font-size:12px;color:var(--text-secondary)}
+  .cal-d b{display:block;font-size:16px;margin-top:2px;font-family:var(--font-display)}
+  .cal-d.today b{color:var(--accent)}
+  .cal-d i{display:block;height:6px;margin-top:3px}
+  .cal-d i span{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--accent)}
+  .cal-chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+  .cal-chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);background:var(--surface);border-radius:999px;padding:3px 10px;font-size:12px;cursor:pointer}
+  .cal-chip i{width:9px;height:9px;border-radius:2px;display:inline-block}
+  .cal-chip.off{opacity:.45;text-decoration:line-through}
+  .cal-grid{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:12px}
+  @media(max-width:900px){.cal-grid{grid-template-columns:minmax(0,1fr)}}
+  .cal-kpis{display:flex;flex-direction:column;gap:10px}
+  .cal-kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px}
+  .cal-kpi small{display:block;color:var(--text-secondary);font-size:12px}
+  .cal-kpi b{font-size:22px;font-family:var(--font-display)}
+  .cal-daytitle{font-size:13px;color:var(--text-secondary);margin:0 0 8px}
+  .cal-list{display:flex;flex-direction:column;gap:8px}
+  .cal-ev{display:flex;gap:10px;background:var(--steel-light);border-radius:var(--radius);padding:10px 12px;border:1px solid transparent}
+  .cal-ev.now{border-color:var(--accent);background:#dbe8f2}
+  .cal-ev.past{opacity:.6}
+  .cal-bar{width:4px;border-radius:2px;flex:none}
+  .cal-evb{flex:1;min-width:0}
+  .cal-evt{display:flex;justify-content:space-between;gap:8px;align-items:flex-start;font-size:12px;color:var(--text-secondary)}
+  .cal-now{background:var(--red-bg);color:var(--red-fg);border-radius:999px;padding:0 8px;font-size:11px;margin-left:6px;font-weight:600}
+  .cal-tag{width:24px;height:24px;border-radius:5px;color:#fff;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;flex:none}
+  .cal-ttl{font-size:14px;margin:4px 0 8px;word-break:break-word}
+  .cal-loc{font-size:12px;color:var(--text-secondary);margin:-4px 0 8px}
+  .cal-join{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 14px;font-size:13px;font-weight:600;text-decoration:none;background:var(--accent);color:#fff}
+  .cal-join:hover{filter:brightness(1.1)}
+  .cal-join.off{background:var(--grey-bg);color:var(--text-muted);cursor:not-allowed}
+  .cal-empty{padding:28px;text-align:center;color:var(--text-secondary);font-size:14px;border:1px dashed var(--border);border-radius:var(--radius);background:var(--surface)}
+  .cal-allday{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:13px;margin-bottom:6px;display:flex;gap:8px;align-items:center}
+  .cal-wk{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:auto}
+  .cal-wk-in{min-width:760px}
+  .cal-wk-h{display:grid;grid-template-columns:48px repeat(7,minmax(0,1fr));border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--surface);z-index:2}
+  .cal-wk-h div{padding:8px 4px;text-align:center;font-size:12px;color:var(--text-secondary)}
+  .cal-wk-h div b{display:block;font-size:15px;color:var(--text);font-family:var(--font-display)}
+  .cal-wk-h div.today b{color:var(--accent)}
+  .cal-wk-b{display:grid;grid-template-columns:48px repeat(7,minmax(0,1fr));position:relative}
+  .cal-hrs div{height:48px;font-size:11px;color:var(--text-muted);text-align:right;padding-right:6px;border-top:1px solid var(--border);box-sizing:border-box}
+  .cal-col{position:relative;border-left:1px solid var(--border);background-image:repeating-linear-gradient(to bottom,transparent 0,transparent 47px,var(--border) 47px,var(--border) 48px)}
+  .cal-blk{position:absolute;border-radius:5px;padding:2px 5px;font-size:11px;line-height:1.25;color:#fff;overflow:hidden;cursor:pointer;border:1px solid rgba(255,255,255,.7);box-sizing:border-box}
+  .cal-blk b{display:block;font-weight:600}
+  .cal-nowline{position:absolute;left:0;right:0;height:2px;background:var(--red-fg);z-index:1}
+  .cal-foot{font-size:12px;color:var(--text-muted);margin-top:10px}
 </style>
 </head>
 <body>
@@ -1977,6 +2048,7 @@
       <div class="tab" data-view="workload" data-label="Workload Analysis"><i class="ti ti-gauge"></i><span>Workload Analysis</span></div>
       <div class="tab" data-view="openpoint" data-label="Open Point" style="display:none" hidden><i class="ti ti-alert-triangle"></i><span>Open Point</span></div>
       <div class="tab" data-view="weeklywim" data-label="Weekly Meeting WIM"><i class="ti ti-calendar-event"></i><span>Weekly Meeting WIM</span></div>
+      <div class="tab" data-view="kalender" data-label="Kalender"><i class="ti ti-calendar-time"></i><span>Kalender</span></div>
       <div class="tab" data-view="pjp" data-label="Penilaian Jasa Pertambangan"><i class="ti ti-building-factory-2"></i><span>Penilaian Jasa Pertambangan</span></div>
     </div>
 
@@ -2988,6 +3060,7 @@
             <button type="button" data-pjv="plan" class="on">Jadwal</button><button type="button" data-pjv="lanes">Lanes</button><button type="button" data-pjv="cards">Cards</button><button type="button" data-pjv="table">Table</button>
           </div>
           <button type="button" class="btn btn-ghost" id="pjImportBtn" hidden style="display:none" title="Impor 5 project dari Planning timeline Okt-Des 2026 (VGT BIB). Aman dijalankan ulang, tidak menimpa data.">Import plan Okt-Des</button>
+          <button type="button" class="btn btn-ghost" id="pjAebsBtn" style="display:none" title="Buat project AEBS dari plan integrasi input (aktivitas tanpa tanggal). Aman dijalankan ulang, tidak menimpa data.">+ Plan AEBS</button>
           <button type="button" class="btn btn-primary" id="pjAddBtn">+ Add project</button>
         </div>
       </div>
@@ -3012,6 +3085,11 @@
   <!-- ================= VIEW: WEEKLY MEETING WIM ================= -->
   <div class="view" id="view-weeklywim">
     <div class="wmx" id="wmx"></div>
+  </div>
+
+  <!-- ================= VIEW: KALENDER ================= -->
+  <div class="view" id="view-kalender">
+    <div class="cal" id="calRoot"></div>
   </div>
 
   <!-- ================= VIEW: WORKLOAD ANALYSIS ================= -->
@@ -5256,12 +5334,228 @@ document.querySelectorAll('.tab').forEach(tab => {
     if(tab.dataset.view === 'workload') renderWorkload();
     if(tab.dataset.view === 'openpoint') renderOpenPoint();
     if(tab.dataset.view === 'weeklywim') renderWeeklyWim();
+    if(tab.dataset.view === 'kalender') renderKalender();
     if(tab.dataset.view === 'pjp') renderPJP();
     if(tab.dataset.view === 'overview') renderOverview();
     if(tab.dataset.view === 'assetplant') renderAssetPlant();
     if(tab.dataset.view === 'pob') renderPob();
   };
 });
+
+/* ================= KALENDER (Google Calendar) =================
+   Sumber data: Google Apps Script Web App terpisah (Code_Calendar.gs) yang dijalankan sebagai
+   harris@sinarmasmining.com. SENGAJA tidak lewat gsQueuedFetch/store: header X-Dso-Api-Key milik
+   Worker DCVA tidak boleh terkirim ke origin lain. Akses baca saja, tidak ada tulis ke kalender.
+   Cache hanya di browser pemakai (localStorage, try/catch), tidak ditulis ke store bersama. */
+const CAL_SCRIPT_URL = "";   // <-- isi dengan URL Web App Code_Calendar.gs (https://script.google.com/macros/s/XXXX/exec)
+const CAL_TOKEN = "";        // <-- harus sama persis dengan TOKEN di Code_Calendar.gs
+const CAL_JOIN_LEAD_MIN = 10;      // tombol Join aktif N menit sebelum mulai
+const CAL_REFRESH_MS = 120000;     // auto-refresh saat menu terbuka
+const CAL_CACHE_KEY = 'dso:cal-cache-v1';
+const CAL_HIDE_KEY = 'dso:cal-hidden-v1';
+const CAL_DAYS = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+const CAL_MON = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+let cal = { view:'agenda', sel:'', events:[], cals:[], hidden:{}, from:'', to:'', status:'idle', msg:'', demo:false, account:'', at:null, timer:null, tick:null, inited:false, busy:false };
+
+function calIso(d){ return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
+function calParse(s){ const p = s.split('-'); return new Date(+p[0], +p[1]-1, +p[2]); }
+function calAdd(s, n){ const d = calParse(s); d.setDate(d.getDate()+n); return calIso(d); }
+function calMonday(s){ const d = calParse(s); d.setDate(d.getDate() - ((d.getDay()+6)%7)); return calIso(d); }
+function calHm(d){ return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0'); }
+function calColor(c){ return /^#[0-9a-f]{6}$/i.test(c || '') ? c : '#2E6690'; }
+function calSafeUrl(u){ return /^https:\/\//i.test(u || '') ? u : ''; }
+function calInitials(n){ const w = String(n || '?').replace(/[^A-Za-z0-9 ]/g,' ').trim().split(/\s+/); return ((w[0] || '?')[0] + (w[1] ? w[1][0] : (w[0] || '')[1] || '')).toUpperCase(); }
+
+function calLoadHidden(){ try{ cal.hidden = JSON.parse(localStorage.getItem(CAL_HIDE_KEY) || '{}') || {}; }catch(e){ cal.hidden = {}; } }
+function calSaveHidden(){ try{ localStorage.setItem(CAL_HIDE_KEY, JSON.stringify(cal.hidden)); }catch(e){} }
+
+/* Normalisasi event dari backend / demo -> { id,title,s(Date),e(Date),allDay,calId,meet,loc } */
+function calNorm(raw){
+  const out = [];
+  (raw || []).forEach(r => {
+    if(!r || !r.start || !r.end) return;
+    const allDay = !!r.allDay;
+    const s = allDay ? calParse(String(r.start).slice(0,10)) : new Date(r.start);
+    const e = allDay ? calParse(String(r.end).slice(0,10)) : new Date(r.end);
+    if(isNaN(s) || isNaN(e)) return;
+    out.push({ id:String(r.id || (s.getTime() + r.title)), title: r.private ? 'Sibuk' : String(r.title || '(Tanpa judul)'), s, e, allDay, calId:String(r.calId || ''), meet: r.private ? '' : calSafeUrl(r.meet), loc: r.private ? '' : String(r.location || '') });
+  });
+  return out.sort((a,b) => a.s - b.s || a.e - b.e);
+}
+
+function calDemoData(){
+  const t = calIso(new Date()), mk = (d, a, b, title, c, meet) => ({ id:'d'+d+a+title, title, start: d + 'T' + a + ':00+08:00', end: d + 'T' + b + ':00+08:00', calId:c, meet: meet ? 'https://meet.google.com/demo-demo-demo' : '' });
+  const m = calMonday(t);
+  return {
+    account: 'harris@sinarmasmining.com (mode contoh)',
+    calendars: [{ id:'me', name:'Harris', color:'#2E6690' }, { id:'me2', name:'Minergo', color:'#DE9A34' }, { id:'dp', name:'Digitalisasi Project', color:'#1C8A6E' }],
+    events: [
+      mk(t,'08:00','08:30','Briefing pagi Ops','me',false),
+      mk(t,'10:00','11:30','Hybrid : Weekly Minergo - BIB','me2',true),
+      mk(t,'14:00','16:00','Hybrid : Weekly Minergo - BIB','me2',true),
+      mk(t,'15:00','16:30','Weekly Project Initiation Meeting N-2 & N-3','dp',true),
+      mk(t,'16:00','17:00','[Online] Meeting Digitalisasi Disposal Kritis','dp',true),
+      mk(calAdd(m,1),'09:00','10:00','Review SLA WIM','me',true),
+      mk(calAdd(m,3),'13:00','14:30','Sinkronisasi AEBS','me2',true),
+      mk(calAdd(m,4),'10:00','11:00','Weekly Meeting WIM','me',true)
+    ]
+  };
+}
+
+function calApply(data, demo){
+  cal.events = calNorm(data.events);
+  cal.cals = (data.calendars || []).map(c => ({ id:String(c.id), name:String(c.name || c.id), color:calColor(c.color) }));
+  cal.account = String(data.account || '');
+  cal.demo = !!demo; cal.at = new Date(); cal.status = demo ? 'demo' : 'ok'; cal.msg = '';
+}
+
+async function calLoad(force){
+  const needFrom = calAdd(calMonday(cal.sel), -7), needTo = calAdd(calMonday(cal.sel), 21);
+  if(!force && cal.from && cal.from <= needFrom && cal.to >= needTo && cal.status !== 'error') return;
+  cal.from = needFrom; cal.to = needTo;
+  if(!CAL_SCRIPT_URL){ calApply(calDemoData(), true); calPaint(); return; }
+  if(cal.busy) return;
+  cal.busy = true; cal.status = 'load'; calPaint();
+  try{
+    const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), 25000);
+    const url = CAL_SCRIPT_URL + '?action=events&from=' + needFrom + '&to=' + needTo + '&token=' + encodeURIComponent(CAL_TOKEN) + '&_t=' + Date.now();
+    const res = await fetch(url, { cache:'no-store', signal: ctl.signal });
+    clearTimeout(to);
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    if(!data || data.ok === false) throw new Error((data && data.error) || 'respon tidak valid');
+    calApply(data, false);
+    try{ localStorage.setItem(CAL_CACHE_KEY, JSON.stringify({ at: Date.now(), data })); }catch(e){}
+  }catch(err){
+    cal.status = 'error'; cal.msg = (err && err.name === 'AbortError') ? 'Timeout menghubungi Google Calendar.' : ('Gagal memuat kalender: ' + (err && err.message || err));
+    cal.from = ''; cal.to = '';
+  }finally{
+    cal.busy = false; calPaint();
+  }
+}
+
+function calVisible(){ return cal.events.filter(e => !cal.hidden[e.calId]); }
+function calOnDay(list, iso){
+  const a = calParse(iso), b = calParse(calAdd(iso, 1));
+  return list.filter(e => e.s < b && e.e > a);
+}
+function calCalOf(id){ return cal.cals.find(c => c.id === id) || { id, name: id || 'Kalender', color:'#2E6690' }; }
+function calClashes(list){
+  const t = list.filter(e => !e.allDay); let n = 0;
+  for(let i = 0; i < t.length; i++) for(let j = i+1; j < t.length; j++) if(t[j].s < t[i].e && t[i].s < t[j].e) n++;
+  return n;
+}
+function calJoin(ev, now){
+  if(!ev.meet) return null;
+  const open = new Date(ev.s.getTime() - CAL_JOIN_LEAD_MIN * 60000);
+  if(now > ev.e) return { st:'ended' };
+  if(now >= open) return { st:'open' };
+  return { st:'wait', at: calHm(open) };
+}
+
+function calEvCard(ev, now){
+  const c = calCalOf(ev.calId), isNow = !ev.allDay && now >= ev.s && now < ev.e, past = now >= ev.e;
+  const j = calJoin(ev, now);
+  let btn = '';
+  if(j && j.st === 'open') btn = '<a class="cal-join" href="' + escapeHtml(ev.meet) + '" target="_blank" rel="noopener noreferrer"><i class="ti ti-video"></i> Join</a>';
+  else if(j && j.st === 'wait') btn = '<span class="cal-join off" title="Aktif ' + CAL_JOIN_LEAD_MIN + ' menit sebelum mulai"><i class="ti ti-video"></i> Join aktif ' + j.at + '</span>';
+  return '<div class="cal-ev' + (isNow ? ' now' : '') + (past ? ' past' : '') + '"><div class="cal-bar" style="background:' + c.color + '"></div><div class="cal-evb">' +
+    '<div class="cal-evt"><span>' + (ev.allDay ? 'Sepanjang hari' : calHm(ev.s) + ' - ' + calHm(ev.e)) + (isNow ? '<span class="cal-now">Sekarang</span>' : '') + '</span>' +
+    '<span class="cal-tag" style="background:' + c.color + '" title="' + escapeHtml(c.name) + '">' + escapeHtml(calInitials(c.name)) + '</span></div>' +
+    '<div class="cal-ttl">' + escapeHtml(ev.title) + '</div>' + (ev.loc ? '<div class="cal-loc"><i class="ti ti-map-pin"></i> ' + escapeHtml(ev.loc) + '</div>' : '') + btn + '</div></div>';
+}
+
+function calAgendaHtml(now){
+  const day = calOnDay(calVisible(), cal.sel), all = day.filter(e => e.allDay), timed = day.filter(e => !e.allDay);
+  const d = calParse(cal.sel), ttl = (cal.sel === calIso(now) ? 'Hari ini, ' : '') + CAL_DAYS[d.getDay()] + ', ' + d.getDate() + ' ' + CAL_MON[d.getMonth()] + ' ' + d.getFullYear();
+  const hrs = Math.round(timed.reduce((s,e) => s + (e.e - e.s) / 36e5, 0) * 10) / 10;
+  const list = day.length ? '<div class="cal-list">' + all.map(e => calEvCard(e, now)).join('') + timed.map(e => calEvCard(e, now)).join('') + '</div>' : '<div class="cal-empty">Tidak ada agenda di tanggal ini</div>';
+  return '<div class="cal-grid"><div><div class="cal-daytitle">' + ttl + '</div>' + list + '</div><div class="cal-kpis">' +
+    '<div class="cal-kpi"><small>Agenda hari dipilih</small><b>' + day.length + '</b></div>' +
+    '<div class="cal-kpi"><small>Total jam meeting</small><b>' + hrs + ' jam</b></div>' +
+    '<div class="cal-kpi"><small>Jadwal bentrok</small><b style="color:' + (calClashes(day) ? 'var(--red-fg)' : 'inherit') + '">' + calClashes(day) + '</b></div></div></div>';
+}
+
+function calWeekHtml(now){
+  const mon = calMonday(cal.sel), days = [0,1,2,3,4,5,6].map(i => calAdd(mon, i)), vis = calVisible();
+  let h0 = 8, h1 = 17;
+  days.forEach(iso => calOnDay(vis, iso).filter(e => !e.allDay).forEach(e => { h0 = Math.min(h0, e.s.getHours()); h1 = Math.max(h1, e.e.getHours() + (e.e.getMinutes() ? 1 : 0)); }));
+  h0 = Math.max(0, h0); h1 = Math.min(24, Math.max(h1, h0 + 4));
+  const PX = 48, today = calIso(now);
+  let head = '<div class="cal-wk-h"><div></div>' + days.map(iso => { const d = calParse(iso); return '<div class="' + (iso === today ? 'today' : '') + '">' + CAL_DAYS[d.getDay()].slice(0,3) + '<b>' + d.getDate() + '</b></div>'; }).join('') + '</div>';
+  let hrs = '<div class="cal-hrs">'; for(let h = h0; h < h1; h++) hrs += '<div>' + String(h).padStart(2,'0') + ':00</div>'; hrs += '</div>';
+  const cols = days.map(iso => {
+    const a = calParse(iso), items = calOnDay(vis, iso).filter(e => !e.allDay).map(e => {
+      const s = Math.max(e.s, a), en = Math.min(e.e, calParse(calAdd(iso, 1)));
+      return { e, top: ((s - a) / 36e5 - h0) * PX, ht: Math.max(18, (en - s) / 36e5 * PX), s, en };
+    }).sort((x,y) => x.s - y.s);
+    const colEnd = []; let cluster = [], clEnd = 0; const done = [];
+    const flush = () => { const n = Math.max(1, ...cluster.map(x => x.col + 1)); cluster.forEach(x => { x.n = n; done.push(x); }); cluster = []; colEnd.length = 0; };
+    items.forEach(it => {
+      if(cluster.length && it.s >= clEnd) flush();
+      let c = colEnd.findIndex(t => t <= it.s); if(c < 0){ c = colEnd.length; colEnd.push(0); }
+      colEnd[c] = it.en; it.col = c; cluster.push(it); clEnd = Math.max(clEnd, +it.en);
+    });
+    flush();
+    const blocks = done.map(it => { const c = calCalOf(it.e.calId), w = 100 / it.n;
+      return '<div class="cal-blk" data-act="day" data-d="' + iso + '" style="top:' + it.top + 'px;height:' + it.ht + 'px;left:calc(' + (it.col * w) + '% + 1px);width:calc(' + w + '% - 2px);background:' + c.color + '" title="' + escapeHtml(calHm(it.e.s) + '-' + calHm(it.e.e) + ' ' + it.e.title) + '"><b>' + calHm(it.e.s) + '</b>' + escapeHtml(it.e.title) + '</div>'; }).join('');
+    const nl = iso === today ? '<div class="cal-nowline" style="top:' + (((now - a) / 36e5 - h0) * PX) + 'px"></div>' : '';
+    return '<div class="cal-col" style="height:' + ((h1 - h0) * PX) + 'px">' + blocks + nl + '</div>';
+  }).join('');
+  const allday = days.map(iso => calOnDay(vis, iso).filter(e => e.allDay).map(e => '<div class="cal-allday"><i class="ti ti-calendar"></i>' + CAL_DAYS[calParse(iso).getDay()].slice(0,3) + ' ' + calParse(iso).getDate() + ': ' + escapeHtml(e.title) + '</div>').join('')).join('');
+  return (allday ? '<div style="margin-bottom:8px">' + allday + '</div>' : '') + '<div class="cal-wk"><div class="cal-wk-in">' + head + '<div class="cal-wk-b">' + hrs + cols + '</div></div></div>';
+}
+
+function calPaint(){
+  const root = document.getElementById('calRoot'); if(!root) return;
+  const now = new Date(), sel = calParse(cal.sel), mon = calMonday(cal.sel), vis = calVisible(), today = calIso(now);
+  const stTxt = { ok:'Tersinkron ' + (cal.at ? calHm(cal.at) : ''), demo:'Mode contoh', error:'Gagal sinkron', load:'Memuat...', idle:'' }[cal.status] || '';
+  let banner = '';
+  if(cal.status === 'demo') banner = '<div class="cal-banner">Mode contoh: data di bawah bukan jadwal asli. Isi <b>CAL_SCRIPT_URL</b> dan <b>CAL_TOKEN</b> di script (lihat panduan Code_Calendar.gs) untuk menampilkan Google Calendar harris@sinarmasmining.com.</div>';
+  if(cal.status === 'error') banner = '<div class="cal-banner err">' + escapeHtml(cal.msg) + ' Tekan Refresh untuk mencoba lagi.</div>';
+  const strip = [0,1,2,3,4,5,6].map(i => { const iso = calAdd(mon, i), d = calParse(iso), has = calOnDay(vis, iso).length > 0;
+    return '<div class="cal-d' + (iso === cal.sel ? ' sel' : '') + (iso === today ? ' today' : '') + '" data-act="day" data-d="' + iso + '"><small>' + CAL_DAYS[d.getDay()].slice(0,3) + '</small><b>' + d.getDate() + '</b><i>' + (has ? '<span></span>' : '') + '</i></div>'; }).join('');
+  const chips = cal.cals.map(c => '<span class="cal-chip' + (cal.hidden[c.id] ? ' off' : '') + '" data-act="tog" data-c="' + escapeHtml(c.id) + '"><i style="background:' + c.color + '"></i>' + escapeHtml(c.name) + '</span>').join('');
+  root.innerHTML =
+    '<div class="cal-head"><div class="cal-acc"><div class="cal-av">' + escapeHtml((cal.account || 'H')[0].toUpperCase()) + '</div><div><b>Kalender</b><small>' + escapeHtml(cal.account || 'harris@sinarmasmining.com') + '</small></div></div>' +
+    '<div class="cal-tools"><span class="cal-sync"><span class="cal-dot ' + (cal.status === 'load' ? 'load' : cal.status) + '"></span>' + stTxt + '</span>' +
+    '<div class="cal-seg"><button class="cal-btn' + (cal.view === 'agenda' ? ' on' : '') + '" data-act="view" data-v="agenda">Agenda</button><button class="cal-btn' + (cal.view === 'week' ? ' on' : '') + '" data-act="view" data-v="week">Minggu</button></div>' +
+    '<button class="cal-btn" data-act="today"><i class="ti ti-calendar-event"></i> Hari ini</button><button class="cal-btn" data-act="refresh" aria-label="Refresh"><i class="ti ti-refresh"></i></button></div></div>' + banner +
+    '<div class="cal-strip"><div class="cal-nav"><button class="cal-btn" data-act="prev" aria-label="Minggu sebelumnya"><i class="ti ti-chevron-left"></i></button><h3>' + CAL_MON[sel.getMonth()] + ' ' + sel.getFullYear() + '</h3><button class="cal-btn" data-act="next" aria-label="Minggu berikutnya"><i class="ti ti-chevron-right"></i></button></div><div class="cal-days">' + strip + '</div></div>' +
+    (chips ? '<div class="cal-chips">' + chips + '</div>' : '') +
+    (cal.view === 'agenda' ? calAgendaHtml(now) : calWeekHtml(now)) +
+    '<div class="cal-foot">Tombol Join aktif ' + CAL_JOIN_LEAD_MIN + ' menit sebelum meeting dimulai. Hanya baca, tidak mengubah Google Calendar.</div>';
+}
+
+function calShift(days){ cal.sel = calAdd(cal.sel, days); calPaint(); calLoad(false); }
+
+function calBind(){
+  const root = document.getElementById('calRoot'); if(!root || root.dataset.bound) return;
+  root.dataset.bound = '1';
+  root.addEventListener('click', ev => {
+    const t = ev.target.closest('[data-act]'); if(!t) return;
+    const a = t.dataset.act;
+    if(a === 'view'){ cal.view = t.dataset.v; calPaint(); }
+    else if(a === 'day'){ cal.sel = t.dataset.d; calPaint(); calLoad(false); }
+    else if(a === 'prev') calShift(-7);
+    else if(a === 'next') calShift(7);
+    else if(a === 'today'){ cal.sel = calIso(new Date()); calPaint(); calLoad(false); }
+    else if(a === 'refresh') calLoad(true);
+    else if(a === 'tog'){ const id = t.dataset.c; if(cal.hidden[id]) delete cal.hidden[id]; else cal.hidden[id] = 1; calSaveHidden(); calPaint(); }
+  });
+}
+
+function renderKalender(){
+  if(!cal.sel) cal.sel = calIso(new Date());
+  if(!cal.inited){
+    cal.inited = true; calLoadHidden(); calBind();
+    if(CAL_SCRIPT_URL){ try{ const c = JSON.parse(localStorage.getItem(CAL_CACHE_KEY) || 'null'); if(c && c.data){ calApply(c.data, false); cal.at = new Date(c.at); } }catch(e){} }
+  }
+  calPaint();
+  calLoad(false);
+  if(!cal.tick) cal.tick = setInterval(() => { const v = document.getElementById('view-kalender'); if(v && v.classList.contains('active')) calPaint(); }, 30000);
+  if(!cal.timer) cal.timer = setInterval(() => { const v = document.getElementById('view-kalender'); if(v && v.classList.contains('active') && CAL_SCRIPT_URL) calLoad(true); }, CAL_REFRESH_MS);
+}
 
 /* ===== HANDOVER JOB: otomatis dari Task List, dikelompokkan per Project ===== */
 const HO_STATUS_MAP = { 'Belum Mulai':'Open', 'Proses':'Onprogress', 'Selesai':'Done' };
@@ -6254,7 +6548,7 @@ function wmxRenderSys(){
 
 /* ---------- 3 Project ---------- */
 /* Project non-WIM yang tidak ditampilkan di Weekly Meeting WIM (tetap ada di menu Projects). Tambah nama lain dengan | */
-const WMX_PROJ_HIDE = /urise|synova/i;
+const WMX_PROJ_HIDE = /urise|synova|aebs/i;
 function wmxRenderProj(){
   let rows = [];
   try{ rows = prjItems.filter(p => !WMX_PROJ_HIDE.test(p.name || '')).map(p => ({ p, s: prjStatus(p) })).filter(x => x.s.st !== 'done'); }catch(e){ rows = []; }
@@ -12791,7 +13085,7 @@ function prjRenderDetail(){
   if(!p){ box.innerHTML = '<div class="pj-empty">Select a project to see its status, milestones, and risks.</div>'; return; }
   box.innerHTML = prjDetailHtml(p);
 }
-function prjRenderAll(){ prjRenderMain(); prjRenderDetail(); }
+function prjRenderAll(){ prjRenderMain(); prjRenderDetail(); prjSyncAebsBtn(); }
 async function renderProjects(){
   await tlPicManager.load();
   await taskStatusManager.load();
@@ -12897,6 +13191,53 @@ async function prjImportPlan(){
   }
 }
 document.getElementById('pjImportBtn').onclick = prjImportPlan;
+
+/* ---- Plan AEBS: integrasi input controller (aktivitas TANPA tanggal) ----
+   Sumber: tabel plan Input / Pin / Fungsi / Integrasi / Status. Hanya butir berstatus "Plan" menjadi aktivitas,
+   supaya progres tidak naik karena IN-1/IN-2 yang sudah Aktif di AEBS V1. Peta lengkap disimpan di catatan project.
+   Tanggal sengaja kosong: isi lewat jadwal (klik "Belum ada tanggal"). Aman dijalankan ulang (dikenali dari seed). */
+const PRJ_AEBS_SEED = 'plan-aebs-input-v2-tailgate';
+const PRJ_AEBS_NOTE = 'Plan integrasi input AEBS. Tanggal pelaksanaan belum ditentukan; isi di jadwal setelah ditetapkan.\n\nPeta input (Input / Pin / Fungsi / Integrasi / Status):\nIN-1 / 27 / Softbrake AEBS / AEBS V1 / Active\nIN-2 / 26 / Fullbrake AEBS / AEBS V1 / Active\nIN-3 / 11 / Heartbeat / AEBS V2 / Plan\nIN-4 / 25 / Reserve / - / Cadangan\nIN-5 / 24 / Fatigue Trigger AEBS / AEBS V2 / Plan\nIN-6 / 6 / Geofence TIA AEBS / AEBS V2 / Plan\nIN-7 / 20 / PTO / Tailgate / Plan\nIN-9 / 9 / Proximity / Tailgate / Plan';
+const PRJ_AEBS_MS = [
+  'IN-3 Heartbeat, Pin 11 (AEBS V2)',
+  'IN-5 Fatigue Trigger AEBS, Pin 24 (AEBS V2)',
+  'IN-6 Geofence TIA AEBS, Pin 6 (AEBS V2)',
+  'IN-7 PTO, Pin 20 (Tailgate)',
+  'IN-9 Proximity, Pin 9 (Tailgate)'
+];
+function prjSyncAebsBtn(){
+  const b = document.getElementById('pjAebsBtn'); if(!b) return;
+  b.style.display = prjItems.some(p => p.seed === PRJ_AEBS_SEED) ? 'none' : '';
+}
+async function prjImportAebs(){
+  const btn = document.getElementById('pjAebsBtn'), label = btn.textContent;
+  btn.textContent = 'Menambahkan...';
+  try{
+    await prjLoad(true);
+    if(prjStore.isFailed()){ showToast('Backend tidak terjangkau. Penambahan dibatalkan dan tidak ada data yang diubah.', 'error'); return; }
+    if(prjItems.some(p => p.seed === PRJ_AEBS_SEED)){ prjSyncAebsBtn(); showToast('Project AEBS sudah ada di Projects.', 'success'); return; }
+    const t0 = Date.now();
+    const p = prjNormalize({
+      id: 'pj' + t0 + 'x' + Math.floor(Math.random() * 1000), seed: PRJ_AEBS_SEED,
+      name: 'AEBS - Integrasi Input V2 dan Tailgate', phase: 'Plan integrasi', start: '', target: '',
+      progress: 0, progressMode: 'acts', statusMode: 'manual', status: 'plan',
+      note: PRJ_AEBS_NOTE, createdAt: t0,
+      milestones: PRJ_AEBS_MS.map((n, k) => ({ id: 'pm' + t0 + 'x' + k, name: n, start: '', date: '', done: false }))
+    });
+    p.updatedAt = t0; p.updatedBy = tlAuthorName();
+    prjItems.unshift(p);
+    prjFilter = null; prjSel = p.id;
+    prjRenderAll();
+    await prjStore.save();
+    showToast('Project AEBS ditambahkan (' + PRJ_AEBS_MS.length + ' aktivitas tanpa tanggal). Isi tanggal dan PIC di panel detail.', 'success');
+  }catch(err){
+    showToast('Gagal menambah project AEBS: ' + (err && err.message ? err.message : err), 'error');
+  }finally{
+    btn.textContent = label;
+  }
+}
+document.getElementById('pjAebsBtn').onclick = prjImportAebs;
+
 
 /* ==================================================================
    JADWAL INTERAKTIF -- editor timeline per project
