@@ -194,10 +194,31 @@
   .btn-ghost:hover{border-color:var(--accent);color:var(--accent);}
   .btn:active{transform:scale(.96);}
 
-  .fu-summary-wrap{position:relative;}
-  .fu-sync-slot{position:absolute;top:0;right:0;width:calc((100% - 5*14px)/6);display:flex;flex-direction:column;align-items:stretch;gap:6px;}
-  .fu-sync-slot #orderformSyncInfo{font-size:10.5px;color:#889;text-align:right;line-height:1.3;}
-  @media (max-width:900px){.fu-sync-slot{position:static;width:auto;flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:space-between;margin:-8px 0 14px;}.fu-sync-slot #orderformSyncBtn{width:auto!important;}}
+  .of-head{display:none;position:relative;align-items:center;gap:8px;margin-right:6px;}
+  body:has(#view-followup.active) .of-head{display:flex;}
+  .of-head .of-link{display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;padding:6px 10px;border-radius:8px;transition:background .15s ease;user-select:none;}
+  .of-head .of-link:hover{background:var(--border);}
+  .of-head .of-link i{font-style:normal;transition:transform .18s ease;}
+  .of-head .of-link:hover i{transform:translate(2px,-2px);}
+  .of-sync{position:relative;width:32px;height:32px;border-radius:50%;border:1px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:0;color:var(--text-secondary);cursor:pointer;padding:0;font-family:inherit;transition:background .18s ease,color .18s ease;}
+  .of-sync:hover{background:var(--accent);color:#fff;}
+  .of-sync .of-ic{display:block;line-height:1;}
+  .of-sync .of-ic svg{width:16px;height:16px;}
+  .of-sync.chk .of-ic{animation:ofSpin .8s linear infinite;}
+  @keyframes ofSpin{to{transform:rotate(360deg);}}
+  .of-sync .of-ring{position:absolute;inset:-4px;border-radius:50%;border:1.5px solid #639922;opacity:0;animation:ofRing 2.4s ease-out infinite;pointer-events:none;}
+  .of-sync.chk .of-ring{border-color:#BA7517;animation-duration:.9s;}
+  .of-sync.new .of-ring{border-color:#E24B4A;animation-duration:1.2s;}
+  .of-sync.err .of-ring{border-color:#BA7517;animation:none;}
+  @keyframes ofRing{0%{transform:scale(.8);opacity:.7;}100%{transform:scale(1.5);opacity:0;}}
+  .of-sync .of-dot{position:absolute;top:-2px;right:-2px;width:10px;height:10px;border-radius:50%;background:#639922;border:2px solid var(--surface);}
+  .of-sync.chk .of-dot,.of-sync.err .of-dot{background:#BA7517;}
+  .of-sync.new .of-dot{background:#E24B4A;}
+  .of-sync .of-badge{position:absolute;top:-9px;right:-11px;min-width:18px;height:18px;border-radius:9px;background:#E24B4A;color:#fff;font-size:11px;font-weight:600;display:none;align-items:center;justify-content:center;padding:0 5px;animation:ofPop .5s;}
+  .of-sync.new .of-badge{display:flex;}
+  @keyframes ofPop{0%{transform:scale(0);}60%{transform:scale(1.3);}100%{transform:scale(1);}}
+  .of-head .of-tip{position:absolute;top:calc(100% + 8px);right:0;max-width:260px;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:11px;font-weight:400;line-height:1.35;text-align:left;white-space:normal;opacity:0;transform:translateY(-4px);pointer-events:none;transition:opacity .15s ease,transform .15s ease;z-index:50;box-shadow:0 4px 12px rgba(15,27,44,.12);}
+  .of-sync:hover + .of-tip,.of-sync:focus-visible + .of-tip{opacity:1;transform:translateY(0);}
   .summary{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-bottom:22px;}
   .summary .card{background:var(--surface);border-radius:12px;padding:16px 18px;text-align:left;box-shadow:none;
     transition:border-color .15s ease,transform .18s ease,box-shadow .18s ease;border:1px solid var(--border);}
@@ -2088,6 +2109,14 @@
         <div class="sub" id="pageSub">Ringkasan Operasional Site</div>
       </div>
       <div class="topbar-right">
+        <div class="of-head" id="orderformBox">
+          <span class="of-link" id="orderformLink" role="link" tabindex="0" aria-label="Buka Google Sheet Link Order" title="Buka Google Sheet Order Form"><span>Link Order</span><i aria-hidden="true">↗</i></span>
+          <button type="button" class="of-sync" id="orderformSyncBtn" aria-label="Cek ulang pengajuan baru">
+            <span class="of-ring"></span><span class="of-ic" id="orderformSyncIc"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.9-3M4 5v4h4"/><path d="M4 13a8 8 0 0 0 14.9 3M20 19v-4h-4"/></svg></span><span class="of-dot"></span><span class="of-badge" id="orderformBadge">0</span>
+          </button>
+          <span class="of-tip" id="orderformSyncInfo" role="status">Belum pernah cek Order Form.</span>
+          <button type="button" class="btn btn-ghost" id="waTestBtn" title="Test Notif WA" aria-label="Test Notif WA" style="display:none;font-size:15px;padding:6px 10px;line-height:1;">📲</button>
+        </div>
         <div class="wima-mic-widget">
           <div class="sync-widget" id="wimaMicWidget" title="WIMA is always listening — say &quot;WIMA wake up&quot; to talk to her">
             <div class="sync-orb idle" id="wimaMicOrb">
@@ -2496,14 +2525,7 @@
         </div>
       </div>
 
-      <div class="fu-summary-wrap">
-        <div class="summary" id="fuSummaryCards"></div>
-        <div class="fu-sync-slot">
-          <button type="button" class="btn btn-ghost" id="waTestBtn" title="Test Notif WA" aria-label="Test Notif WA" style="display:none;font-size:15px;padding:6px 10px;line-height:1;">📲</button>
-          <button type="button" class="btn btn-ghost" id="orderformSyncBtn" title="Buka Google Sheet Order Form" style="font-size:11.5px;padding:8px 10px;white-space:normal;width:100%;line-height:1.3;">🔄 Cek Pengajuan Baru (Order Form)</button>
-          <span id="orderformSyncInfo">Belum pernah cek Order Form.</span>
-        </div>
-      </div>
+      <div class="summary" id="fuSummaryCards"></div>
 
       <div class="fu-topbar" style="margin-bottom:12px;">
         <div class="fu-toolbar" id="fuFilterBar" style="margin-bottom:0;"></div>
@@ -14515,6 +14537,23 @@ function orderRowToFollowUp(row, rowNum){
   };
 }
 
+const ORDERFORM_ICON_REFRESH = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.9-3M4 5v4h4"/><path d="M4 13a8 8 0 0 0 14.9 3M20 19v-4h-4"/></svg>';
+const ORDERFORM_ICON_BELL = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>';
+function setOrderformState(state, count){
+  const b = document.getElementById('orderformSyncBtn');
+  const box = document.getElementById('orderformBox');
+  const ic = document.getElementById('orderformSyncIc');
+  const bd = document.getElementById('orderformBadge');
+  if(!b) return;
+  b.classList.remove('chk','new','err');
+  if(box) box.classList.remove('is-new');
+  if(ic) ic.innerHTML = ORDERFORM_ICON_REFRESH;
+  if(state === 'chk'){ b.classList.add('chk'); }
+  else if(state === 'new' && count > 0){
+    b.classList.add('new'); if(box) box.classList.add('is-new');
+    if(ic) ic.innerHTML = ORDERFORM_ICON_BELL; if(bd) bd.textContent = count;
+  } else if(state === 'err'){ b.classList.add('err'); }
+}
 function setOrderformSyncInfo(text){
   const el = document.getElementById('orderformSyncInfo');
   if(el) el.textContent = text;
@@ -14530,7 +14569,7 @@ async function syncOrderForm(opts){
     return;
   }
   const btn = document.getElementById('orderformSyncBtn');
-  if(btn && !opts.silent){ btn.disabled = true; btn.textContent = '🔄 Mengecek...'; }
+  if(btn && !opts.silent){ btn.disabled = true; setOrderformState('chk'); setOrderformSyncInfo('Mengecek Order Form…'); }
   try{
     let lastRow = 1; // baris 1 = header, data dimulai baris 2
     try{
@@ -14594,9 +14633,12 @@ async function syncOrderForm(opts){
   }catch(e){
     console.error('Gagal sync Order Form', e);
     setOrderformSyncInfo('✗ Gagal cek Order Form: ' + e.message);
+    setOrderformState('err');
     if(!opts.silent) showToast('✗ Gagal cek Order Form: ' + e.message, 'error');
   }finally{
-    if(btn && !opts.silent){ btn.disabled = false; btn.textContent = '🔄 Cek Pengajuan Baru (Order Form)'; }
+    if(btn && !opts.silent){ btn.disabled = false; }
+    if(btn) btn.classList.remove('chk');
+    if(typeof updateFollowUpBadge === 'function') updateFollowUpBadge();
   }
 }
 
@@ -14646,6 +14688,8 @@ function updateFollowUpBadge(){
   const n = countUnreadOrderForm();
   if(n > 0){ badge.textContent = n; badge.style.display = 'inline-block'; }
   else { badge.style.display = 'none'; }
+  const sb = document.getElementById('orderformSyncBtn');
+  if(sb && !sb.classList.contains('chk') && !sb.classList.contains('err')) setOrderformState(n > 0 ? 'new' : 'idle', n);
 }
 async function clearOrderFormUnread(){
   let changed = false;
@@ -14655,7 +14699,14 @@ async function clearOrderFormUnread(){
 }
 
 const orderformSyncBtnEl = document.getElementById('orderformSyncBtn');
-if(orderformSyncBtnEl) orderformSyncBtnEl.onclick = () => { window.open('https://docs.google.com/spreadsheets/d/1kP86KEjRVE1caOJAVHzvq_Pql402H_ersXWTIwYKtuw/edit?gid=1976665028#gid=1976665028', '_blank', 'noopener'); };
+const orderformBoxEl = document.getElementById('orderformLink');
+const ORDERFORM_SHEET_URL = "https://docs.google.com/spreadsheets/d/1kP86KEjRVE1caOJAVHzvq_Pql402H_ersXWTIwYKtuw/edit?gid=1976665028#gid=1976665028";
+function openOrderFormSheet(){ window.open(ORDERFORM_SHEET_URL, '_blank', 'noopener'); }
+if(orderformBoxEl){
+  orderformBoxEl.onclick = openOrderFormSheet;
+  orderformBoxEl.onkeydown = (e) => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); openOrderFormSheet(); } };
+}
+if(orderformSyncBtnEl) orderformSyncBtnEl.onclick = (e) => { e.stopPropagation(); syncOrderForm({ silent: false }); };
 
 const waTestBtnEl = document.getElementById('waTestBtn');
 if(waTestBtnEl){
