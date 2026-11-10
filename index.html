@@ -6041,6 +6041,7 @@ async function fetchPobrSheetData(gid){
    (nama lain di sheet dilewati); nama POB yang tidak ada di sheet dipertahankan; sel kosong di sheet
    tidak menghapus status lama. Tanggal digabung (union) supaya rentang lama tidak hilang. */
 const POBR_NAME_ALIAS = { 'danicahyasuryanda':'Dani Suryanda', 'arsyalraka':'Raka', 'nycofahryansandi':'Nyco', 'alamsyah':'Muhammad Rizki Alamsyah', 'muhammadrizkialamsyah':'Muhammad Rizki Alamsyah', 'alam':'Muhammad Rizki Alamsyah', 'wahyu':'Wahyu', 'ferdy':'Ferdy', 'ferdyjulian':'Ferdy', 'ferdyjuliansiregar':'Ferdy' };
+const POBR_DEFAULT_ROLE = { 'muhammadrizkialamsyah':'Digitech Field Engineer', 'ferdy':'Digitech Field Engineer', 'wahyu':'Digitech Field Engineer' };
 const POBR_AUTO_ADD = ['Muhammad Rizki Alamsyah', 'Wahyu', 'Ferdy']; // nama dari sheet yang otomatis ditambahkan ke POB kalau belum ada
 function pobrMergeSheetIntoBase(base, fresh){
   const baseDates = (base && Array.isArray(base.dates)) ? base.dates : [];
@@ -8411,11 +8412,24 @@ function pobrMerge(raw){
       if(ed.company) q.company = ed.company;
       if(ed.photo) pobrPhotoByName[pobrNormalizeAlias(q.name)] = ed.photo;
     }
+    if(!q.role && POBR_DEFAULT_ROLE[key]) q.role = POBR_DEFAULT_ROLE[key];
     people.push(q);
   });
   pobrOverlay.members.forEach(m => {
     if(m.hidden) return;
     const st = m.st || {};
+    /* Anti-duplikat: member manual yang namanya sama (atau alias-nya sama) dengan personel dari sheet
+       tidak ditampilkan lagi sebagai baris terpisah; role/company/foto/status manualnya digabung ke baris sheet. */
+    const mk = pobrNormalizeAlias(m.name);
+    const mc = POBR_NAME_ALIAS[mk] ? pobrNormalizeAlias(POBR_NAME_ALIAS[mk]) : mk;
+    const dup = people.find(x => x._src === 'sheet' && (x._key === mk || x._key === mc || pobrNormalizeAlias(x.name) === mc));
+    if(dup){
+      if(m.role && !dup.role) dup.role = m.role;
+      if(m.company && !dup.company) dup.company = m.company;
+      (raw.dates||[]).forEach((d,i) => { if(!dup.statuses[i] && st[d]) dup.statuses[i] = st[d]; });
+      if(m.photo) pobrPhotoByName[pobrNormalizeAlias(dup.name)] = m.photo;
+      return;
+    }
     people.push({ name:m.name, photo:null, role:m.role, company:m.company, _src:'manual', _id:m.id, statuses:(raw.dates||[]).map(d => st[d] || 0) });
     if(m.photo) pobrPhotoByName[pobrNormalizeAlias(m.name)] = m.photo;
   });
