@@ -5651,6 +5651,7 @@ function hoGroups(){
   const map = new Map();
   taskListItems.forEach(it => {
     if(!it || !it.id) return;
+    if(tlIsSapTask(it)) return;   /* task "SAP" tidak ditampilkan di report Handover */
     const pn = it.projectId ? ((prjById(it.projectId) || {}).name || 'Project terhapus') : 'Tanpa Project';
     if(!map.has(pn)) map.set(pn, []);
     map.get(pn).push(it);
@@ -5664,7 +5665,7 @@ function hoRowData(it){
   if(it.deadline) det.push('Deadline: ' + hoDs(it.deadline) + (it.time ? ' ' + tlTimeRange(it) : ''));
   (it.subs || []).forEach(sb => det.push((sb.done ? '[x] ' : '[ ] ') + sb.title));
   const follow = (it.notes || []).filter(n => n && n.tx).slice().sort((a,b) => a.ts - b.ts).map(n => 'Update ' + hoMs(n.ts) + ': ' + n.tx);
-  return { title: it.desc || '', details: det, follow, status: hoStatus(it) };
+  return { title: it.desc || '', details: det, follow, status: (hoStatus(it) === 'Open' ? '' : hoStatus(it)) };
 }
 function hoPeriodText(){
   const f = hoPeriod && hoPeriod.from ? hoDs(hoPeriod.from) : '';
@@ -5676,7 +5677,7 @@ function hoBuildInner(){
   const header = [
     ['Document Name', 'Operations – Handover Job'],
     ['Period', hoPeriodText()],
-    ['Department', 'Digital Sustainability Operation (DSO)'],
+    ['Department', 'Digital Operational Maintenance'],
     ['Division', 'Digital & Technology Solutions']
   ];
   let h = '<table style="border-collapse:collapse;width:100%;margin-bottom:8px;' + HO_FONT + '">';
@@ -5777,7 +5778,7 @@ async function hoExportPpt(){
   cover.addTable([
     [hdrCell('Document Name'), valCell('Operations – Handover Job')],
     [hdrCell('Period'), valCell(hoPeriodText())],
-    [hdrCell('Department'), valCell('Digital Sustainability Operation (DSO)')],
+    [hdrCell('Department'), valCell('Digital Operational Maintenance')],
     [hdrCell('Division'), valCell('Digital & Technology Solutions')]
   ], { x: 0.6, y: 1.4, w: 9, colW: [2.8, 6.2], fontFace: 'Arial Narrow', fontSize: 12, border: { type: 'solid', pt: 0.5, color: '000000' } });
   const colHead = [hdrCell('No'), hdrCell('Task'), hdrCell('Follow up'), hdrCell('Status')];
