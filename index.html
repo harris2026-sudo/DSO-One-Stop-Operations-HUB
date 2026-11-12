@@ -5634,7 +5634,6 @@ function renderKalender(){
 }
 
 /* ===== HANDOVER JOB: otomatis dari Task List, dikelompokkan per Project ===== */
-const HO_STATUS_MAP = { 'Belum Mulai':'Open', 'Proses':'Onprogress', 'Selesai':'Done' };
 const HO_PERIOD_KEY = 'handover:period';
 let hoPeriod = null;
 let hoPeriodLoaded = false;
@@ -5644,8 +5643,9 @@ const HO_FONT = "font-family:'Arial Narrow',Arial,sans-serif;font-size:10pt;line
 function hoDs(ds){ if(!ds) return ''; const p = String(ds).split('-'); return p.length === 3 ? p[2] + '/' + p[1] + '/' + p[0] : String(ds); }
 function hoMs(ms){ const d = new Date(ms); if(isNaN(d)) return ''; return String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0') + '/' + d.getFullYear(); }
 function hoStatus(it){
+  /* Nama status = persis nama di dropdown Task List (status bisa dikelola user), tanpa konversi */
   if(taskStatusManager.isDone(it.status)) return 'Done';
-  return HO_STATUS_MAP[it.status] || it.status || 'Open';
+  return it.status || 'Open';
 }
 function hoGroups(){
   const map = new Map();
@@ -5666,7 +5666,7 @@ function hoRowData(it){
   if(it.deadline) det.push('Deadline: ' + hoDs(it.deadline) + (it.time ? ' ' + tlTimeRange(it) : ''));
   (it.subs || []).forEach(sb => det.push((sb.done ? '[x] ' : '[ ] ') + sb.title));
   const follow = (it.notes || []).filter(n => n && n.tx).slice().sort((a,b) => a.ts - b.ts).map(n => 'Update ' + hoMs(n.ts) + ': ' + n.tx);
-  return { title: it.desc || '', details: det, follow, status: (hoStatus(it) === 'Open' ? '' : hoStatus(it)) };
+  return { title: it.desc || '', details: det, follow, status: hoStatus(it) };   /* semua status ditampilkan, termasuk Open */
 }
 function hoPeriodText(){
   const f = hoPeriod && hoPeriod.from ? hoDs(hoPeriod.from) : '';
