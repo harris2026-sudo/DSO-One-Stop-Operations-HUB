@@ -5652,6 +5652,7 @@ function hoGroups(){
   taskListItems.forEach(it => {
     if(!it || !it.id) return;
     if(tlIsSapTask(it)) return;   /* task "SAP" tidak ditampilkan di report Handover */
+    if(hoStatus(it) === 'Done') return;   /* task Done tidak ditampilkan di report Handover */
     const pn = it.projectId ? ((prjById(it.projectId) || {}).name || 'Project terhapus') : 'Tanpa Project';
     if(!map.has(pn)) map.set(pn, []);
     map.get(pn).push(it);
@@ -5691,7 +5692,7 @@ function hoBuildInner(){
      + '<thead><tr style="background:#323E4F;color:#fff;font-weight:bold;">'
      + '<td style="text-align:center;' + HO_CELL + '">No</td><td style="' + HO_CELL + '">Task</td><td style="' + HO_CELL + '">Follow up</td><td style="text-align:center;' + HO_CELL + '">Status</td></tr></thead><tbody>';
   if(!groups.length){
-    h += '<tr><td colspan="4" style="text-align:center;padding:8px;' + HO_CELL + '">Belum ada task di Task List.</td></tr>';
+    h += '<tr><td colspan="4" style="text-align:center;padding:8px;' + HO_CELL + '">Tidak ada task aktif untuk periode ini.</td></tr>';
   }
   groups.forEach(g => {
     h += '<tr style="background:#D5DCE4;"><td colspan="4" style="font-weight:bold;font-size:12pt;padding:4px 6px;' + HO_CELL + '">' + escapeHtml(g[0]) + '</td></tr>';
