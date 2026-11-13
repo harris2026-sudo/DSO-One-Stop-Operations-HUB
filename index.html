@@ -5657,9 +5657,49 @@ function hoGroups(){
     if(!map.has(pn)) map.set(pn, []);
     map.get(pn).push(it);
   });
+  /* Project: hanya yang punya minimal satu task berstatus Open dan belum Done -> baris Project jadi nomor pertama di grupnya */
+  if(typeof prjItems !== 'undefined'){
+    prjItems.forEach(p => {
+      if(!p || !p.id || !map.has(p.name)) return;
+      const st = prjStatus(p).st;
+      if(st === 'done') return;
+      const hasOpen = taskListItems.some(t => t && t.projectId === p.id && !tlIsSapTask(t) && !tlIsDone(t) && String(t.status || '').trim().toLowerCase() === 'open');
+      if(hasOpen) map.get(p.name).unshift({ _ho:'project', p, st });
+    });
+  }
+  /* Open Issue: semua yang belum Closed, masuk ke grup "Tanpa Project" setelah task biasa */
+  if(typeof oiData !== 'undefined' && oiData && Array.isArray(oiData.items)){
+    oiData.items.filter(x => x && x.st < 3).forEach(x => {
+      if(!map.has('Tanpa Project')) map.set('Tanpa Project', []);
+      map.get('Tanpa Project').push({ _ho:'issue', x });
+    });
+  }
   return [...map.entries()].sort((a,b) => a[0] === 'Tanpa Project' ? 1 : b[0] === 'Tanpa Project' ? -1 : a[0].localeCompare(b[0]));
 }
 function hoRowData(it){
+  if(it && it._ho === 'issue'){
+    const x = it.x, det = [];
+    if(x.pics && x.pics.length) det.push('PIC: ' + x.pics.join(', '));
+    if(x.sys) det.push('Sistem: ' + x.sys);
+    det.push('Prioritas: ' + (OI_PRI_EN[x.pri] || x.pri));
+    if(x.lok) det.push('Area: ' + x.lok);
+    if(x.vendor) det.push('Mitra: ' + x.vendor);
+    if(x.na) det.push('Aksi berikutnya: ' + x.na);
+    if(x.nd) det.push('Batas aksi: ' + oiFmt(x.nd));
+    const follow = (x.log || []).filter(l => l && l.tx).map(l => 'Update ' + oiFmt(l.at) + ': ' + l.tx);
+    if(x.st === 2 && x.why) follow.unshift('Menunggu: ' + x.why);
+    return { tag: 'Open Issue', title: x.t || '', details: det, follow, status: OI_COLS[x.st] || '' };
+  }
+  if(it && it._ho === 'project'){
+    const p = it.p, det = [];
+    if(p.pics && p.pics.length) det.push('PIC: ' + p.pics.join(', '));
+    if(p.target) det.push('Target: ' + hoDs(p.target));
+    det.push('Progress: ' + prjProgress(p) + '%');
+    det.push('Milestone: ' + prjNextMs(p));
+    const follow = p.note ? [p.note] : [];
+    const meta = PRJ_STATUS[it.st];
+    return { tag: 'Project', title: p.name || '', details: det, follow, status: meta ? meta.l : '' };
+  }
   const det = [];
   if(it.pic) det.push('PIC: ' + it.pic);
   if(it.vendor) det.push('Mitra: ' + it.vendor);
@@ -5699,7 +5739,7 @@ function hoBuildInner(){
     g[1].forEach((it, idx) => {
       const r = hoRowData(it);
       h += '<tr style="background:#D4DCE4;"><td style="text-align:center;' + HO_CELL + '">' + (idx+1) + '.</td>'
-         + '<td style="font-weight:bold;' + HO_CELL + '">' + escapeHtml(r.title) + '</td><td style="' + HO_CELL + '"></td><td style="' + HO_CELL + '"></td></tr>';
+         + '<td style="font-weight:bold;' + HO_CELL + '">' + (r.tag ? '<span style="font-size:8pt;font-weight:bold;padding:0 4px;margin-right:4px;background:' + (r.tag === 'Project' ? '#DCD3F2;color:#3F2A78' : '#FCE8C8;color:#7A4A00') + ';">' + escapeHtml(r.tag) + '</span>' : '') + escapeHtml(r.title) + '</td><td style="' + HO_CELL + '"></td><td style="' + HO_CELL + '"></td></tr>';
       h += '<tr style="background:#fff;"><td style="' + HO_CELL + '"></td>'
          + '<td style="' + HO_CELL + '">' + r.details.map(d => '<div>● ' + escapeHtml(d) + '</div>').join('') + '</td>'
          + '<td style="text-align:justify;' + HO_CELL + '">' + r.follow.map(f => '<div>' + escapeHtml(f) + '</div>').join('') + '</td>'
@@ -5724,6 +5764,8 @@ async function hoSavePeriod(){
 }
 async function renderHandover(){
   await hoLoadPeriod();
+  try{ if(!oiData) await oiLoad(); }catch(e){}
+  try{ await prjLoad(); }catch(e){}
   const fromEl = document.getElementById('hoFrom');
   const toEl = document.getElementById('hoTo');
   if(fromEl && !fromEl.dataset.bound){
@@ -5804,7 +5846,7 @@ async function hoExportPpt(){
         n++;
         rows.push([
           { text: n + '.', options: { bold: true, align: 'center', fill: { color: 'D4DCE4' } } },
-          { text: r.title, options: { bold: true, fill: { color: 'D4DCE4' } } },
+          { text: (r.tag ? '[' + r.tag + '] ' : '') + r.title, options: { bold: true, fill: { color: 'D4DCE4' } } },
           { text: '', options: { fill: { color: 'D4DCE4' } } },
           { text: '', options: { fill: { color: 'D4DCE4' } } }
         ]);
