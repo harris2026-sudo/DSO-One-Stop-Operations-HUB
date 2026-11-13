@@ -5772,9 +5772,9 @@ function hoTableHtml(groups, firstCol, emptyMsg, wideFollow){
       const r = hoRowData(it);
       const fol = r.bullets ? hoFollowHtml(r) : r.follow.map(f => '<div>' + escapeHtml(typeof f === 'string' ? f : (f.h || f.b)) + '</div>').join('');
       const fAlign = r.bullets ? 'left' : 'justify';
-      h += '<tr style="background:#D4DCE4;"><td style="text-align:center;' + HO_CELL + '">' + (idx+1) + '.</td>'
+      h += '<tr style="background:#D4DCE4;page-break-inside:avoid;page-break-after:avoid;"><td style="text-align:center;' + HO_CELL + '">' + (idx+1) + '.</td>'
          + '<td style="font-weight:bold;' + HO_CELL + '">' + escapeHtml(r.title) + '</td><td style="' + HO_CELL + '"></td><td style="' + HO_CELL + '"></td></tr>';
-      h += '<tr style="background:#fff;"><td style="' + HO_CELL + '"></td>'
+      h += '<tr style="background:#fff;page-break-inside:avoid;"><td style="' + HO_CELL + '"></td>'
          + '<td style="' + HO_CELL + '">' + r.details.map(d => '<div>● ' + escapeHtml(d) + '</div>').join('') + '</td>'
          + '<td style="text-align:' + fAlign + ';' + HO_CELL + '">' + fol + '</td>'
          + '<td style="text-align:center;' + HO_CELL + '">' + escapeHtml(r.status) + '</td></tr>';
@@ -5789,7 +5789,7 @@ function hoEmptyMsg(k){
   return 'Tidak ada project aktif.';
 }
 function hoSectionBar(t){
-  return '<div style="background:#323E4F;color:#fff;font-weight:bold;padding:3px 6px;margin:10px 0 0;' + HO_FONT + '">' + escapeHtml(t) + '</div>';
+  return '<div style="background:#323E4F;color:#fff;font-weight:bold;padding:3px 6px;margin:10px 0 0;page-break-after:avoid;break-after:avoid;' + HO_FONT + '">' + escapeHtml(t) + '</div>';
 }
 function hoBuildInner(mode){
   const isP = mode === 'project';
@@ -5807,7 +5807,7 @@ function hoBuildInner(mode){
   h += '</table>';
   h += hoSectionBar('A. Task List') + hoTableHtml(hoGroups(), 'Task', hoEmptyMsg('task'), false);
   h += hoSectionBar('B. Open Issue') + hoTableHtml(hoIssueGroups(), 'Open Issue', hoEmptyMsg('issue'), false);
-  if(isP) h += hoSectionBar('C. Project') + hoTableHtml(hpGroups(), 'Project', hoEmptyMsg('project'), true);
+  h += hoSectionBar('C. Project') + hoTableHtml(hpGroups(), 'Project', hoEmptyMsg('project'), true);
   return h;
 }
 async function hoLoadPeriod(){
@@ -5832,7 +5832,13 @@ async function hoLoadSources(){
   try{ await prjLoad(); }catch(e){ console.error('Handover: Project gagal dimuat', e); }
   hoSrcAt = Date.now();
 }
+let hoRendering = false;   /* mencegah render berulang: loadTaskList -> saveTaskList -> hook sinkron -> renderHandover -> ... */
 async function renderHandover(){
+  if(hoRendering) return;
+  hoRendering = true;
+  try{ await renderHandoverInner(); } finally { hoRendering = false; }
+}
+async function renderHandoverInner(){
   await hoLoadPeriod();
   await hoLoadSources();
   const fromEl = document.getElementById('hoFrom');
@@ -5850,7 +5856,13 @@ async function renderHandover(){
   if(pv) pv.innerHTML = hoBuildInner();
 }
 /* Halaman Handover Project: periode dibagi dengan Handover Job */
+let hpRendering = false;
 async function renderHandoverProject(){
+  if(hpRendering) return;
+  hpRendering = true;
+  try{ await renderHandoverProjectInner(); } finally { hpRendering = false; }
+}
+async function renderHandoverProjectInner(){
   await hoLoadPeriod();
   await hoLoadSources();
   const fromEl = document.getElementById('hpFrom');
@@ -5889,14 +5901,16 @@ const HOW_NB = 'border:none;mso-border-alt:none;';
 function howCell(txt, bg, extra, attrs){
   return '<td ' + (attrs || '') + ' bgcolor="' + bg + '" style="' + HOW_NB + 'background:' + bg + ';padding:3pt 5pt;vertical-align:top;' + (extra || '') + '">' + txt + '</td>';
 }
+/* "keep with next" untuk Word: judul bagian, header kolom, dan baris judul item tidak ditinggal sendirian di dasar halaman */
+function howK(t){ return '<p style="margin:0;page-break-after:avoid;mso-pagination:keep-with-next;">' + (t || '&nbsp;') + '</p>'; }
 function howTable(secTitle, groups, firstCol, emptyMsg, wide){
   const cw = wide ? ['5%','41%','42%','12%'] : ['5%','55%','28%','12%'];
   const DK = '#323E4F', LT = '#D4DCE4', BAND = '#D5DCE4', WH = '#FFFFFF';
   let h = '<table border="0" cellspacing="0" cellpadding="0" width="100%" style="border-collapse:collapse;' + HOW_NB + 'width:100%;table-layout:fixed;' + HO_FONT + 'color:#000;">'
     + '<colgroup>' + cw.map(w => '<col width="' + w + '" style="width:' + w + '">').join('') + '</colgroup>';
-  h += '<tr>' + howCell('<b>' + escapeHtml(secTitle) + '</b>', DK, 'color:#FFFFFF;font-size:11pt;', 'colspan="4"') + '</tr>';
-  h += '<tr>' + howCell('<b>No</b>', DK, 'color:#FFFFFF;text-align:center;') + howCell('<b>' + escapeHtml(firstCol) + '</b>', DK, 'color:#FFFFFF;')
-     + howCell('<b>Follow up</b>', DK, 'color:#FFFFFF;') + howCell('<b>Status</b>', DK, 'color:#FFFFFF;text-align:center;') + '</tr>';
+  h += '<tr>' + howCell(howK('<b>' + escapeHtml(secTitle) + '</b>'), DK, 'color:#FFFFFF;font-size:11pt;', 'colspan="4"') + '</tr>';
+  h += '<tr>' + howCell(howK('<b>No</b>'), DK, 'color:#FFFFFF;text-align:center;') + howCell(howK('<b>' + escapeHtml(firstCol) + '</b>'), DK, 'color:#FFFFFF;')
+     + howCell(howK('<b>Follow up</b>'), DK, 'color:#FFFFFF;') + howCell(howK('<b>Status</b>'), DK, 'color:#FFFFFF;text-align:center;') + '</tr>';
   if(!groups.length){
     h += '<tr>' + howCell(escapeHtml(emptyMsg), WH, 'text-align:center;', 'colspan="4"') + '</tr>';
   }
@@ -5905,8 +5919,8 @@ function howTable(secTitle, groups, firstCol, emptyMsg, wide){
     g[1].forEach((it, idx) => {
       const r = hoRowData(it);
       const fol = r.bullets ? hoFollowHtml(r) : r.follow.map(f => '<div>' + escapeHtml(typeof f === 'string' ? f : (f.h || f.b)) + '</div>').join('');
-      h += '<tr>' + howCell((idx + 1) + '.', LT, 'text-align:center;') + howCell('<b>' + escapeHtml(r.title) + '</b>', LT, '') + howCell('', LT, '') + howCell('', LT, '') + '</tr>';
-      h += '<tr>' + howCell('', WH, '')
+      h += '<tr style="page-break-inside:avoid;page-break-after:avoid;">' + howCell(howK((idx + 1) + '.'), LT, 'text-align:center;') + howCell(howK('<b>' + escapeHtml(r.title) + '</b>'), LT, '') + howCell(howK(''), LT, '') + howCell(howK(''), LT, '') + '</tr>';
+      h += '<tr style="page-break-inside:avoid;">' + howCell('', WH, '')
          + howCell(r.details.map(d => '<div>● ' + escapeHtml(d) + '</div>').join(''), WH, '')
          + howCell(fol, WH, 'text-align:' + (r.bullets ? 'left' : 'justify') + ';')
          + howCell(escapeHtml(r.status), WH, 'text-align:center;') + '</tr>';
@@ -5927,7 +5941,7 @@ function hoBuildWord(mode){
     + '</table><p style="margin:0;font-size:6pt;">&nbsp;</p>';
   h += howTable('A. Task List', hoGroups(), 'Task', hoEmptyMsg('task'), false);
   h += howTable('B. Open Issue', hoIssueGroups(), 'Open Issue', hoEmptyMsg('issue'), false);
-  if(isP) h += howTable('C. Project', hpGroups(), 'Project', hoEmptyMsg('project'), true);
+  h += howTable('C. Project', hpGroups(), 'Project', hoEmptyMsg('project'), true);
   return h;
 }
 function hoExportWord(mode){
@@ -5962,7 +5976,7 @@ async function hoExportPpt(mode){
   /* Handover Job: bagian A (task per project) lalu B (Open Issue); Handover Project: daftar project */
   const pptGroups = hoGroups().map(g => [g[0] === 'Tanpa Project' ? 'A. Task List' : g[0], g[1]])
     .concat(hoIssueGroups().map(g => ['B. Open Issue', g[1]]))
-    .concat(isP ? hpGroups().map(g => ['C. Project', g[1]]) : []);
+    .concat(hpGroups().map(g => ['C. Project', g[1]]));
   pptGroups.forEach(g => {
     const items = g[1].map(hoRowData);
     const chunks = []; let cur = [], w = 0;
