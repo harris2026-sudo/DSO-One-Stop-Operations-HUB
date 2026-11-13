@@ -5803,8 +5803,8 @@ function hoBuildInner(mode){
   if(isP){
     h += hoTableHtml(hpGroups(), 'Project', 'Tidak ada project aktif.', true);
   } else {
-    h += hoSectionBar('A. Task List') + hoTableHtml(hoGroups(), 'Task', 'Tidak ada task aktif untuk periode ini.', false);
-    h += hoSectionBar('B. Open Issue') + hoTableHtml(hoIssueGroups(), 'Open Issue', 'Tidak ada Open Issue aktif.', false);
+    h += hoSectionBar('A. Task List') + hoTableHtml(hoGroups(), 'Task', (typeof tlLoadFailed !== 'undefined' && tlLoadFailed) ? 'Task List gagal dimuat dari server. Muat ulang halaman.' : 'Tidak ada task aktif untuk periode ini.', false);
+    h += hoSectionBar('B. Open Issue') + hoTableHtml(hoIssueGroups(), 'Open Issue', (typeof oiFail !== 'undefined' && oiFail) ? 'Open Issue gagal dimuat dari server. Muat ulang halaman.' : 'Tidak ada Open Issue aktif.', false);
   }
   return h;
 }
@@ -5821,9 +5821,18 @@ async function hoLoadPeriod(){
 async function hoSavePeriod(){
   try{ await store.set(HO_PERIOD_KEY, JSON.stringify(hoPeriod)); }catch(e){}
 }
+/* Muat sendiri semua sumber data Handover (tidak bergantung pada Overview / menu Task List yang sudah dibuka lebih dulu) */
+let hoSrcAt = 0;
+async function hoLoadSources(){
+  try{ await taskStatusManager.load(); }catch(e){ console.error('Handover: status Task List gagal dimuat', e); }
+  try{ await loadTaskList(); await tlEnsureStatuses(); }catch(e){ console.error('Handover: Task List gagal dimuat', e); }
+  try{ if(!oiData || oiFail || Date.now() - hoSrcAt > 15000) await oiLoad(); }catch(e){ console.error('Handover: Open Issue gagal dimuat', e); }
+  try{ await prjLoad(); }catch(e){ console.error('Handover: Project gagal dimuat', e); }
+  hoSrcAt = Date.now();
+}
 async function renderHandover(){
   await hoLoadPeriod();
-  try{ if(!oiData) await oiLoad(); }catch(e){}
+  await hoLoadSources();
   const fromEl = document.getElementById('hoFrom');
   const toEl = document.getElementById('hoTo');
   if(fromEl && !fromEl.dataset.bound){
@@ -5841,7 +5850,7 @@ async function renderHandover(){
 /* Halaman Handover Project: periode dibagi dengan Handover Job */
 async function renderHandoverProject(){
   await hoLoadPeriod();
-  try{ await prjLoad(); }catch(e){}
+  try{ await prjLoad(true); }catch(e){}
   const fromEl = document.getElementById('hpFrom');
   const toEl = document.getElementById('hpTo');
   if(fromEl && !fromEl.dataset.bound){
