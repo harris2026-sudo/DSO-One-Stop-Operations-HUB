@@ -5687,6 +5687,24 @@ function hoGroups(){
   return [...map.entries()].sort((a,b) => a[0] === 'Tanpa Project' ? 1 : b[0] === 'Tanpa Project' ? -1 : a[0].localeCompare(b[0]));
 }
 /* Handover Project: semua project yang belum Done, satu baris per project (tanpa band grup) */
+/* Pecah teks panjang menjadi butir per kalimat */
+function hoSplitSentences(t){
+  return String(t || '').split(/\n+/).flatMap(l => l.trim().split(/(?<=[.!?])\s+(?=[A-Z0-9(])/)).map(x => x.trim()).filter(Boolean);
+}
+/* follow: string biasa | {b:'butir'} | {h:'sub-judul'} */
+function hoFollowHtml(r){
+  return r.follow.map(f => {
+    if(typeof f === 'string') return '<div>' + escapeHtml(f) + '</div>';
+    if(f.h) return '<div style="font-weight:bold;margin-top:3px;">' + escapeHtml(f.h) + '</div>';
+    return '<div style="padding-left:10px;text-indent:-10px;margin-bottom:1px;">• ' + escapeHtml(f.b) + '</div>';
+  }).join('');
+}
+function hoFollowText(r){
+  return r.follow.map(f => typeof f === 'string' ? f : (f.h ? f.h : '• ' + f.b)).join('\n');
+}
+function hoFollowLen(r){
+  return r.follow.reduce((a, f) => a + Math.max(1, Math.ceil(String(typeof f === 'string' ? f : (f.h || f.b)).length / 55)), 0);
+}
 function hpGroups(){
   const rows = [];
   if(typeof prjItems !== 'undefined'){
@@ -5694,12 +5712,23 @@ function hpGroups(){
       if(!p || !p.id) return;
       const st = prjStatus(p).st;
       if(st === 'done') return;
+      /* Task dan Open Issue milik project ini ditampilkan di atas baris Project */
+      taskListItems.filter(t => t && t.id && t.projectId === p.id && !tlIsSapTask(t) && !tlIsDone(t))
+        .forEach(t => rows.push({ _ho:'task', t, sub:true }));
+      if(typeof oiData !== 'undefined' && oiData && Array.isArray(oiData.items)){
+        oiData.items.filter(x => x && x.st < 3 && x.prj === p.id).forEach(x => rows.push({ _ho:'issue', x, sub:true }));
+      }
       rows.push({ _ho:'project', p, st });
     });
   }
   return rows.length ? [['', rows]] : [];
 }
 function hoRowData(it){
+  if(it && it._ho === 'task'){
+    const r = hoRowData(it.t);
+    r.tag = 'Task'; r.sub = true;
+    return r;
+  }
   if(it && it._ho === 'issue'){
     const x = it.x, det = [];
     if(x.pics && x.pics.length) det.push('PIC: ' + x.pics.join(', '));
@@ -5711,7 +5740,7 @@ function hoRowData(it){
     if(x.nd) det.push('Batas aksi: ' + oiFmt(x.nd));
     const follow = (x.log || []).filter(l => l && l.tx).map(l => 'Update ' + oiFmt(l.at) + ': ' + l.tx);
     if(x.st === 2 && x.why) follow.unshift('Menunggu: ' + x.why);
-    return { tag: 'Open Issue', title: x.t || '', details: det, follow, status: OI_COLS[x.st] || '' };
+    return { tag: 'Open Issue', sub: !!it.sub, title: x.t || '', details: det, follow, status: OI_COLS[x.st] || '' };
   }
   if(it && it._ho === 'project'){
     const p = it.p, det = [];
@@ -5719,10 +5748,11 @@ function hoRowData(it){
     if(p.target) det.push('Target: ' + hoDs(p.target));
     det.push('Progress: ' + prjProgress(p) + '%');
     det.push('Milestone: ' + prjNextMs(p));
-    const follow = p.note ? [p.note] : [];
-    (p.risks || []).filter(r => r && r.sev === 'h' && r.text).forEach(r => follow.push('Risiko High: ' + r.text));
+    const follow = hoSplitSentences(p.note).map(b => ({ b }));
+    const hr = (p.risks || []).filter(r => r && r.sev === 'h' && r.text);
+    if(hr.length){ follow.push({ h: 'Risiko High' }); hr.forEach(r => follow.push({ b: r.text })); }
     const meta = PRJ_STATUS[it.st];
-    return { title: p.name || '', details: det, follow, status: meta ? meta.l : '' };
+    return { title: p.name || '', details: det, follow, bullets: true, status: meta ? meta.l : '' };
   }
   const det = [];
   if(it.pic) det.push('PIC: ' + it.pic);
@@ -5753,7 +5783,7 @@ function hoBuildInner(mode){
   });
   h += '</table>';
   h += '<table style="border-collapse:collapse;width:100%;table-layout:fixed;' + HO_FONT + 'color:#000;border:0.5pt solid #000;">'
-     + '<colgroup><col style="width:5%"><col style="width:55%"><col style="width:28%"><col style="width:12%"></colgroup>'
+     + (isP ? '<colgroup><col style="width:5%"><col style="width:41%"><col style="width:42%"><col style="width:12%"></colgroup>' : '<colgroup><col style="width:5%"><col style="width:55%"><col style="width:28%"><col style="width:12%"></colgroup>')
      + '<thead><tr style="background:#323E4F;color:#fff;font-weight:bold;">'
      + '<td style="text-align:center;' + HO_CELL + '">No</td><td style="' + HO_CELL + '">' + (isP ? 'Project' : 'Task') + '</td><td style="' + HO_CELL + '">Follow up</td><td style="text-align:center;' + HO_CELL + '">Status</td></tr></thead><tbody>';
   if(!groups.length){
@@ -5761,13 +5791,26 @@ function hoBuildInner(mode){
   }
   groups.forEach(g => {
     if(g[0]) h += '<tr style="background:#D5DCE4;"><td colspan="4" style="font-weight:bold;font-size:12pt;padding:4px 6px;' + HO_CELL + '">' + escapeHtml(g[0]) + '</td></tr>';
-    g[1].forEach((it, idx) => {
+    let num = 0;
+    g[1].forEach((it) => {
       const r = hoRowData(it);
-      h += '<tr style="background:#D4DCE4;"><td style="text-align:center;' + HO_CELL + '">' + (idx+1) + '.</td>'
-         + '<td style="font-weight:bold;' + HO_CELL + '">' + (r.tag ? '<span style="font-size:8pt;font-weight:bold;padding:0 4px;margin-right:4px;background:' + (r.tag === 'Project' ? '#DCD3F2;color:#3F2A78' : '#FCE8C8;color:#7A4A00') + ';">' + escapeHtml(r.tag) + '</span>' : '') + escapeHtml(r.title) + '</td><td style="' + HO_CELL + '"></td><td style="' + HO_CELL + '"></td></tr>';
+      const tag = r.tag ? '<span style="font-size:8pt;font-weight:bold;padding:0 4px;margin-right:4px;background:' + (r.tag === 'Open Issue' ? '#FCE8C8;color:#7A4A00' : '#D6E6F7;color:#173B63') + ';">' + escapeHtml(r.tag) + '</span>' : '';
+      const fol = r.bullets ? hoFollowHtml(r) : r.follow.map(f => '<div>' + escapeHtml(typeof f === 'string' ? f : (f.h || f.b)) + '</div>').join('');
+      const fAlign = r.bullets ? 'left' : 'justify';
+      if(r.sub){
+        /* baris Task / Open Issue di atas project: satu baris, tanpa nomor */
+        h += '<tr style="background:#F3F5F8;"><td style="' + HO_CELL + '"></td>'
+           + '<td style="' + HO_CELL + '"><div style="font-weight:bold;">' + tag + escapeHtml(r.title) + '</div>' + r.details.map(d => '<div>● ' + escapeHtml(d) + '</div>').join('') + '</td>'
+           + '<td style="text-align:' + fAlign + ';' + HO_CELL + '">' + fol + '</td>'
+           + '<td style="text-align:center;' + HO_CELL + '">' + escapeHtml(r.status) + '</td></tr>';
+        return;
+      }
+      num++;
+      h += '<tr style="background:#D4DCE4;"><td style="text-align:center;' + HO_CELL + '">' + num + '.</td>'
+         + '<td style="font-weight:bold;' + HO_CELL + '">' + tag + escapeHtml(r.title) + '</td><td style="' + HO_CELL + '"></td><td style="' + HO_CELL + '"></td></tr>';
       h += '<tr style="background:#fff;"><td style="' + HO_CELL + '"></td>'
          + '<td style="' + HO_CELL + '">' + r.details.map(d => '<div>● ' + escapeHtml(d) + '</div>').join('') + '</td>'
-         + '<td style="text-align:justify;' + HO_CELL + '">' + r.follow.map(f => '<div>' + escapeHtml(f) + '</div>').join('') + '</td>'
+         + '<td style="text-align:' + fAlign + ';' + HO_CELL + '">' + fol + '</td>'
          + '<td style="text-align:center;' + HO_CELL + '">' + escapeHtml(r.status) + '</td></tr>';
     });
   });
@@ -5873,7 +5916,7 @@ async function hoExportPpt(mode){
     const items = g[1].map(hoRowData);
     const chunks = []; let cur = [], w = 0;
     items.forEach(r => {
-      const weight = 1 + Math.max(r.details.length, r.follow.length, 1);
+      const weight = (r.sub ? 0 : 1) + Math.max(r.details.length + (r.sub ? 1 : 0), hoFollowLen(r), 1);
       if(cur.length && w + weight > LIMIT){ chunks.push(cur); cur = []; w = 0; }
       cur.push(r); w += weight;
     });
@@ -5884,23 +5927,34 @@ async function hoExportPpt(mode){
         [{ text: (g[0] || (isP ? 'Project' : '')) + (chunks.length > 1 ? ' (' + (ci+1) + '/' + chunks.length + ')' : ''), options: { colspan: 4, bold: true, fontSize: 12, fill: { color: 'D5DCE4' } } }],
         colHead
       ];
-      let n = ci === 0 ? 0 : chunks.slice(0, ci).reduce((a, c) => a + c.length, 0);
+      let n = ci === 0 ? 0 : chunks.slice(0, ci).reduce((a, c) => a + c.filter(r => !r.sub).length, 0);
       chunk.forEach(r => {
+        const ttl = (r.tag ? '[' + r.tag + '] ' : '') + r.title;
+        const folTx = r.bullets ? hoFollowText(r) : r.follow.map(f => typeof f === 'string' ? f : (f.h || f.b)).join('\n');
+        if(r.sub){
+          rows.push([
+            { text: '', options: { fill: { color: 'F3F5F8' } } },
+            { text: [{ text: ttl, options: { bold: true, breakLine: true } }, { text: r.details.map(d => '● ' + d).join('\n'), options: {} }], options: { fill: { color: 'F3F5F8' } } },
+            { text: folTx, options: { align: 'left', fill: { color: 'F3F5F8' } } },
+            { text: r.status, options: { align: 'center', fill: { color: 'F3F5F8' } } }
+          ]);
+          return;
+        }
         n++;
         rows.push([
           { text: n + '.', options: { bold: true, align: 'center', fill: { color: 'D4DCE4' } } },
-          { text: (r.tag ? '[' + r.tag + '] ' : '') + r.title, options: { bold: true, fill: { color: 'D4DCE4' } } },
+          { text: ttl, options: { bold: true, fill: { color: 'D4DCE4' } } },
           { text: '', options: { fill: { color: 'D4DCE4' } } },
           { text: '', options: { fill: { color: 'D4DCE4' } } }
         ]);
         rows.push([
           { text: '', options: { fill: { color: 'FFFFFF' } } },
           { text: r.details.length ? r.details.map(d => '● ' + d).join('\n') : '', options: { fill: { color: 'FFFFFF' } } },
-          { text: r.follow.join('\n'), options: { fill: { color: 'FFFFFF' } } },
+          { text: folTx, options: { align: r.bullets ? 'left' : 'justify', fill: { color: 'FFFFFF' } } },
           { text: r.status, options: { align: 'center', fill: { color: 'FFFFFF' } } }
         ]);
       });
-      s.addTable(rows, { x: 0.4, y: 0.4, w: 12.5, colW: [0.6, 6.4, 4.1, 1.4], fontFace: 'Arial Narrow', fontSize: 9, valign: 'top', border: { type: 'solid', pt: 0.5, color: '000000' } });
+      s.addTable(rows, { x: 0.4, y: 0.4, w: 12.5, colW: isP ? [0.6, 5.2, 5.3, 1.4] : [0.6, 6.4, 4.1, 1.4], fontFace: 'Arial Narrow', fontSize: 9, valign: 'top', border: { type: 'solid', pt: 0.5, color: '000000' } });
     });
   });
   pptx.writeFile({ fileName: hoFileBase(mode) + '.pptx' });
@@ -17410,7 +17464,7 @@ async function oiLoad(){
   }
   if(!d || typeof d !== 'object') d = { items: [] };
   if(!Array.isArray(d.items)) d.items = [];
-  d.items.forEach(x => { if(!Array.isArray(x.pics)) x.pics = x.pic ? [String(x.pic)] : []; ['by', 'lok', 'vendor', 'na', 'nd', 'why'].forEach(k => { if(typeof x[k] !== 'string') x[k] = ''; }); if(!Array.isArray(x.log)) x.log = []; x.st = Math.max(0, Math.min(3, +x.st || 0)); if(!OI_PRI[x.pri]) x.pri = 'm'; });
+  d.items.forEach(x => { if(!Array.isArray(x.pics)) x.pics = x.pic ? [String(x.pic)] : []; ['by', 'lok', 'vendor', 'na', 'nd', 'why', 'prj'].forEach(k => { if(typeof x[k] !== 'string') x[k] = ''; }); if(!Array.isArray(x.log)) x.log = []; x.st = Math.max(0, Math.min(3, +x.st || 0)); if(!OI_PRI[x.pri]) x.pri = 'm'; });
   oiData = d;
 }
 function oiSave(now){
@@ -17519,6 +17573,7 @@ function oiModal(x, isNew){
       <div class="w"><label>PIC</label><div id="oiPicBox">${oiPicBox(x)}</div></div>
       <div><label for="oiFs">Sistem</label><input class="oi-in" id="oiFs" data-of="sys" list="oiSysL" value="${escapeHtml(x.sys)}"><datalist id="oiSysL">${oiSystems().map(s => `<option value="${escapeHtml(s)}">`).join('')}</datalist></div>
       ${fld('oiFl', 'lok', 'Area / lokasi', x.lok, 'Contoh: Crusher Plant 3, CP5')}
+      <div class="w"><label for="oiFp">Project</label><select class="oi-in" id="oiFp" data-of="prj"><option value="">Tanpa project</option>${(typeof prjItems !== 'undefined' ? prjItems : []).filter(pj => pj && pj.id && (prjStatus(pj).st !== 'done' || pj.id === x.prj)).map(pj => `<option value="${escapeHtml(pj.id)}" ${x.prj === pj.id ? 'selected' : ''}>${escapeHtml(pj.name || '')}</option>`).join('')}</select></div>
       <div><label for="oiFr">Prioritas</label><select class="oi-in" id="oiFr" data-of="pri">${opt(Object.entries(OI_PRI), x.pri)}</select></div>
       <div><label for="oiFu">Status</label><select class="oi-in" id="oiFu" data-of="st">${opt(OI_COLS.map((c, i) => [i, c]), x.st)}</select></div>
       ${fld('oiFy', 'why', 'Alasan menunggu (wajib bila status Waiting)', x.why, 'Contoh: menunggu sparepart tiba 10/11', 'w')}
@@ -17547,12 +17602,12 @@ function oiClose(){ const o = document.getElementById('oiOv'); if(o) o.remove();
 function oiCur(){ return oiEdit ? (oiEdit.isNew ? oiEdit.draft : oiData.items.find(x => x.id === oiEdit.id)) : null; }
 
 async function oiXls(){
-  const rows = oiData.items.map(x => ({ Title: x.t, System: x.sys, Priority: OI_PRI_EN[x.pri], Status: OI_COLS[x.st], PIC: x.pics.join(', '), 'Reported by': x.by, 'Area/location': x.lok, Vendor: x.vendor, 'Next action': x.na, 'Action due': x.nd, 'Waiting reason': x.why, 'Reported date': x.rep, 'Target date': x.tgt, 'Closed date': x.closed, 'Age (days)': oiAge(x), Description: x.desc, 'Last update': x.log.length ? x.log[x.log.length - 1].tx : '' }));
+  const rows = oiData.items.map(x => ({ Title: x.t, System: x.sys, Priority: OI_PRI_EN[x.pri], Status: OI_COLS[x.st], PIC: x.pics.join(', '), 'Reported by': x.by, 'Area/location': x.lok, Project: ((typeof prjById === 'function' && x.prj && prjById(x.prj)) || {}).name || '', Vendor: x.vendor, 'Next action': x.na, 'Action due': x.nd, 'Waiting reason': x.why, 'Reported date': x.rep, 'Target date': x.tgt, 'Closed date': x.closed, 'Age (days)': oiAge(x), Description: x.desc, 'Last update': x.log.length ? x.log[x.log.length - 1].tx : '' }));
   if(!rows.length){ showToast('No issues to export', 'error'); return; }
   const name = 'Open-Issue-' + oiToday() + '.xlsx';
   try{
     const X = await sapLoadXlsx();
-    const ws = X.utils.json_to_sheet(rows); ws['!cols'] = [46, 12, 10, 12, 22, 16, 18, 16, 28, 12, 30, 12, 12, 12, 10, 60, 40].map(w => ({ wch: w }));
+    const ws = X.utils.json_to_sheet(rows); ws['!cols'] = [46, 12, 10, 12, 22, 16, 18, 22, 16, 28, 12, 30, 12, 12, 12, 10, 60, 40].map(w => ({ wch: w }));
     const wb = X.utils.book_new(); X.utils.book_append_sheet(wb, ws, 'Open Issue');
     sapDownload(new Blob([X.write(wb, { bookType: 'xlsx', type: 'array' })], { type: 'application/octet-stream' }), name);
   }catch(e){
@@ -17563,6 +17618,7 @@ async function oiXls(){
 }
 async function renderOpenIssue(){
   if(!oiData) await oiLoad();
+  try{ await prjLoad(); }catch(e){}
   try{ await tlPicManager.load(); }catch(e){}
   if(oiFail) showToast('Open Issue: storage connection failed, changes will not be saved', 'error');
   oiRender();
@@ -17581,7 +17637,7 @@ async function renderOpenIssue(){
     const ab = e.target.closest('[data-oiact]');
     if(ab){
       const a = ab.dataset.oiact;
-      if(a === 'add'){ const d = { id: oiNid(), t: '', desc: '', sys: oiF.sys !== 'all' ? oiF.sys : 'WIM', pri: 'm', st: 0, pics: (oiF.pic === 'me' ? [oiMe()] : (!['all', 'none'].includes(oiF.pic) ? [oiF.pic] : [])).filter(Boolean), by: '', lok: '', vendor: '', na: '', nd: '', why: '', rep: oiToday(), tgt: '', closed: '', log: [] }; oiModal(d, true); oiEdit.draft = d; return; }
+      if(a === 'add'){ const d = { id: oiNid(), t: '', desc: '', sys: oiF.sys !== 'all' ? oiF.sys : 'WIM', pri: 'm', st: 0, pics: (oiF.pic === 'me' ? [oiMe()] : (!['all', 'none'].includes(oiF.pic) ? [oiF.pic] : [])).filter(Boolean), by: '', lok: '', vendor: '', na: '', nd: '', why: '', prj: '', rep: oiToday(), tgt: '', closed: '', log: [] }; oiModal(d, true); oiEdit.draft = d; return; }
       if(a === 'whyno'){ oiWhyClose(); return; }
       if(a === 'whyok'){
         const inp = document.getElementById('oiWhyIn'), v = inp ? inp.value.trim() : '';
@@ -17628,7 +17684,7 @@ async function renderOpenIssue(){
   });
   v.addEventListener('input', e => {
     if(e.target.id === 'oiQ'){ oiF.q = e.target.value; oiBoard(); return; }
-    const k = e.target.dataset && e.target.dataset.of; if(!k || !oiEdit || (k === 'st' || k === 'pri')) return;
+    const k = e.target.dataset && e.target.dataset.of; if(!k || !oiEdit || (k === 'st' || k === 'pri' || k === 'prj')) return;
     const x = oiCur(); if(!x) return;
     x[k] = e.target.value;
     if(!oiEdit.isNew){ clearTimeout(oiEdit.t); oiEdit.t = setTimeout(() => { oiSave(); oiBoard(); }, 250); }
