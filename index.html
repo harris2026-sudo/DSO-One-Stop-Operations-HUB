@@ -730,7 +730,7 @@
   .ho-btn.primary{background:var(--navy);color:#fff;border-color:var(--navy);}
   .ho-period{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13px;margin-bottom:12px;color:var(--text-secondary);}
   .ho-period input{padding:5px 8px;border:0.5px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);}
-  #hoPreview{background:#fff;color:#000;border:1px solid var(--border);border-radius:var(--radius);padding:16px;overflow-x:auto;}
+  #hoPreview,#hpPreview{background:#fff;color:#000;border:1px solid var(--border);border-radius:var(--radius);padding:16px;overflow-x:auto;}
   .ho-root{display:none;}
   @media print{
     body.ho-printing > *:not(#handoverPrintRoot){display:none !important;}
@@ -2090,6 +2090,7 @@
       <div class="tab" data-view="projects" data-label="Projects"><i class="ti ti-briefcase"></i><span>Projects</span></div>
       <div class="tab" data-view="sap" data-label="SAP"><i class="ti ti-shield-check"></i><span>SAP</span></div>
       <div class="tab" data-view="handover" data-label="Handover Job"><i class="ti ti-file-text"></i><span>Handover Job</span></div>
+      <div class="tab" data-view="handoverproject" data-label="Handover Project"><i class="ti ti-file-description"></i><span>Handover Project</span></div>
       <div class="tab" data-view="workload" data-label="Workload Analysis"><i class="ti ti-gauge"></i><span>Workload Analysis</span></div>
       <div class="tab" data-view="openpoint" data-label="Open Point" style="display:none" hidden><i class="ti ti-alert-triangle"></i><span>Open Point</span></div>
       <div class="tab" data-view="weeklywim" data-label="Weekly Meeting WIM"><i class="ti ti-calendar-event"></i><span>Weekly Meeting WIM</span></div>
@@ -3053,6 +3054,24 @@
       <input type="date" id="hoTo" aria-label="Period selesai">
     </div>
     <div id="hoPreview" aria-label="Preview Handover Job"></div>
+  </div>
+
+  <div class="view" id="view-handoverproject">
+    <div class="ho-head">
+      <h3>Operations – Handover Project</h3>
+      <div class="ho-actions">
+        <button class="ho-btn primary" id="hpPrintBtn" type="button"><i class="ti ti-printer"></i>Print to PDF</button>
+        <button class="ho-btn" id="hpWordBtn" type="button"><i class="ti ti-file-word"></i>Word</button>
+        <button class="ho-btn" id="hpPptBtn" type="button"><i class="ti ti-file-type-ppt"></i>PowerPoint</button>
+      </div>
+    </div>
+    <div class="ho-period">
+      <label for="hpFrom">Period</label>
+      <input type="date" id="hpFrom" aria-label="Period mulai">
+      <span>–</span>
+      <input type="date" id="hpTo" aria-label="Period selesai">
+    </div>
+    <div id="hpPreview" aria-label="Preview Handover Project"></div>
   </div>
 
   <!-- ================= VIEW: TASK LIST ================= -->
@@ -5406,6 +5425,7 @@ document.querySelectorAll('.tab').forEach(tab => {
     if(tab.dataset.view === 'sap') renderSap();
     if(tab.dataset.view === 'openissue') renderOpenIssue();
     if(tab.dataset.view === 'handover') renderHandover();
+    if(tab.dataset.view === 'handoverproject') renderHandoverProject();
     if(tab.dataset.view === 'projects') renderProjects();
     if(tab.dataset.view === 'workload') renderWorkload();
     if(tab.dataset.view === 'openpoint') renderOpenPoint();
@@ -5657,16 +5677,6 @@ function hoGroups(){
     if(!map.has(pn)) map.set(pn, []);
     map.get(pn).push(it);
   });
-  /* Project: hanya yang punya minimal satu task berstatus Open dan belum Done -> baris Project jadi nomor pertama di grupnya */
-  if(typeof prjItems !== 'undefined'){
-    prjItems.forEach(p => {
-      if(!p || !p.id || !map.has(p.name)) return;
-      const st = prjStatus(p).st;
-      if(st === 'done') return;
-      const hasOpen = taskListItems.some(t => t && t.projectId === p.id && !tlIsSapTask(t) && !tlIsDone(t) && String(t.status || '').trim().toLowerCase() === 'open');
-      if(hasOpen) map.get(p.name).unshift({ _ho:'project', p, st });
-    });
-  }
   /* Open Issue: semua yang belum Closed, masuk ke grup "Tanpa Project" setelah task biasa */
   if(typeof oiData !== 'undefined' && oiData && Array.isArray(oiData.items)){
     oiData.items.filter(x => x && x.st < 3).forEach(x => {
@@ -5675,6 +5685,19 @@ function hoGroups(){
     });
   }
   return [...map.entries()].sort((a,b) => a[0] === 'Tanpa Project' ? 1 : b[0] === 'Tanpa Project' ? -1 : a[0].localeCompare(b[0]));
+}
+/* Handover Project: semua project yang belum Done, satu baris per project (tanpa band grup) */
+function hpGroups(){
+  const rows = [];
+  if(typeof prjItems !== 'undefined'){
+    prjItems.forEach(p => {
+      if(!p || !p.id) return;
+      const st = prjStatus(p).st;
+      if(st === 'done') return;
+      rows.push({ _ho:'project', p, st });
+    });
+  }
+  return rows.length ? [['', rows]] : [];
 }
 function hoRowData(it){
   if(it && it._ho === 'issue'){
@@ -5697,8 +5720,9 @@ function hoRowData(it){
     det.push('Progress: ' + prjProgress(p) + '%');
     det.push('Milestone: ' + prjNextMs(p));
     const follow = p.note ? [p.note] : [];
+    (p.risks || []).filter(r => r && r.sev === 'h' && r.text).forEach(r => follow.push('Risiko High: ' + r.text));
     const meta = PRJ_STATUS[it.st];
-    return { tag: 'Project', title: p.name || '', details: det, follow, status: meta ? meta.l : '' };
+    return { title: p.name || '', details: det, follow, status: meta ? meta.l : '' };
   }
   const det = [];
   if(it.pic) det.push('PIC: ' + it.pic);
@@ -5713,10 +5737,11 @@ function hoPeriodText(){
   const t = hoPeriod && hoPeriod.to ? hoDs(hoPeriod.to) : '';
   return '(' + f + ' – ' + t + ')';
 }
-function hoBuildInner(){
-  const groups = hoGroups();
+function hoBuildInner(mode){
+  const isP = mode === 'project';
+  const groups = isP ? hpGroups() : hoGroups();
   const header = [
-    ['Document Name', 'Operations – Handover Job'],
+    ['Document Name', isP ? 'Operations – Handover Project' : 'Operations – Handover Job'],
     ['Period', hoPeriodText()],
     ['Department', 'Digital Operational Maintenance'],
     ['Division', 'Digital & Technology Solutions']
@@ -5730,12 +5755,12 @@ function hoBuildInner(){
   h += '<table style="border-collapse:collapse;width:100%;table-layout:fixed;' + HO_FONT + 'color:#000;border:0.5pt solid #000;">'
      + '<colgroup><col style="width:5%"><col style="width:55%"><col style="width:28%"><col style="width:12%"></colgroup>'
      + '<thead><tr style="background:#323E4F;color:#fff;font-weight:bold;">'
-     + '<td style="text-align:center;' + HO_CELL + '">No</td><td style="' + HO_CELL + '">Task</td><td style="' + HO_CELL + '">Follow up</td><td style="text-align:center;' + HO_CELL + '">Status</td></tr></thead><tbody>';
+     + '<td style="text-align:center;' + HO_CELL + '">No</td><td style="' + HO_CELL + '">' + (isP ? 'Project' : 'Task') + '</td><td style="' + HO_CELL + '">Follow up</td><td style="text-align:center;' + HO_CELL + '">Status</td></tr></thead><tbody>';
   if(!groups.length){
-    h += '<tr><td colspan="4" style="text-align:center;padding:8px;' + HO_CELL + '">Tidak ada task aktif untuk periode ini.</td></tr>';
+    h += '<tr><td colspan="4" style="text-align:center;padding:8px;' + HO_CELL + '">' + (isP ? 'Tidak ada project aktif.' : 'Tidak ada task aktif untuk periode ini.') + '</td></tr>';
   }
   groups.forEach(g => {
-    h += '<tr style="background:#D5DCE4;"><td colspan="4" style="font-weight:bold;font-size:12pt;padding:4px 6px;' + HO_CELL + '">' + escapeHtml(g[0]) + '</td></tr>';
+    if(g[0]) h += '<tr style="background:#D5DCE4;"><td colspan="4" style="font-weight:bold;font-size:12pt;padding:4px 6px;' + HO_CELL + '">' + escapeHtml(g[0]) + '</td></tr>';
     g[1].forEach((it, idx) => {
       const r = hoRowData(it);
       h += '<tr style="background:#D4DCE4;"><td style="text-align:center;' + HO_CELL + '">' + (idx+1) + '.</td>'
@@ -5765,25 +5790,42 @@ async function hoSavePeriod(){
 async function renderHandover(){
   await hoLoadPeriod();
   try{ if(!oiData) await oiLoad(); }catch(e){}
-  try{ await prjLoad(); }catch(e){}
   const fromEl = document.getElementById('hoFrom');
   const toEl = document.getElementById('hoTo');
   if(fromEl && !fromEl.dataset.bound){
     fromEl.dataset.bound = '1';
     fromEl.addEventListener('change', () => { hoPeriod.from = fromEl.value; hoSavePeriod(); renderHandover(); });
     toEl.addEventListener('change', () => { hoPeriod.to = toEl.value; hoSavePeriod(); renderHandover(); });
-    document.getElementById('hoPrintBtn').onclick = hoPrintPdf;
-    document.getElementById('hoWordBtn').onclick = hoExportWord;
-    document.getElementById('hoPptBtn').onclick = hoExportPpt;
+    document.getElementById('hoPrintBtn').onclick = () => hoPrintPdf();
+    document.getElementById('hoWordBtn').onclick = () => hoExportWord();
+    document.getElementById('hoPptBtn').onclick = () => hoExportPpt();
   }
   if(fromEl){ fromEl.value = hoPeriod.from || ''; toEl.value = hoPeriod.to || ''; }
   const pv = document.getElementById('hoPreview');
   if(pv) pv.innerHTML = hoBuildInner();
 }
-function hoPrintPdf(){
+/* Halaman Handover Project: periode dibagi dengan Handover Job */
+async function renderHandoverProject(){
+  await hoLoadPeriod();
+  try{ await prjLoad(); }catch(e){}
+  const fromEl = document.getElementById('hpFrom');
+  const toEl = document.getElementById('hpTo');
+  if(fromEl && !fromEl.dataset.bound){
+    fromEl.dataset.bound = '1';
+    fromEl.addEventListener('change', () => { hoPeriod.from = fromEl.value; hoSavePeriod(); renderHandoverProject(); });
+    toEl.addEventListener('change', () => { hoPeriod.to = toEl.value; hoSavePeriod(); renderHandoverProject(); });
+    document.getElementById('hpPrintBtn').onclick = () => hoPrintPdf('project');
+    document.getElementById('hpWordBtn').onclick = () => hoExportWord('project');
+    document.getElementById('hpPptBtn').onclick = () => hoExportPpt('project');
+  }
+  if(fromEl){ fromEl.value = hoPeriod.from || ''; toEl.value = hoPeriod.to || ''; }
+  const pv = document.getElementById('hpPreview');
+  if(pv) pv.innerHTML = hoBuildInner('project');
+}
+function hoPrintPdf(mode){
   let root = document.getElementById('handoverPrintRoot');
   if(!root){ root = document.createElement('div'); root.id = 'handoverPrintRoot'; root.className = 'ho-root'; document.body.appendChild(root); }
-  root.innerHTML = hoBuildInner();
+  root.innerHTML = hoBuildInner(mode);
   root.style.display = 'block';
   document.body.classList.add('ho-printing');
   const done = () => { document.body.classList.remove('ho-printing'); root.innerHTML = ''; window.removeEventListener('afterprint', done); };
@@ -5796,10 +5838,10 @@ function hoDownload(blob, name){
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 2000);
 }
-function hoFileBase(){ return 'Handover_' + ((hoPeriod && hoPeriod.from) || todayStr()); }
-function hoExportWord(){
-  const html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><style>@page{size:8.5in 11in;margin:0.79in 0.59in 0.39in 0.59in;} body{font-family:"Arial Narrow",Arial,sans-serif;font-size:10pt;}</style></head><body>' + hoBuildInner() + '</body></html>';
-  hoDownload(new Blob(['﻿', html], { type: 'application/msword' }), hoFileBase() + '.doc');
+function hoFileBase(mode){ return (mode === 'project' ? 'HandoverProject_' : 'Handover_') + ((hoPeriod && hoPeriod.from) || todayStr()); }
+function hoExportWord(mode){
+  const html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><style>@page{size:8.5in 11in;margin:0.79in 0.59in 0.39in 0.59in;} body{font-family:"Arial Narrow",Arial,sans-serif;font-size:10pt;}</style></head><body>' + hoBuildInner(mode) + '</body></html>';
+  hoDownload(new Blob(['﻿', html], { type: 'application/msword' }), hoFileBase(mode) + '.doc');
 }
 function hoLoadScript(src){
   return new Promise((res, rej) => {
@@ -5809,7 +5851,8 @@ function hoLoadScript(src){
     document.head.appendChild(s);
   });
 }
-async function hoExportPpt(){
+async function hoExportPpt(mode){
+  const isP = mode === 'project';
   try{ await hoLoadScript('https://cdnjs.cloudflare.com/ajax/libs/pptxgenjs/3.12.0/pptxgenjs.min.js'); }
   catch(e){ alert('Library PowerPoint gagal dimuat. Periksa koneksi internet lalu coba lagi.'); return; }
   const pptx = new window.PptxGenJS();
@@ -5817,16 +5860,16 @@ async function hoExportPpt(){
   const hdrCell = t => ({ text: t, options: { bold: true, color: 'FFFFFF', fill: { color: '323E4F' } } });
   const valCell = t => ({ text: t, options: { bold: true, fill: { color: 'D5DCE4' } } });
   const cover = pptx.addSlide();
-  cover.addText('Operations – Handover Job', { x: 0.6, y: 0.5, w: 12, h: 0.7, fontFace: 'Arial Narrow', fontSize: 24, bold: true, color: '323E4F' });
+  cover.addText(isP ? 'Operations – Handover Project' : 'Operations – Handover Job', { x: 0.6, y: 0.5, w: 12, h: 0.7, fontFace: 'Arial Narrow', fontSize: 24, bold: true, color: '323E4F' });
   cover.addTable([
-    [hdrCell('Document Name'), valCell('Operations – Handover Job')],
+    [hdrCell('Document Name'), valCell(isP ? 'Operations – Handover Project' : 'Operations – Handover Job')],
     [hdrCell('Period'), valCell(hoPeriodText())],
     [hdrCell('Department'), valCell('Digital Operational Maintenance')],
     [hdrCell('Division'), valCell('Digital & Technology Solutions')]
   ], { x: 0.6, y: 1.4, w: 9, colW: [2.8, 6.2], fontFace: 'Arial Narrow', fontSize: 12, border: { type: 'solid', pt: 0.5, color: '000000' } });
-  const colHead = [hdrCell('No'), hdrCell('Task'), hdrCell('Follow up'), hdrCell('Status')];
+  const colHead = [hdrCell('No'), hdrCell(isP ? 'Project' : 'Task'), hdrCell('Follow up'), hdrCell('Status')];
   const LIMIT = 18;
-  hoGroups().forEach(g => {
+  (isP ? hpGroups() : hoGroups()).forEach(g => {
     const items = g[1].map(hoRowData);
     const chunks = []; let cur = [], w = 0;
     items.forEach(r => {
@@ -5838,7 +5881,7 @@ async function hoExportPpt(){
     chunks.forEach((chunk, ci) => {
       const s = pptx.addSlide();
       const rows = [
-        [{ text: g[0] + (chunks.length > 1 ? ' (' + (ci+1) + '/' + chunks.length + ')' : ''), options: { colspan: 4, bold: true, fontSize: 12, fill: { color: 'D5DCE4' } } }],
+        [{ text: (g[0] || (isP ? 'Project' : '')) + (chunks.length > 1 ? ' (' + (ci+1) + '/' + chunks.length + ')' : ''), options: { colspan: 4, bold: true, fontSize: 12, fill: { color: 'D5DCE4' } } }],
         colHead
       ];
       let n = ci === 0 ? 0 : chunks.slice(0, ci).reduce((a, c) => a + c.length, 0);
@@ -5860,7 +5903,7 @@ async function hoExportPpt(){
       s.addTable(rows, { x: 0.4, y: 0.4, w: 12.5, colW: [0.6, 6.4, 4.1, 1.4], fontFace: 'Arial Narrow', fontSize: 9, valign: 'top', border: { type: 'solid', pt: 0.5, color: '000000' } });
     });
   });
-  pptx.writeFile({ fileName: hoFileBase() + '.pptx' });
+  pptx.writeFile({ fileName: hoFileBase(mode) + '.pptx' });
 }
 
 /* Sinkron otomatis: setiap Task List tersimpan, Handover Job ikut ter-update bila tab sedang dibuka */
