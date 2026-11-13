@@ -5783,6 +5783,11 @@ function hoTableHtml(groups, firstCol, emptyMsg, wideFollow){
   h += '</tbody></table>';
   return h;
 }
+function hoEmptyMsg(k){
+  if(k === 'task') return (typeof tlLoadFailed !== 'undefined' && tlLoadFailed) ? 'Task List gagal dimuat dari server. Muat ulang halaman.' : 'Tidak ada task aktif untuk periode ini.';
+  if(k === 'issue') return (typeof oiFail !== 'undefined' && oiFail) ? 'Open Issue gagal dimuat dari server. Muat ulang halaman.' : 'Tidak ada Open Issue aktif.';
+  return 'Tidak ada project aktif.';
+}
 function hoSectionBar(t){
   return '<div style="background:#323E4F;color:#fff;font-weight:bold;padding:3px 6px;margin:10px 0 0;' + HO_FONT + '">' + escapeHtml(t) + '</div>';
 }
@@ -5800,12 +5805,9 @@ function hoBuildInner(mode){
        + '<td style="background:#D5DCE4;color:#000;font-weight:bold;padding:3px 6px;' + HO_CELL + '">' + escapeHtml(r[1]) + '</td></tr>';
   });
   h += '</table>';
-  if(isP){
-    h += hoTableHtml(hpGroups(), 'Project', 'Tidak ada project aktif.', true);
-  } else {
-    h += hoSectionBar('A. Task List') + hoTableHtml(hoGroups(), 'Task', (typeof tlLoadFailed !== 'undefined' && tlLoadFailed) ? 'Task List gagal dimuat dari server. Muat ulang halaman.' : 'Tidak ada task aktif untuk periode ini.', false);
-    h += hoSectionBar('B. Open Issue') + hoTableHtml(hoIssueGroups(), 'Open Issue', (typeof oiFail !== 'undefined' && oiFail) ? 'Open Issue gagal dimuat dari server. Muat ulang halaman.' : 'Tidak ada Open Issue aktif.', false);
-  }
+  h += hoSectionBar('A. Task List') + hoTableHtml(hoGroups(), 'Task', hoEmptyMsg('task'), false);
+  h += hoSectionBar('B. Open Issue') + hoTableHtml(hoIssueGroups(), 'Open Issue', hoEmptyMsg('issue'), false);
+  if(isP) h += hoSectionBar('C. Project') + hoTableHtml(hpGroups(), 'Project', hoEmptyMsg('project'), true);
   return h;
 }
 async function hoLoadPeriod(){
@@ -5850,7 +5852,7 @@ async function renderHandover(){
 /* Halaman Handover Project: periode dibagi dengan Handover Job */
 async function renderHandoverProject(){
   await hoLoadPeriod();
-  try{ await prjLoad(true); }catch(e){}
+  await hoLoadSources();
   const fromEl = document.getElementById('hpFrom');
   const toEl = document.getElementById('hpTo');
   if(fromEl && !fromEl.dataset.bound){
@@ -5882,8 +5884,54 @@ function hoDownload(blob, name){
   setTimeout(() => URL.revokeObjectURL(a.href), 2000);
 }
 function hoFileBase(mode){ return (mode === 'project' ? 'HandoverProject_' : 'Handover_') + ((hoPeriod && hoPeriod.from) || todayStr()); }
+/* ---- Versi Word: blok judul gelap + header kolom, baris judul abu-abu muda, rincian putih, tanpa garis sel ---- */
+const HOW_NB = 'border:none;mso-border-alt:none;';
+function howCell(txt, bg, extra, attrs){
+  return '<td ' + (attrs || '') + ' bgcolor="' + bg + '" style="' + HOW_NB + 'background:' + bg + ';padding:3pt 5pt;vertical-align:top;' + (extra || '') + '">' + txt + '</td>';
+}
+function howTable(secTitle, groups, firstCol, emptyMsg, wide){
+  const cw = wide ? ['5%','41%','42%','12%'] : ['5%','55%','28%','12%'];
+  const DK = '#323E4F', LT = '#D4DCE4', BAND = '#D5DCE4', WH = '#FFFFFF';
+  let h = '<table border="0" cellspacing="0" cellpadding="0" width="100%" style="border-collapse:collapse;' + HOW_NB + 'width:100%;table-layout:fixed;' + HO_FONT + 'color:#000;">'
+    + '<colgroup>' + cw.map(w => '<col width="' + w + '" style="width:' + w + '">').join('') + '</colgroup>';
+  h += '<tr>' + howCell('<b>' + escapeHtml(secTitle) + '</b>', DK, 'color:#FFFFFF;font-size:11pt;', 'colspan="4"') + '</tr>';
+  h += '<tr>' + howCell('<b>No</b>', DK, 'color:#FFFFFF;text-align:center;') + howCell('<b>' + escapeHtml(firstCol) + '</b>', DK, 'color:#FFFFFF;')
+     + howCell('<b>Follow up</b>', DK, 'color:#FFFFFF;') + howCell('<b>Status</b>', DK, 'color:#FFFFFF;text-align:center;') + '</tr>';
+  if(!groups.length){
+    h += '<tr>' + howCell(escapeHtml(emptyMsg), WH, 'text-align:center;', 'colspan="4"') + '</tr>';
+  }
+  groups.forEach(g => {
+    if(g[0] && g[0] !== 'Tanpa Project') h += '<tr>' + howCell('<b>' + escapeHtml(g[0]) + '</b>', BAND, 'font-size:12pt;', 'colspan="4"') + '</tr>';
+    g[1].forEach((it, idx) => {
+      const r = hoRowData(it);
+      const fol = r.bullets ? hoFollowHtml(r) : r.follow.map(f => '<div>' + escapeHtml(typeof f === 'string' ? f : (f.h || f.b)) + '</div>').join('');
+      h += '<tr>' + howCell((idx + 1) + '.', LT, 'text-align:center;') + howCell('<b>' + escapeHtml(r.title) + '</b>', LT, '') + howCell('', LT, '') + howCell('', LT, '') + '</tr>';
+      h += '<tr>' + howCell('', WH, '')
+         + howCell(r.details.map(d => '<div>● ' + escapeHtml(d) + '</div>').join(''), WH, '')
+         + howCell(fol, WH, 'text-align:' + (r.bullets ? 'left' : 'justify') + ';')
+         + howCell(escapeHtml(r.status), WH, 'text-align:center;') + '</tr>';
+    });
+  });
+  return h + '</table><p style="margin:0;font-size:6pt;">&nbsp;</p>';
+}
+function hoBuildWord(mode){
+  const isP = mode === 'project';
+  const rows = [
+    ['Document Name', isP ? 'Operations – Handover Project' : 'Operations – Handover Job'],
+    ['Period', hoPeriodText()],
+    ['Department', 'Digital Operational Maintenance'],
+    ['Division', 'Digital & Technology Solutions']
+  ];
+  let h = '<table border="0" cellspacing="0" cellpadding="0" width="100%" style="border-collapse:collapse;' + HOW_NB + 'width:100%;' + HO_FONT + '">'
+    + rows.map(r => '<tr>' + howCell('<b>' + escapeHtml(r[0]) + '</b>', '#323E4F', 'color:#FFFFFF;width:24%;', 'width="24%"') + howCell('<b>' + escapeHtml(r[1]) + '</b>', '#D5DCE4', '') + '</tr>').join('')
+    + '</table><p style="margin:0;font-size:6pt;">&nbsp;</p>';
+  h += howTable('A. Task List', hoGroups(), 'Task', hoEmptyMsg('task'), false);
+  h += howTable('B. Open Issue', hoIssueGroups(), 'Open Issue', hoEmptyMsg('issue'), false);
+  if(isP) h += howTable('C. Project', hpGroups(), 'Project', hoEmptyMsg('project'), true);
+  return h;
+}
 function hoExportWord(mode){
-  const html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><style>@page{size:8.5in 11in;margin:0.79in 0.59in 0.39in 0.59in;} body{font-family:"Arial Narrow",Arial,sans-serif;font-size:10pt;}</style></head><body>' + hoBuildInner(mode) + '</body></html>';
+  const html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><style>@page{size:8.5in 11in;margin:0.79in 0.59in 0.39in 0.59in;} body{font-family:"Arial Narrow",Arial,sans-serif;font-size:10pt;}</style></head><body>' + hoBuildWord(mode) + '</body></html>';
   hoDownload(new Blob(['﻿', html], { type: 'application/msword' }), hoFileBase(mode) + '.doc');
 }
 function hoLoadScript(src){
@@ -5910,10 +5958,11 @@ async function hoExportPpt(mode){
     [hdrCell('Department'), valCell('Digital Operational Maintenance')],
     [hdrCell('Division'), valCell('Digital & Technology Solutions')]
   ], { x: 0.6, y: 1.4, w: 9, colW: [2.8, 6.2], fontFace: 'Arial Narrow', fontSize: 12, border: { type: 'solid', pt: 0.5, color: '000000' } });
-  const colHead = [hdrCell('No'), hdrCell(isP ? 'Project' : 'Task'), hdrCell('Follow up'), hdrCell('Status')];
   const LIMIT = 18;
   /* Handover Job: bagian A (task per project) lalu B (Open Issue); Handover Project: daftar project */
-  const pptGroups = isP ? hpGroups() : hoGroups().map(g => [g[0] === 'Tanpa Project' ? 'A. Task List' : g[0], g[1]]).concat(hoIssueGroups().map(g => ['B. Open Issue', g[1]]));
+  const pptGroups = hoGroups().map(g => [g[0] === 'Tanpa Project' ? 'A. Task List' : g[0], g[1]])
+    .concat(hoIssueGroups().map(g => ['B. Open Issue', g[1]]))
+    .concat(isP ? hpGroups().map(g => ['C. Project', g[1]]) : []);
   pptGroups.forEach(g => {
     const items = g[1].map(hoRowData);
     const chunks = []; let cur = [], w = 0;
@@ -5925,6 +5974,7 @@ async function hoExportPpt(mode){
     if(cur.length) chunks.push(cur);
     chunks.forEach((chunk, ci) => {
       const s = pptx.addSlide();
+      const colHead = [hdrCell('No'), hdrCell(g[0].indexOf('C.') === 0 ? 'Project' : (g[0].indexOf('B.') === 0 ? 'Open Issue' : 'Task')), hdrCell('Follow up'), hdrCell('Status')];
       const rows = [
         [{ text: (g[0] || (isP ? 'Project' : '')) + (chunks.length > 1 ? ' (' + (ci+1) + '/' + chunks.length + ')' : ''), options: { colspan: 4, bold: true, fontSize: 12, fill: { color: 'D5DCE4' } } }],
         colHead
@@ -5947,7 +5997,7 @@ async function hoExportPpt(mode){
           { text: r.status, options: { align: 'center', fill: { color: 'FFFFFF' } } }
         ]);
       });
-      s.addTable(rows, { x: 0.4, y: 0.4, w: 12.5, colW: isP ? [0.6, 5.2, 5.3, 1.4] : [0.6, 6.4, 4.1, 1.4], fontFace: 'Arial Narrow', fontSize: 9, valign: 'top', border: { type: 'solid', pt: 0.5, color: '000000' } });
+      s.addTable(rows, { x: 0.4, y: 0.4, w: 12.5, colW: g[0].indexOf('C.') === 0 ? [0.6, 5.2, 5.3, 1.4] : [0.6, 6.4, 4.1, 1.4], fontFace: 'Arial Narrow', fontSize: 9, valign: 'top', border: { type: 'solid', pt: 0.5, color: '000000' } });
     });
   });
   pptx.writeFile({ fileName: hoFileBase(mode) + '.pptx' });
