@@ -5677,14 +5677,15 @@ function hoGroups(){
     if(!map.has(pn)) map.set(pn, []);
     map.get(pn).push(it);
   });
-  /* Open Issue: semua yang belum Closed, masuk ke grup "Tanpa Project" setelah task biasa */
-  if(typeof oiData !== 'undefined' && oiData && Array.isArray(oiData.items)){
-    oiData.items.filter(x => x && x.st < 3).forEach(x => {
-      if(!map.has('Tanpa Project')) map.set('Tanpa Project', []);
-      map.get('Tanpa Project').push({ _ho:'issue', x });
-    });
-  }
   return [...map.entries()].sort((a,b) => a[0] === 'Tanpa Project' ? 1 : b[0] === 'Tanpa Project' ? -1 : a[0].localeCompare(b[0]));
+}
+/* Bagian B Handover Job: semua Open Issue yang belum Closed, satu tabel tanpa band grup */
+function hoIssueGroups(){
+  const rows = [];
+  if(typeof oiData !== 'undefined' && oiData && Array.isArray(oiData.items)){
+    oiData.items.filter(x => x && x.st < 3).forEach(x => rows.push({ _ho:'issue', x }));
+  }
+  return rows.length ? [['', rows]] : [];
 }
 /* Handover Project: semua project yang belum Done, satu baris per project (tanpa band grup) */
 /* Pecah teks panjang menjadi butir per kalimat */
@@ -5712,23 +5713,12 @@ function hpGroups(){
       if(!p || !p.id) return;
       const st = prjStatus(p).st;
       if(st === 'done') return;
-      /* Task dan Open Issue milik project ini ditampilkan di atas baris Project */
-      taskListItems.filter(t => t && t.id && t.projectId === p.id && !tlIsSapTask(t) && !tlIsDone(t))
-        .forEach(t => rows.push({ _ho:'task', t, sub:true }));
-      if(typeof oiData !== 'undefined' && oiData && Array.isArray(oiData.items)){
-        oiData.items.filter(x => x && x.st < 3 && x.prj === p.id).forEach(x => rows.push({ _ho:'issue', x, sub:true }));
-      }
       rows.push({ _ho:'project', p, st });
     });
   }
   return rows.length ? [['', rows]] : [];
 }
 function hoRowData(it){
-  if(it && it._ho === 'task'){
-    const r = hoRowData(it.t);
-    r.tag = 'Task'; r.sub = true;
-    return r;
-  }
   if(it && it._ho === 'issue'){
     const x = it.x, det = [];
     if(x.pics && x.pics.length) det.push('PIC: ' + x.pics.join(', '));
@@ -5740,7 +5730,7 @@ function hoRowData(it){
     if(x.nd) det.push('Batas aksi: ' + oiFmt(x.nd));
     const follow = (x.log || []).filter(l => l && l.tx).map(l => 'Update ' + oiFmt(l.at) + ': ' + l.tx);
     if(x.st === 2 && x.why) follow.unshift('Menunggu: ' + x.why);
-    return { tag: 'Open Issue', sub: !!it.sub, title: x.t || '', details: det, follow, status: OI_COLS[x.st] || '' };
+    return { title: x.t || '', details: det, follow, status: OI_COLS[x.st] || '' };
   }
   if(it && it._ho === 'project'){
     const p = it.p, det = [];
@@ -5767,9 +5757,37 @@ function hoPeriodText(){
   const t = hoPeriod && hoPeriod.to ? hoDs(hoPeriod.to) : '';
   return '(' + f + ' – ' + t + ')';
 }
+function hoTableHtml(groups, firstCol, emptyMsg, wideFollow){
+  let h = '<table style="border-collapse:collapse;width:100%;table-layout:fixed;' + HO_FONT + 'color:#000;border:0.5pt solid #000;">'
+     + (wideFollow ? '<colgroup><col style="width:5%"><col style="width:41%"><col style="width:42%"><col style="width:12%"></colgroup>' : '<colgroup><col style="width:5%"><col style="width:55%"><col style="width:28%"><col style="width:12%"></colgroup>')
+     + '<thead><tr style="background:#323E4F;color:#fff;font-weight:bold;">'
+     + '<td style="text-align:center;' + HO_CELL + '">No</td><td style="' + HO_CELL + '">' + escapeHtml(firstCol) + '</td><td style="' + HO_CELL + '">Follow up</td><td style="text-align:center;' + HO_CELL + '">Status</td></tr></thead><tbody>';
+  if(!groups.length){
+    h += '<tr><td colspan="4" style="text-align:center;padding:8px;' + HO_CELL + '">' + emptyMsg + '</td></tr>';
+  }
+  groups.forEach(g => {
+    /* band grup; "Tanpa Project" tidak ditampilkan */
+    if(g[0] && g[0] !== 'Tanpa Project') h += '<tr style="background:#D5DCE4;"><td colspan="4" style="font-weight:bold;font-size:12pt;padding:4px 6px;' + HO_CELL + '">' + escapeHtml(g[0]) + '</td></tr>';
+    g[1].forEach((it, idx) => {
+      const r = hoRowData(it);
+      const fol = r.bullets ? hoFollowHtml(r) : r.follow.map(f => '<div>' + escapeHtml(typeof f === 'string' ? f : (f.h || f.b)) + '</div>').join('');
+      const fAlign = r.bullets ? 'left' : 'justify';
+      h += '<tr style="background:#D4DCE4;"><td style="text-align:center;' + HO_CELL + '">' + (idx+1) + '.</td>'
+         + '<td style="font-weight:bold;' + HO_CELL + '">' + escapeHtml(r.title) + '</td><td style="' + HO_CELL + '"></td><td style="' + HO_CELL + '"></td></tr>';
+      h += '<tr style="background:#fff;"><td style="' + HO_CELL + '"></td>'
+         + '<td style="' + HO_CELL + '">' + r.details.map(d => '<div>● ' + escapeHtml(d) + '</div>').join('') + '</td>'
+         + '<td style="text-align:' + fAlign + ';' + HO_CELL + '">' + fol + '</td>'
+         + '<td style="text-align:center;' + HO_CELL + '">' + escapeHtml(r.status) + '</td></tr>';
+    });
+  });
+  h += '</tbody></table>';
+  return h;
+}
+function hoSectionBar(t){
+  return '<div style="background:#323E4F;color:#fff;font-weight:bold;padding:3px 6px;margin:10px 0 0;' + HO_FONT + '">' + escapeHtml(t) + '</div>';
+}
 function hoBuildInner(mode){
   const isP = mode === 'project';
-  const groups = isP ? hpGroups() : hoGroups();
   const header = [
     ['Document Name', isP ? 'Operations – Handover Project' : 'Operations – Handover Job'],
     ['Period', hoPeriodText()],
@@ -5782,39 +5800,12 @@ function hoBuildInner(mode){
        + '<td style="background:#D5DCE4;color:#000;font-weight:bold;padding:3px 6px;' + HO_CELL + '">' + escapeHtml(r[1]) + '</td></tr>';
   });
   h += '</table>';
-  h += '<table style="border-collapse:collapse;width:100%;table-layout:fixed;' + HO_FONT + 'color:#000;border:0.5pt solid #000;">'
-     + (isP ? '<colgroup><col style="width:5%"><col style="width:41%"><col style="width:42%"><col style="width:12%"></colgroup>' : '<colgroup><col style="width:5%"><col style="width:55%"><col style="width:28%"><col style="width:12%"></colgroup>')
-     + '<thead><tr style="background:#323E4F;color:#fff;font-weight:bold;">'
-     + '<td style="text-align:center;' + HO_CELL + '">No</td><td style="' + HO_CELL + '">' + (isP ? 'Project' : 'Task') + '</td><td style="' + HO_CELL + '">Follow up</td><td style="text-align:center;' + HO_CELL + '">Status</td></tr></thead><tbody>';
-  if(!groups.length){
-    h += '<tr><td colspan="4" style="text-align:center;padding:8px;' + HO_CELL + '">' + (isP ? 'Tidak ada project aktif.' : 'Tidak ada task aktif untuk periode ini.') + '</td></tr>';
+  if(isP){
+    h += hoTableHtml(hpGroups(), 'Project', 'Tidak ada project aktif.', true);
+  } else {
+    h += hoSectionBar('A. Task List') + hoTableHtml(hoGroups(), 'Task', 'Tidak ada task aktif untuk periode ini.', false);
+    h += hoSectionBar('B. Open Issue') + hoTableHtml(hoIssueGroups(), 'Open Issue', 'Tidak ada Open Issue aktif.', false);
   }
-  groups.forEach(g => {
-    if(g[0]) h += '<tr style="background:#D5DCE4;"><td colspan="4" style="font-weight:bold;font-size:12pt;padding:4px 6px;' + HO_CELL + '">' + escapeHtml(g[0]) + '</td></tr>';
-    let num = 0;
-    g[1].forEach((it) => {
-      const r = hoRowData(it);
-      const tag = r.tag ? '<span style="font-size:8pt;font-weight:bold;padding:0 4px;margin-right:4px;background:' + (r.tag === 'Open Issue' ? '#FCE8C8;color:#7A4A00' : '#D6E6F7;color:#173B63') + ';">' + escapeHtml(r.tag) + '</span>' : '';
-      const fol = r.bullets ? hoFollowHtml(r) : r.follow.map(f => '<div>' + escapeHtml(typeof f === 'string' ? f : (f.h || f.b)) + '</div>').join('');
-      const fAlign = r.bullets ? 'left' : 'justify';
-      if(r.sub){
-        /* baris Task / Open Issue di atas project: satu baris, tanpa nomor */
-        h += '<tr style="background:#F3F5F8;"><td style="' + HO_CELL + '"></td>'
-           + '<td style="' + HO_CELL + '"><div style="font-weight:bold;">' + tag + escapeHtml(r.title) + '</div>' + r.details.map(d => '<div>● ' + escapeHtml(d) + '</div>').join('') + '</td>'
-           + '<td style="text-align:' + fAlign + ';' + HO_CELL + '">' + fol + '</td>'
-           + '<td style="text-align:center;' + HO_CELL + '">' + escapeHtml(r.status) + '</td></tr>';
-        return;
-      }
-      num++;
-      h += '<tr style="background:#D4DCE4;"><td style="text-align:center;' + HO_CELL + '">' + num + '.</td>'
-         + '<td style="font-weight:bold;' + HO_CELL + '">' + tag + escapeHtml(r.title) + '</td><td style="' + HO_CELL + '"></td><td style="' + HO_CELL + '"></td></tr>';
-      h += '<tr style="background:#fff;"><td style="' + HO_CELL + '"></td>'
-         + '<td style="' + HO_CELL + '">' + r.details.map(d => '<div>● ' + escapeHtml(d) + '</div>').join('') + '</td>'
-         + '<td style="text-align:' + fAlign + ';' + HO_CELL + '">' + fol + '</td>'
-         + '<td style="text-align:center;' + HO_CELL + '">' + escapeHtml(r.status) + '</td></tr>';
-    });
-  });
-  h += '</tbody></table>';
   return h;
 }
 async function hoLoadPeriod(){
@@ -5912,11 +5903,13 @@ async function hoExportPpt(mode){
   ], { x: 0.6, y: 1.4, w: 9, colW: [2.8, 6.2], fontFace: 'Arial Narrow', fontSize: 12, border: { type: 'solid', pt: 0.5, color: '000000' } });
   const colHead = [hdrCell('No'), hdrCell(isP ? 'Project' : 'Task'), hdrCell('Follow up'), hdrCell('Status')];
   const LIMIT = 18;
-  (isP ? hpGroups() : hoGroups()).forEach(g => {
+  /* Handover Job: bagian A (task per project) lalu B (Open Issue); Handover Project: daftar project */
+  const pptGroups = isP ? hpGroups() : hoGroups().map(g => [g[0] === 'Tanpa Project' ? 'A. Task List' : g[0], g[1]]).concat(hoIssueGroups().map(g => ['B. Open Issue', g[1]]));
+  pptGroups.forEach(g => {
     const items = g[1].map(hoRowData);
     const chunks = []; let cur = [], w = 0;
     items.forEach(r => {
-      const weight = (r.sub ? 0 : 1) + Math.max(r.details.length + (r.sub ? 1 : 0), hoFollowLen(r), 1);
+      const weight = 1 + Math.max(r.details.length, hoFollowLen(r), 1);
       if(cur.length && w + weight > LIMIT){ chunks.push(cur); cur = []; w = 0; }
       cur.push(r); w += weight;
     });
@@ -5927,19 +5920,10 @@ async function hoExportPpt(mode){
         [{ text: (g[0] || (isP ? 'Project' : '')) + (chunks.length > 1 ? ' (' + (ci+1) + '/' + chunks.length + ')' : ''), options: { colspan: 4, bold: true, fontSize: 12, fill: { color: 'D5DCE4' } } }],
         colHead
       ];
-      let n = ci === 0 ? 0 : chunks.slice(0, ci).reduce((a, c) => a + c.filter(r => !r.sub).length, 0);
+      let n = ci === 0 ? 0 : chunks.slice(0, ci).reduce((a, c) => a + c.length, 0);
       chunk.forEach(r => {
-        const ttl = (r.tag ? '[' + r.tag + '] ' : '') + r.title;
+        const ttl = r.title;
         const folTx = r.bullets ? hoFollowText(r) : r.follow.map(f => typeof f === 'string' ? f : (f.h || f.b)).join('\n');
-        if(r.sub){
-          rows.push([
-            { text: '', options: { fill: { color: 'F3F5F8' } } },
-            { text: [{ text: ttl, options: { bold: true, breakLine: true } }, { text: r.details.map(d => '● ' + d).join('\n'), options: {} }], options: { fill: { color: 'F3F5F8' } } },
-            { text: folTx, options: { align: 'left', fill: { color: 'F3F5F8' } } },
-            { text: r.status, options: { align: 'center', fill: { color: 'F3F5F8' } } }
-          ]);
-          return;
-        }
         n++;
         rows.push([
           { text: n + '.', options: { bold: true, align: 'center', fill: { color: 'D4DCE4' } } },
