@@ -1745,6 +1745,41 @@
   .ap-num-muted{color:var(--text-muted);}
   @media(max-width:900px){.ap-kpis{grid-template-columns:repeat(2,1fr);}}
 
+  /* ================= STOCK MANAGEMENT R02 (WIM ASSET MANAGEMENT) ================= */
+  .wm-subtabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
+  .wm-subtab{padding:9px 16px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface);color:var(--text-secondary);font-size:12.5px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-family:var(--font-body);transition:transform .15s,background .15s;}
+  .wm-subtab:hover:not(.active){background:var(--hilite);transform:translateY(-1px);}
+  .wm-subtab.active{background:var(--hilite);color:var(--navy);border-color:var(--accent);}
+  .wm-pane{display:none;}
+  .wm-pane.active{display:block;animation:fadeSlideIn .25s ease;}
+  .wm-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:12px;}
+  .wm-grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+  .wm-grid2 .ap-chart-card{min-width:0;}
+  .wm-bar-row{display:flex;align-items:center;gap:10px;margin-bottom:9px;font-size:12px;cursor:pointer;}
+  .wm-bar-row .nm{width:96px;color:var(--text);}
+  .wm-bar-row .n{width:34px;text-align:right;font-weight:700;color:var(--navy);}
+  .wm-bar-row.total{cursor:default;border-top:1px solid var(--border);padding-top:8px;margin-bottom:0;}
+  .wm-bar{flex:1;height:8px;border-radius:4px;background:var(--hilite);overflow:hidden;}
+  .wm-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--navy));border-radius:4px;transition:width .5s ease;}
+  .wm-mini{width:100%;border-collapse:collapse;font-size:12px;}
+  .wm-mini thead th{font-size:11px;}
+  .wm-mini tbody tr:nth-child(even){background:var(--surface-alt,#F2F2F2);}
+  .wm-note{margin:8px 0 0;font-size:10.5px;color:var(--text-muted);}
+  .wm-table{width:100%;border-collapse:collapse;font-size:12px;}
+  .wm-table thead tr{text-align:left;background:var(--navy);color:#fff;}
+  .wm-table th{padding:10px 8px;font-weight:600;white-space:nowrap;}
+  .wm-table tr.wm-zebra{background:var(--surface-alt,#F2F2F2);}
+  .wm-panduan{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
+  .wm-pg{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;box-shadow:0 2px 6px rgba(15,27,44,.04);}
+  .wm-pg-no{display:inline-block;padding:3px 10px;border-radius:999px;background:var(--hilite);color:var(--navy);font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;margin-bottom:6px;}
+  .wm-pg p{margin:0;font-size:12.5px;line-height:1.55;color:var(--text);}
+  .wm-form{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px;}
+  .wm-f.full{grid-column:1 / -1;}
+  .wm-f label{display:block;font-size:10.5px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px;}
+  .wm-f input,.wm-f select,.wm-f textarea{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:var(--font-body);background:var(--surface);color:var(--text);box-sizing:border-box;}
+  .wm-hint{margin-top:10px;font-size:11.5px;color:var(--text-secondary);min-height:16px;}
+  @media(max-width:900px){.wm-kpis{grid-template-columns:repeat(2,1fr);}.wm-grid2,.wm-panduan,.wm-form{grid-template-columns:1fr;}}
+
   /* ================= PENILAIAN JASA PERTAMBANGAN (PJP) ================= */
   .ap-b-black{background:var(--black-bg);color:var(--black-fg);}
   .pjp-toolbar{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px;margin-bottom:14px;}
@@ -2090,7 +2125,7 @@
       <div class="tab" data-view="projects" data-label="Projects"><i class="ti ti-briefcase"></i><span>Projects</span></div>
       <div class="tab" data-view="sap" data-label="SAP"><i class="ti ti-shield-check"></i><span>SAP</span></div>
       <div class="tab" data-view="handover" data-label="Handover Job"><i class="ti ti-file-text"></i><span>Handover Job</span></div>
-      <div class="tab" data-view="handoverproject" data-label="Handover Project" style="display:none" hidden><i class="ti ti-file-description"></i><span>Handover Project</span></div>
+      <div class="tab" data-view="handoverproject" data-label="Handover Project"><i class="ti ti-file-description"></i><span>Handover Project</span></div>
       <div class="tab" data-view="workload" data-label="Workload Analysis"><i class="ti ti-gauge"></i><span>Workload Analysis</span></div>
       <div class="tab" data-view="openpoint" data-label="Open Point" style="display:none" hidden><i class="ti ti-alert-triangle"></i><span>Open Point</span></div>
       <div class="tab" data-view="weeklywim" data-label="Weekly Meeting WIM"><i class="ti ti-calendar-event"></i><span>Weekly Meeting WIM</span></div>
@@ -2167,72 +2202,158 @@
     </div>
   </div>
 
-  <!-- ================= VIEW: STOCK MANAGEMENT ================= -->
+  <!-- ================= VIEW: STOCK MANAGEMENT (WIM ASSET MANAGEMENT R02) ================= -->
   <div class="view" id="view-assetplant">
 
-    <!-- HERO HEADER -->
     <div class="ap-hero">
       <div class="ap-hero-left">
         <div class="ap-hero-icon"><i class="ti ti-package"></i></div>
         <div>
-          <h1>Stock Management — Part WIM</h1>
-          <p>Summary Stock Part Sistem Weigh-In-Motion</p>
+          <h1>Stock Management — WIM Asset Management</h1>
+          <p>Satu sumber transaksi, output terhubung (Dashboard, Inventory, Register Aset)</p>
         </div>
       </div>
       <div class="ap-hero-badges">
-        <span class="ap-pill ap-pill-live" id="apSyncPill"><span class="ap-pill-dot" id="apSyncDot"></span> <span id="apSyncInfo">Belum pernah sync dari Google Sheet.</span></span>
-        <a href="#" id="stockSheetLinkBtn" class="ap-pill ap-pill-link" target="_blank" rel="noopener" title="Buka spreadsheet sumber data di tab baru"><i class="ti ti-link"></i> Link Spreadsheet</a>
-        <button type="button" class="ap-pill ap-pill-link" id="stockSheetEditBtn" title="Ubah link spreadsheet sumber data"><i class="ti ti-pencil"></i></button>
-        <button type="button" class="ap-pill ap-pill-link" id="apSyncBtn"><i class="ti ti-refresh"></i> Sync dari Sheet</button>
+        <span class="ap-pill ap-pill-live" id="wmInfoPill"><span class="ap-pill-dot"></span> <span id="wmInfo">Memuat data...</span></span>
+        <button type="button" class="ap-pill ap-pill-link" id="wmReloadBtn" title="Muat ulang dari server"><i class="ti ti-refresh"></i></button>
+        <button type="button" class="ap-pill ap-pill-link" id="wmAddBtn"><i class="ti ti-plus"></i> Transaksi</button>
       </div>
     </div>
 
-    <!-- KPI CARDS -->
-    <div class="ap-kpis" id="apKpiRow"></div>
+    <div class="wm-subtabs">
+      <button type="button" class="wm-subtab active" data-sub="dash"><i class="ti ti-layout-dashboard"></i> Dashboard</button>
+      <button type="button" class="wm-subtab" data-sub="pan"><i class="ti ti-book-2"></i> Panduan</button>
+      <button type="button" class="wm-subtab" data-sub="inp"><i class="ti ti-edit"></i> Input Data</button>
+      <button type="button" class="wm-subtab" data-sub="inv"><i class="ti ti-packages"></i> Inventory</button>
+      <button type="button" class="wm-subtab" data-sub="reg"><i class="ti ti-list-details"></i> Register Aset</button>
+      <button type="button" class="wm-subtab" data-sub="mst"><i class="ti ti-database"></i> Master Data</button>
+    </div>
 
-    <!-- CHART: DISTRIBUSI CATEGORY -->
-    <div class="ap-chart-wrap">
-      <div class="ap-chart-card">
-        <h3><i class="ti ti-chart-donut-2"></i> Distribusi Category (Severity)</h3>
-        <div class="ap-chart-box"><canvas id="apChartCategory"></canvas></div>
+    <div class="wm-pane active" id="wmPane-dash"><div id="wmDash"></div></div>
+
+    <div class="wm-pane" id="wmPane-pan">
+      <div class="wm-panduan">
+        <div class="wm-pg"><span class="wm-pg-no">Prinsip</span><p>Semua data masuk lewat satu pintu: tab <b>Input Data</b>. Saldo awal R01 sudah tercatat sebagai transaksi Saldo_Awal dan tidak perlu diinput ulang.</p></div>
+        <div class="wm-pg"><span class="wm-pg-no">Langkah 1</span><p>Klik <b>+ Transaksi</b>. Isi Tanggal dan Jenis Transaksi; ID Transaksi dibuat otomatis (TRX-tanggal-urutan).</p></div>
+        <div class="wm-pg"><span class="wm-pg-no">Langkah 2</span><p>Gunakan <b>Barang_Masuk</b> untuk semua penerimaan barang/aset. Isi Kode Barang, Qty, lokasi, No PO, dan detail yang relevan. Untuk barang bertipe Serial, Asset ID terisi otomatis dan boleh diubah.</p></div>
+        <div class="wm-pg"><span class="wm-pg-no">Langkah 3</span><p>Gunakan <b>Pemasangan</b> untuk aset/barang yang digunakan, <b>Pelepasan</b> untuk aset yang dilepas, dan <b>Mutasi_Aset</b> untuk semua perpindahan lokasi, termasuk pengiriman ke HO. Isi Asset ID, Lokasi Asal, dan Lokasi Tujuan.</p></div>
+        <div class="wm-pg"><span class="wm-pg-no">Langkah 4</span><p><b>Inventory</b> menghitung stok otomatis dari transaksi (masuk − pemasangan + pelepasan − perbaikan − disposal). <b>Register Aset</b> dan <b>Dashboard</b> juga mengikuti transaksi.</p></div>
+        <div class="wm-pg"><span class="wm-pg-no">Penting</span><p>Data R02 (201 baris awal) berstatus arsip: tidak bisa dihapus, hanya bisa dikoreksi lewat tombol edit (dapat dikembalikan ke data asli). Transaksi baru dari HUB bisa diedit dan dihapus.</p></div>
+        <div class="wm-pg"><span class="wm-pg-no">Catatan ID</span><p>ID dihitung dari tanggal + urutan baris, sehingga dapat bergeser bila transaksi dihapus. Untuk catatan audit permanen, simpan ID transaksi pada kolom Keterangan.</p></div>
+        <div class="wm-pg"><span class="wm-pg-no">Validasi</span><p>Kolom <b>Cek Input</b> mengingatkan kolom wajib (tanggal, item, qty, Asset ID untuk barang Serial). Koreksi data dilakukan lewat edit baris atau transaksi koreksi.</p></div>
+        <div class="wm-pg"><span class="wm-pg-no">Penyimpanan</span><p>Transaksi baru, koreksi, dan perubahan master tersimpan di server HUB (bukan di browser), sehingga terlihat sama untuk semua pengguna setelah memuat ulang.</p></div>
       </div>
     </div>
 
-    <!-- TABLE -->
-    <div class="category">
-      <div class="category-body" style="padding:16px 18px;">
+    <div class="wm-pane" id="wmPane-inp">
+      <div class="category"><div class="category-body" style="padding:16px 18px;">
         <div class="ap-table-head">
-          <div>
-            <h3><i class="ti ti-table"></i> Summary Stok Detail &amp; Risk Severity</h3>
-            <p>Cari dan filter part berdasarkan tingkat kepentingan (Category)</p>
-          </div>
+          <div><h3><i class="ti ti-edit"></i> Input Data — satu pintu input</h3><p id="wmInpCount"></p></div>
           <div class="ap-table-controls">
-            <div class="ap-search-wrap"><i class="ti ti-search"></i><input type="text" id="apSearchInput" placeholder="Cari nama part..."></div>
-            <select class="ap-filter-sel" id="apCategoryFilter">
-              <option value="ALL">Semua Category</option>
-              <option value="Critical">Critical</option>
-              <option value="Medium">Medium</option>
-              <option value="Low">Low</option>
-            </select>
+            <div class="ap-search-wrap"><i class="ti ti-search"></i><input type="text" id="wmInpQ" placeholder="Cari ID, asset, kode, serial..."></div>
+            <select class="ap-filter-sel" id="wmInpJenis"><option value="ALL">Semua jenis</option><option>Saldo_Awal</option><option>Barang_Masuk</option><option>Pemasangan</option><option>Pelepasan</option><option>Mutasi_Aset</option><option>Perbaikan</option><option>Disposal</option></select>
+            <select class="ap-filter-sel" id="wmInpCek"><option value="ALL">Semua cek input</option><option value="PERIKSA">Perlu diperiksa</option><option value="OK">OK</option></select>
           </div>
         </div>
-        <div class="ap-table-scroll">
-        <table style="width:100%;border-collapse:collapse;font-size:12px;min-width:1020px;">
-          <thead><tr style="text-align:left;background:var(--navy);color:#fff;">
-            <th style="padding:10px 8px;font-weight:600;">No</th>
-            <th style="padding:10px 8px;font-weight:600;">Description</th>
-            <th style="padding:10px 8px;font-weight:600;">Category</th>
-            <th style="padding:10px 8px;font-weight:600;">Source</th>
-            <th style="padding:10px 8px;font-weight:600;text-align:center;">Baru</th>
-            <th style="padding:10px 8px;font-weight:600;text-align:center;">Second</th>
-            <th style="padding:10px 8px;font-weight:600;text-align:center;">Rusak</th>
-            <th style="padding:10px 8px;font-weight:600;">Desc</th>
-            <th style="padding:10px 8px;font-weight:600;text-align:right;">Aksi</th>
-          </tr></thead>
-          <tbody id="apBody"></tbody>
-        </table>
+        <div class="ap-table-scroll"><table class="wm-table" style="min-width:1500px;">
+          <thead><tr><th>ID Transaksi</th><th>Tanggal</th><th>Jenis</th><th>Asset ID</th><th>Kode</th><th>Nama / deskripsi</th><th style="text-align:center;">Qty</th><th>Lokasi asal</th><th>Lokasi tujuan</th><th>Status</th><th>Kondisi</th><th>No PO</th><th>Serial</th><th>Keterangan</th><th>Cek input</th><th style="text-align:right;">Aksi</th></tr></thead>
+          <tbody id="wmInpBody"></tbody></table></div>
+        <div class="add-task-wrap" style="padding:10px 0 0;"><button class="add-task-btn" id="wmInpMore" style="display:none;"></button></div>
+      </div></div>
+    </div>
+
+    <div class="wm-pane" id="wmPane-inv">
+      <div class="category"><div class="category-body" style="padding:16px 18px;">
+        <div class="ap-table-head">
+          <div><h3><i class="ti ti-packages"></i> Inventory — stok barang</h3><p id="wmInvCount"></p></div>
+          <div class="ap-table-controls">
+            <div class="ap-search-wrap"><i class="ti ti-search"></i><input type="text" id="wmInvQ" placeholder="Cari kode / nama barang..."></div>
+            <select class="ap-filter-sel" id="wmInvCrit"><option value="ALL">Semua criticality</option><option>Critical</option><option>Medium</option><option>Low</option></select>
+            <select class="ap-filter-sel" id="wmInvAlert"><option value="ALL">Semua alert</option><option value="ATTN">Perlu tindakan</option><option>Aman</option><option>Reorder</option><option>Kosong</option><option>Stok Negatif</option></select>
+          </div>
         </div>
-        <div class="add-task-wrap" style="padding:10px 0 0;"><button class="add-task-btn" id="apAddBtn">+ Tambah item part</button></div>
+        <div class="ap-table-scroll"><table class="wm-table" style="min-width:1050px;">
+          <thead><tr><th>Kode</th><th>Nama barang</th><th>Satuan</th><th>Criticality</th><th style="text-align:center;">Barang masuk</th><th style="text-align:center;">Pemasangan</th><th style="text-align:center;">Pelepasan</th><th style="text-align:center;">Mutasi aset</th><th style="text-align:center;">Perbaikan</th><th style="text-align:center;">Disposal</th><th style="text-align:center;">Stok terkini</th><th style="text-align:center;">Min stok</th><th>Alert</th></tr></thead>
+          <tbody id="wmInvBody"></tbody></table></div>
+      </div></div>
+    </div>
+
+    <div class="wm-pane" id="wmPane-reg">
+      <div class="category"><div class="category-body" style="padding:16px 18px;">
+        <div class="ap-table-head">
+          <div><h3><i class="ti ti-list-details"></i> Register Aset — status terkini</h3><p id="wmRegCount"></p></div>
+          <div class="ap-table-controls">
+            <div class="ap-search-wrap"><i class="ti ti-search"></i><input type="text" id="wmRegQ" placeholder="Cari asset ID, serial, PO..."></div>
+            <select class="ap-filter-sel" id="wmRegStatus"><option value="ALL">Semua status</option><option>Terpasang</option><option>Spare</option><option>Dilepas</option><option>Dikirim ke HO</option><option>Perbaikan</option><option>Disposal</option></select>
+            <select class="ap-filter-sel" id="wmRegKondisi"><option value="ALL">Semua kondisi</option><option>Baru</option><option>Baik</option><option>Bekas</option><option>Rusak</option><option>Aus</option><option>Patah</option><option>Dummy</option><option>Perlu Inspeksi</option></select>
+            <select class="ap-filter-sel" id="wmRegLoc"><option value="ALL">Semua lokasi</option></select>
+          </div>
+        </div>
+        <div class="ap-table-scroll"><table class="wm-table" style="min-width:1150px;">
+          <thead><tr><th>Asset ID</th><th>Kode</th><th>Nama barang</th><th>Serial number</th><th>Status terkini</th><th>Kondisi</th><th>Lokasi terkini</th><th>Sub-lokasi</th><th style="text-align:center;">Qty</th><th>No PO</th><th>Tanggal update</th><th>Sumber</th></tr></thead>
+          <tbody id="wmRegBody"></tbody></table></div>
+        <div class="add-task-wrap" style="padding:10px 0 0;"><button class="add-task-btn" id="wmRegMore" style="display:none;"></button></div>
+      </div></div>
+    </div>
+
+    <div class="wm-pane" id="wmPane-mst">
+      <div class="category"><div class="category-body" style="padding:16px 18px;">
+        <div class="ap-table-head">
+          <div><h3><i class="ti ti-database"></i> Master Data — referensi kode barang</h3><p id="wmMstCount"></p></div>
+          <div class="ap-table-controls">
+            <div class="ap-search-wrap"><i class="ti ti-search"></i><input type="text" id="wmMstQ" placeholder="Cari kode / nama / kategori..."></div>
+          </div>
+        </div>
+        <div class="ap-table-scroll"><table class="wm-table" style="min-width:1100px;">
+          <thead><tr><th>Kode</th><th>Nama barang</th><th>Merk / model</th><th>Kategori</th><th>Criticality</th><th>Source</th><th>Tipe</th><th>Satuan</th><th style="text-align:center;">Min stok</th><th>Keterangan</th><th style="text-align:right;">Aksi</th></tr></thead>
+          <tbody id="wmMstBody"></tbody></table></div>
+        <div class="add-task-wrap" style="padding:10px 0 0;"><button class="add-task-btn" id="wmMstAddBtn">+ Tambah kode barang</button></div>
+      </div></div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL: TRANSAKSI (Stock Management R02) ================= -->
+  <div class="modal-overlay" id="wmTrxOverlay">
+    <div class="modal-box" style="max-width:680px;max-height:90vh;overflow:auto;">
+      <button type="button" class="modal-close-x" id="wmTrxClose" title="Tutup">✕</button>
+      <h3 id="wmTrxTitle">Tambah transaksi</h3>
+      <p id="wmTrxSeedNote" style="display:none;font-size:11.5px;color:var(--text-secondary);margin:0 0 10px;">Baris ini berasal dari data arsip R02. Perubahan disimpan sebagai koreksi dan bisa dikembalikan ke data asli.</p>
+      <div class="wm-form" id="wmTrxForm"></div>
+      <datalist id="wmLocList"></datalist>
+      <div class="wm-hint" id="wmTrxHint"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;gap:8px;flex-wrap:wrap;">
+        <div style="display:flex;gap:8px;">
+          <button type="button" class="btn" id="wmTrxDelete" style="color:var(--red-fg);border-color:var(--red-fg);display:none;">Hapus</button>
+          <button type="button" class="btn" id="wmTrxRevert" style="display:none;">Kembalikan ke data R02</button>
+        </div>
+        <div style="display:flex;gap:8px;margin-left:auto;">
+          <button type="button" class="btn btn-ghost" id="wmTrxCancel">Batal</button>
+          <button type="button" class="btn btn-primary" id="wmTrxSave">Simpan</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL: MASTER DATA (Stock Management R02) ================= -->
+  <div class="modal-overlay" id="wmMstOverlay">
+    <div class="modal-box" style="max-width:560px;max-height:90vh;overflow:auto;">
+      <button type="button" class="modal-close-x" id="wmMstClose" title="Tutup">✕</button>
+      <h3 id="wmMstTitle">Tambah kode barang</h3>
+      <div class="wm-form">
+        <div class="wm-f"><label for="wmM_kode">Kode barang *</label><input type="text" id="wmM_kode" maxlength="8" style="text-transform:uppercase;"></div>
+        <div class="wm-f"><label for="wmM_nama">Nama barang *</label><input type="text" id="wmM_nama" maxlength="80"></div>
+        <div class="wm-f"><label for="wmM_merk">Merk / model</label><input type="text" id="wmM_merk" maxlength="80"></div>
+        <div class="wm-f"><label for="wmM_kategori">Kategori</label><input type="text" id="wmM_kategori" list="wmCatList" maxlength="40"><datalist id="wmCatList"></datalist></div>
+        <div class="wm-f"><label for="wmM_crit">Criticality</label><select id="wmM_crit"><option>Critical</option><option>Medium</option><option>Low</option></select></div>
+        <div class="wm-f"><label for="wmM_source">Source</label><select id="wmM_source"><option>Impor</option><option>Local</option></select></div>
+        <div class="wm-f"><label for="wmM_tipe">Tipe</label><select id="wmM_tipe"><option>Serial</option><option>Consumable</option></select></div>
+        <div class="wm-f"><label for="wmM_satuan">Satuan</label><input type="text" id="wmM_satuan" maxlength="12"></div>
+        <div class="wm-f"><label for="wmM_min">Min stok</label><input type="number" id="wmM_min" min="0" step="1"></div>
+        <div class="wm-f full"><label for="wmM_ket">Keterangan</label><textarea id="wmM_ket" rows="2" maxlength="200"></textarea></div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px;">
+        <button type="button" class="btn btn-ghost" id="wmMstCancel">Batal</button>
+        <button type="button" class="btn btn-primary" id="wmMstSave">Simpan</button>
       </div>
     </div>
   </div>
@@ -6041,6 +6162,583 @@ const DSO_AVAIL_KEY = 'dso:availability';
 const DSO_ASSETS_KEY = 'dso:stock-wim-v2';
 let apAssetsData = [];
 let apEditingIdx = null;
+/* ================= STOCK MANAGEMENT R02: WIM ASSET MANAGEMENT =================
+   Mengacu pada file Asset_Management_WIM_R02.xlsx (sheet: DASHBOARD, PANDUAN, INPUT_DATA, INVENTORY,
+   REGISTER_ASET, MASTER_DATA). Satu pintu input = daftar transaksi; Inventory, Register Aset dan
+   Dashboard dihitung ulang dari transaksi (sama seperti rumus di Excel).
+   Data awal R02 (seed) tertanam di bawah ini dan bersifat arsip (hanya bisa diberi koreksi/patch).
+   Transaksi baru, koreksi, dan perubahan master disimpan lewat store HUB (window.storage), BUKAN localStorage.
+   Karena URL set dibatasi ~8KB, data disimpan per potongan kecil (pola chunk seperti SOP). */
+const WM_SEED_TRX=[["2026-05-26","Saldo_Awal","LC-001","LC","INTERCOMP","1","","WIM Lane 3","","Terpasang","Baru","4930007520","","","","","91913187","","Loadcell 15 Ton double ended shear beam | PN: 603053--AC-25K"],["2026-05-26","Saldo_Awal","LC-002","LC","INTERCOMP","1","","WIM Lane 3","","Terpasang","Baru","4930007520","","","","","92309683","","Loadcell 15 Ton double ended shear beam | PN: 603053--AC-25K"],["2026-05-26","Saldo_Awal","LC-003","LC","INTERCOMP","1","","WIM Lane 3","","Terpasang","Baru","4930007520","","","","","92285794","","Loadcell 15 Ton double ended shear beam | PN: 603053--AC-25K"],["2026-05-26","Saldo_Awal","LC-004","LC","INTERCOMP","1","","WIM Lane 3","","Terpasang","Baru","4930007520","","","","","91913138","","Loadcell 15 Ton double ended shear beam | PN: 603053--AC-25K"],["2026-09-22","Saldo_Awal","LC-005","LC","BOSCHE","1","","Office VISI","","Dilepas","Bekas","4930007734","","","","","59M5539","","Loadcell 15 Ton double ended shear beam | PN: I-D10S-25000"],["2026-08-14","Saldo_Awal","LC-006","LC","BOSCHE","1","","Office VISI","","Dilepas","Patah","4930007734","","","","","56M9877","","Loadcell 15 Ton double ended shear beam | PN: I-D10S-25000"],["2026-08-14","Saldo_Awal","LC-007","LC","BOSCHE","1","","Office VISI","","Dilepas","Patah","4930007734","","","","","59M5515","","Loadcell 15 Ton double ended shear beam | PN: I-D10S-25000"],["2026-08-14","Saldo_Awal","LC-008","LC","BOSCHE","1","","Office VISI","","Dilepas","Bekas","4930007734","","","","","59M5516","","Loadcell 15 Ton double ended shear beam | PN: I-D10S-25000"],["2026-09-22","Saldo_Awal","LC-009","LC","INTERCOMP","1","","WIM Lane 1","","Terpasang","Baru","4930007520","","","","","92309753","","Loadcell 15 Ton double ended shear beam | PN: 603053--AC-25K"],["2026-09-22","Saldo_Awal","LC-010","LC","INTERCOMP","1","","WIM Lane 1","","Terpasang","Baru","4930007520","","","","","91913125","","Loadcell 15 Ton double ended shear beam | PN: 603053--AC-25K"],["2026-09-22","Saldo_Awal","LC-011","LC","INTERCOMP","1","","WIM Lane 1","","Terpasang","Baru","4930007520","","","","","92309685","","Loadcell 15 Ton double ended shear beam | PN: 603053--AC-25K"],["2026-09-22","Saldo_Awal","LC-012","LC","INTERCOMP","1","","WIM Lane 1","","Terpasang","Baru","4930007520","","","","","92285792","","Loadcell 15 Ton double ended shear beam | PN: 603053--AC-25K"],["2026-05-22","Saldo_Awal","LC-013","LC","INTERCOMP","1","","Office VISI","","Dilepas","Dummy","","","","","","91066926","","Loadcell 15 Ton double ended shear beam | PN: 603053--AC-25K"],["2026-09-22","Saldo_Awal","LC-014","LC","INTERCOMP","1","","Office VISI","","Dilepas","Dummy","","","","","","91066931","","Loadcell 15 Ton double ended shear beam | PN: 603053--AC-25K"],["2026-05-22","Saldo_Awal","LC-015","LC","INTERCOMP","1","","Office VISI","","Dilepas","Dummy","","","","","","91066923","","Loadcell 15 Ton double ended shear beam | PN: 603053--AC-25K"],["2026-09-22","Saldo_Awal","LC-016","LC","INTERCOMP","1","","Office VISI","","Dilepas","Dummy","4930007163","","","","","91508649","","Loadcell 15 Ton double ended shear beam | PN: 603053--AC-25K"],["2026-05-28","Saldo_Awal","LC-017","LC","INTERCOMP","1","","VISI HO","","Dikirim ke HO","Dummy","4930007163","","","","","91508699","","Loadcell 15 Ton double ended shear beam | PN: 603053--AC-25K"],["2026-09-22","Saldo_Awal","LC-018","LC","INTERCOMP","1","","Office VISI","","Dilepas","Patah","4930007163","","","","","91508656","","Loadcell 15 Ton double ended shear beam | PN: 603053--AC-25K"],["2024-04-29","Saldo_Awal","WSS-001","WSS","INTERCOMP","1","","WIM Lane 2","","Terpasang","Baru","","","","","","","","Sensor Strip High Speed INTERCOMP | PN: 2.0M STRAIN GAUGE STRIP SENSOR W/100M CABLE (3.0) / 153033 - 100"],["2024-04-29","Saldo_Awal","WSS-002","WSS","INTERCOMP","1","","WIM Lane 2","","Terpasang","Baru","","","","","","","","Sensor Strip High Speed INTERCOMP | PN: 2.0M STRAIN GAUGE STRIP SENSOR W/100M CABLE (3.0) / 153033 - 100"],["2024-04-29","Saldo_Awal","WSS-003","WSS","INTERCOMP","1","","WIM Lane 2","","Terpasang","Baru","","","","","","","","Sensor Strip High Speed INTERCOMP | PN: 2.0M STRAIN GAUGE STRIP SENSOR W/100M CABLE (3.0) / 153033 - 100"],["2024-04-29","Saldo_Awal","WSS-004","WSS","INTERCOMP","1","","WIM Lane 2","","Terpasang","Baru","","","","","","","","Sensor Strip High Speed INTERCOMP | PN: 2.0M STRAIN GAUGE STRIP SENSOR W/100M CABLE (3.0) / 153033 - 100"],["2024-04-29","Saldo_Awal","WSS-005","WSS","INTERCOMP","1","","WIM Lane 2","","Terpasang","Baru","","","","","","","","Sensor Strip High Speed INTERCOMP | PN: 2.0M STRAIN GAUGE STRIP SENSOR W/100M CABLE (3.0) / 153033 - 100"],["2024-04-29","Saldo_Awal","WSS-006","WSS","INTERCOMP","1","","WIM Lane 2","","Terpasang","Baru","","","","","","","","Sensor Strip High Speed INTERCOMP | PN: 2.0M STRAIN GAUGE STRIP SENSOR W/100M CABLE (3.0) / 153033 - 100"],["2024-04-29","Saldo_Awal","WSS-007","WSS","INTERCOMP","1","","WIM Lane 2","","Terpasang","Baru","","","","","","","","Sensor Strip High Speed INTERCOMP | PN: 2.0M STRAIN GAUGE STRIP SENSOR W/100M CABLE (3.0) / 153033 - 100"],["2024-04-29","Saldo_Awal","WSS-008","WSS","INTERCOMP","1","","WIM Lane 2","","Terpasang","Baru","","","","","","","","Sensor Strip High Speed INTERCOMP | PN: 2.0M STRAIN GAUGE STRIP SENSOR W/100M CABLE (3.0) / 153033 - 100"],["2025-02-02","Saldo_Awal","WSS-009","WSS","INTERCOMP","1","","WIM Lane 1","","Terpasang","Baru","","","","","","","","Sensor Strip High Speed INTERCOMP | PN: 2.0M STRAIN GAUGE STRIP SENSOR W/100M CABLE (3.0) / 153033 - 100"],["2025-02-02","Saldo_Awal","WSS-010","WSS","INTERCOMP","1","","WIM Lane 1","","Terpasang","Baru","","","","","","","","Sensor Strip High Speed INTERCOMP | PN: 2.0M STRAIN GAUGE STRIP SENSOR W/100M CABLE (3.0) / 153033 - 100"],["2025-02-02","Saldo_Awal","WSS-011","WSS","INTERCOMP","1","","WIM Lane 1","","Terpasang","Baru","","","","","","","","Sensor Strip High Speed INTERCOMP | PN: 2.0M STRAIN GAUGE STRIP SENSOR W/100M CABLE (3.0) / 153033 - 100"],["2025-02-02","Saldo_Awal","WSS-012","WSS","INTERCOMP","1","","WIM Lane 1","","Terpasang","Baru","","","","","","","","Sensor Strip High Speed INTERCOMP | PN: 2.0M STRAIN GAUGE STRIP SENSOR W/100M CABLE (3.0) / 153033 - 100"],["2025-02-02","Saldo_Awal","WSS-013","WSS","INTERCOMP","1","","WIM Lane 1","","Terpasang","Baru","","","","","","","","Sensor Strip High Speed INTERCOMP | PN: 2.0M STRAIN GAUGE STRIP SENSOR W/100M CABLE (3.0) / 153033 - 100"],["2025-02-02","Saldo_Awal","WSS-014","WSS","INTERCOMP","1","","WIM Lane 1","","Terpasang","Baru","","","","","","","","Sensor Strip High Speed INTERCOMP | PN: 2.0M STRAIN GAUGE STRIP SENSOR W/100M CABLE (3.0) / 153033 - 100"],["2025-02-02","Saldo_Awal","WSS-015","WSS","INTERCOMP","1","","WIM Lane 1","","Terpasang","Baru","","","","","","","","Sensor Strip High Speed INTERCOMP | PN: 2.0M STRAIN GAUGE STRIP SENSOR W/100M CABLE (3.0) / 153033 - 100"],["2025-02-02","Saldo_Awal","WSS-016","WSS","INTERCOMP","1","","WIM Lane 1","","Terpasang","Baru","","","","","","","","Sensor Strip High Speed INTERCOMP | PN: 2.0M STRAIN GAUGE STRIP SENSOR W/100M CABLE (3.0) / 153033 - 100"],["2025-07-17","Saldo_Awal","WSS-017","WSS","INTERCOMP","1","","WIM Lane 3","","Terpasang","Baru","","","","","","0128YR25001","","Sensor Strip High Speed INTERCOMP | PN: 2.0M STRAIN GAUGE STRIP SENSOR W/100M CABLE (3.0) / 153033 - 100"],["2025-07-17","Saldo_Awal","WSS-018","WSS","INTERCOMP","1","","WIM Lane 3","","Terpasang","Baru","","","","","","0128YR25002","","Sensor Strip High Speed INTERCOMP | PN: 2.0M STRAIN GAUGE STRIP SENSOR W/100M CABLE (3.0) / 153033 - 100"],["2025-07-17","Saldo_Awal","WSS-019","WSS","INTERCOMP","1","","WIM Lane 3","","Terpasang","Baru","","","","","","0128YR25003","","Sensor Strip High Speed INTERCOMP | PN: 2.0M STRAIN GAUGE STRIP SENSOR W/100M CABLE (3.0) / 153033 - 100"],["2025-07-17","Saldo_Awal","WSS-020","WSS","INTERCOMP","1","","WIM Lane 3","","Terpasang","Baru","","","","","","0128YR25004","","Sensor Strip High Speed INTERCOMP | PN: 2.0M STRAIN GAUGE STRIP SENSOR W/100M CABLE (3.0) / 153033 - 100"],["2025-07-17","Saldo_Awal","WSS-021","WSS","INTERCOMP","1","","WIM Lane 3","","Terpasang","Baru","","","","","","0128YR25005","","Sensor Strip High Speed INTERCOMP | PN: 2.0M STRAIN GAUGE STRIP SENSOR W/100M CABLE (3.0) / 153033 - 100"],["2025-07-17","Saldo_Awal","WSS-022","WSS","INTERCOMP","1","","WIM Lane 3","","Terpasang","Baru","","","","","","0128YR25006","","Sensor Strip High Speed INTERCOMP | PN: 2.0M STRAIN GAUGE STRIP SENSOR W/100M CABLE (3.0) / 153033 - 100"],["2025-07-17","Saldo_Awal","WSS-023","WSS","INTERCOMP","1","","WIM Lane 3","","Terpasang","Baru","","","","","","0128YR25007","","Sensor Strip High Speed INTERCOMP | PN: 2.0M STRAIN GAUGE STRIP SENSOR W/100M CABLE (3.0) / 153033 - 100"],["2025-07-17","Saldo_Awal","WSS-024","WSS","INTERCOMP","1","","WIM Lane 3","","Terpasang","Baru","","","","","","0128YR25008","","Sensor Strip High Speed INTERCOMP | PN: 2.0M STRAIN GAUGE STRIP SENSOR W/100M CABLE (3.0) / 153033 - 100"],["2025-04-29","Saldo_Awal","WSS-025","WSS","INTERCOMP","1","","Office VISI","","Spare","Baru","","","","","","0116YR25001","","Sensor Strip High Speed INTERCOMP | PN: 2.0M STRAIN GAUGE STRIP SENSOR W/100M CABLE (3.0) / 153033 - 100"],["2025-04-29","Saldo_Awal","WSS-026","WSS","INTERCOMP","1","","Office VISI","","Spare","Baru","","","","","","0116YR25002","","Sensor Strip High Speed INTERCOMP | PN: 2.0M STRAIN GAUGE STRIP SENSOR W/100M CABLE (3.0) / 153033 - 100"],["2025-04-29","Saldo_Awal","WSS-027","WSS","INTERCOMP","1","","Office VISI","","Spare","Baru","","","","","","0116YR25003","","Sensor Strip High Speed INTERCOMP | PN: 2.0M STRAIN GAUGE STRIP SENSOR W/100M CABLE (3.0) / 153033 - 100"],["2025-04-29","Saldo_Awal","WSS-028","WSS","INTERCOMP","1","","Office VISI","","Spare","Baru","","","","","","0116YR25004","","Sensor Strip High Speed INTERCOMP | PN: 2.0M STRAIN GAUGE STRIP SENSOR W/100M CABLE (3.0) / 153033 - 100"],["2026-04-07","Saldo_Awal","MNT-001","MNT","INTERCOMP","1","","Office VISI","","Spare","Baru","","","","","","VGT-MNTG-01","","INTERCOMP Mounting Platform Low Speed | PN: UC50-30"],["2026-04-07","Saldo_Awal","MNT-002","MNT","INTERCOMP","1","","Office VISI","","Spare","Baru","","","","","","VGT-MNTG-02","","INTERCOMP Mounting Platform Low Speed | PN: UC50-30"],["2026-04-07","Saldo_Awal","MNT-003","MNT","INTERCOMP","1","","Office VISI","","Spare","Baru","","","","","","VGT-MNTG-03","","INTERCOMP Mounting Platform Low Speed | PN: UC50-30"],["2026-04-07","Saldo_Awal","MNT-004","MNT","INTERCOMP","1","","Office VISI","","Spare","Baru","","","","","","VGT-MNTG-04","","INTERCOMP Mounting Platform Low Speed | PN: UC50-30"],["2026-04-07","Saldo_Awal","MNT-005","MNT","INTERCOMP","1","","Office VISI","","Spare","Baru","","","","","","VGT-MNTG-05","","INTERCOMP Mounting Platform Low Speed | PN: UC50-30"],["2026-04-07","Saldo_Awal","MNT-006","MNT","INTERCOMP","1","","Office VISI","","Spare","Baru","","","","","","VGT-MNTG-06","","INTERCOMP Mounting Platform Low Speed | PN: UC50-30"],["2026-04-07","Saldo_Awal","MNT-007","MNT","INTERCOMP","1","","Office VISI","","Spare","Baru","","","","","","VGT-MNTG-07","","INTERCOMP Mounting Platform Low Speed | PN: UC50-30"],["2026-04-07","Saldo_Awal","MNT-008","MNT","INTERCOMP","1","","Office VISI","","Spare","Baru","","","","","","VGT-MNTG-08","","INTERCOMP Mounting Platform Low Speed | PN: UC50-30"],["2026-05-28","Saldo_Awal","SDL-001","SDL","INTERCOMP","1","","WIM Lane 1","Low Speed","Terpasang","Baru","","","","","","","","INTERCOMP AX920 Link | PN: UB50-30"],["2026-08-14","Saldo_Awal","SDL-002","SDL","INTERCOMP","1","","Office VISI","","Dilepas","Bekas","","","","","","","","INTERCOMP AX920 Link | PN: UB50-30"],["2026-08-14","Saldo_Awal","SDL-003","SDL","INTERCOMP","1","","Office VISI","","Dilepas","Bekas","","","","","","","","INTERCOMP AX920 Link | PN: UB50-30"],["2026-08-14","Saldo_Awal","SDL-004","SDL","INTERCOMP","1","","Office VISI","","Dilepas","Bekas","","","","","","","","INTERCOMP AX920 Link | PN: UB50-30"],["2026-05-22","Saldo_Awal","SDL-005","SDL","INTERCOMP","1","","WIM Lane 3","Low Speed","Terpasang","Baru","","","","","","","","INTERCOMP AX920 Link | PN: UB50-30"],["2026-05-22","Saldo_Awal","SDL-006","SDL","INTERCOMP","1","","WIM Lane 3","Low Speed","Terpasang","Baru","","","","","","","","INTERCOMP AX920 Link | PN: UB50-30"],["2026-05-22","Saldo_Awal","SDL-007","SDL","INTERCOMP","1","","WIM Lane 3","Low Speed","Terpasang","Baru","","","","","","","","INTERCOMP AX920 Link | PN: UB50-30"],["2026-05-22","Saldo_Awal","SDL-008","SDL","INTERCOMP","1","","WIM Lane 3","Low Speed","Terpasang","Baru","","","","","","","","INTERCOMP AX920 Link | PN: UB50-30"],["2025-12-19","Saldo_Awal","SDL-009","SDL","INTERCOMP","1","","Office VISI","","Dilepas","Aus","","","","","","","","INTERCOMP AX920 Link | PN: UB50-30"],["2025-12-19","Saldo_Awal","SDL-010","SDL","INTERCOMP","1","","Office VISI","","Dilepas","Aus","","","","","","","","INTERCOMP AX920 Link | PN: UB50-30"],["2025-12-19","Saldo_Awal","SDL-011","SDL","INTERCOMP","1","","Office VISI","","Dilepas","Aus","","","","","","","","INTERCOMP AX920 Link | PN: UB50-30"],["2025-12-19","Saldo_Awal","SDL-012","SDL","INTERCOMP","1","","Office VISI","","Dilepas","Patah","","","","","","","","INTERCOMP AX920 Link | PN: UB50-30"],["2025-10-27","Saldo_Awal","SDL-013","SDL","INTERCOMP","1","","Office VISI","","Dilepas","Aus","","","","","","","","INTERCOMP AX920 Link | PN: UB50-30"],["2025-10-27","Saldo_Awal","SDL-014","SDL","INTERCOMP","1","","Office VISI","","Dilepas","Aus","","","","","","","","INTERCOMP AX920 Link | PN: UB50-30"],["2025-10-27","Saldo_Awal","SDL-015","SDL","INTERCOMP","1","","Office VISI","","Dilepas","Aus","","","","","","","","INTERCOMP AX920 Link | PN: UB50-30"],["2025-10-27","Saldo_Awal","SDL-016","SDL","INTERCOMP","1","","Office VISI","","Dilepas","Patah","","","","","","","","INTERCOMP AX920 Link | PN: UB50-30"],["2026-08-14","Saldo_Awal","SDL-017","SDL","INTERCOMP","1","","WIM Lane 1","","Terpasang","Aus","","","","","","","","INTERCOMP AX920 Link | PN: UB50-30"],["2026-08-14","Saldo_Awal","SDL-018","SDL","INTERCOMP","1","","WIM Lane 1","","Terpasang","Aus","","","","","","","","INTERCOMP AX920 Link | PN: UB50-30"],["2026-08-14","Saldo_Awal","SDL-019","SDL","INTERCOMP","1","","WIM Lane 1","","Terpasang","Aus","","","","","","","","INTERCOMP AX920 Link | PN: UB50-30"],["2025-04-29","Saldo_Awal","SDL-020","SDL","INTERCOMP","1","","Office VISI","","Dilepas","Aus","","","","","","","","INTERCOMP AX920 Link | PN: UB50-30"],["2025-04-29","Saldo_Awal","SDL-021","SDL","INTERCOMP","1","","Office VISI","","Dilepas","Aus","","","","","","","","INTERCOMP AX920 Link | PN: UB50-30"],["2026-09-29","Saldo_Awal","SDL-022","SDL","INTERCOMP","1","","Office VISI","","Dilepas","Aus","","","","","","","","INTERCOMP AX920 Link | PN: UB50-30"],["2026-09-29","Saldo_Awal","SDL-023","SDL","INTERCOMP","1","","Office VISI","","Dilepas","Aus","","","","","","","","INTERCOMP AX920 Link | PN: UB50-30"],["2026-09-29","Saldo_Awal","SDL-024","SDL","INTERCOMP","1","","Office VISI","","Dilepas","Aus","","","","","","","","INTERCOMP AX920 Link | PN: UB50-30"],["2026-09-29","Saldo_Awal","SDL-025","SDL","INTERCOMP","1","","Office VISI","","Dilepas","Aus","","","","","","","","INTERCOMP AX920 Link | PN: UB50-30"],["2025-07-27","Saldo_Awal","BLC-001","BLC","INTERCOMP","1","","WIM Lane 1","Low Speed","Terpasang","Baru","","","","","","","","INTERCOMP AX920 Loadcell Base | PN: UL50-30"],["2026-08-14","Saldo_Awal","BLC-002","BLC","INTERCOMP","1","","Office VISI","Low Speed","Dilepas","Bekas","","","","","","","","INTERCOMP AX920 Loadcell Base | PN: UL50-30"],["2026-08-14","Saldo_Awal","BLC-003","BLC","INTERCOMP","1","","Office VISI","Low Speed","Dilepas","Bekas","","","","","","","","INTERCOMP AX920 Loadcell Base | PN: UL50-30"],["2026-08-14","Saldo_Awal","BLC-004","BLC","INTERCOMP","1","","Office VISI","Low Speed","Dilepas","Bekas","","","","","","","","INTERCOMP AX920 Loadcell Base | PN: UL50-30"],["2026-09-29","Saldo_Awal","BLC-005","BLC","INTERCOMP","1","","Office VISI","","Dilepas","Bekas","","","","","","","","INTERCOMP AX920 Loadcell Base | PN: UL50-30"],["2026-09-29","Saldo_Awal","BLC-006","BLC","INTERCOMP","1","","Office VISI","","Dilepas","Bekas","","","","","","","","INTERCOMP AX920 Loadcell Base | PN: UL50-30"],["2025-12-19","Saldo_Awal","BLC-007","BLC","INTERCOMP","1","","WIM Lane 3","Low Speed","Terpasang","Baru","","","","","","","","INTERCOMP AX920 Loadcell Base | PN: UL50-30"],["2025-12-19","Saldo_Awal","BLC-008","BLC","INTERCOMP","1","","Office VISI","","Dilepas","Bekas","","","","","","","","INTERCOMP AX920 Loadcell Base | PN: UL50-30"],["2026-01-14","Saldo_Awal","BLC-009","BLC","INTERCOMP","1","","Office VISI","","Dilepas","Bekas","","","","","","","","INTERCOMP AX920 Loadcell Base | PN: UL50-30"],["2026-09-29","Saldo_Awal","BLC-010","BLC","INTERCOMP","1","","WIM Lane 3","","Terpasang","Baru","","","","","","","","INTERCOMP AX920 Loadcell Base | PN: UL50-30"],["2026-09-29","Saldo_Awal","BLC-011","BLC","INTERCOMP","1","","WIM Lane 3","","Terpasang","Baru","","","","","","","","INTERCOMP AX920 Loadcell Base | PN: UL50-30"],["2025-12-07","Saldo_Awal","BLC-012","BLC","INTERCOMP","1","","Office VISI","","Spare","Baru","","","","","","","","INTERCOMP AX920 Loadcell Base | PN: UL50-30"],["2026-08-14","Saldo_Awal","BLC-013","BLC","INTERCOMP","1","","WIM Lane 1","","Terpasang","Bekas","","","","","","","","INTERCOMP AX920 Loadcell Base | PN: UL50-30"],["2026-08-14","Saldo_Awal","BLC-014","BLC","INTERCOMP","1","","WIM Lane 1","","Terpasang","Bekas","","","","","","","","INTERCOMP AX920 Loadcell Base | PN: UL50-30"],["2026-08-14","Saldo_Awal","BLC-015","BLC","INTERCOMP","1","","WIM Lane 1","","Terpasang","Bekas","","","","","","","","INTERCOMP AX920 Loadcell Base | PN: UL50-30"],["2026-09-29","Saldo_Awal","BLC-016","BLC","INTERCOMP","1","","WIM Lane 3","","Terpasang","Bekas","","","","","","","","INTERCOMP AX920 Loadcell Base | PN: UL50-30"],["2025-02-02","Saldo_Awal","PLS-001","PLS","INTERCOMP","1","","-","","Disposal","Bekas","","","","","","1112YH24001","","LS-WIM AXLE SCALE INTERCOMP | PN: LS-WIM AXLE SCALE SYSTEM 3.9 M PLATFORM / 125007"],["2025-07-29","Saldo_Awal","PLS-002","PLS","INTERCOMP","1","","WIM Lane 3","","Terpasang","Baru","","","","","","0217YH25001","","LS-WIM AXLE SCALE INTERCOMP | PN: LS-WIM AXLE SCALE SYSTEM 3.9 M PLATFORM / 125007"],["2025-12-26","Saldo_Awal","PLS-003","PLS","INTERCOMP","1","","WIM Lane 1","","Terpasang","Baru","","","","","","0217YH25002","","LS-WIM AXLE SCALE INTERCOMP | PN: LS-WIM AXLE SCALE SYSTEM 3.9 M PLATFORM / 125007"],["2025-02-02","Saldo_Awal","FLS-001","FLS","INTERCOMP","1","","-","","Disposal","Bekas","","","","","","","","INTERCOMP Frame Low Speed"],["2025-08-21","Saldo_Awal","FLS-002","FLS","INTERCOMP","1","","WIM Lane 3","","Terpasang","Baru","","","","","","","","INTERCOMP Frame Low Speed"],["2025-12-26","Saldo_Awal","FLS-003","FLS","INTERCOMP","1","","WIM Lane 1","","Terpasang","Baru","","","","","","","","INTERCOMP Frame Low Speed"],["2025-04-29","Saldo_Awal","FLS-004","FLS","INTERCOMP","1","","Office VISI","","Spare","Baru","","","","","","","","INTERCOMP Frame Low Speed"],["2025-02-02","Saldo_Awal","JB-001","JB","INTERCOMP","1","","WIM Lane 1","","Terpasang","Baru","","","","","","","","INTERCOMP Summing Box"],["2025-08-21","Saldo_Awal","JB-002","JB","INTERCOMP","1","","WIM Lane 3","","Terpasang","Baru","","","","","","","","INTERCOMP Summing Box"],["2025-04-29","Saldo_Awal","JB-003","JB","INTERCOMP","1","","Office VISI","","Spare","Baru","","","","","","","","INTERCOMP Summing Box"],["2026-07-17","Saldo_Awal","RFID-001","RFID","ELEC","1","","Office VISI","","Dilepas","Rusak","","","","Report Activity Perbaikan Unscedule WIM HS Lane 2 (Pergantian RFID Reader)_17 Juli 2026.pdf","","","","Electron UHF Fixed Reader antenna 9dBi / 12dBi | PN: Electron HW-VX6346KL"],["2025-02-02","Saldo_Awal","RFID-002","RFID","ELEC","1","","WIM Lane 1","High Speed","Terpasang","Baru","","","","","","","","Electron UHF Fixed Reader antenna 9dBi / 12dBi | PN: Electron HW-VX6346KL"],["2025-02-02","Saldo_Awal","RFID-003","RFID","ELEC","1","","WIM Lane 1","Low Speed","Terpasang","Baru","","","","","","","","Electron UHF Fixed Reader antenna 9dBi / 12dBi | PN: Electron HW-VX6346KL"],["2025-08-21","Saldo_Awal","RFID-004","RFID","ELEC","1","","WIM Lane 3","Low Speed","Terpasang","Baru","","","","","","","","Electron UHF Fixed Reader antenna 9dBi / 12dBi | PN: Electron HW-VX6346KL"],["2025-08-21","Saldo_Awal","RFID-005","RFID","ELEC","1","","Office VISI","","Dilepas","Bekas","","","","","","","","Electron UHF Fixed Reader antenna 9dBi / 12dBi"],["2025-12-09","Saldo_Awal","RFID-006","RFID","ELEC","1","","WIM Lane 3","High Speed","Terpasang","Baru","","","","","","","","Electron UHF Fixed Reader antenna 9dBi / 12dBi | PN: Electron HW-VX6346KL"],["2026-07-17","Saldo_Awal","RFID-007","RFID","ELEC","1","","WIM Lane 2","","Terpasang","Baru","","","","Report Activity Perbaikan Unscedule WIM HS Lane 2 (Pergantian RFID Reader)_17 Juli 2026.pdf","","25401995","","Electron UHF Fixed Reader antenna 9dBi / 12dBi | PN: Electron HW-VX6346KL"],["2024-04-29","Saldo_Awal","CCTV-001","CCTV","HIKVISION","1","","WIM Lane 2","","Terpasang","Baru","","","","","","","","HIKVISION | PN: HIKVISION Network Camera"],["2025-02-02","Saldo_Awal","CCTV-002","CCTV","HIKVISION","1","","WIM Lane 1","","Terpasang","Baru","","","","","","","","HIKVISION | PN: HIKVISION Network Camera"],["2025-02-02","Saldo_Awal","CCTV-003","CCTV","HIKVISION","1","","WIM Lane 1","","Terpasang","Baru","","","","","","","","HIKVISION | PN: HIKVISION Network Camera"],["2025-08-21","Saldo_Awal","CCTV-004","CCTV","HIKVISION","1","","WIM Lane 3","","Terpasang","Baru","","","","","","","","HIKVISION | PN: HIKVISION Network Camera"],["2025-08-21","Saldo_Awal","CCTV-005","CCTV","HIKVISION","1","","WIM Lane 3","","Terpasang","Baru","","","","","","","","HIKVISION | PN: HIKVISION Network Camera"],["2026-03-02","Saldo_Awal","CCTV-006","CCTV","HIKVISION","1","","Office VISI","","Spare","Baru","","","","","","AB7521332","","HIKVISION | PN: HIKVISION Network Camera"],["2025-02-02","Saldo_Awal","LCT-001","LCT","Keyence","1","","WIM Lane 1","High Speed","Terpasang","Baru","","","","","","#C3420333","","Receiver Light Curtain | PN: TYPE4/SIL3(IEC61496/IEC61508)"],["2025-02-02","Saldo_Awal","LCT-002","LCT","Keyence","1","","WIM Lane 1","High Speed","Terpasang","Baru","","","","","","#C3420326","","Transmitter Light Curtain | PN: TYPE4/SIL3(IEC61496/IEC61508)"],["2026-09-16","Saldo_Awal","LCT-003","LCT","Keyence","1","","Office VISI","","Dilepas","Bekas","","","","","","#63420055","","Receiver Light Curtain | PN: TYPE4/SIL3(IEC61496/IEC61508)"],["2026-09-16","Saldo_Awal","LCT-004","LCT","Keyence","1","","Office VISI","","Dilepas","Bekas","","","","","","#63420102","","Transmitter Light Curtain | PN: TYPE4/SIL3(IEC61496/IEC61508)"],["2025-05-06","Saldo_Awal","LCT-005","LCT","Keyence","1","","WIM Lane 2","High Speed","Terpasang","Baru","","","","","","#23520133","","Receiver Light Curtain | PN: TYPE4/SIL3(IEC61496/IEC61508)"],["2025-05-06","Saldo_Awal","LCT-006","LCT","Keyence","1","","WIM Lane 2","High Speed","Terpasang","Baru","","","","","","#23520196","","Transmitter Light Curtain | PN: TYPE4/SIL3(IEC61496/IEC61508)"],["2025-08-21","Saldo_Awal","LCT-007","LCT","Keyence","1","","WIM Lane 3","High Speed","Terpasang","Baru","","","","","","#33520065","","Receiver Light Curtain | PN: TYPE4/SIL3(IEC61496/IEC61508)"],["2025-08-21","Saldo_Awal","LCT-008","LCT","Keyence","1","","WIM Lane 3","High Speed","Terpasang","Baru","","","","","","#33520057","","Transmitter Light Curtain | PN: TYPE4/SIL3(IEC61496/IEC61508)"],["2025-08-21","Saldo_Awal","LCT-009","LCT","Keyence","1","","WIM Lane 3","Low Speed","Terpasang","Baru","","","","","","#23520209","","Receiver Light Curtain | PN: TYPE4/SIL3(IEC61496/IEC61508)"],["2025-08-21","Saldo_Awal","LCT-010","LCT","Keyence","1","","WIM Lane 3","Low Speed","Terpasang","Baru","","","","","","","","Transmitter Light Curtain | PN: TYPE4/SIL3(IEC61496/IEC61508)"],["2026-09-29","Saldo_Awal","LCT-011","LCT","Keyence","1","","Office VISI","","Dilepas","Bekas","","","","","","#C3420335","","Receiver Light Curtain | PN: TYPE4/SIL3(IEC61496/IEC61508)"],["2026-09-29","Saldo_Awal","LCT-012","LCT","Keyence","1","","Office VISI","","Dilepas","Bekas","","","","","","#C3420327","","Transmitter Light Curtain | PN: TYPE4/SIL3(IEC61496/IEC61508)"],["2026-09-16","Saldo_Awal","LCT-013","LCT","Keyence","1","","WIM Lane 1","Low Speed","Terpasang","Baru","","","","","","#A3520203","","Receiver Light Curtain | PN: TYPE4/SIL3(IEC61496/IEC61508)"],["2026-09-16","Saldo_Awal","LCT-014","LCT","Keyence","1","","WIM Lane 1","Low Speed","Terpasang","Baru","","","","","","#A3520189","","Transmitter Light Curtain | PN: TYPE4/SIL3(IEC61496/IEC61508)"],["2026-09-29","Saldo_Awal","LCT-015","LCT","Keyence","1","","Office VISI","","Dilepas","Rusak","","","","","","#63420113","","Receiver Light Curtain | PN: TYPE4/SIL3(IEC61496/IEC61508)"],["2026-09-29","Saldo_Awal","LCT-016","LCT","Keyence","1","","Office VISI","","Dilepas","Rusak","","","","","","#63420046","","Transmitter Light Curtain | PN: TYPE4/SIL3(IEC61496/IEC61508)"],["2024-04-29","Saldo_Awal","SW-001","SW","Tp-Link","1","","WIM Lane 2","","Terpasang","Baru","","","","","","","","Tp-Link 16 Port Gigabit | PN: TL-SG1016PE(UN)"],["2025-02-02","Saldo_Awal","SW-002","SW","Tp-Link","1","","WIM Lane 1","","Terpasang","Baru","","","","","","","","Tp-Link 16 Port Gigabit | PN: TL-SG1016PE(UN)"],["2025-07-29","Saldo_Awal","SW-003","SW","D-Link","1","","Office VISI","","Dilepas","Bekas","","","","","","RVBPEO5000126","","D-Link Un-Managed PoE Switch | PN: DES-F1018P-E"],["2025-10-22","Saldo_Awal","SW-004","SW","Tp-Link","1","","WIM Lane 3","","Terpasang","Baru","","","","","","22524J2001742","","Tp-Link 16 Port Gigabit | PN: TL-SG1016PE(UN)"],["2026-01-11","Saldo_Awal","SW-005","SW","Tp-Link","1","","Office VISI","","Spare","Baru","","","","","","225A0LB000437","","Tp-Link Omada 8 Port Gigabit | PN: SG3210"],["2026-06-29","Saldo_Awal","BAT-001","BAT","SHOTO","1","","VISI HO","","Dikirim ke HO","Rusak","","","","","","","","SHOTO | PN: SDA10-48100"],["2025-02-02","Saldo_Awal","BAT-002","BAT","SMT-POWER","1","","WIM Lane 1","","Terpasang","Baru","","","","","","Y028151100A241209A81","","SMT-POWER | PN: LITHIUM BATTERY SL5210 51.2V 100AH"],["2026-06-29","Saldo_Awal","BAT-003","BAT","SHOTO","1","","VISI HO","","Dikirim ke HO","Rusak","","","","","","","","SHOTO | PN: SDA10-48100"],["2026-04-16","Saldo_Awal","BAT-004","BAT","SMT-POWER","1","","WIM Lane 2","","Terpasang","Baru","","","","","","Y028151100A240409B84","","SMT-POWER | PN: LITHIUM BATTERY SL5210 51.2V 100AH"],["2026-06-28","Saldo_Awal","BAT-005","BAT","SMT-POWER","1","","WIM Lane 3","","Terpasang","Baru","","","","","","Y028151100A260327A01","","SMT-POWER | PN: LITHIUM BATTERY SL5210 51.2V 100AH"],["2024-04-12","Saldo_Awal","WLH-001","WLH","INTERCOMP","1","","WIM Lane 2","","Terpasang","Baru","","","","","","0306YS24001","","INTERCOMP Weigh-In-Motion CPU Modules | PN: WIMLOGIX I/O + CPU (Up to 8 Sensors) / 153037"],["2025-02-02","Saldo_Awal","WLH-002","WLH","INTERCOMP","1","","WIM Lane 1","","Terpasang","Baru","","","","","","1024YS24001","","INTERCOMP Weigh-In-Motion CPU Modules | PN: WIMLOGIX I/O + CPU (Up to 8 Sensors) / 153037"],["2025-07-29","Saldo_Awal","WLH-003","WLH","INTERCOMP","1","","WIM Lane 3","","Terpasang","Baru","","","","","","0122YS25005","","INTERCOMP Weigh-In-Motion CPU Modules | PN: WIMLOGIX I/O + CPU (Up to 8 Sensors) / 153037"],["2025-02-02","Saldo_Awal","WLL-001","WLL","","1","","WIM Lane 1","","Terpasang","Baru","","","","","","1112YH24002","","WIM LOGIX LS | PN: WIM4 CPU WITH ETHERNET OUTPUT FOR LS WIM / 125001"],["2025-07-29","Saldo_Awal","WLL-002","WLL","","1","","WIM Lane 3","","Terpasang","Baru","","","","","","0217YH25003","","WIM LOGIX LS | PN: WIM4 CPU WITH ETHERNET OUTPUT FOR LS WIM / 125001"],["2025-04-29","Saldo_Awal","WLL-003","WLL","","1","","Office VISI","","Spare","Baru","","","","","","0217YH25004","","WIM LOGIX LS | PN: WIM4 CPU WITH ETHERNET OUTPUT FOR LS WIM / 125001"],["2024-04-29","Saldo_Awal","INV-001","INV","ELEC","1","","WIM Lane 2","","Terpasang","Baru","","","","","","92090211211039","","ELEC Inverter | PN: INVERTER CHARGER / SO 5500-48"],["2026-06-29","Saldo_Awal","INV-002","INV","ELEC","1","","VISI HO","","Dikirim ke HO","Rusak","","","","","","92090211211055","","ELEC Inverter | PN: INVERTER CHARGER / SO 5500-48"],["2025-08-21","Saldo_Awal","INV-003","INV","ELEC","1","","WIM Lane 3","","Terpasang","Baru","","","","","","92090211211074","","ELEC Inverter | PN: INVERTER CHARGER / SO 5500-48"],["2026-03-02","Saldo_Awal","INV-004","INV","ELEC","1","","WIM Lane 1","","Terpasang","Baru","","","","","","","","ELEC Inverter | PN: INVERTER CHARGER / SO 5500-48"],["2026-06-25","Saldo_Awal","INV-005","INV","SAMOTO","1","","Office VISI","","Spare","Baru","","","","","","ILS63WY106369","","SAMOTO INVERTER | PN: SAMOTO HYBRID SOLAR INVERTER / ILS6300"],["2024-04-29","Saldo_Awal","PLC-001","PLC","ELEC","1","","WIM Lane 2","","Terpasang","Baru","","","","","","","","MITSUBISI ELECTRIC | PN: Misubisi Electric FX3u-16M"],["2025-02-02","Saldo_Awal","PLC-002","PLC","ELEC","1","","WIM Lane 1","","Terpasang","Rusak","","","","","","","","MITSUBISI ELECTRIC | PN: Misubisi Electric FX3u-16M"],["2025-07-29","Saldo_Awal","PLC-003","PLC","ELEC","1","","WIM Lane 3","","Terpasang","Rusak","","","","","","","","MITSUBISI ELECTRIC | PN: Misubisi Electric FX3u-16M"],["2026-06-25","Saldo_Awal","MPC-001","MPC","-","1","","WIM Lane 1","High Speed","Terpasang","Baru","","","","","","","","Mini PC Industrial"],["2026-06-25","Saldo_Awal","MPC-002","MPC","-","1","","Office VISI","","Spare","Baru","","","","","","","","Mini PC Industrial"],["2024-04-12","Saldo_Awal","STB-001","STB","SAMOTO","1","","WIM Lane 2","","Terpasang","Baru","","","","","","","","SAMOTO | PN: SAMOTO SVC-5000N"],["2025-02-02","Saldo_Awal","STB-002","STB","SAMOTO","1","","WIM Lane 1","","Terpasang","Baru","","","","","","","","SAMOTO | PN: SAMOTO SVC-5000N"],["2025-07-29","Saldo_Awal","STB-003","STB","","1","","WIM Lane 3","","Terpasang","Baru","","","","","","","",""],["2026-05-14","Saldo_Awal","PSU-001","PSU","Mean Well","1","","WIM Lane 1","","Terpasang","Baru","","","","","","SC62086314","","MW MEAN WELL Power Supply"],["2026-05-30","Saldo_Awal","PSU-002","PSU","Mean Well","1","","WIM Lane 3","","Terpasang","Baru","","","","","","SC62086312","","MW MEAN WELL Power Supply"],["2024-04-12","Saldo_Awal","LD-001","LD","ELEC","1","","WIM Lane 2","","Terpasang","Baru","","","","","","RF 402800 SG","","Schneider Electric | PN: 542073030 20037010"],["2025-02-02","Saldo_Awal","LD-002","LD","ELEC","1","","WIM Lane 1","High Speed","Terpasang","Baru","","","","","","RF 434724 ZK","","Schneider Electric | PN: 542073030 20037010"],["2025-02-02","Saldo_Awal","LD-003","LD","ELEC","1","","WIM Lane 1","Low Speed","Terpasang","Baru","","","","","","RF 431328 ZB","","Schneider Electric | PN: 542073030 20037010"],["2025-07-29","Saldo_Awal","LD-004","LD","ELEC","1","","WIM Lane 3","High Speed","Terpasang","Baru","","","","","","RF 447155 CX","","Schneider Electric | PN: 542073030 20037010"],["2025-07-29","Saldo_Awal","LD-005","LD","ELEC","1","","WIM Lane 3","Low Speed","Terpasang","Baru","","","","","","RF 446674 CV","","Schneider Electric | PN: 542073030 20037010"],["2026-01-11","Saldo_Awal","LD-006","LD","ELEC","1","","Office VISI","","Spare","Baru","","","","","","RF 427119 YE","","Schneider Electric | PN: 542073030 20037010"],["2026-01-11","Saldo_Awal","LD-007","LD","ELEC","1","","Office VISI","","Spare","Baru","","","","","","RF 418374 WH","","Schneider Electric | PN: 542073030 20037010"],["2026-11-05","Barang_Masuk","LC-019","LC","Intercom","1","Visi office","","","Spare","Baru","11111","Visi","","","","1234567890","",""],["2026-11-05","Barang_Masuk","LC-020","LC","","1","Visi office","WIM Lane 3","LC 01","Spare","Baru","","","","","","","",""],["2026-11-04","Barang_Masuk","LC-021","LC","Bosche","1","Visi office","","","Spare","Baru","12121212","Visi","","","","11111111","",""],["2026-11-04","Barang_Masuk","WSS-029","WSS","","1","Visi office","","","Spare","","","","","","","","",""],["2026-11-04","Barang_Masuk","MNT-009","MNT","","1","Visi office","","","Spare","","","","","","","","",""],["2026-11-04","Barang_Masuk","SDL-026","SDL","","1","Visi office","","","Spare","","","","","","","","",""],["2026-11-04","Barang_Masuk","BLC-017","BLC","","1","Visi office","","","Spare","","","","","","","","",""],["2026-11-04","Barang_Masuk","SDL-027","SDL","","1","Visi office","","","Spare","","","","","","","","",""],["2026-11-04","Barang_Masuk","FLS-005","FLS","","1","Visi office","","","Spare","","","","","","","","",""],["2026-11-04","Barang_Masuk","JB-004","JB","","1","Visi office","","","Spare","","","","","","","","",""],["2026-11-04","Barang_Masuk","CCTV-007","CCTV","","1","Visi office","","","Spare","","","","","","","","",""],["2026-11-04","Barang_Masuk","LCT-017","LCT","","1","Visi office","","","Spare","","","","","","","","",""],["2026-11-04","Barang_Masuk","LC-022","LC","","1","Visi office","","","Spare","","","","","","","","",""],["2026-11-04","Barang_Masuk","LC-023","LC","","1","Visi office","","","Spare","","","","","","","","",""],["2026-11-04","Barang_Masuk","LC-024","LC","","1","Visi office","","","Spare","","","","","","","","",""],["2026-11-04","Barang_Masuk","PSU-003","PSU","","2","Visi office","","","Spare","","","","","","","","","Saldo awal R01 (dipindah dari INVENTORY kolom Stok R01)"],["2026-11-04","Barang_Masuk","WLL-004","WLL","","2","Visi office","","","Spare","","","","","","","","","Saldo awal R01 (dipindah dari INVENTORY kolom Stok R01)"],["2026-11-04","Barang_Masuk","PLC-004","PLC","","2","Visi office","","","Spare","","","","","","","","","Saldo awal R01 (dipindah dari INVENTORY kolom Stok R01)"],["2026-11-04","Barang_Masuk","MNT-010","MNT","","2","Visi office","","","Spare","","","","","","","","","Saldo awal R01 (dipindah dari INVENTORY kolom Stok R01)"],["2026-11-04","Barang_Masuk","MPC-003","MPC","","8","Visi office","","","Spare","","","","","","","","","Saldo awal R01 (dipindah dari INVENTORY kolom Stok R01)"],["2026-11-04","Barang_Masuk","","LDA","","6","Visi office","","","Spare","","","","","","","","","Saldo awal R01 (dipindah dari INVENTORY kolom Stok R01)"],["2026-11-04","Barang_Masuk","","BTL","","32","Visi office","","","Spare","","","","","","","","","Saldo awal R01 (dipindah dari INVENTORY kolom Stok R01)"],["2026-11-04","Barang_Masuk","","RGA","","32","Visi office","","","Spare","","","","","","","","","Saldo awal R01 (dipindah dari INVENTORY kolom Stok R01)"],["2026-11-04","Barang_Masuk","","RBA","","8","Visi office","","","Spare","","","","","","","","","Saldo awal R01 (dipindah dari INVENTORY kolom Stok R01)"],["2026-11-04","Barang_Masuk","","MLA","","4","Visi office","","","Spare","","","","","","","","","Saldo awal R01 (dipindah dari INVENTORY kolom Stok R01)"],["2026-11-04","Barang_Masuk","","MDA","","2","Visi office","","","Spare","","","","","","","","","Saldo awal R01 (dipindah dari INVENTORY kolom Stok R01)"],["2026-11-05","Pemasangan","","LC","","1","","","","Terpasang","","","","","","","","",""],["2026-11-05","Pemasangan","","LC","","1","","","","Terpasang","","","","","","","","",""],["2026-11-05","Pemasangan","","LC","","1","","","","Terpasang","","","","","","","","",""]];
+const WM_SEED_MST=[["LC","Loadcell","","Sensor & Timbangan","Critical","Impor","Serial","Pcs","4","Catatan lama: 3 Dummy dikirim ke VGT-JKT; rencana pengadaan 12"],["WSS","WIM Strip Sensor","","Sensor & Timbangan","Low","Impor","Serial","Pcs","2",""],["MNT","Mounting Platform Low Speed","","Mekanikal","Low","Impor","Serial","Pcs","2",""],["SDL","Saddle / AX920 Link","","Mekanikal","Medium","Impor","Serial","Pcs","4","Catatan lama: rencana pengadaan 8"],["BLC","Mounting Base Loadcell (Dudukan Loadcell)","","Mekanikal","Low","Impor","Serial","Pcs","2",""],["PLS","Platform Low Speed","","Sensor & Timbangan","Low","Impor","Serial","Unit","0","Min 0: barang besar, tidak di-stok"],["FLS","Frame Low Speed","","Mekanikal","Low","Impor","Serial","Unit","0","Min 0: barang besar, tidak di-stok"],["JB","Junction Box (Summing Box)","","Elektrikal & Power","Low","Impor","Serial","Unit","1",""],["RFID","RFID Reader","","Kontrol & IT","Low","Local","Serial","Unit","1","Catatan lama: pengadaan 1"],["CCTV","CCTV","","Kontrol & IT","Low","Local","Serial","Unit","1",""],["LCT","Light Curtain (Receiver / Transmitter)","","Sensor & Timbangan","Low","Impor","Serial","Pcs","2","1 set = 1 Receiver + 1 Transmitter"],["SW","Switch","","Kontrol & IT","Medium","Local","Serial","Unit","1",""],["BAT","Baterai Lithium","","Elektrikal & Power","Medium","Local","Serial","Unit","1","Catatan lama: sudah dipesan, belum datang"],["WLH","WIM Logic High Speed","","Kontrol & IT","Critical","Impor","Serial","Unit","1",""],["WLL","WIM Logic Low Speed","","Kontrol & IT","Critical","Impor","Serial","Unit","1",""],["INV","Inverter","","Elektrikal & Power","Medium","Local","Serial","Unit","1",""],["PLC","PLC","","Kontrol & IT","Medium","Local","Serial","Unit","0","Min 0: PLC sudah tidak digunakan (diganti PSU)"],["MPC","Mini PC","","Kontrol & IT","Low","Local","Serial","Unit","1",""],["STB","Stabilizer","","Elektrikal & Power","Medium","Local","Serial","Unit","1",""],["PSU","PSU Panel","","Elektrikal & Power","Medium","Local","Serial","Unit","1",""],["LD","Loop Detector","","Sensor & Timbangan","Low","Impor","Serial","Unit","1",""],["RSL","(Resin Kit) Pasir Silica","","Consumable","Medium","Impor","Consumable","Pcs","2",""],["RES","(Resin Kit) Epoxy Resin","","Consumable","Medium","Impor","Consumable","Set","2",""],["RHD","(Resin Kit) Epoxy Hardener","","Consumable","Medium","Impor","Consumable","Set","2",""],["SKF","(Resin Kit) Sealant Sika Flex","","Consumable","Medium","Local","Consumable","Pcs","2",""],["BAP","Bolt Adjuster Platform","","Consumable","Low","Impor","Consumable","Pcs","4",""],["LDA","Longdrat Adjuster (Checking Rod)","","Consumable","Medium","Impor","Consumable","Pcs","4",""],["BTL","Baut Loadcell","","Consumable","Medium","Local","Consumable","Pcs","16","Baut + Ring Loadcell"],["RGA","Ring Adjuster","","Consumable","Low","Impor","Consumable","Pcs","8",""],["RBA","Rubber Adjuster","","Consumable","Low","Impor","Consumable","Pcs","4",""],["MLA","Mur Adjuster Luar","","Consumable","Low","Impor","Consumable","Pcs","4",""],["MDA","Mur Adjuster Dalam","","Consumable","Low","Impor","Consumable","Pcs","4","Summary lama tulis 'Kosong, biasa pakai yang lama' tapi sheet detail mencatat 2 spare — mohon cek fisik"]];
+const WM_KEYS = { added:'dso:wim-r02:added', patch:'dso:wim-r02:patch', master:'dso:wim-r02:master' };
+const WM_FIELDS = ['date','jenis','assetId','kode','merk','qty','asal','tujuan','sub','status','kondisi','po','vendor','eta','ba','pic','serial','harga','ket'];
+const WM_JENIS = ['Saldo_Awal','Barang_Masuk','Pemasangan','Pelepasan','Mutasi_Aset','Perbaikan','Disposal'];
+const WM_STATUS = ['Terpasang','Spare','Dilepas','Dikirim ke HO','Perbaikan','Disposal'];
+const WM_KONDISI = ['Baru','Baik','Bekas','Rusak','Aus','Patah','Dummy','Perlu Inspeksi'];
+const WM_MON = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+const WM_CHUNK_MAX = 4800;
+let wmAdded = [], wmPatch = [], wmMasterOv = [];
+let wmLoaded = false, wmLoadOk = false, wmLoading = null, wmBound = false, wmEditRow = null, wmEditMst = null;
+const wmState = { sub:'dash', inpQ:'', inpJenis:'ALL', inpCek:'ALL', inpLimit:50, invQ:'', invCrit:'ALL', invAlert:'ALL',
+  regQ:'', regStatus:'ALL', regKondisi:'ALL', regLoc:'ALL', regLimit:100, mstQ:'' };
+
+/* ---------- penyimpanan per potongan (chunk) ---------- */
+async function wmLoadChunked(prefix){
+  let meta;
+  try{
+    const r = await store.get(prefix + ':meta', true);
+    meta = (r && r.value) ? JSON.parse(r.value) : { n:0 };
+  }catch(e){
+    if(e && e.message === 'not found') return [];
+    throw e;
+  }
+  let out = [];
+  for(let i = 0; i < (meta.n || 0); i++){
+    const r = await store.get(prefix + ':c' + i, true);
+    out = out.concat(JSON.parse(r.value));
+  }
+  return out;
+}
+async function wmSaveChunked(prefix, arr){
+  const chunks = []; let cur = [];
+  arr.forEach(it => {
+    const test = cur.concat([it]);
+    if(cur.length && encodeURIComponent(JSON.stringify(test)).length > WM_CHUNK_MAX){ chunks.push(cur); cur = [it]; }
+    else cur = test;
+  });
+  if(cur.length) chunks.push(cur);
+  let oldN = 0;
+  try{ const r = await store.get(prefix + ':meta', true); if(r && r.value) oldN = JSON.parse(r.value).n || 0; }catch(e){ /* belum ada */ }
+  for(let i = 0; i < chunks.length; i++) await store.set(prefix + ':c' + i, JSON.stringify(chunks[i]), true);
+  await store.set(prefix + ':meta', JSON.stringify({ n: chunks.length }), true);
+  for(let i = chunks.length; i < oldN; i++){ try{ await store.delete(prefix + ':c' + i, true); }catch(e){ /* sisa potongan lama tidak berbahaya */ } }
+}
+async function wmEnsureLoaded(force){
+  if(wmLoading) return wmLoading;
+  if(wmLoaded && !force) return;
+  wmLoading = (async () => {
+    try{
+      const a = await wmLoadChunked(WM_KEYS.added);
+      const p = await wmLoadChunked(WM_KEYS.patch);
+      const m = await wmLoadChunked(WM_KEYS.master);
+      wmAdded = a; wmPatch = p; wmMasterOv = m; wmLoadOk = true;
+    }catch(e){
+      console.error('Stock Management R02: gagal memuat data dari storage', e);
+      wmLoadOk = false;
+    }finally{
+      wmLoaded = true; wmLoading = null;
+    }
+  })();
+  return wmLoading;
+}
+
+/* ---------- model data (setara rumus Excel) ---------- */
+function wmArr2Obj(a){ const o = {}; WM_FIELDS.forEach((k, i) => { o[k] = (a[i] == null) ? '' : String(a[i]); }); return o; }
+function wmObj2Arr(o){ return WM_FIELDS.map(k => String(o[k] == null ? '' : o[k]).trim()); }
+function wmMstObj(a){
+  return { kode:a[0], nama:String(a[1]||'').trim(), merk:a[2]||'', kategori:a[3]||'', crit:a[4]||'', source:a[5]||'',
+    tipe:a[6]||'', satuan:a[7]||'', min:Number(a[8])||0, ket:a[9]||'' };
+}
+function wmMasterList(){
+  const list = WM_SEED_MST.slice();
+  wmMasterOv.forEach(a => {
+    const i = list.findIndex(x => String(x[0]).toUpperCase() === String(a[0]).toUpperCase());
+    if(i >= 0) list[i] = a; else list.push(a);
+  });
+  return list.map(wmMstObj);
+}
+function wmCek(o){
+  if(!o.jenis) return '';
+  const J = o.jenis.toUpperCase();
+  if(!o.date || o.qty === '' || (!o.assetId && !o.kode)) return 'PERIKSA: tanggal / item / qty';
+  if(['SALDO_AWAL','PEMASANGAN','PELEPASAN','MUTASI_ASET','PERBAIKAN','DISPOSAL'].includes(J) && o.tipe === 'Serial' && !o.assetId) return 'PERIKSA: Asset ID';
+  if(['SALDO_AWAL','BARANG_MASUK','PEMASANGAN'].includes(J) && !o.kode) return 'PERIKSA: Kode Barang';
+  return 'OK';
+}
+function wmRows(master){
+  const mm = {}; master.forEach(m => { mm[m.kode.toUpperCase()] = m; });
+  const raw = WM_SEED_TRX.map((a, i) => ({ i, seed:true, patched:false, a }));
+  wmPatch.forEach(p => { if(raw[p[0]]){ raw[p[0]].a = p[1]; raw[p[0]].patched = true; } });
+  wmAdded.forEach((a, j) => raw.push({ i: WM_SEED_TRX.length + j, seed:false, patched:false, a }));
+  const seq = {};
+  return raw.map(r => {
+    const o = wmArr2Obj(r.a);
+    o.i = r.i; o.seed = r.seed; o.patched = r.patched;
+    o.K = o.kode.toUpperCase(); o.J = o.jenis.toUpperCase(); o.A = o.assetId.toUpperCase();
+    const m = mm[o.K];
+    o.nama = m ? m.nama : (o.kode ? 'KODE TIDAK DITEMUKAN' : '');
+    o.tipe = m ? m.tipe : '';
+    if(o.date && o.jenis){
+      seq[o.date] = (seq[o.date] || 0) + 1;
+      o.id = 'TRX-' + o.date.replace(/-/g, '') + '-' + String(seq[o.date]).padStart(3, '0');
+    }else o.id = '';
+    o.cek = wmCek(o);
+    return o;
+  });
+}
+function wmInventory(rows, master){
+  return master.map(m => {
+    const K = m.kode.toUpperCase();
+    const sum = j => rows.reduce((s, r) => (r.K === K && r.J === j) ? s + (r.qty === '' ? 1 : (Number(r.qty) || 0)) : s, 0);
+    const masuk = sum('BARANG_MASUK'), pasang = sum('PEMASANGAN'), lepas = sum('PELEPASAN'),
+          mutasi = sum('MUTASI_ASET'), perbaikan = sum('PERBAIKAN'), disposal = sum('DISPOSAL');
+    const stok = masuk - pasang + lepas - perbaikan - disposal;
+    const alert = stok < 0 ? 'Stok Negatif' : stok === 0 ? 'Kosong' : stok <= m.min ? 'Reorder' : 'Aman';
+    return { kode:m.kode, nama:m.nama, satuan:m.satuan, crit:m.crit, masuk, pasang, lepas, mutasi, perbaikan, disposal, stok, min:m.min, alert };
+  });
+}
+function wmRegister(rows, master){
+  const mm = {}; master.forEach(m => { mm[m.kode.toUpperCase()] = m; });
+  const seen = new Set(), ids = [];
+  rows.forEach(r => {
+    if((r.J === 'SALDO_AWAL' || r.J === 'BARANG_MASUK') && r.A && !seen.has(r.A)){ seen.add(r.A); ids.push(r.assetId); }
+  });
+  return ids.map(id => {
+    const A = id.toUpperCase();
+    const rs = rows.filter(r => r.A === A);
+    const last = f => { for(let i = rs.length - 1; i >= 0; i--){ if(rs[i][f] !== '') return rs[i][f]; } return ''; };
+    const kode = last('kode'); const m = mm[kode.toUpperCase()];
+    return { id, kode, nama: m ? m.nama : '', serial:last('serial'), status:last('status'), kondisi:last('kondisi'),
+      lokasi:last('tujuan'), sub:last('sub'), qty:last('qty'), po:last('po'), tgl:last('date'),
+      sumber: rs.some(r => r.J === 'SALDO_AWAL') ? (rs.length > 1 ? 'R01 + transaksi' : 'R01') : 'R02' };
+  });
+}
+function wmModel(){
+  const master = wmMasterList();
+  const rows = wmRows(master);
+  const inv = wmInventory(rows, master);
+  const reg = wmRegister(rows, master);
+  return { master, rows, inv, reg };
+}
+/* dipakai Overview / HUD / ringkasan suara (bentuk lama: cat/real/status/label) */
+async function wmLegacyAssets(){
+  await wmEnsureLoaded();
+  const md = wmModel();
+  return md.inv.map(r => ({
+    cat: r.nama, real: r.stok, dummy: 0, label: r.alert,
+    status: (r.alert === 'Kosong' || r.alert === 'Stok Negatif') ? 'red' : (r.alert === 'Reorder' ? 'grey' : 'green')
+  }));
+}
+
+/* ---------- util tampilan ---------- */
+function wmFmtDate(s){
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s || '');
+  return m ? (m[3] + ' ' + WM_MON[Number(m[2]) - 1] + ' ' + m[1]) : (s || '');
+}
+function wmBadge(cls, text){ return '<span class="ap-badge ' + cls + '">' + escapeHtml(String(text)) + '</span>'; }
+function wmAlertBadge(a){ return wmBadge(a === 'Aman' ? 'ap-b-green' : a === 'Reorder' ? 'ap-b-yellow' : a === 'Kosong' ? 'ap-b-red' : 'ap-b-purple', a); }
+function wmCritBadge(c){ return c ? wmBadge(c === 'Critical' ? 'ap-b-red' : c === 'Medium' ? 'ap-b-yellow' : 'ap-b-grey', c) : ''; }
+function wmStatusBadge(s){
+  if(!s) return '';
+  const c = { 'Terpasang':'ap-b-green', 'Spare':'ap-b-blue', 'Dilepas':'ap-b-grey', 'Dikirim ke HO':'ap-b-purple', 'Perbaikan':'ap-b-yellow', 'Disposal':'ap-b-black' }[s] || 'ap-b-grey';
+  return wmBadge(c, s);
+}
+function wmKondisiBadge(k){
+  if(!k) return '';
+  const c = { 'Baru':'ap-b-green', 'Baik':'ap-b-green', 'Bekas':'ap-b-grey', 'Rusak':'ap-b-red', 'Patah':'ap-b-red', 'Aus':'ap-b-yellow', 'Dummy':'ap-b-purple', 'Perlu Inspeksi':'ap-b-yellow' }[k] || 'ap-b-grey';
+  return wmBadge(c, k);
+}
+function wmCekBadge(c){ return !c ? '' : wmBadge(c === 'OK' ? 'ap-b-green' : 'ap-b-yellow', c); }
+function wmTd(v, extra){ return '<td style="padding:7px 8px;' + (extra || '') + '">' + v + '</td>'; }
+function wmEmptyRow(cols, text){ return '<tr><td colspan="' + cols + '" style="padding:18px;text-align:center;color:var(--text-muted);">' + text + '</td></tr>'; }
+function wmEsc(v){ return escapeHtml(v == null ? '' : String(v)); }
+
+/* ---------- render ---------- */
+function wmRenderDash(md){
+  const { rows, inv, reg } = md;
+  const cnt = s => reg.filter(r => r.status.toLowerCase() === s.toLowerCase()).length;
+  const total = reg.length, terpasang = cnt('Terpasang'), spare = cnt('Spare'), dilepas = cnt('Dilepas'), ho = cnt('Dikirim ke HO');
+  const rusak = reg.filter(r => r.kondisi === 'Rusak').length;
+  const perbaikan = cnt('Perbaikan');
+  const attn = inv.filter(r => r.alert !== 'Aman');
+  const kosong = inv.filter(r => r.alert === 'Kosong').length;
+  const cek = rows.filter(r => r.cek.indexOf('PERIKSA') === 0).length;
+  const nonAwal = rows.filter(r => r.jenis && r.J !== 'SALDO_AWAL');
+  const now = new Date();
+  const first = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-01';
+  const bulanIni = nonAwal.filter(r => r.date >= first).length;
+  const kpi = (cls, lab, val, sub, go) => '<div class="ap-kpi ' + cls + '" data-wm-go="' + go + '" style="cursor:pointer;"><div class="lab">' + lab + '</div><div class="val">' + val + '</div><div class="sub">' + sub + '</div></div>';
+  let h = '<div class="wm-kpis">' +
+    kpi('neu', 'Total aset', total, 'Unit terdaftar di register', 'reg:ALL') +
+    kpi('ok', 'Aset terpasang', terpasang, (total ? Math.round(terpasang / total * 100) : 0) + '% dari total aset', 'reg:Terpasang') +
+    kpi('neu', 'Aset spare', spare, 'Siap dipakai', 'reg:Spare') +
+    kpi('neu', 'Aset dilepas', dilepas, ho + ' dikirim ke HO', 'reg:Dilepas') + '</div>' +
+    '<div class="wm-kpis">' +
+    kpi(rusak ? 'crit' : 'ok', 'Kondisi rusak', rusak, perbaikan + ' sedang perbaikan', 'rusak') +
+    kpi(attn.length ? 'med' : 'ok', 'Item reorder / kosong', attn.length, kosong + ' item stok kosong', 'inv') +
+    kpi(cek ? 'med' : 'ok', 'Input perlu cek', cek, 'Baris perlu dilengkapi', 'cek') +
+    kpi('neu', 'Transaksi baru', nonAwal.length, bulanIni + ' bulan ini', 'inp') + '</div>';
+
+  const stList = ['Terpasang','Spare','Dilepas','Dikirim ke HO','Perbaikan','Disposal'];
+  const stHtml = stList.map(s => {
+    const n = cnt(s);
+    return '<div class="wm-bar-row" data-wm-go="reg:' + s + '"><span class="nm">' + s + '</span><div class="wm-bar"><i style="width:' + (total ? Math.round(n / total * 100) : 0) + '%"></i></div><span class="n">' + n + '</span></div>';
+  }).join('') + '<div class="wm-bar-row total"><span class="nm">Total</span><span style="flex:1"></span><span class="n">' + stList.reduce((s, x) => s + cnt(x), 0) + '</span></div>';
+
+  const lanes = Array.from(new Set(['WIM Lane 1','WIM Lane 2','WIM Lane 3'].concat(reg.map(r => r.lokasi).filter(l => /^WIM Lane/i.test(l))))).sort();
+  const laneHtml = lanes.map(l => {
+    const t = reg.filter(r => r.lokasi === l && r.status.toLowerCase() === 'terpasang').length;
+    const x = reg.filter(r => r.lokasi === l && r.kondisi === 'Rusak').length;
+    return '<tr>' + wmTd(wmEsc(l)) + wmTd(t, 'text-align:center;') + wmTd(x ? wmBadge('ap-b-red', x) : '<span class="ap-num-muted">0</span>', 'text-align:center;') + '</tr>';
+  }).join('');
+
+  const reorder = attn.slice(0, 10).map(r => '<tr>' + wmTd(wmEsc(r.kode)) + wmTd(wmEsc(r.nama)) + wmTd(wmCritBadge(r.crit)) +
+    wmTd(r.stok + ' / ' + r.min, 'text-align:center;') + wmTd(wmAlertBadge(r.alert)) + '</tr>').join('');
+  const latest = nonAwal.slice(-10).reverse().map(r => '<tr>' + wmTd(wmFmtDate(r.date)) + wmTd(wmEsc(r.jenis)) + wmTd(wmEsc(r.assetId || '-')) +
+    wmTd(wmEsc(r.kode)) + wmTd(wmEsc(r.tujuan || '-')) + '</tr>').join('');
+  const th = t => '<th style="padding:8px;font-weight:600;">' + t + '</th>';
+  const thead = cols => '<thead><tr style="text-align:left;background:var(--navy);color:#fff;">' + cols.map(th).join('') + '</tr></thead>';
+
+  h += '<div class="wm-grid2">' +
+    '<div class="ap-chart-card"><h3><i class="ti ti-chart-bar"></i> Status aset</h3>' + stHtml + '</div>' +
+    '<div class="ap-chart-card"><h3><i class="ti ti-road"></i> Monitoring per lane</h3><table class="wm-mini">' + thead(['Lokasi','Terpasang','Rusak']) + '<tbody>' + laneHtml + '</tbody></table></div></div>' +
+    '<div class="wm-grid2">' +
+    '<div class="ap-chart-card"><h3><i class="ti ti-alert-triangle"></i> Item perlu reorder / kosong</h3><div class="ap-table-scroll"><table class="wm-mini">' + thead(['Kode','Nama barang','Criticality','Stok / min','Alert']) + '<tbody>' + (reorder || wmEmptyRow(5, 'Semua stok aman')) + '</tbody></table></div>' +
+    '<p class="wm-note">Menampilkan maks. 10 dari ' + attn.length + ' item. Daftar lengkap di tab Inventory.</p></div>' +
+    '<div class="ap-chart-card"><h3><i class="ti ti-history"></i> Transaksi terbaru</h3><div class="ap-table-scroll"><table class="wm-mini">' + thead(['Tanggal','Jenis','Asset ID','Kode','Lokasi tujuan']) + '<tbody>' + (latest || wmEmptyRow(5, 'Belum ada transaksi')) + '</tbody></table></div>' +
+    '<p class="wm-note">10 transaksi terakhir yang diinput (tanpa Saldo_Awal). Detail di tab Input Data.</p></div></div>';
+  document.getElementById('wmDash').innerHTML = h;
+}
+
+function wmRenderInput(md){
+  const q = wmState.inpQ.toLowerCase().trim();
+  const list = md.rows.filter(r => {
+    if(wmState.inpJenis !== 'ALL' && r.J !== wmState.inpJenis.toUpperCase()) return false;
+    if(wmState.inpCek === 'PERIKSA' && r.cek.indexOf('PERIKSA') !== 0) return false;
+    if(wmState.inpCek === 'OK' && r.cek !== 'OK') return false;
+    if(!q) return true;
+    return [r.id, r.assetId, r.kode, r.nama, r.serial, r.po, r.tujuan, r.asal, r.ket, r.pic].join(' ').toLowerCase().includes(q);
+  }).reverse();
+  const shown = list.slice(0, wmState.inpLimit);
+  document.getElementById('wmInpCount').textContent = list.length + ' dari ' + md.rows.length + ' transaksi';
+  document.getElementById('wmInpBody').innerHTML = shown.map((r, n) => '<tr class="' + (r.cek.indexOf('PERIKSA') === 0 ? 'ap-warn-row' : (n % 2 ? 'wm-zebra' : '')) + '">' +
+    wmTd(wmEsc(r.id), 'white-space:nowrap;') + wmTd(wmFmtDate(r.date), 'white-space:nowrap;') + wmTd(wmEsc(r.jenis)) + wmTd(wmEsc(r.assetId)) +
+    wmTd(wmEsc(r.kode)) + wmTd(wmEsc(r.nama)) + wmTd(wmEsc(r.qty), 'text-align:center;') + wmTd(wmEsc(r.asal)) + wmTd(wmEsc(r.tujuan)) +
+    wmTd(wmStatusBadge(r.status)) + wmTd(wmKondisiBadge(r.kondisi)) + wmTd(wmEsc(r.po)) + wmTd(wmEsc(r.serial)) +
+    wmTd(wmEsc(r.ket.length > 44 ? r.ket.slice(0, 44) + '…' : r.ket), 'max-width:220px;') + wmTd(wmCekBadge(r.cek), 'white-space:nowrap;') +
+    wmTd('<button class="pjp-row-edit" data-wm-edit="' + r.i + '" title="Edit"><i class="ti ti-pencil"></i></button>' +
+      (r.seed ? (r.patched ? '<span title="Sudah dikoreksi dari data R02" class="ap-num-muted">•</span>' : '') : '<button class="pjp-row-del" data-wm-del="' + r.i + '" title="Hapus"><i class="ti ti-trash"></i></button>'),
+      'text-align:right;white-space:nowrap;') + '</tr>').join('') || wmEmptyRow(16, 'Tidak ada transaksi yang cocok');
+  const more = document.getElementById('wmInpMore');
+  more.style.display = list.length > shown.length ? '' : 'none';
+  more.textContent = 'Tampilkan lebih banyak (' + (list.length - shown.length) + ' lagi)';
+}
+
+function wmRenderInv(md){
+  const q = wmState.invQ.toLowerCase().trim();
+  const list = md.inv.filter(r => {
+    if(wmState.invCrit !== 'ALL' && r.crit !== wmState.invCrit) return false;
+    if(wmState.invAlert === 'ATTN' && r.alert === 'Aman') return false;
+    if(wmState.invAlert !== 'ALL' && wmState.invAlert !== 'ATTN' && r.alert !== wmState.invAlert) return false;
+    return !q || (r.kode + ' ' + r.nama).toLowerCase().includes(q);
+  });
+  document.getElementById('wmInvCount').textContent = list.length + ' dari ' + md.inv.length + ' kode barang';
+  document.getElementById('wmInvBody').innerHTML = list.map((r, n) => '<tr class="' + (r.alert === 'Kosong' || r.alert === 'Stok Negatif' ? 'ap-warn-row' : (n % 2 ? 'wm-zebra' : '')) + '">' +
+    wmTd(wmEsc(r.kode)) + wmTd(wmEsc(r.nama)) + wmTd(wmEsc(r.satuan)) + wmTd(wmCritBadge(r.crit)) +
+    [r.masuk, r.pasang, r.lepas, r.mutasi, r.perbaikan, r.disposal].map(v => wmTd(v || '<span class="ap-num-muted">0</span>', 'text-align:center;')).join('') +
+    wmTd('<b>' + r.stok + '</b>', 'text-align:center;') + wmTd(r.min, 'text-align:center;') + wmTd(wmAlertBadge(r.alert)) + '</tr>').join('') || wmEmptyRow(13, 'Tidak ada item yang cocok');
+}
+
+function wmRenderReg(md){
+  const q = wmState.regQ.toLowerCase().trim();
+  const list = md.reg.filter(r => {
+    if(wmState.regStatus !== 'ALL' && r.status.toLowerCase() !== wmState.regStatus.toLowerCase()) return false;
+    if(wmState.regKondisi !== 'ALL' && r.kondisi !== wmState.regKondisi) return false;
+    if(wmState.regLoc !== 'ALL' && r.lokasi !== wmState.regLoc) return false;
+    return !q || [r.id, r.nama, r.serial, r.po, r.lokasi].join(' ').toLowerCase().includes(q);
+  });
+  const shown = list.slice(0, wmState.regLimit);
+  const locSel = document.getElementById('wmRegLoc');
+  const locs = Array.from(new Set(md.reg.map(r => r.lokasi).filter(Boolean))).sort();
+  locSel.innerHTML = '<option value="ALL">Semua lokasi</option>' + locs.map(l => '<option>' + wmEsc(l) + '</option>').join('');
+  locSel.value = locs.includes(wmState.regLoc) ? wmState.regLoc : 'ALL';
+  document.getElementById('wmRegCount').textContent = list.length + ' dari ' + md.reg.length + ' aset';
+  document.getElementById('wmRegBody').innerHTML = shown.map((r, n) => '<tr class="' + (r.kondisi === 'Rusak' ? 'ap-warn-row' : (n % 2 ? 'wm-zebra' : '')) + '">' +
+    wmTd(wmEsc(r.id)) + wmTd(wmEsc(r.kode)) + wmTd(wmEsc(r.nama)) + wmTd(wmEsc(r.serial)) + wmTd(wmStatusBadge(r.status)) +
+    wmTd(wmKondisiBadge(r.kondisi)) + wmTd(wmEsc(r.lokasi)) + wmTd(wmEsc(r.sub)) + wmTd(wmEsc(r.qty), 'text-align:center;') +
+    wmTd(wmEsc(r.po)) + wmTd(wmFmtDate(r.tgl), 'white-space:nowrap;') + wmTd(wmEsc(r.sumber)) + '</tr>').join('') || wmEmptyRow(12, 'Tidak ada aset yang cocok');
+  const more = document.getElementById('wmRegMore');
+  more.style.display = list.length > shown.length ? '' : 'none';
+  more.textContent = 'Tampilkan lebih banyak (' + (list.length - shown.length) + ' lagi)';
+}
+
+function wmRenderMst(md){
+  const q = wmState.mstQ.toLowerCase().trim();
+  const list = md.master.filter(m => !q || (m.kode + ' ' + m.nama + ' ' + m.kategori).toLowerCase().includes(q));
+  const seedCodes = new Set(WM_SEED_MST.map(a => String(a[0]).toUpperCase()));
+  document.getElementById('wmMstCount').textContent = list.length + ' dari ' + md.master.length + ' kode barang';
+  document.getElementById('wmMstBody').innerHTML = list.map((m, n) => '<tr class="' + (n % 2 ? 'wm-zebra' : '') + '">' +
+    wmTd(wmEsc(m.kode)) + wmTd(wmEsc(m.nama)) + wmTd(wmEsc(m.merk)) + wmTd(wmEsc(m.kategori)) + wmTd(wmCritBadge(m.crit)) +
+    wmTd(wmEsc(m.source)) + wmTd(wmEsc(m.tipe)) + wmTd(wmEsc(m.satuan)) + wmTd(m.min, 'text-align:center;') +
+    wmTd(wmEsc(m.ket), 'max-width:240px;') +
+    wmTd('<button class="pjp-row-edit" data-wm-mst="' + wmEsc(m.kode) + '" title="Edit"><i class="ti ti-pencil"></i></button>' + (seedCodes.has(m.kode.toUpperCase()) ? '' : ' ' + wmBadge('ap-b-blue', 'baru')), 'text-align:right;white-space:nowrap;') + '</tr>').join('') || wmEmptyRow(11, 'Tidak ada kode yang cocok');
+}
+
+function wmRender(){
+  const md = wmModel();
+  document.querySelectorAll('.wm-subtab').forEach(b => b.classList.toggle('active', b.dataset.sub === wmState.sub));
+  document.querySelectorAll('.wm-pane').forEach(p => p.classList.toggle('active', p.id === 'wmPane-' + wmState.sub));
+  wmRenderDash(md); wmRenderInput(md); wmRenderInv(md); wmRenderReg(md); wmRenderMst(md);
+  const lastDate = md.rows.reduce((m, r) => r.date > m ? r.date : m, '');
+  const info = document.getElementById('wmInfo');
+  const pill = document.getElementById('wmInfoPill');
+  if(info){
+    info.textContent = 'R02 · Data terakhir: ' + wmFmtDate(lastDate) + ' · ' + md.rows.length + ' transaksi' + (wmAdded.length ? ' (' + wmAdded.length + ' baru dari HUB)' : '');
+    if(pill){ pill.classList.toggle('ap-pill-error', wmLoaded && !wmLoadOk); if(wmLoaded && !wmLoadOk) pill.title = 'Data tambahan belum bisa dimuat dari server. Tampil: data R02 saja.'; else pill.removeAttribute('title'); }
+  }
+}
+function wmSyncControls(){
+  const set = (id, v) => { const el = document.getElementById(id); if(el) el.value = v; };
+  set('wmInpQ', wmState.inpQ); set('wmInpJenis', wmState.inpJenis); set('wmInpCek', wmState.inpCek);
+  set('wmInvQ', wmState.invQ); set('wmInvCrit', wmState.invCrit); set('wmInvAlert', wmState.invAlert);
+  set('wmRegQ', wmState.regQ); set('wmRegStatus', wmState.regStatus); set('wmRegKondisi', wmState.regKondisi);
+  set('wmMstQ', wmState.mstQ);
+}
+function wmGo(spec){
+  const [t, v] = spec.split(':');
+  if(t === 'reg'){ wmState.sub = 'reg'; wmState.regStatus = v || 'ALL'; wmState.regKondisi = 'ALL'; wmState.regLoc = 'ALL'; wmState.regQ = ''; wmState.regLimit = 100; }
+  else if(t === 'rusak'){ wmState.sub = 'reg'; wmState.regStatus = 'ALL'; wmState.regKondisi = 'Rusak'; wmState.regLoc = 'ALL'; wmState.regQ = ''; }
+  else if(t === 'inv'){ wmState.sub = 'inv'; wmState.invAlert = 'ATTN'; wmState.invCrit = 'ALL'; wmState.invQ = ''; }
+  else if(t === 'cek'){ wmState.sub = 'inp'; wmState.inpCek = 'PERIKSA'; wmState.inpJenis = 'ALL'; wmState.inpQ = ''; wmState.inpLimit = 50; }
+  else if(t === 'inp'){ wmState.sub = 'inp'; wmState.inpCek = 'ALL'; wmState.inpJenis = 'ALL'; wmState.inpQ = ''; }
+  wmSyncControls(); wmRender();
+}
+
+/* ---------- form transaksi ---------- */
+const WM_FORM = [
+  ['date','Tanggal *','date'], ['jenis','Jenis transaksi *','select', WM_JENIS],
+  ['kode','Kode barang','kode'], ['assetId','Asset ID','text'],
+  ['qty','Qty *','number'], ['merk','Merk / model','text'],
+  ['asal','Lokasi asal','loc'], ['tujuan','Lokasi tujuan','loc'],
+  ['sub','Sub-lokasi','text'], ['status','Status aset','select', [''].concat(WM_STATUS)],
+  ['kondisi','Kondisi','select', [''].concat(WM_KONDISI)], ['po','No PO','text'],
+  ['vendor','Vendor','text'], ['eta','ETA','date'],
+  ['ba','No BA / WO','text'], ['pic','PIC','text'],
+  ['serial','Serial number','text'], ['harga','Harga / biaya','text'],
+  ['ket','Keterangan','textarea']
+];
+const WM_AUTO_STATUS = { 'Barang_Masuk':'Spare', 'Pemasangan':'Terpasang', 'Pelepasan':'Dilepas', 'Perbaikan':'Perbaikan', 'Disposal':'Disposal' };
+function wmBuildForm(){
+  const box = document.getElementById('wmTrxForm');
+  box.innerHTML = WM_FORM.map(f => {
+    const id = 'wmF_' + f[0];
+    let ctl;
+    if(f[2] === 'select') ctl = '<select id="' + id + '">' + f[3].map(o => '<option value="' + o + '">' + (o || '-') + '</option>').join('') + '</select>';
+    else if(f[2] === 'textarea') ctl = '<textarea id="' + id + '" rows="2" maxlength="300"></textarea>';
+    else if(f[2] === 'kode') ctl = '<select id="' + id + '"></select>';
+    else if(f[2] === 'loc') ctl = '<input type="text" id="' + id + '" list="wmLocList" maxlength="60">';
+    else if(f[2] === 'number') ctl = '<input type="number" id="' + id + '" min="1" step="1">';
+    else ctl = '<input type="' + f[2] + '" id="' + id + '" maxlength="80">';
+    return '<div class="wm-f' + (f[2] === 'textarea' ? ' full' : '') + '"><label for="' + id + '">' + f[1] + '</label>' + ctl + '</div>';
+  }).join('');
+}
+function wmFormGet(){
+  const o = {};
+  WM_FIELDS.forEach(k => { const el = document.getElementById('wmF_' + k); o[k] = el ? String(el.value).trim() : ''; });
+  return o;
+}
+function wmFormSet(o){
+  WM_FIELDS.forEach(k => { const el = document.getElementById('wmF_' + k); if(el) el.value = o[k] || ''; });
+}
+function wmFormHint(){
+  const md = wmModel();
+  const o = wmFormGet();
+  const m = md.master.find(x => x.kode.toUpperCase() === o.kode.toUpperCase());
+  o.tipe = m ? m.tipe : '';
+  const cek = wmCek(o);
+  const hint = document.getElementById('wmTrxHint');
+  const nama = m ? (m.nama + ' · ' + m.tipe + ' · satuan ' + m.satuan) : '';
+  hint.innerHTML = (nama ? '<b>' + wmEsc(nama) + '</b><br>' : '') + (cek ? 'Cek input: ' + wmCekBadge(cek) : '');
+}
+function wmNextAssetId(kode){
+  const md = wmModel();
+  const pre = kode.toUpperCase() + '-';
+  let mx = 0;
+  md.rows.forEach(r => { if(r.A.indexOf(pre) === 0){ const n = parseInt(r.A.slice(pre.length), 10); if(n > mx) mx = n; } });
+  return kode.toUpperCase() + '-' + String(mx + 1).padStart(3, '0');
+}
+function wmOpenTrx(idx){
+  const md = wmModel();
+  wmEditRow = (idx === null || idx === undefined) ? null : idx;
+  const rec = wmEditRow !== null ? md.rows.find(r => r.i === wmEditRow) : null;
+  document.getElementById('wmTrxTitle').textContent = rec ? 'Edit transaksi ' + (rec.id || '') : 'Tambah transaksi';
+  const kodeSel = document.getElementById('wmF_kode');
+  kodeSel.innerHTML = '<option value="">-</option>' + md.master.map(m => '<option value="' + wmEsc(m.kode) + '">' + wmEsc(m.kode + ' — ' + m.nama) + '</option>').join('');
+  const locs = Array.from(new Set(['WIM Lane 1','WIM Lane 2','WIM Lane 3','Office VISI','VISI HO'].concat(md.rows.map(r => r.tujuan), md.rows.map(r => r.asal)).filter(Boolean)));
+  document.getElementById('wmLocList').innerHTML = locs.map(l => '<option value="' + wmEsc(l) + '">').join('');
+  const today = new Date();
+  const base = rec ? rec : { date: today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0'), jenis:'Barang_Masuk', qty:'1', status:'Spare' };
+  wmFormSet(base);
+  const kEl = document.getElementById('wmF_kode');
+  if(rec && rec.kode && !Array.from(kEl.options).some(o => o.value === rec.kode)) kEl.insertAdjacentHTML('beforeend', '<option value="' + wmEsc(rec.kode) + '">' + wmEsc(rec.kode) + '</option>');
+  kEl.value = rec ? rec.kode : '';
+  document.getElementById('wmTrxDelete').style.display = (rec && !rec.seed) ? '' : 'none';
+  document.getElementById('wmTrxRevert').style.display = (rec && rec.seed && rec.patched) ? '' : 'none';
+  document.getElementById('wmTrxSeedNote').style.display = (rec && rec.seed) ? '' : 'none';
+  wmFormHint();
+  document.getElementById('wmTrxOverlay').classList.add('active');
+}
+function wmCloseTrx(){ document.getElementById('wmTrxOverlay').classList.remove('active'); }
+async function wmFreshOrAbort(){
+  await wmEnsureLoaded(true);
+  if(!wmLoadOk){ showToast('⚠️ Data belum bisa dimuat dari server, perubahan dibatalkan agar data lama tidak tertimpa. Coba lagi.', 'error'); return false; }
+  return true;
+}
+async function wmSaveTrx(){
+  const o = wmFormGet();
+  if(!o.date){ showToast('⚠️ Tanggal wajib diisi', 'error'); return; }
+  if(!o.jenis){ showToast('⚠️ Jenis transaksi wajib diisi', 'error'); return; }
+  if(!(Number(o.qty) > 0)){ showToast('⚠️ Qty harus lebih dari 0', 'error'); return; }
+  if(!o.kode && !o.assetId){ showToast('⚠️ Isi Kode barang atau Asset ID', 'error'); return; }
+  const arr = wmObj2Arr(o);
+  const editIdx = wmEditRow;
+  const btn = document.getElementById('wmTrxSave'); btn.disabled = true;
+  try{
+    if(!(await wmFreshOrAbort())) return;
+    if(editIdx === null){
+      wmAdded.push(arr);
+      await wmSaveChunked(WM_KEYS.added, wmAdded);
+    }else if(editIdx < WM_SEED_TRX.length){
+      wmPatch = wmPatch.filter(p => p[0] !== editIdx); wmPatch.push([editIdx, arr]);
+      await wmSaveChunked(WM_KEYS.patch, wmPatch);
+    }else{
+      const j = editIdx - WM_SEED_TRX.length;
+      if(!wmAdded[j]){ showToast('⚠️ Transaksi tidak ditemukan (mungkin sudah dihapus pengguna lain)', 'error'); return; }
+      wmAdded[j] = arr;
+      await wmSaveChunked(WM_KEYS.added, wmAdded);
+    }
+    wmCloseTrx(); wmRender();
+    showToast('✓ Transaksi tersimpan', 'success');
+  }catch(e){
+    console.error('Stock Management R02: gagal simpan transaksi', e);
+    showToast('⚠️ Gagal menyimpan ke server: ' + (e.message || e), 'error');
+    await wmEnsureLoaded(true); wmRender();
+  }finally{ btn.disabled = false; }
+}
+async function wmDeleteTrx(idx){
+  if(idx === null || idx < WM_SEED_TRX.length) return;
+  if(!confirm('Hapus transaksi ini? ID transaksi baris sesudahnya dapat bergeser.')) return;
+  try{
+    if(!(await wmFreshOrAbort())) return;
+    const j = idx - WM_SEED_TRX.length;
+    if(!wmAdded[j]) return;
+    wmAdded.splice(j, 1);
+    await wmSaveChunked(WM_KEYS.added, wmAdded);
+    wmCloseTrx(); wmRender();
+    showToast('✓ Transaksi dihapus', 'success');
+  }catch(e){
+    console.error('Stock Management R02: gagal hapus transaksi', e);
+    showToast('⚠️ Gagal menghapus: ' + (e.message || e), 'error');
+    await wmEnsureLoaded(true); wmRender();
+  }
+}
+async function wmRevertTrx(){
+  if(wmEditRow === null || wmEditRow >= WM_SEED_TRX.length) return;
+  if(!confirm('Kembalikan baris ini ke data asli R02?')) return;
+  try{
+    if(!(await wmFreshOrAbort())) return;
+    wmPatch = wmPatch.filter(p => p[0] !== wmEditRow);
+    await wmSaveChunked(WM_KEYS.patch, wmPatch);
+    wmCloseTrx(); wmRender();
+    showToast('✓ Baris dikembalikan ke data R02', 'success');
+  }catch(e){
+    showToast('⚠️ Gagal: ' + (e.message || e), 'error');
+    await wmEnsureLoaded(true); wmRender();
+  }
+}
+
+/* ---------- master data ---------- */
+function wmOpenMst(kode){
+  const md = wmModel();
+  const m = kode ? md.master.find(x => x.kode === kode) : null;
+  wmEditMst = m ? m.kode : null;
+  document.getElementById('wmMstTitle').textContent = m ? 'Edit kode barang ' + m.kode : 'Tambah kode barang';
+  const set = (id, v) => { document.getElementById(id).value = v == null ? '' : v; };
+  set('wmM_kode', m ? m.kode : ''); document.getElementById('wmM_kode').disabled = !!m;
+  set('wmM_nama', m ? m.nama : ''); set('wmM_merk', m ? m.merk : ''); set('wmM_kategori', m ? m.kategori : '');
+  set('wmM_crit', m ? m.crit : 'Low'); set('wmM_source', m ? m.source : 'Local'); set('wmM_tipe', m ? m.tipe : 'Consumable');
+  set('wmM_satuan', m ? m.satuan : 'Pcs'); set('wmM_min', m ? m.min : 0); set('wmM_ket', m ? m.ket : '');
+  const cats = Array.from(new Set(md.master.map(x => x.kategori).filter(Boolean)));
+  document.getElementById('wmCatList').innerHTML = cats.map(c => '<option value="' + wmEsc(c) + '">').join('');
+  document.getElementById('wmMstOverlay').classList.add('active');
+}
+function wmCloseMst(){ document.getElementById('wmMstOverlay').classList.remove('active'); }
+async function wmSaveMst(){
+  const v = id => String(document.getElementById(id).value).trim();
+  const kode = v('wmM_kode').toUpperCase();
+  if(!/^[A-Z0-9]{1,8}$/.test(kode)){ showToast('⚠️ Kode barang 1–8 huruf/angka tanpa spasi', 'error'); return; }
+  if(!v('wmM_nama')){ showToast('⚠️ Nama barang wajib diisi', 'error'); return; }
+  const arr = [kode, v('wmM_nama'), v('wmM_merk'), v('wmM_kategori'), v('wmM_crit'), v('wmM_source'), v('wmM_tipe'), v('wmM_satuan'), String(Math.max(0, Number(v('wmM_min')) || 0)), v('wmM_ket')];
+  const btn = document.getElementById('wmMstSave'); btn.disabled = true;
+  try{
+    if(!(await wmFreshOrAbort())) return;
+    const exists = wmMasterList().some(m => m.kode.toUpperCase() === kode);
+    if(wmEditMst === null && exists){ showToast('⚠️ Kode ' + kode + ' sudah ada', 'error'); return; }
+    wmMasterOv = wmMasterOv.filter(a => String(a[0]).toUpperCase() !== kode); wmMasterOv.push(arr);
+    await wmSaveChunked(WM_KEYS.master, wmMasterOv);
+    wmCloseMst(); wmRender();
+    showToast('✓ Master data tersimpan', 'success');
+  }catch(e){
+    console.error('Stock Management R02: gagal simpan master', e);
+    showToast('⚠️ Gagal menyimpan ke server: ' + (e.message || e), 'error');
+    await wmEnsureLoaded(true); wmRender();
+  }finally{ btn.disabled = false; }
+}
+
+/* ---------- binding & entry point ---------- */
+function wmBindOnce(){
+  if(wmBound) return;
+  wmBound = true;
+  wmBuildForm();
+  const $ = id => document.getElementById(id);
+  document.querySelectorAll('.wm-subtab').forEach(b => b.onclick = () => { wmState.sub = b.dataset.sub; wmRender(); });
+  const bindIn = (id, key, lim) => $(id).addEventListener('input', e => { wmState[key] = e.target.value; if(lim) wmState[lim] = lim === 'inpLimit' ? 50 : 100; wmRender(); });
+  bindIn('wmInpQ', 'inpQ', 'inpLimit'); bindIn('wmInpJenis', 'inpJenis', 'inpLimit'); bindIn('wmInpCek', 'inpCek', 'inpLimit');
+  bindIn('wmInvQ', 'invQ'); bindIn('wmInvCrit', 'invCrit'); bindIn('wmInvAlert', 'invAlert');
+  bindIn('wmRegQ', 'regQ', 'regLimit'); bindIn('wmRegStatus', 'regStatus', 'regLimit'); bindIn('wmRegKondisi', 'regKondisi', 'regLimit'); bindIn('wmRegLoc', 'regLoc', 'regLimit');
+  bindIn('wmMstQ', 'mstQ');
+  $('wmInpMore').onclick = () => { wmState.inpLimit += 50; wmRender(); };
+  $('wmRegMore').onclick = () => { wmState.regLimit += 100; wmRender(); };
+  $('wmAddBtn').onclick = () => wmOpenTrx(null);
+  $('wmMstAddBtn').onclick = () => wmOpenMst(null);
+  $('wmReloadBtn').onclick = async () => { $('wmInfo').textContent = 'Memuat ulang dari server...'; await wmEnsureLoaded(true); wmRender(); };
+  $('view-assetplant').addEventListener('click', e => {
+    const go = e.target.closest('[data-wm-go]'); if(go){ wmGo(go.dataset.wmGo); return; }
+    const ed = e.target.closest('[data-wm-edit]'); if(ed){ wmOpenTrx(Number(ed.dataset.wmEdit)); return; }
+    const dl = e.target.closest('[data-wm-del]'); if(dl){ wmDeleteTrx(Number(dl.dataset.wmDel)); return; }
+    const ms = e.target.closest('[data-wm-mst]'); if(ms){ wmOpenMst(ms.dataset.wmMst); return; }
+  });
+  $('wmTrxClose').onclick = wmCloseTrx; $('wmTrxCancel').onclick = wmCloseTrx;
+  $('wmTrxOverlay').onclick = e => { if(e.target.id === 'wmTrxOverlay') wmCloseTrx(); };
+  $('wmTrxSave').onclick = wmSaveTrx;
+  $('wmTrxDelete').onclick = () => wmDeleteTrx(wmEditRow);
+  $('wmTrxRevert').onclick = wmRevertTrx;
+  $('wmMstClose').onclick = wmCloseMst; $('wmMstCancel').onclick = wmCloseMst;
+  $('wmMstOverlay').onclick = e => { if(e.target.id === 'wmMstOverlay') wmCloseMst(); };
+  $('wmMstSave').onclick = wmSaveMst;
+  $('wmTrxForm').addEventListener('input', e => {
+    const id = e.target.id;
+    if(id === 'wmF_jenis' && WM_AUTO_STATUS[e.target.value] !== undefined){
+      const st = $('wmF_status'); if(!st.value || Object.values(WM_AUTO_STATUS).includes(st.value)) st.value = WM_AUTO_STATUS[e.target.value];
+    }
+    if(id === 'wmF_jenis' && e.target.value === 'Mutasi_Aset'){ const st = $('wmF_status'); if(Object.values(WM_AUTO_STATUS).includes(st.value)) st.value = ''; }
+    if(id === 'wmF_kode' || id === 'wmF_jenis'){
+      const k = $('wmF_kode').value;
+      const m = k ? wmMasterList().find(x => x.kode === k) : null;
+      if(m && !$('wmF_assetId').value && $('wmF_jenis').value === 'Barang_Masuk' && m.tipe === 'Serial') $('wmF_assetId').value = wmNextAssetId(k);
+    }
+    wmFormHint();
+  });
+}
+async function renderAssetPlant(){
+  wmBindOnce();
+  wmSyncControls();
+  wmRender();
+  await wmEnsureLoaded(true);
+  wmRender();
+}
+
 const DSO_POB_KEY = 'dso:pob';
 const DSO_POBR_KEY = 'dso:pob-roster'; // status kehadiran tim Digitech (dari Rooster_BIB.xlsx)
 const DSO_POBR_LASTSYNC_KEY = 'dso:pob-roster-lastsync';
@@ -7825,7 +8523,7 @@ async function renderRfid(){
 /* ================= WIMA: pengumpul data ringkasan (dipakai Overview & ringkasan suara) ================= */
 async function wimaGatherOverviewData(){
   const avail = await dsoLoad(DSO_AVAIL_KEY, dsoDefaults().availability);
-  const assets = await dsoLoad(DSO_ASSETS_KEY, dsoDefaults().assets);
+  const assets = await wmLegacyAssets();
   const pob = await dsoLoad(DSO_POB_KEY, dsoDefaults().pob);
 
   await loadFollowUp();
@@ -7834,7 +8532,7 @@ async function wimaGatherOverviewData(){
   await tlEnsureStatuses();
   await loadOpenPoint();
 
-  const stockOut = apMigrateAll(assets).filter(a => (Number(a.newStock)||0) + (Number(a.exSecond)||0) === 0).length;
+  const stockOut = assets.filter(a => a.status === 'red').length;
   const pobTotal = Number(pob.employees||0) + Number(pob.contractors||0);
 
   const inspectionActive = followUpItems.filter(it => it.status === 'Open' || it.status === 'Onprogress').length;
@@ -8390,61 +9088,6 @@ function apApplyFilters(){
   document.querySelectorAll('.ap-kpi[data-filter]').forEach(card => {
     card.classList.toggle('active', !!card.dataset.filter && card.dataset.filter === cat);
   });
-}
-
-async function renderAssetPlant(autoSync){
-  apAssetsData = await dsoLoad(DSO_ASSETS_KEY, dsoDefaults().assets);
-  apAssetsData = apMigrateAll(apAssetsData);
-  const assets = apAssetsData;
-
-  apRenderKpis(assets);
-  apRenderChart(assets);
-  apApplyFilters();
-
-  const searchEl = document.getElementById('apSearchInput');
-  if(searchEl && !searchEl.dataset.bound){
-    searchEl.dataset.bound = '1';
-    searchEl.addEventListener('keyup', apApplyFilters);
-  }
-  const catFilterEl = document.getElementById('apCategoryFilter');
-  if(catFilterEl && !catFilterEl.dataset.bound){
-    catFilterEl.dataset.bound = '1';
-    catFilterEl.addEventListener('change', apApplyFilters);
-  }
-
-  document.getElementById('apAddBtn').onclick = () => apOpenModal(null);
-  const sheetEditBtn = document.getElementById('stockSheetEditBtn');
-  if(sheetEditBtn && !sheetEditBtn.dataset.bound){
-    sheetEditBtn.dataset.bound = '1';
-    sheetEditBtn.onclick = (e) => { e.stopPropagation(); apEditSheetLink(); };
-  }
-  const sheetLinkBtn = document.getElementById('stockSheetLinkBtn');
-  if(sheetLinkBtn && !sheetLinkBtn.dataset.bound){
-    sheetLinkBtn.dataset.bound = '1';
-    sheetLinkBtn.onclick = (e) => e.stopPropagation();
-  }
-  apUpdateSheetBadge();
-  document.getElementById('apModalCloseBtn').onclick = () => document.getElementById('apModalOverlay').classList.remove('active');
-  document.getElementById('apCancelBtn').onclick = () => document.getElementById('apModalOverlay').classList.remove('active');
-  document.getElementById('apModalOverlay').onclick = (e) => { if(e.target.id === 'apModalOverlay') e.currentTarget.classList.remove('active'); };
-  document.getElementById('apSaveBtn').onclick = apSaveModal;
-  document.getElementById('apDeleteBtn').onclick = apDeleteCurrent;
-  const syncBtn = document.getElementById('apSyncBtn');
-  if(syncBtn && !syncBtn.dataset.bound){
-    syncBtn.dataset.bound = '1';
-    syncBtn.onclick = () => syncStockFromSheet(true);
-  }
-  const infoEl = document.getElementById('apSyncInfo');
-  if(infoEl && !infoEl.dataset.loaded){
-    infoEl.dataset.loaded = '1';
-    dsoLoad(DSO_STOCK_LASTSYNC_KEY, null).then(iso => {
-      if(iso) infoEl.textContent = 'Sync terakhir: ' + new Date(iso).toLocaleString('id-ID');
-    });
-  }
-  if(autoSync !== false && !renderAssetPlant._autoSynced){
-    renderAssetPlant._autoSynced = true;
-    syncStockFromSheet(false);
-  }
 }
 
 function apOpenModal(idx){
