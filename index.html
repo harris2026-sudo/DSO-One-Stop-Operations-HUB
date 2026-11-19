@@ -4065,7 +4065,7 @@ function showConnectionErrorBanner(key, msg){
   if(typeof setSyncState === 'function') setSyncState('error');
   if (_connectionErrorShown){
     const popup = document.getElementById('connErrorPopup');
-    if(popup) popup.querySelector('.cep-msg').textContent = buildConnErrorMsg(msg);
+    if(popup) popup.querySelector('.cep-msg').innerHTML = buildConnErrorMsg(msg);
     return;
   }
   _connectionErrorShown = true;
@@ -4093,7 +4093,12 @@ function showConnectionErrorBanner(key, msg){
   document.body.appendChild(popup);
 }
 function buildConnErrorMsg(msg){
-  return '⚠️ Gagal memuat data dari server (' + msg + '). Data yang tampil di layar <b>BUKAN</b> data aslimu — data aslimu di Google Sheets AMAN. Coba refresh / buka lewat GitHub Pages, bukan file lokal.';
+  const m = String(msg == null ? '' : msg);
+  const isNet = /NetworkError|Failed to fetch|Load failed|network error/i.test(m);
+  const hint = isNet
+    ? '<br><br><b>Kemungkinan penyebab:</b> server (Cloudflare Worker) tidak terjangkau dari browser/jaringan ini — cek koneksi internet / VPN / proxy kantor, matikan sementara ekstensi adblock/privacy untuk situs ini, atau cek kuota harian Worker di Cloudflare.'
+    : '';
+  return '⚠️ Gagal memuat data dari server (' + escapeHtml(m) + '). Data yang tampil di layar <b>BUKAN</b> data aslimu — data aslimu AMAN di server. Coba refresh / buka lewat GitHub Pages, bukan file lokal.' + hint;
 }
 
 /* Banner peringatan kalau backend belum dikonfigurasi */
