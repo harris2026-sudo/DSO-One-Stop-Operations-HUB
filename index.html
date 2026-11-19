@@ -1780,6 +1780,32 @@
   .wm-hint{margin-top:10px;font-size:11.5px;color:var(--text-secondary);min-height:16px;}
   @media(max-width:900px){.wm-kpis{grid-template-columns:repeat(2,1fr);}.wm-grid2,.wm-panduan,.wm-form{grid-template-columns:1fr;}}
 
+  /* --- Dashboard: disamakan dengan sheet DASHBOARD di Asset_Management_WIM_R02.xlsx --- */
+  .wmd-ban{background:#1F3864;border-radius:12px 12px 0 0;padding:14px 18px;}
+  .wmd-ban b{display:block;color:#fff;font-family:var(--font-display);font-size:18px;font-weight:700;letter-spacing:.3px;}
+  .wmd-ban span{color:#BDD7EE;font-size:11px;}
+  .wmd-wrap{background:#F2F2F2;border-radius:0 0 12px 12px;padding:12px;margin-bottom:14px;}
+  .wmd-k4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px;}
+  .wmd-k{background:#fff;border:1px solid #D9D9D9;border-radius:8px;padding:11px 14px;cursor:pointer;transition:transform .15s,box-shadow .15s;}
+  .wmd-k:hover{transform:translateY(-2px);box-shadow:0 8px 16px rgba(15,27,44,.10);}
+  .wmd-k .l{font-size:9.5px;font-weight:700;color:#7F7F7F;letter-spacing:.4px;}
+  .wmd-k .v{font-family:var(--font-display);font-size:28px;font-weight:700;line-height:1.15;margin-top:2px;}
+  .wmd-k .s{font-size:10px;color:#808080;margin-top:2px;}
+  .wmd-g{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;}
+  .wmd-c{background:#fff;border:1px solid #D9D9D9;border-radius:8px;padding:12px 14px;min-width:0;}
+  .wmd-c h4{margin:0 0 8px;font-family:var(--font-display);font-size:12px;font-weight:700;color:#1F3864;letter-spacing:.3px;}
+  .wmd-row2{display:grid;grid-template-columns:1fr 1.1fr;gap:12px;align-items:center;}
+  .wmd-t{width:100%;border-collapse:collapse;font-size:11.5px;color:#262626;}
+  .wmd-t th{background:#1F3864;color:#fff;text-align:left;font-weight:600;padding:6px 8px;font-size:10.5px;white-space:nowrap;}
+  .wmd-t td{padding:5px 8px;border-bottom:1px solid #E7E6E6;}
+  .wmd-t tr.t td{font-weight:700;background:#F2F2F2;}
+  .wmd-sw{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px;vertical-align:-1px;}
+  .wmd-al{padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;}
+  .wmd-ch{text-align:center;min-width:0;}
+  .wmd-ct{font-size:10.5px;font-weight:700;color:#1F3864;margin-bottom:4px;}
+  .wmd-n{font-size:10px;color:#808080;margin-top:6px;}
+  @media(max-width:900px){.wmd-k4{grid-template-columns:repeat(2,1fr);}.wmd-g,.wmd-row2{grid-template-columns:1fr;}}
+
   /* ================= PENILAIAN JASA PERTAMBANGAN (PJP) ================= */
   .ap-b-black{background:var(--black-bg);color:var(--black-fg);}
   .pjp-toolbar{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px;margin-bottom:14px;}
@@ -6345,6 +6371,38 @@ function wmEmptyRow(cols, text){ return '<tr><td colspan="' + cols + '" style="p
 function wmEsc(v){ return escapeHtml(v == null ? '' : String(v)); }
 
 /* ---------- render ---------- */
+function wmDonutSvg(items){
+  const tot = items.reduce((s, x) => s + x[1], 0);
+  const R = 40, C = 2 * Math.PI * R;
+  let off = 0, segs = '';
+  if(tot > 0) items.forEach(x => {
+    if(!x[1]) return;
+    const len = x[1] / tot * C;
+    segs += '<circle cx="60" cy="60" r="' + R + '" fill="none" stroke="' + x[2] + '" stroke-width="22" stroke-dasharray="' + len.toFixed(2) + ' ' + (C - len).toFixed(2) + '" stroke-dashoffset="' + (-off).toFixed(2) + '" transform="rotate(-90 60 60)"><title>' + wmEsc(x[0]) + ': ' + x[1] + ' (' + Math.round(x[1] / tot * 100) + '%)</title></circle>';
+    off += len;
+  });
+  else segs = '<circle cx="60" cy="60" r="' + R + '" fill="none" stroke="#E7E6E6" stroke-width="22"/>';
+  return '<svg viewBox="0 0 120 120" role="img" aria-label="Komposisi status aset" style="width:100%;max-width:150px;height:auto;">' + segs +
+    '<text x="60" y="58" text-anchor="middle" font-size="16" font-weight="700" fill="#1F3864">' + tot + '</text><text x="60" y="71" text-anchor="middle" font-size="7" fill="#808080">aset</text></svg>';
+}
+function wmBarSvg(lanes){
+  const W = 260, H = 150, pl = 24, pb = 34, pt = 14;
+  const mx = Math.max(1, ...lanes.map(l => Math.max(l[1], l[2])));
+  const step = Math.pow(10, Math.floor(Math.log10(mx))); const top = Math.ceil(mx / step) * step;
+  const ih = H - pb - pt, gw = (W - pl - 6) / Math.max(1, lanes.length), bw = Math.min(22, gw / 3);
+  let s = '';
+  [0, .5, 1].forEach(f => { const y = pt + ih - f * ih; s += '<line x1="' + pl + '" x2="' + (W - 4) + '" y1="' + y + '" y2="' + y + '" stroke="#E7E6E6"/><text x="' + (pl - 4) + '" y="' + (y + 3) + '" text-anchor="end" font-size="8" fill="#808080">' + Math.round(top * f) + '</text>'; });
+  lanes.forEach((l, i) => {
+    const cx = pl + gw * i + gw / 2;
+    [[l[1], '#2E75B6', -bw - 1], [l[2], '#C00000', 1]].forEach(b => {
+      const h = b[0] / top * ih, x = cx + b[2], y = pt + ih - h;
+      s += '<rect x="' + x + '" y="' + y + '" width="' + bw + '" height="' + h + '" fill="' + b[1] + '"><title>' + wmEsc(l[0]) + ': ' + b[0] + '</title></rect><text x="' + (x + bw / 2) + '" y="' + (y - 2) + '" text-anchor="middle" font-size="8" fill="#262626">' + b[0] + '</text>';
+    });
+    s += '<text x="' + cx + '" y="' + (H - pb + 12) + '" text-anchor="middle" font-size="8.5" fill="#262626">' + wmEsc(l[0].replace('WIM ', '')) + '</text>';
+  });
+  s += '<rect x="' + (W / 2 - 52) + '" y="' + (H - 9) + '" width="8" height="8" fill="#2E75B6"/><text x="' + (W / 2 - 41) + '" y="' + (H - 2) + '" font-size="8.5" fill="#262626">Terpasang</text><rect x="' + (W / 2 + 12) + '" y="' + (H - 9) + '" width="8" height="8" fill="#C00000"/><text x="' + (W / 2 + 23) + '" y="' + (H - 2) + '" font-size="8.5" fill="#262626">Rusak</text>';
+  return '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Aset per lane" style="width:100%;height:auto;">' + s + '</svg>';
+}
 function wmRenderDash(md){
   const { rows, inv, reg } = md;
   const cnt = s => reg.filter(r => r.status.toLowerCase() === s.toLowerCase()).length;
@@ -6358,46 +6416,38 @@ function wmRenderDash(md){
   const now = new Date();
   const first = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-01';
   const bulanIni = nonAwal.filter(r => r.date >= first).length;
-  const kpi = (cls, lab, val, sub, go) => '<div class="ap-kpi ' + cls + '" data-wm-go="' + go + '" style="cursor:pointer;"><div class="lab">' + lab + '</div><div class="val">' + val + '</div><div class="sub">' + sub + '</div></div>';
-  let h = '<div class="wm-kpis">' +
-    kpi('neu', 'Total aset', total, 'Unit terdaftar di register', 'reg:ALL') +
-    kpi('ok', 'Aset terpasang', terpasang, (total ? Math.round(terpasang / total * 100) : 0) + '% dari total aset', 'reg:Terpasang') +
-    kpi('neu', 'Aset spare', spare, 'Siap dipakai', 'reg:Spare') +
-    kpi('neu', 'Aset dilepas', dilepas, ho + ' dikirim ke HO', 'reg:Dilepas') + '</div>' +
-    '<div class="wm-kpis">' +
-    kpi(rusak ? 'crit' : 'ok', 'Kondisi rusak', rusak, perbaikan + ' sedang perbaikan', 'rusak') +
-    kpi(attn.length ? 'med' : 'ok', 'Item reorder / kosong', attn.length, kosong + ' item stok kosong', 'inv') +
-    kpi(cek ? 'med' : 'ok', 'Input perlu cek', cek, 'Baris perlu dilengkapi', 'cek') +
-    kpi('neu', 'Transaksi baru', nonAwal.length, bulanIni + ' bulan ini', 'inp') + '</div>';
+  const lastDate = rows.reduce((m, r) => r.date > m ? r.date : m, '');
+  const kpi = (lab, val, color, sub, go) => '<div class="wmd-k" data-wm-go="' + go + '"><div class="l">' + lab + '</div><div class="v" style="color:' + color + ';">' + val + '</div><div class="s">' + sub + '</div></div>';
+  let h = '<div class="wmd-ban"><b>WIM ASSET MANAGEMENT DASHBOARD</b><span>R02 • Data terakhir: ' + wmFmtDate(lastDate) + ' • Sumber: Input Data, Register Aset, Inventory</span></div><div class="wmd-wrap">' +
+    '<div class="wmd-k4">' +
+    kpi('TOTAL ASET', total, '#2E75B6', 'Unit terdaftar di register', 'reg:ALL') +
+    kpi('ASET TERPASANG', terpasang, '#70AD47', (total ? Math.round(terpasang / total * 100) : 0) + '% dari total aset', 'reg:Terpasang') +
+    kpi('ASET SPARE', spare, '#00B0F0', 'Siap dipakai', 'reg:Spare') +
+    kpi('ASET DILEPAS', dilepas, '#ED7D31', ho + ' dikirim ke HO', 'reg:Dilepas') + '</div>' +
+    '<div class="wmd-k4">' +
+    kpi('KONDISI RUSAK', rusak, '#C00000', perbaikan + ' sedang perbaikan', 'rusak') +
+    kpi('ITEM REORDER / KOSONG', attn.length, '#BF8F00', kosong + ' item stok kosong', 'inv') +
+    kpi('INPUT PERLU CEK', cek, '#7030A0', 'Baris perlu dilengkapi', 'cek') +
+    kpi('TRANSAKSI BARU', nonAwal.length, '#1F3864', bulanIni + ' bulan ini', 'inp') + '</div>';
 
-  const stList = ['Terpasang','Spare','Dilepas','Dikirim ke HO','Perbaikan','Disposal'];
-  const stHtml = stList.map(s => {
-    const n = cnt(s);
-    return '<div class="wm-bar-row" data-wm-go="reg:' + s + '"><span class="nm">' + s + '</span><div class="wm-bar"><i style="width:' + (total ? Math.round(n / total * 100) : 0) + '%"></i></div><span class="n">' + n + '</span></div>';
-  }).join('') + '<div class="wm-bar-row total"><span class="nm">Total</span><span style="flex:1"></span><span class="n">' + stList.reduce((s, x) => s + cnt(x), 0) + '</span></div>';
+  const ST = [['Terpasang','#2E75B6'], ['Spare','#00B0F0'], ['Dilepas','#ED7D31'], ['Dikirim ke HO','#A5A5A5'], ['Perbaikan','#FFC000'], ['Disposal','#C00000']].map(s => [s[0], cnt(s[0]), s[1]]);
+  const stRows = ST.map(s => '<tr data-wm-go="reg:' + s[0] + '" style="cursor:pointer;"><td><span class="wmd-sw" style="background:' + s[2] + ';"></span>' + s[0] + '</td><td>' + s[1] + '</td></tr>').join('') +
+    '<tr class="t"><td>Total</td><td>' + ST.reduce((a, s) => a + s[1], 0) + '</td></tr>';
+  const laneNames = Array.from(new Set(['WIM Lane 1','WIM Lane 2','WIM Lane 3'].concat(reg.map(r => r.lokasi).filter(l => /^WIM Lane/i.test(l))))).sort();
+  const LN = laneNames.map(l => [l, reg.filter(r => r.lokasi === l && r.status.toLowerCase() === 'terpasang').length, reg.filter(r => r.lokasi === l && r.kondisi === 'Rusak').length]);
+  const lnRows = LN.map(l => '<tr><td>' + wmEsc(l[0]) + '</td><td>' + l[1] + '</td><td>' + l[2] + '</td></tr>').join('');
+  const alStyle = a => a === 'Kosong' ? 'background:#FF0000;color:#fff;' : a === 'Stok Negatif' ? 'background:#C00000;color:#fff;' : 'background:#FFC000;color:#000;';
+  const rq = attn.slice(0, 10).map(r => '<tr><td>' + wmEsc(r.kode) + '</td><td>' + wmEsc(r.nama) + '</td><td' + (r.crit === 'Critical' ? ' style="background:#FCE4D6;color:#C00000;"' : '') + '>' + wmEsc(r.crit) + '</td><td>' + r.stok + ' / ' + r.min + '</td><td><span class="wmd-al" style="' + alStyle(r.alert) + '">' + r.alert + '</span></td></tr>').join('');
+  const tr = nonAwal.slice(-10).reverse().map(r => '<tr><td>' + wmFmtDate(r.date) + '</td><td>' + wmEsc(r.jenis) + '</td><td>' + wmEsc(r.assetId || '-') + '</td><td>' + wmEsc(r.kode) + '</td><td>' + wmEsc(r.tujuan || '-') + '</td></tr>').join('');
 
-  const lanes = Array.from(new Set(['WIM Lane 1','WIM Lane 2','WIM Lane 3'].concat(reg.map(r => r.lokasi).filter(l => /^WIM Lane/i.test(l))))).sort();
-  const laneHtml = lanes.map(l => {
-    const t = reg.filter(r => r.lokasi === l && r.status.toLowerCase() === 'terpasang').length;
-    const x = reg.filter(r => r.lokasi === l && r.kondisi === 'Rusak').length;
-    return '<tr>' + wmTd(wmEsc(l)) + wmTd(t, 'text-align:center;') + wmTd(x ? wmBadge('ap-b-red', x) : '<span class="ap-num-muted">0</span>', 'text-align:center;') + '</tr>';
-  }).join('');
-
-  const reorder = attn.slice(0, 10).map(r => '<tr>' + wmTd(wmEsc(r.kode)) + wmTd(wmEsc(r.nama)) + wmTd(wmCritBadge(r.crit)) +
-    wmTd(r.stok + ' / ' + r.min, 'text-align:center;') + wmTd(wmAlertBadge(r.alert)) + '</tr>').join('');
-  const latest = nonAwal.slice(-10).reverse().map(r => '<tr>' + wmTd(wmFmtDate(r.date)) + wmTd(wmEsc(r.jenis)) + wmTd(wmEsc(r.assetId || '-')) +
-    wmTd(wmEsc(r.kode)) + wmTd(wmEsc(r.tujuan || '-')) + '</tr>').join('');
-  const th = t => '<th style="padding:8px;font-weight:600;">' + t + '</th>';
-  const thead = cols => '<thead><tr style="text-align:left;background:var(--navy);color:#fff;">' + cols.map(th).join('') + '</tr></thead>';
-
-  h += '<div class="wm-grid2">' +
-    '<div class="ap-chart-card"><h3><i class="ti ti-chart-bar"></i> Status aset</h3>' + stHtml + '</div>' +
-    '<div class="ap-chart-card"><h3><i class="ti ti-road"></i> Monitoring per lane</h3><table class="wm-mini">' + thead(['Lokasi','Terpasang','Rusak']) + '<tbody>' + laneHtml + '</tbody></table></div></div>' +
-    '<div class="wm-grid2">' +
-    '<div class="ap-chart-card"><h3><i class="ti ti-alert-triangle"></i> Item perlu reorder / kosong</h3><div class="ap-table-scroll"><table class="wm-mini">' + thead(['Kode','Nama barang','Criticality','Stok / min','Alert']) + '<tbody>' + (reorder || wmEmptyRow(5, 'Semua stok aman')) + '</tbody></table></div>' +
-    '<p class="wm-note">Menampilkan maks. 10 dari ' + attn.length + ' item. Daftar lengkap di tab Inventory.</p></div>' +
-    '<div class="ap-chart-card"><h3><i class="ti ti-history"></i> Transaksi terbaru</h3><div class="ap-table-scroll"><table class="wm-mini">' + thead(['Tanggal','Jenis','Asset ID','Kode','Lokasi tujuan']) + '<tbody>' + (latest || wmEmptyRow(5, 'Belum ada transaksi')) + '</tbody></table></div>' +
-    '<p class="wm-note">10 transaksi terakhir yang diinput (tanpa Saldo_Awal). Detail di tab Input Data.</p></div></div>';
+  h += '<div class="wmd-g">' +
+    '<div class="wmd-c"><h4>STATUS ASET</h4><div class="wmd-row2"><table class="wmd-t"><thead><tr><th>Status</th><th>Jumlah</th></tr></thead><tbody>' + stRows + '</tbody></table><div class="wmd-ch"><div class="wmd-ct">Komposisi Status Aset</div>' + wmDonutSvg(ST) + '</div></div></div>' +
+    '<div class="wmd-c"><h4>MONITORING PER LANE</h4><div class="wmd-row2"><table class="wmd-t"><thead><tr><th>Lokasi</th><th>Terpasang</th><th>Rusak</th></tr></thead><tbody>' + lnRows + '</tbody></table><div class="wmd-ch"><div class="wmd-ct">Aset per Lane</div>' + wmBarSvg(LN) + '</div></div></div></div>' +
+    '<div class="wmd-g">' +
+    '<div class="wmd-c"><h4>ITEM PERLU REORDER / KOSONG</h4><div class="ap-table-scroll"><table class="wmd-t"><thead><tr><th>Kode</th><th>Nama barang</th><th>Criticality</th><th>Stok / min</th><th>Alert</th></tr></thead><tbody>' + (rq || '<tr><td colspan="5" style="text-align:center;color:#808080;">Semua stok aman</td></tr>') + '</tbody></table></div>' +
+    '<div class="wmd-n">Menampilkan maks. 10 dari ' + attn.length + ' item. Daftar lengkap di tab Inventory.</div></div>' +
+    '<div class="wmd-c"><h4>TRANSAKSI TERBARU</h4><div class="ap-table-scroll"><table class="wmd-t"><thead><tr><th>Tanggal</th><th>Jenis</th><th>Asset ID</th><th>Kode</th><th>Lokasi tujuan</th></tr></thead><tbody>' + (tr || '<tr><td colspan="5" style="text-align:center;color:#808080;">Belum ada transaksi</td></tr>') + '</tbody></table></div>' +
+    '<div class="wmd-n">10 transaksi terakhir yang diinput (tanpa Saldo_Awal). Detail di tab Input Data.</div></div></div></div>';
   document.getElementById('wmDash').innerHTML = h;
 }
 
